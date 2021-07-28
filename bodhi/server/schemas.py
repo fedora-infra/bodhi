@@ -437,6 +437,10 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
         colander.String(),
         missing=None,
     )
+    eol = colander.SchemaNode(
+        colander.Date(),
+        missing=None,
+    )
 
 
 class ListUserSchema(PaginatedSchema, SearchableSchema):

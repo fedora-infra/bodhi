@@ -33,7 +33,6 @@ import munch
 
 from bodhi.client import bindings
 
-
 log = logging.getLogger(__name__)
 
 
@@ -176,6 +175,8 @@ release_options = [
     click.option('--branch', help='Git branch name (eg: f20)'),
     click.option('--dist-tag', help='Koji dist tag (eg: f20)'),
     click.option('--stable-tag', help='Koji stable tag (eg: f20-updates)'),
+    click.option('--eol', type=click.DateTime(formats=["%Y-%m-%d"]),
+                 help='Release end-of-life date (eg. 2016-06-14)'),
     click.option('--testing-tag',
                  help='Koji testing tag (eg: f20-updates-testing)'),
     click.option('--candidate-tag',
@@ -1191,7 +1192,10 @@ def create_release(user: str, password: str, url: str, debug: bool, composed_by_
                                   staging=kwargs['staging'], openid_api=openid_api)
     kwargs['csrf_token'] = client.csrf()
     kwargs['composed_by_bodhi'] = composed_by_bodhi
-
+    if 'eol' in kwargs:
+        kwargs['eol'] = kwargs.pop('eol').date() if kwargs['eol'] else None
+    else:
+        kwargs['eol'] = None
     save(client, **kwargs)
 
 
@@ -1208,6 +1212,11 @@ def edit_release(user: str, password: str, url: str, debug: bool, composed_by_bo
     csrf = client.csrf()
 
     edited = kwargs.pop('name')
+
+    if 'eol' in kwargs:
+        kwargs['eol'] = kwargs.pop('eol').date() if kwargs['eol'] else None
+    else:
+        kwargs['eol'] = None
 
     if edited is None:
         click.echo("ERROR: Please specify the name of the release to edit", err=True)
@@ -1356,6 +1365,7 @@ def print_release(release: munch.Munch):
     click.echo(f"  Create Automatic Updates: {release['create_automatic_updates']}")
     click.echo(f"  Package Manager:          {release['package_manager']}")
     click.echo(f"  Testing Repository:       {release['testing_repository']}")
+    click.echo(f"  End of Life:              {release['eol']}")
 
 
 def print_errors(data: munch.Munch):

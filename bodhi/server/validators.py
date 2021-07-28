@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A collection of validators for Bodhi requests."""
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from functools import wraps
 
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
@@ -1212,6 +1212,28 @@ def _validate_override_build(request, nvr, db):
         db.flush()
 
     return build
+
+
+@postschema_validator
+def validate_eol_date(request, **kwargs):
+    """
+    Ensure the end-of-life date is in the right format.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    eol_date = request.validated.get('eol')
+    if eol_date is None:
+        return
+
+    if not date(2100, 1, 1) > eol_date > date(1999, 1, 1):
+        request.errors.add(
+            'body',
+            'eol',
+            'End-of-life date may not be in the right range of years (2000-2100)')
+
+        return
 
 
 @postschema_validator

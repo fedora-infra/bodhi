@@ -57,7 +57,7 @@ EXAMPLE_COMMENT_MUNCH = Munch({
                 'branch': 'f25', 'id_prefix': 'FEDORA',
                 'pending_testing_tag': 'f25-updates-testing-pending',
                 'stable_tag': 'f25-updates', 'candidate_tag': 'f25-updates-candidate',
-                'package_manager': 'unspecified', 'testing_repository': None})}),
+                'package_manager': 'unspecified', 'testing_repository': None, 'eol': None})}),
         'update_id': 79733, 'karma': 0, 'text': 'i found $10000',
         'update_title': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'id': 562626,
         'user': Munch({
@@ -104,7 +104,8 @@ EXAMPLE_COMPOSE_MUNCH = Munch({
             'branch': 'epel7', 'id_prefix': 'FEDORA-EPEL',
             'pending_testing_tag': 'epel7-testing-pending', 'stable_tag': 'epel7',
             'candidate_tag': 'epel7-testing-candidate',
-            'package_manager': 'unspecified', 'testing_repository': None}),
+            'package_manager': 'unspecified', 'testing_repository': None,
+            'eol': None}),
         'date_created': '2018-03-15 17:25:22', 'security': True})})
 
 
@@ -125,7 +126,8 @@ EXAMPLE_COMPOSES_MUNCH = Munch({
                 'branch': 'epel7', 'id_prefix': 'FEDORA-EPEL',
                 'pending_testing_tag': 'epel7-testing-pending', 'stable_tag': 'epel7',
                 'candidate_tag': 'epel7-testing-candidate',
-                'package_manager': 'unspecified', 'testing_repository': None}),
+                'package_manager': 'unspecified', 'testing_repository': None,
+                'eol': None}),
             'date_created': '2018-03-15 17:25:22', 'security': True}),
         Munch({
             'release_id': 8, 'content_type': 'rpm',
@@ -142,7 +144,8 @@ EXAMPLE_COMPOSES_MUNCH = Munch({
                 'branch': 'epel7', 'id_prefix': 'FEDORA-EPEL',
                 'pending_testing_tag': 'epel7-testing-pending', 'stable_tag': 'epel7',
                 'candidate_tag': 'epel7-testing-candidate',
-                'package_manager': 'unspecified', 'testing_repository': None}),
+                'package_manager': 'unspecified', 'testing_repository': None,
+                'eol': None}),
             'date_created': '2018-03-15 17:25:22', 'security': False})]})
 
 
@@ -275,7 +278,8 @@ EXAMPLE_QUERY_MUNCH = Munch({
                     'testing_tag': 'f25-updates-testing',
                     'version': '25',
                     'package_manager': 'unspecified',
-                    'testing_repository': None},
+                    'testing_repository': None,
+                    'eol': None},
         'request': None,
         'require_bugs': False,
         'require_testcases': False,
@@ -382,7 +386,8 @@ EXAMPLE_QUERY_MUNCH_MULTI = Munch({
                     'testing_tag': 'f25-updates-testing',
                     'version': '25',
                     'package_manager': 'unspecified',
-                    'testing_repository': None},
+                    'testing_repository': None,
+                    'eol': None},
         'request': None,
         'require_bugs': False,
         'require_testcases': False,
@@ -450,7 +455,8 @@ EXAMPLE_QUERY_MUNCH_MULTI = Munch({
                     'testing_tag': 'f25-updates-testing',
                     'version': '25',
                     'package_manager': 'unspecified',
-                    'testing_repository': None},
+                    'testing_repository': None,
+                    'eol': None},
         'request': None,
         'require_bugs': False,
         'require_testcases': False,
@@ -759,7 +765,7 @@ EXAMPLE_UPDATE_MUNCH = Munch({
         'override_tag': 'epel7-override', 'branch': 'epel7', 'id_prefix': 'FEDORA-EPEL',
         'pending_testing_tag': 'epel7-testing-pending', 'stable_tag': 'epel7',
         'candidate_tag': 'epel7-testing-candidate', 'package_manager': 'unspecified',
-        'testing_repository': None}), 'date_stable': '2016-10-21 13:23:01',
+        'testing_repository': None, 'eol': None}), 'date_stable': '2016-10-21 13:23:01',
     'content_type': 'rpm'})
 
 SINGLE_UPDATE_MUNCH = Munch({
@@ -817,7 +823,7 @@ SINGLE_UPDATE_MUNCH = Munch({
             'override_tag': 'epel7-override', 'branch': 'epel7', 'id_prefix': 'FEDORA-EPEL',
             'pending_testing_tag': 'epel7-testing-pending', 'stable_tag': 'epel7',
             'candidate_tag': 'epel7-testing-candidate', 'package_manager': 'unspecified',
-            'testing_repository': None}), 'date_stable': '2016-10-21 13:23:01',
+            'testing_repository': None, 'eol': None}), 'date_stable': '2016-10-21 13:23:01',
         'content_type': 'rpm'})})
 
 
@@ -831,7 +837,7 @@ EXAMPLE_GET_RELEASE_15 = Munch(
                 'branch': 'f25', 'id_prefix': 'FEDORA',
                 'pending_testing_tag': 'f25-updates-testing-pending',
                 'stable_tag': 'f25-updates', 'candidate_tag': 'f25-updates-candidate',
-                'package_manager': 'unspecified', 'testing_repository': None})],
+                'package_manager': 'unspecified', 'testing_repository': None, 'eol': None})],
      'page': 1})
 
 
@@ -898,7 +904,7 @@ EXAMPLE_RELEASE_MUNCH = Munch({
     'pending_testing_tag': 'f27-updates-testing-pending', 'stable_tag': 'f27-updates',
     'candidate_tag': 'f27-updates-candidate', 'mail_template': 'fedora_errata_template',
     'create_automatic_updates': False, 'package_manager': 'unspecified',
-    'testing_repository': None})
+    'testing_repository': None, 'eol': None})
 
 
 EXPECTED_RELEASE_OUTPUT = """Saved release:
@@ -921,6 +927,7 @@ EXPECTED_RELEASE_OUTPUT = """Saved release:
   Create Automatic Updates: False
   Package Manager:          unspecified
   Testing Repository:       None
+  End of Life:              None
 """
 
 EXAMPLE_ARCHIVED_RELEASE_MUNCH = Munch({
@@ -932,7 +939,7 @@ EXAMPLE_ARCHIVED_RELEASE_MUNCH = Munch({
     'pending_testing_tag': 'f26-updates-testing-pending',
     'candidate_tag': 'f26-updates-candidate', 'stable_tag': 'f26-updates',
     'override_tag': 'f26-override', 'composed_by_bodhi': True,
-    'package_manager': 'unspecified', 'testing_repository': None
+    'package_manager': 'unspecified', 'testing_repository': None, 'eol': None,
 })
 
 EXAMPLE_CURRENT_RELEASE_MUNCH = Munch({
@@ -944,7 +951,7 @@ EXAMPLE_CURRENT_RELEASE_MUNCH = Munch({
     'pending_testing_tag': 'f28-updates-testing-pending',
     'candidate_tag': 'f28-updates-candidate', 'stable_tag': 'f28-updates',
     'override_tag': 'f28-override', 'composed_by_bodhi': True,
-    'package_manager': 'unspecified', 'testing_repository': None
+    'package_manager': 'unspecified', 'testing_repository': None, 'eol': None,
 })
 
 EXAMPLE_PENDING_RELEASE_MUNCH = Munch({
@@ -956,7 +963,7 @@ EXAMPLE_PENDING_RELEASE_MUNCH = Munch({
     'pending_testing_tag': 'f29-updates-testing-pending',
     'candidate_tag': 'f29-updates-candidate', 'stable_tag': 'f29-updates',
     'override_tag': 'f29-override', 'composed_by_bodhi': True,
-    'package_manager': 'unspecified', 'testing_repository': None
+    'package_manager': 'unspecified', 'testing_repository': None, 'eol': None,
 })
 
 EXAMPLE_FROZEN_RELEASE_MUNCH = Munch({
@@ -968,7 +975,7 @@ EXAMPLE_FROZEN_RELEASE_MUNCH = Munch({
     'pending_testing_tag': 'f30-updates-testing-pending',
     'candidate_tag': 'f30-updates-candidate', 'stable_tag': 'f30-updates',
     'override_tag': 'f30-override', 'composed_by_bodhi': True,
-    'package_manager': 'unspecified', 'testing_repository': None
+    'package_manager': 'unspecified', 'testing_repository': None, 'eol': None,
 })
 
 EXAMPLE_RELEASE_MUNCH_NO_ARCHIVED = Munch({

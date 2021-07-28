@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.validators."""
 from unittest import mock
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from cornice.errors import Errors
 from fedora_messaging import api, testing as fml_testing
@@ -494,6 +494,45 @@ class TestValidateExpirationDate(BasePyTestCase):
              'description': 'Expiration date may not be longer than 31'}
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
+
+
+class TestValidateEOLDate(BasePyTestCase):
+    """Test the validate_eol_date() function."""
+
+    def test_none(self):
+        """An eol None should be OK."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {'eol': None}
+
+        validators.validate_eol_date(request)
+
+        assert not len(request.errors)
+
+    def test_out_of_regex(self):
+        """An expiration_date in the past should make it sad."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {
+            'eol': date(3120, 11, 5)}
+
+        validators.validate_eol_date(request)
+
+        assert request.errors == [
+            {'location': 'body', 'name': 'eol',
+             'description': 'End-of-life date may not be in the right range of years (2000-2100)'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
+
+    def test_correct_date(self):
+        """A valid eol date should pass the test."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {'eol': date(2022, 11, 5)}
+
+        validators.validate_eol_date(request)
+
+        assert not len(request.errors)
 
 
 class TestValidateOverrideNotes(BasePyTestCase):

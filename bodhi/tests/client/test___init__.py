@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.client."""
 from unittest import mock
-import datetime
+from datetime import date, datetime, timedelta
 import os
 import platform
 import tempfile
@@ -1406,7 +1406,7 @@ class TestSaveBuildrootOverrides:
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = send_request.mock_calls[0][2]['data']['expiration_date']
-        assert (datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5)
+        assert (datetime.utcnow() - expire_time) < timedelta(seconds=5)
         # There should be two calls to send_request(). The first to save the override, and the
         # second to find out the release tags so the koji wait-repo hint can be printed.
         assert send_request.call_count == 2
@@ -1562,7 +1562,7 @@ class TestSaveBuildrootOverrides:
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = send_request.mock_calls[0][2]['data']['expiration_date']
-        assert (datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5)
+        assert (datetime.utcnow() - expire_time) < timedelta(seconds=5)
         # There should be one calls to send_request().
         assert send_request.call_count == 1
         assert send_request.mock_calls[0] == mock.call(bindings_client,
@@ -2205,7 +2205,7 @@ class TestEditBuildrootOverrides:
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = send_request.mock_calls[0][2]['data']['expiration_date']
-        assert (datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5)
+        assert (datetime.utcnow() - expire_time) < timedelta(seconds=5)
         send_request.assert_called_once_with(
             bindings_client, 'overrides/', verb='POST', auth=True,
             data={
@@ -2302,7 +2302,8 @@ class TestCreate:
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'releases/', verb='POST', auth=True,
-            data={'dist_tag': None, 'csrf_token': 'a_csrf_token', 'staging': False, 'name': 'F27',
+            data={'dist_tag': None, 'csrf_token': 'a_csrf_token', 'staging': False,
+                  'eol': None, 'name': 'F27',
                   'testing_tag': None, 'pending_stable_tag': None, 'long_name': None, 'state': None,
                   'version': None, 'override_tag': None, 'branch': None, 'id_prefix': None,
                   'pending_testing_tag': None, 'pending_signing_tag': None, 'stable_tag': None,
@@ -2370,7 +2371,7 @@ class TestEditRelease:
                   'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                   'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True,
                   'create_automatic_updates': False, 'package_manager': 'unspecified',
-                  'testing_repository': None})
+                  'testing_repository': None, 'eol': None})
         assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -2408,7 +2409,7 @@ class TestEditRelease:
                   'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                   'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True,
                   'create_automatic_updates': False, 'package_manager': 'unspecified',
-                  'testing_repository': None})
+                  'testing_repository': None, 'eol': None})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2480,7 +2481,7 @@ class TestEditRelease:
                   'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                   'mail_template': 'edited_fedora_errata_template', 'composed_by_bodhi': True,
                   'create_automatic_updates': False, 'package_manager': 'unspecified',
-                  'testing_repository': None})
+                  'testing_repository': None, 'eol': None})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2516,7 +2517,7 @@ class TestEditRelease:
                   'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                   'mail_template': 'fedora_errata_template',
                   'composed_by_bodhi': False, 'package_manager': 'unspecified',
-                  'testing_repository': None, 'create_automatic_updates': False})
+                  'testing_repository': None, 'eol': None, 'create_automatic_updates': False})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2552,8 +2553,60 @@ class TestEditRelease:
                   'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                   'mail_template': 'fedora_errata_template',
                   'composed_by_bodhi': True, 'create_automatic_updates': True,
-                  'package_manager': 'unspecified', 'testing_repository': None})
+                'package_manager': 'unspecified', 'testing_repository': None, 'eol': None})
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_RELEASE_MUNCH, autospec=True)
+    def test_edit_eol(self, send_request):
+        """
+        Assert correct behavior while editing the end-of-life date.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit_release, ["--name", "F27", "--eol", "2021-06-14"]
+        )
+
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_RELEASE_OUTPUT
+        bindings_client = send_request.mock_calls[0][1][0]
+        assert send_request.call_count == 2
+        assert send_request.mock_calls[0] == mock.call(
+            bindings_client, "releases/F27", verb="GET", auth=True
+        )
+        assert send_request.mock_calls[1] == mock.call(
+            bindings_client,
+            "releases/",
+            verb="POST",
+            auth=True,
+            data={
+                "dist_tag": "f27",
+                "testing_tag": "f27-updates-testing",
+                "branch": "f27",
+                "pending_stable_tag": "f27-updates-pending",
+                "pending_signing_tag": "f27-signing-pending",
+                "long_name": "Fedora 27",
+                "state": "pending",
+                "version": "27",
+                "name": "F27",
+                "override_tag": "f27-override",
+                "id_prefix": "FEDORA",
+                "composed_by_bodhi": True,
+                "pending_testing_tag": "f27-updates-testing-pending",
+                "stable_tag": "f27-updates",
+                "candidate_tag": "f27-updates-candidate",
+                "mail_template": "fedora_errata_template",
+                "create_automatic_updates": False,
+                "package_manager": "unspecified",
+                "testing_repository": None,
+                "eol": date(2021, 6, 14),
+                "edited": "F27",
+                "csrf_token": "a_csrf_token",
+                "staging": False,
+            },
+        )
 
 class TestInfo:
     """

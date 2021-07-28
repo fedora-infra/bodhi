@@ -1,5 +1,4 @@
 # Copyright © 2011-2019 Red Hat, Inc. and others.
-#
 # This file is part of Bodhi.
 #
 # This program is free software; you can redistribute it and/or
@@ -19,7 +18,7 @@
 
 from collections import defaultdict
 from copy import copy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from textwrap import wrap
 import hashlib
 import json
@@ -31,7 +30,7 @@ import uuid
 from urllib.error import URLError
 
 from simplemediawiki import MediaWiki
-from sqlalchemy import (and_, Boolean, Column, DateTime, event, func, ForeignKey,
+from sqlalchemy import (and_, Boolean, Column, Date, DateTime, event, func, ForeignKey,
                         Integer, or_, Table, Unicode, UnicodeText, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref, validates
@@ -419,8 +418,11 @@ class BodhiBase(object):
             d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
 
         for key, value in d.items():
+
             if isinstance(value, datetime):
                 d[key] = value.strftime('%Y-%m-%d %H:%M:%S')
+            elif isinstance(value, date):
+                d[key] = value.isoformat()
             if isinstance(value, EnumSymbol):
                 d[key] = str(value)
 
@@ -804,6 +806,7 @@ class Release(Base):
             the values defined in :class:`PackageManager`.
         testing_repository (str): The name of repository where updates are placed for
             testing before being pushed to the main repository.
+        eol (str): End-of-life of the release in a datetime.date() format '2020-05-17'.
     """
 
     __tablename__ = 'releases'
@@ -834,6 +837,7 @@ class Release(Base):
 
     package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
     testing_repository = Column(UnicodeText, nullable=True)
+    eol = Column(Date, nullable=True)
 
     # One-to-many relationships
     # builds backref from Build
