@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:33
+FROM registry.fedoraproject.org/fedora:34
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
 RUN dnf install -y \
@@ -29,17 +29,16 @@ RUN pip-3 install \
     alembic \
     cornice_sphinx \
     diff-cover \
-    "docutils<0.17" \
+    docutils \
     flake8 \
     flake8-import-order \
     responses \
     pydocstyle \
     pytest \
     pytest-cov \
-    sphinx \
+    sphinx<4.0 \
     sqlalchemy_schemadisplay \
-# We can remove the following when python3-requests 2.25 will be available in Koji
-    "urllib3<1.26" \
+    urllib3 \
     webtest
 
 # Fake pungi being installed so we can avoid it and all its dependencies
