@@ -161,8 +161,8 @@ node('bodhi') {
 
         try {
             parallel(
-                f32: {test_release('f32')},
-                f33: {test_release('f33')},
+                f33: {test_release('f32')},
+                f34: {test_release('f33')},
                 pip: {test_release('pip')},
                 rawhide: {test_release('rawhide')},
             )
@@ -170,7 +170,7 @@ node('bodhi') {
             failed = error
         }
 
-        def releases = ['f32', 'f33', 'pip', 'rawhide']
+        def releases = ['f33', 'f34', 'pip', 'rawhide']
         for (release in releases) {
             try {
                 bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
