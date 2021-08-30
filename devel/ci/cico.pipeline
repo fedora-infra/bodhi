@@ -161,8 +161,8 @@ node('bodhi') {
 
         try {
             parallel(
-                f33: {test_release('f32')},
-                f34: {test_release('f33')},
+                f33: {test_release('f33')},
+                f34: {test_release('f34')},
                 pip: {test_release('pip')},
                 rawhide: {test_release('rawhide')},
             )
