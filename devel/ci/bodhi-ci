@@ -39,7 +39,9 @@ CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 # This template is used to generate the summary lines that are printed out at the end.
 LABEL_TEMPLATE = '{:>8}-{:<34}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-RELEASES = ('f33', 'f34', 'rawhide', 'pip')
+# TODO: fix #4248 before enabling rawhide again
+# RELEASES = ('f33', 'f34', 'rawhide', 'pip')
+RELEASES = ('f33', 'f34', 'pip')
 INTEGRATION_APPS = ("resultsdb", "waiverdb", "greenwave", "rabbitmq", "ipsilon")
 
 

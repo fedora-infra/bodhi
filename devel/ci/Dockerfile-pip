@@ -20,7 +20,9 @@ RUN dnf install -y \
     python3-libcomps \
     python3-gssapi \
     python3-pip \
-    python3-wheel
+    python3-wheel \
+    python3-whitenoise \
+    python3-prometheus_client
 
 COPY requirements.txt /bodhi/requirements.txt
 
@@ -36,7 +38,7 @@ RUN pip-3 install \
     pydocstyle \
     pytest \
     pytest-cov \
-    sphinx<4.0 \
+    'sphinx<4.0' \
     sqlalchemy_schemadisplay \
     urllib3 \
     webtest

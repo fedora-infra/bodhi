@@ -1,7 +1,10 @@
-FROM registry.fedoraproject.org/fedora:rawhide
+FROM registry.fedoraproject.org/fedora:35
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
-RUN dnf install --disablerepo rawhide-modular -y \
+# RUN echo "fastestmirror=False" >> /etc/dnf/dnf.conf
+# RUN echo "zchunk = False" >> /etc/dnf/dnf.conf
+
+RUN dnf install -y \
     createrepo_c \
     fedora-messaging \
     findutils \
