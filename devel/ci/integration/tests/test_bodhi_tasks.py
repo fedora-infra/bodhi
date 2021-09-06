@@ -120,7 +120,9 @@ def test_update_edit(
     update_alias = find_update()
     bug_id = find_bug()
     # Remove previous task results
-    bodhi_container.execute(["find", "/srv/celery-results", "-type", "f", "-delete"])
+    # bodhi_container.execute(["find", "/srv/celery-results", "-type", "f", "-delete"])
+    celery_tasks = bodhi_container.execute(["ls", "/srv/celery-results"])
+    print(list(celery_tasks))
     cmd = [
         "bodhi",
         "updates",
@@ -138,6 +140,8 @@ def test_update_edit(
         bug_id,
         update_alias,
     ]
+    celery_tasks = bodhi_container.execute(["ls", "/srv/celery-results"])
+    print(list(celery_tasks))
     try:
         bodhi_container.execute(cmd)
     except ConuException as e:
@@ -145,7 +149,7 @@ def test_update_edit(
             print(log.read())
         assert False, str(e)
     try:
-        bodhi_container.execute(["wait-for-file", "-d", "/srv/celery-results"])
+        bodhi_container.execute(["wait-for-file", "/srv/celery-results"])
     except ConuException as e:
         print(f"Waiting for celery results failed, relevant update: {update_alias}")
         raise e
