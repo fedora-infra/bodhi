@@ -8,9 +8,6 @@ pull_request_rules:
   - label!=WIP
   - approved-reviews-by=@fedora-infra/bodhi
   - status-success=DCO
-  - status-success=f32-docs
-  - status-success=f32-unit
-  - status-success=f32-diff-cover
   - status-success=f33-docs
   - status-success=f33-unit
   - status-success=f33-diff-cover
