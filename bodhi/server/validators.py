@@ -1205,7 +1205,8 @@ def validate_expiration_date(request, **kwargs):
     if expiration_date is None:
         return
 
-    now = datetime.utcnow()
+    expiration_date = expiration_date.date()
+    now = datetime.utcnow().date()
 
     if expiration_date <= now:
         request.errors.add('body', 'expiration_date',
@@ -1218,8 +1219,6 @@ def validate_expiration_date(request, **kwargs):
         request.errors.add('body', 'expiration_date',
                            'Expiration date may not be longer than %i' % days)
         return
-
-    request.validated['expiration_date'] = expiration_date
 
 
 @postschema_validator

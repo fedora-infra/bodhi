@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.validators."""
 from unittest import mock
-import datetime
+from datetime import datetime, timedelta
 
 from cornice.errors import Errors
 from fedora_messaging import api, testing as fml_testing
@@ -416,13 +416,38 @@ class TestValidateExpirationDate(BasePyTestCase):
         request = mock.Mock()
         request.errors = Errors()
         request.validated = {
-            'expiration_date': datetime.datetime.utcnow() - datetime.timedelta(days=1)}
+            'expiration_date': datetime.utcnow() - timedelta(days=1)}
 
         validators.validate_expiration_date(request)
 
         assert request.errors == [
             {'location': 'body', 'name': 'expiration_date',
              'description': 'Expiration date in the past'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
+
+    def test_equaltoLimit(self):
+        """An expiration_date equal to the limit should pass the test."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {'expiration_date': datetime.utcnow() + timedelta(days=31)}
+
+        validators.validate_expiration_date(request)
+
+        assert not len(request.errors)
+
+    def test_higherthanLimit(self):
+        """An expiration_date higher than limit should report an error."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {
+            'expiration_date': datetime.utcnow() + timedelta(days=32)}
+
+        validators.validate_expiration_date(request)
+
+        assert request.errors == [
+            {'location': 'body', 'name': 'expiration_date',
+             'description': 'Expiration date may not be longer than 31'}
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 

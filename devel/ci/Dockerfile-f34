@@ -1,5 +1,5 @@
-FROM registry.fedoraproject.org/fedora:32
-LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
+FROM registry.fedoraproject.org/fedora:34
+LABEL maintainer="Tomas Hrcka <thrcka@redhat.com>"
 
 RUN dnf install -y \
     createrepo_c \
@@ -46,6 +46,7 @@ RUN dnf install -y \
     python3-sqlalchemy_schemadisplay \
     python3-waitress \
     python3-webtest \
+    python3-wheel \
     python3-whitenoise \
     python3-yaml &&\
     pip-3 install graphene graphene-sqlalchemy WebOb-GraphQL koji

@@ -1,0 +1,1 @@
+Fixed an issue with validators that prevents inconsistent refusal of bodhi override with maximum duration

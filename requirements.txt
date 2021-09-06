@@ -10,11 +10,9 @@ dogpile.cache
 pyasn1-modules  # Due to an unfortunate dash in its name, installs break if pyasn1 is installed first
 fedora_messaging
 feedgen>=0.7.0
-graphene
-graphene-sqlalchemy
-koji
 jinja2
-markdown>=3.0
+markdown
+koji
 prometheus_client
 psycopg2
 py3dns  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
@@ -28,5 +26,4 @@ PyYAML
 simplemediawiki
 sqlalchemy
 waitress
-WebOb-GraphQL
 whitenoise
