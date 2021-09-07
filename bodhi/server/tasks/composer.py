@@ -646,6 +646,7 @@ class ComposerThread(threading.Thread):
 
     def _mark_status_changes(self):
         """Mark each update's status as fulfilling its request."""
+        eol_sidetags = []
         log.info('Updating update statuses.')
         for update in self.compose.updates:
             now = datetime.utcnow()
@@ -655,8 +656,17 @@ class ComposerThread(threading.Thread):
             elif update.request is UpdateRequest.stable:
                 update.status = UpdateStatus.stable
                 update.date_stable = now
+                if update.from_tag:
+                    eol_sidetags.append(update.from_tag)
             update.date_pushed = now
             update.pushed = True
+
+        log.info('Deleting EOL side-tags.')
+        koji = buildsys.get_session()
+        koji.multicall = True
+        for sidetag in eol_sidetags:
+            koji.deleteTag(sidetag)
+        koji.multiCall()
 
     def _unlock_updates(self):
         """Unlock all the updates and clear their requests."""
