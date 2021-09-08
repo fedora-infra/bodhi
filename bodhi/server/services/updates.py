@@ -754,7 +754,7 @@ def trigger_tests(request):
     else:
         if update.content_type == ContentType.rpm:
             message = update_schemas.UpdateReadyForTestingV1.from_dict(
-                message=update._build_group_test_message()
+                message=update._build_group_test_message(agent=request.user.name, retrigger=True)
             )
             notifications.publish(message)
 
