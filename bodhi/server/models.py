@@ -3684,6 +3684,10 @@ class Update(Base):
             text = config.get('disable_automatic_push_to_stable')
             self.comment(db, text, author='bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma:
+            if config.get('test_gating.required') and not self.test_gating_passed:
+                log.info("%s reached stable karma threshold, but does not meet gating "
+                         "requirements", self.alias)
+                return
             if self.autokarma:
                 log.info("Automatically marking %s as stable", self.alias)
                 self.set_request(db, UpdateRequest.stable, agent)
