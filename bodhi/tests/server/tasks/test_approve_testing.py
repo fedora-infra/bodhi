@@ -646,9 +646,10 @@ class TestMain(BaseTaskTestCase):
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch('bodhi.server.models.Update.add_tag')
     @patch('bodhi.server.models.Update.remove_tag')
+    @patch('bodhi.server.buildsys.DevBuildsys.deleteTag')
     @patch('bodhi.server.models.mail')
     def test_autotime_update_zero_day_in_testing_no_gated_gets_pushed_to_rawhide(
-            self, mail, remove_tag, add_tag, from_side_tag):
+            self, mail, delete_tag, remove_tag, add_tag, from_side_tag):
         """
         Ensure that an autotime update with 0 mandatory_days_in_testing that meets
         the test requirements gets pushed to stable in rawhide.
@@ -689,6 +690,7 @@ class TestMain(BaseTaskTestCase):
 
             assert add_tag.call_args_list == \
                 [call('f17-updates')]
+            assert delete_tag.not_called()
         else:
             assert remove_tag.call_args_list == \
                 [call(f'{from_side_tag}-signing-pending'),
@@ -697,6 +699,10 @@ class TestMain(BaseTaskTestCase):
 
             assert add_tag.call_args_list == \
                 [call('f17-updates')]
+            assert delete_tag.call_args_list == \
+                [call(f'{from_side_tag}-signing-pending'),
+                 call(f'{from_side_tag}-testing-pending'),
+                 call(from_side_tag)]
 
         assert mail.send.call_count == 1
 
