@@ -34,7 +34,6 @@ from bodhi.server.models import (
     ContentType,
     UpdateRequest,
     UpdateStatus,
-    ReleaseState,
     Build,
     Package,
     Release,
@@ -198,11 +197,6 @@ def set_request(request):
     if update.locked:
         request.errors.add('body', 'request',
                            "Can't change request on a locked update")
-        return
-
-    if update.release.state is ReleaseState.archived:
-        request.errors.add('body', 'request',
-                           "Can't change request for an archived release")
         return
 
     if update.status == UpdateStatus.stable and action == UpdateRequest.testing:
