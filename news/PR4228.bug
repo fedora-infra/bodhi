@@ -1,0 +1,1 @@
+Bodhi will now delete the side-tag in Koji when an update is pushed to stable. Builds that were tagged in the side-tag but were not pushed as part of the update will be untagged. This is required to make sure to not leave stale side-tags in the Koji database

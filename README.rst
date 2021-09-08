@@ -44,7 +44,7 @@ If you are interested in contributing to Bodhi, you can read the
 IRC
 ===
 
-Come join us on `Freenode <https://webchat.freenode.net/>`_! We've got two channels:
+Come join us on `Libera <https://www.libera.chat/>`_! We've got two channels:
 
 * #bodhi - We use this channel to discuss upstream bodhi development
 * #fedora-apps - We use this channel to discuss Fedora's Bodhi deployment (it is more generally
