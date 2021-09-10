@@ -422,6 +422,9 @@ def validate_acls(request, **kwargs):
         builds = request.validated['builds']
 
     if 'update' in request.validated:
+        if request.validated['update'].release.state == ReleaseState.archived:
+            request.errors.add('body', 'update', 'cannot edit Update for an archived Release')
+            return
         builds = request.validated['update'].builds
         sidetag = request.validated['update'].from_tag
 

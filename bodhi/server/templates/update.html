@@ -408,7 +408,7 @@ if can_edit and update.release.composed_by_bodhi:
                   </div>
                   % endif
                   % if can_edit and self.util.can_waive_test_results(update):
-                  <div id='waive' class="btn btn-outline-primary btn-sm mt-1 hidden" data-toggle="modal" data-target="#waive_test_results">
+                  <div id='waive' class="btn btn-outline-primary btn-sm mt-1" hidden="true" data-toggle="modal" data-target="#waive_test_results">
                     <span class="fa fa-fw fa-thumbs-up"></span> Waive Test Results
                   </div>
                   % endif
@@ -770,7 +770,7 @@ ${parent.javascript()}
             $('#failed_requirements').append('<li class="list-group-item">' + requirement.testcase + '</li>');
 
             // there is at least one unsatisfied requirement, so show the button to be able to waive.
-            $('#waive').show();
+            $('#waive').removeAttr('hidden');
         });
         % if request.registry.settings.get("test_gating.required") is True:
             if (data['policies_satisfied']) {

@@ -1792,6 +1792,97 @@ class TestRpmBuild(ModelTest):
         assert exception.call_count == 0
         get_rpm_header.assert_called_once_with(self.obj.nvr)
 
+    @mock.patch('bodhi.server.models.log.exception')
+    def test_get_changelog_with_timelimit(self, exception):
+        """Test get_changelog() with time limit."""
+        rpm_header = {
+            'changelogtext': ['- Added a free money feature.', '- Make users ☺'],
+            'release': '1.fc20',
+            'version': '2.1.0',
+            'changelogtime': [1375531200, 1370952000],
+            'description': 'blah blah blah',
+            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1',
+                              'Randy <bowlofeggs@fpo> - 2.0.1-2'],
+            'url': 'http://libseccomp.sourceforge.net',
+            'name': 'libseccomp',
+            'summary': 'Enhanced seccomp library'}
+
+        with mock.patch(
+                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+            changelog = self.obj.get_changelog(timelimit=1371000000)
+
+        # Only one entry should be rendered.
+        assert changelog == (
+            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+             'a free money feature.\n'))
+        # No exception should have been logged.
+        assert exception.call_count == 0
+        get_rpm_header.assert_called_once_with(self.obj.nvr)
+
+    @mock.patch('bodhi.server.models.log.exception')
+    @mock.patch('bodhi.server.models.RpmBuild.get_latest', return_value='libseccomp-2.0.1-2.fc20')
+    def test_get_changelog_with_lastupdate(self, get_latest, exception):
+        """Test get_changelog() with lastupdate set to True."""
+        rpm_headers = [{
+            'changelogtext': ['- Added a free money feature.', '- Make users ☺'],
+            'release': '1.fc20',
+            'version': '2.1.0',
+            'changelogtime': [1375531200, 1370952000],
+            'description': 'blah blah blah',
+            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1',
+                              'Randy <bowlofeggs@fpo> - 2.0.1-2'],
+            'url': 'http://libseccomp.sourceforge.net',
+            'name': 'libseccomp',
+            'summary': 'Enhanced seccomp library'},
+            {
+            'changelogtext': ['- Make users ☺'],
+            'release': '2.fc20',
+            'version': '2.0.1',
+            'changelogtime': [1370952000],
+            'description': 'blah blah blah',
+            'changelogname': ['Randy <bowlofeggs@fpo> - 2.0.1-2'],
+            'url': 'http://libseccomp.sourceforge.net',
+            'name': 'libseccomp',
+            'summary': 'Enhanced seccomp library'}]
+
+        with mock.patch('bodhi.server.models.get_rpm_header') as get_rpm_header:
+            get_rpm_header.side_effect = rpm_headers
+            changelog = self.obj.get_changelog(lastupdate=True)
+
+        # Only the newer entry should be rendered.
+        assert changelog == (
+            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+             'a free money feature.\n'))
+        # No exception should have been logged.
+        assert exception.call_count == 0
+
+    @mock.patch('bodhi.server.models.log.exception')
+    @mock.patch('bodhi.server.models.RpmBuild.get_latest', return_value=None)
+    def test_get_changelog_newpackage(self, get_latest, exception):
+        """Test get_changelog() with a new package."""
+        rpm_header = {
+            'changelogtext': ['- Added a free money feature.', '- Make users ☺'],
+            'release': '1.fc20',
+            'version': '2.1.0',
+            'changelogtime': [1375531200, 1370952000],
+            'description': 'blah blah blah',
+            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1',
+                              'Randy <bowlofeggs@fpo> - 2.0.1-2'],
+            'url': 'http://libseccomp.sourceforge.net',
+            'name': 'libseccomp',
+            'summary': 'Enhanced seccomp library'}
+
+        with mock.patch('bodhi.server.models.get_rpm_header', return_value=rpm_header):
+            changelog = self.obj.get_changelog(lastupdate=True)
+
+        # The full changelog should be rendered, since no previous update exists.
+        assert changelog == (
+            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+             'a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo> - 2.0.1-2\n- Make '
+             'users ☺\n'))
+        # No exception should have been logged.
+        assert exception.call_count == 0
+
     def test_release_relation(self):
         assert self.obj.release.name == "F11"
         assert len(self.obj.release.builds) == 1
@@ -1898,10 +1989,10 @@ class TestUpdateEdit(BasePyTestCase):
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-missing', 'scenario': None},
+                         'type': 'test-result-failed', 'scenario': None},
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-missing', 'scenario': None}]}
+                         'type': 'test-result-failed', 'scenario': None}]}
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -1928,10 +2019,10 @@ class TestUpdateEdit(BasePyTestCase):
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-missing', 'scenario': None},
+                         'type': 'test-result-failed', 'scenario': None},
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-missing', 'scenario': None}]}
+                         'type': 'test-result-failed', 'scenario': None}]}
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -1964,10 +2055,10 @@ class TestUpdateEdit(BasePyTestCase):
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-missing', 'scenario': None},
+                         'type': 'test-result-failed', 'scenario': None},
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-missing', 'scenario': None}]}
+                         'type': 'test-result-failed', 'scenario': None}]}
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -2000,10 +2091,10 @@ class TestUpdateEdit(BasePyTestCase):
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-missing', 'scenario': None},
+                         'type': 'test-result-failed', 'scenario': None},
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-missing', 'scenario': None}]}
+                         'type': 'test-result-failed', 'scenario': None}]}
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -2036,10 +2127,10 @@ class TestUpdateEdit(BasePyTestCase):
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-missing', 'scenario': None},
+                         'type': 'test-result-failed', 'scenario': None},
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-missing', 'scenario': None}]}
+                         'type': 'test-result-failed', 'scenario': None}]}
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -3710,10 +3801,10 @@ class TestUpdate(ModelTest):
                 'unsatisfied_requirements': [
                     {'testcase': 'dist.rpmdeplint',
                      'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                     'type': 'test-result-missing', 'scenario': None},
+                     'type': 'test-result-failed', 'scenario': None},
                     {'testcase': 'dist.rpmdeplint',
                      'item': {'item': self.obj.alias, 'type': 'bodhi_update'},
-                     'type': 'test-result-missing', 'scenario': None}]}
+                     'type': 'test-result-failed', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
             with mock_sends(Message):
                 self.obj.set_request(self.db, UpdateRequest.testing, req.user.name)
@@ -3739,10 +3830,10 @@ class TestUpdate(ModelTest):
                 'unsatisfied_requirements': [
                     {'testcase': 'dist.rpmdeplint',
                      'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                     'type': 'test-result-missing', 'scenario': None},
+                     'type': 'test-result-failed', 'scenario': None},
                     {'testcase': 'dist.rpmdeplint',
                      'item': {'item': self.obj.alias, 'type': 'bodhi_update'},
-                     'type': 'test-result-missing', 'scenario': None}]}
+                     'type': 'test-result-failed', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
             with mock_sends(Message):
                 self.obj.set_request(self.db, UpdateRequest.testing, req.user.name)

@@ -34,7 +34,6 @@ from bodhi.server.models import (
     ContentType,
     UpdateRequest,
     UpdateStatus,
-    ReleaseState,
     Build,
     Package,
     Release,
@@ -198,11 +197,6 @@ def set_request(request):
     if update.locked:
         request.errors.add('body', 'request',
                            "Can't change request on a locked update")
-        return
-
-    if update.release.state is ReleaseState.archived:
-        request.errors.add('body', 'request',
-                           "Can't change request for an archived release")
         return
 
     if update.status == UpdateStatus.stable and action == UpdateRequest.testing:
@@ -754,7 +748,7 @@ def trigger_tests(request):
     else:
         if update.content_type == ContentType.rpm:
             message = update_schemas.UpdateReadyForTestingV1.from_dict(
-                message=update._build_group_test_message()
+                message=update._build_group_test_message(agent=request.user.name, retrigger=True)
             )
             notifications.publish(message)
 

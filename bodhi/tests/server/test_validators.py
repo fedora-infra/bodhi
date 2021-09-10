@@ -291,6 +291,20 @@ class TestValidateAcls(BasePyTestCase):
         validators.validate_acls(mock_request)
         assert not len(mock_request.errors)
 
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    def test_validate_acls_archived_release(self):
+        """ Test validate_acls when trying to edit an Update for an archived Release.
+        """
+        mock_request = self.get_mock_request()
+        mock_request.validated['update'].release.state = models.ReleaseState.archived
+        validators.validate_acls(mock_request)
+        error = [{
+            'location': 'body',
+            'name': 'update',
+            'description': 'cannot edit Update for an archived Release'
+        }]
+        assert mock_request.errors == error
+
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'nonexistent'})
     def test_validate_acls_invalid_acl_system(self):
         """ Test validate_acls when the acl system is invalid.
