@@ -40,6 +40,21 @@ class TestGreenwaveHandler(BasePyTestCase):
                 "subject_type": "koji_build",
                 'policies_satisfied': True,
                 'summary': "all tests have passed",
+                'applicable_policies': [
+                    'kojibuild_bodhipush_no_requirements',
+                    'kojibuild_bodhipush_remoterule',
+                    'bodhiupdate_bodhipush_no_requirements',
+                    'bodhiupdate_bodhipush_openqa'
+                ],
+                'satisfied_requirements': [
+                    {
+                        'result_id': 39603316,
+                        'subject_type': 'bodhi_update',
+                        'testcase': 'update.install_default_update_netinst',
+                        'type': 'test-result-passed'
+                    },
+                ],
+                'unsatisfied_requirements': []
             },
         )
         self.handler = greenwave.GreenwaveHandler()
@@ -72,6 +87,19 @@ class TestGreenwaveHandler(BasePyTestCase):
         update = self.single_build_update
 
         self.sample_message.body["policies_satisfied"] = False
+        self.sample_message.body["summary"] = "1 of 1 required tests failed"
+        self.sample_message.body["satisfied_requirements"] = []
+        self.sample_message.body["unsatisfied_requirements"] = [
+            {
+                'item': {
+                    'type': 'bodhi_update'
+                },
+                'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
+                'subject_type': 'bodhi_update',
+                'testcase': 'update.install_default_update_netinst',
+                'type': 'test-result-failed'
+            }
+        ]
         self.handler(self.sample_message)
         assert update.test_gating_status == models.TestGatingStatus.failed
 
@@ -84,6 +112,8 @@ class TestGreenwaveHandler(BasePyTestCase):
 
         self.sample_message.body["policies_satisfied"] = True
         self.sample_message.body["summary"] = "no tests are required"
+        self.sample_message.body["satisfied_requirements"] = []
+        self.sample_message.body["unsatisfied_requirements"] = []
         self.handler(self.sample_message)
         assert update.test_gating_status == models.TestGatingStatus.ignored
 
@@ -114,7 +144,22 @@ class TestGreenwaveHandler(BasePyTestCase):
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': True,
-                'summary': "all tests have passed"
+                'summary': "All required tests passed",
+                'applicable_policies': [
+                    'kojibuild_bodhipush_no_requirements',
+                    'kojibuild_bodhipush_remoterule',
+                    'bodhiupdate_bodhipush_no_requirements',
+                    'bodhiupdate_bodhipush_openqa'
+                ],
+                'satisfied_requirements': [
+                    {
+                        'result_id': 39603316,
+                        'subject_type': 'bodhi_update',
+                        'testcase': 'update.install_default_update_netinst',
+                        'type': 'test-result-passed'
+                    },
+                ],
+                'unsatisfied_requirements': []
             }
             mock_greenwave.return_value = greenwave_response
             self.handler(self.sample_message)

@@ -1064,7 +1064,7 @@ class TestSetRequest(BasePyTestCase):
 
         assert res.json_body['status'] == 'error'
         assert res.json_body['errors'][0]['description'] == (
-            "Can't change request for an archived release"
+            "cannot edit Update for an archived Release"
         )
 
     @mock.patch(**mock_valid_requirements)
@@ -4096,7 +4096,7 @@ class TestUpdatesService(BasePyTestCase):
 
         assert resp.json['status'] == 'error'
         assert resp.json['errors'][0]['description'] == (
-            "Can't change request for an archived release"
+            "cannot edit Update for an archived Release"
         )
 
     @mock.patch(**mock_failed_taskotron_results)
@@ -5843,7 +5843,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 }
             ],
         }
@@ -5912,7 +5912,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 },
                 {
                     'item': {
@@ -5921,7 +5921,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 }
             ],
         }
@@ -6006,7 +6006,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 },
                 {
                     'item': {
@@ -6015,7 +6015,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 }
             ],
         }
@@ -6088,7 +6088,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 },
                 {
                     'item': {
@@ -6097,7 +6097,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 }
             ],
         }
@@ -6186,7 +6186,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 },
                 {
                     'item': {
@@ -6195,7 +6195,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 }
             ],
         }
