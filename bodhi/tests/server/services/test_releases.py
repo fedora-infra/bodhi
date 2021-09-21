@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+from datetime import datetime, date
 from unittest import mock
 import os
-from datetime import datetime
 
 import webtest
 from fedora_messaging import testing as fml_testing
@@ -49,7 +49,8 @@ class TestReleasesService(base.BasePyTestCase):
             override_tag='f22-override',
             branch='f22',
             package_manager=PackageManager.dnf,
-            testing_repository='updates-testing')
+            testing_repository='updates-testing',
+            eol=date(2016, 6, 14))
 
         self.db.add(release)
         self.db.commit()
@@ -87,6 +88,10 @@ class TestReleasesService(base.BasePyTestCase):
     def test_get_single_release_by_long(self):
         res = self.app.get('/releases/Fedora%2022', headers={'Accept': 'application/json'})
         assert res.json_body['name'] == 'F22'
+
+    def test_get_release_eol(self):
+        res = self.app.get('/releases/Fedora%2022', headers={'Accept': 'application/json'})
+        assert res.json_body['eol'] == '2016-06-14'
 
     def test_list_releases(self):
         res = self.app.get('/releases/')
@@ -189,11 +194,13 @@ class TestReleasesService(base.BasePyTestCase):
                  "override_tag": "f42-override",
                  "package_manager": "dnf",
                  "testing_repository": "updates-testing",
+                 "eol": date(2016, 6, 14),
                  "csrf_token": self.get_csrf_token(),
                  }
         self.app.post("/releases/", attrs, status=200)
 
         attrs.pop('csrf_token')
+        attrs.pop('eol')
 
         r = self.db.query(Release).filter(Release.name == attrs["name"]).one()
 
@@ -287,6 +294,30 @@ class TestReleasesService(base.BasePyTestCase):
                  "pending_testing_tag": "f42-updates-testing-pending",
                  "override_tag": "f42-override",
                  "csrf_token": self.get_csrf_token(),
+                 }
+
+        res = self.app.post("/releases/", attrs, status=400)
+
+        assert res.json == {"status": "error", "errors": [
+            {"location": "body", "name": "release",
+             "description": "Unable to create/edit release: BOOM!"}]}
+        # The release should not have been created.
+        assert self.db.query(Release).filter(Release.name == attrs["name"]).count() == 0
+        info.assert_called_once_with('Creating a new release: F42')
+
+    @mock.patch('bodhi.server.services.releases.log.info', side_effect=IOError('BOOM!'))
+    def test_save_release_exception_handler_with_eol(self, info):
+        """Test the exception handler in save_release()."""
+        attrs = {"name": "F42", "long_name": "Fedora 42", "version": "42",
+                 "id_prefix": "FEDORA", "branch": "f42", "dist_tag": "f42",
+                 "stable_tag": "f42-updates",
+                 "testing_tag": "f42-updates-testing",
+                 "candidate_tag": "f42-updates-candidate",
+                 "pending_stable_tag": "f42-updates-pending",
+                 "pending_signing_tag": "f42-updates-testing-signing",
+                 "pending_testing_tag": "f42-updates-testing-pending",
+                 "override_tag": "f42-override",
+                 "csrf_token": self.get_csrf_token(), "eol": date(2016, 6, 16),
                  }
 
         res = self.app.post("/releases/", attrs, status=400)
@@ -403,6 +434,7 @@ class TestReleasesService(base.BasePyTestCase):
         r["edited"] = name
         r["state"] = "archived"
         r["csrf_token"] = self.get_csrf_token()
+        r.pop("eol")
 
         res = self.app.post("/releases/", r, status=200)
 
