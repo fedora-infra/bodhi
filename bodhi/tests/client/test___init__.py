@@ -2553,7 +2553,7 @@ class TestEditRelease:
                   'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                   'mail_template': 'fedora_errata_template',
                   'composed_by_bodhi': True, 'create_automatic_updates': True,
-                'package_manager': 'unspecified', 'testing_repository': None, 'eol': None})
+                  'package_manager': 'unspecified', 'testing_repository': None, 'eol': None})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2607,6 +2607,7 @@ class TestEditRelease:
                 "staging": False,
             },
         )
+
 
 class TestInfo:
     """
