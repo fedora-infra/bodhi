@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A collection of validators for Bodhi requests."""
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from functools import wraps
 
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
@@ -385,7 +385,24 @@ def validate_tags(request, **kwargs):
 @postschema_validator
 def validate_acls(request, **kwargs):
     """
-    Ensure the user has commit privs to these builds or is an admin.
+    Ensure the user has privs to create or edit an update.
+
+    There are two different code-paths that could pass through this validator:
+    one of them is for submitting something new with a list of builds or a
+    side-tag (a new update, or editing an update by changing the list of builds).
+    The other is for changing the request on an existing update -- where an update
+    alias has been passed to us. The latter is also used to check if a user has
+    enough privs to display the edit form page in webUI.
+
+    We need to validate that the user has commit rights on all the build
+    (either the explicitly listed ones or on the ones associated with the
+    pre-existing update). If a provenpackager added a build for which the
+    former update submitter doesn't have commit rights, the original submitter
+    will lose their privs to edit the update.
+
+    In case of a side-tag update, we don't validate against the builds,
+    but we require the submitter to be whom created the side-tag.
+    The 'sidetag_owner' field is set by `validate_from_tag()`.
 
     Args:
         request (pyramid.request.Request): The current request.
@@ -399,28 +416,19 @@ def validate_acls(request, **kwargs):
     user_groups = [group.name for group in user.groups]
     acl_system = config.get('acl_system')
 
-    # There are two different code-paths that could pass through this validator
-    # One of them is for submitting something new with a list of builds (a new
-    # update, or editing an update by changing the list of builds).  The other
-    # is for changing the request on an existing update -- where an update
-    # alias has been passed to us, but not a list of builds.
-    # We need to validate that the user has commit rights on all the build
-    # (either the explicitly listed ones or on the ones associated with the
-    # pre-existing update).. and so we'll do some conditional branching below
-    # to handle those two scenarios.
-    #
-    # In case of a side-tag update, we don't validate against the builds,
-    # but we require the submitter to be who created the side-tag.
-    # The 'sidetag_owner' field is set by `validate_from_tag()`.
-
     builds = None
+    sidetag = None
     if 'builds' in request.validated:
         builds = request.validated['builds']
 
     if 'update' in request.validated:
+        if request.validated['update'].release.state == ReleaseState.archived:
+            request.errors.add('body', 'update', 'cannot edit Update for an archived Release')
+            return
         builds = request.validated['update'].builds
+        sidetag = request.validated['update'].from_tag
 
-    if not builds:
+    if not builds and not sidetag:
         log.warning("validate_acls was passed data with nothing to validate.")
         request.errors.add('body', 'builds', 'ACL validation mechanism was '
                            'unable to determine ACLs.')
@@ -445,7 +453,9 @@ def validate_acls(request, **kwargs):
             return
 
     # If we try to create or edit a side-tag update, check if user owns the side-tag
+    # The 'sidetag_owner' field is set by `validate_from_tag()`.
     if request.validated.get('from_tag') is not None:
+        log.debug('Using side-tag validation method')
         sidetag = request.validated.get('from_tag')
         # the validate_from_tag() must have set the sidetag_owner field
         sidetag_owner = request.validated.get('sidetag_owner', None)
@@ -461,8 +471,21 @@ def validate_acls(request, **kwargs):
                                f'{user.name} does not own {sidetag} side-tag')
             request.errors.status = 403
         return
+    elif 'update' in request.validated and sidetag:
+        # This is a simplified check to avoid quering Koji for the side-tag owner
+        # The user whom created the update is surely the one owning the side-tag
+        update = request.validated['update']
+        if user == update.user:
+            log.debug(f'{user.name} owns {update.alias} side-tag update')
+        else:
+            request.errors.add('body',
+                               'builds',
+                               f'{user.name} does not own {sidetag} side-tag')
+            request.errors.status = 403
+        return
 
     # For normal updates, check against every build
+    log.debug('Using builds validation method')
     for build in builds:
         # The whole point of the blocks inside this conditional is to determine
         # the "release" and "package" associated with the given build.  For raw
@@ -1192,6 +1215,28 @@ def _validate_override_build(request, nvr, db):
 
 
 @postschema_validator
+def validate_eol_date(request, **kwargs):
+    """
+    Ensure the end-of-life date is in the right format.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    eol_date = request.validated.get('eol')
+    if eol_date is None:
+        return
+
+    if not date(2100, 1, 1) > eol_date > date(1999, 1, 1):
+        request.errors.add(
+            'body',
+            'eol',
+            'End-of-life date may not be in the right range of years (2000-2100)')
+
+        return
+
+
+@postschema_validator
 def validate_expiration_date(request, **kwargs):
     """
     Ensure the expiration date is in the future.
@@ -1205,7 +1250,8 @@ def validate_expiration_date(request, **kwargs):
     if expiration_date is None:
         return
 
-    now = datetime.utcnow()
+    expiration_date = expiration_date.date()
+    now = datetime.utcnow().date()
 
     if expiration_date <= now:
         request.errors.add('body', 'expiration_date',
@@ -1218,8 +1264,6 @@ def validate_expiration_date(request, **kwargs):
         request.errors.add('body', 'expiration_date',
                            'Expiration date may not be longer than %i' % days)
         return
-
-    request.validated['expiration_date'] = expiration_date
 
 
 @postschema_validator

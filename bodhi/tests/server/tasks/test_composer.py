@@ -593,6 +593,26 @@ Useful details!
 --------------------------------------------------------------------------------
 ChangeLog:
 
+* Sat Aug  3 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.1.0-1
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+* Tue Jun 11 2013 Paul Moore <pmoore@redhat.com> - 2.1.0-0
+- New upstream version
+- Added support for the ARM architecture
+- Added the scmp_sys_resolver tool
+* Mon Jan 28 2013 Paul Moore <pmoore@redhat.com> - 2.0.0-0
+- New upstream version
+* Tue Nov 13 2012 Paul Moore <pmoore@redhat.com> - 1.0.1-0
+- New upstream version with several important fixes
+* Tue Jul 31 2012 Paul Moore <pmoore@redhat.com> - 1.0.0-0
+- New upstream version
+- Remove verbose build patch as it is no longer needed
+- Enable _smp_mflags during build stage
+* Thu Jul 19 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.1.0-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+* Tue Jul 10 2012 Paul Moore <pmoore@redhat.com> - 0.1.0-1
+- Limit package to x86/x86_64 platforms (RHBZ #837888)
+* Tue Jun 12 2012 Paul Moore <pmoore@redhat.com> - 0.1.0-0
+- Initial version
 --------------------------------------------------------------------------------
 References:
 
@@ -615,7 +635,21 @@ References:
              'libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)\n Enhanced seccomp library\n----------'
              '----------------------------------------------------------------------\nUpdate '
              'Information:\n\nUseful details!\n----------------------------------------------------'
-             '----------------------------\nChangeLog:\n\n-----------------------------------------'
+             '----------------------------\nChangeLog:\n\n* Sat Aug  3 2013 Fedora Release '
+             'Engineering <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Rebuilt for '
+             'https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild\n* Tue Jun 11 2013 Paul Moore '
+             '<pmoore@redhat.com> - 2.1.0-0\n- New upstream version\n- Added support for the ARM '
+             'architecture\n- Added the scmp_sys_resolver tool\n* Mon Jan 28 2013 Paul Moore '
+             '<pmoore@redhat.com> - 2.0.0-0\n- New upstream version\n* Tue Nov 13 2012 Paul Moore '
+             '<pmoore@redhat.com> - 1.0.1-0\n- New upstream version with several important fixes\n'
+             '* Tue Jul 31 2012 Paul Moore <pmoore@redhat.com> - 1.0.0-0\n- New upstream version\n'
+             '- Remove verbose build patch as it is no longer needed\n- Enable _smp_mflags during '
+             'build stage\n* Thu Jul 19 2012 Fedora Release Engineering '
+             '<rel-eng@lists.fedoraproject.org> - 0.1.0-2\n- Rebuilt for '
+             'https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild\n* Tue Jul 10 2012 Paul Moore '
+             '<pmoore@redhat.com> - 0.1.0-1\n- Limit package to x86/x86_64 platforms '
+             '(RHBZ #837888)\n* Tue Jun 12 2012 Paul Moore <pmoore@redhat.com> - 0.1.0-0\n'
+             '- Initial version\n-----------------------------------------'
              '---------------------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None'
              '\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n----------'
              '----------------------------------------------------------------------\n\n') % (
@@ -3318,13 +3352,16 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         save.assert_called_once_with(ComposeState.syncing_repo)
 
 
-class TestComposerThread__mark_status_changes(ComposerThreadBaseTestCase):
+class TestComposerThread_mark_status_changes(ComposerThreadBaseTestCase):
     """Test the _mark_status_changes() method."""
-    def test_stable_update(self):
+    @pytest.mark.parametrize('from_side_tag', ('', 'f34-build-side-0000'))
+    @mock.patch('bodhi.server.buildsys.DevBuildsys.deleteTag')
+    def test_stable_update(self, delete_tag, from_side_tag):
         """Assert that a stable update gets the right status."""
         update = Update.query.one()
         update.status = UpdateStatus.testing
         update.request = UpdateRequest.stable
+        update.from_tag = from_side_tag
         # Clear pending messages
         self.db.info['messages'] = []
 
@@ -3344,6 +3381,10 @@ class TestComposerThread__mark_status_changes(ComposerThreadBaseTestCase):
         assert update.date_testing is None
         assert (now - update.date_pushed) < datetime.timedelta(seconds=5)
         assert update.pushed
+        if from_side_tag:
+            assert delete_tag.called_with('f34-build-side-0000')
+        else:
+            assert delete_tag.not_called()
 
     def test_testing_update(self):
         """Assert that a testing update gets the right status."""

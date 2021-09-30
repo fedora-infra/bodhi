@@ -258,8 +258,8 @@ class UpdateInfoMetadata(object):
                     pkg.epoch = '0'
                 pkg.arch = rpm['arch']
 
-                # TODO: how do we handle UpdateSuggestion.logout, etc?
-                pkg.reboot_suggested = update.suggest is UpdateSuggestion.reboot
+                pkg.reboot_suggested = update.suggest == UpdateSuggestion.reboot
+                pkg.relogin_suggested = update.suggest == UpdateSuggestion.logout
 
                 filename = '%s.%s.rpm' % (rpm['nvr'], rpm['arch'])
                 pkg.filename = filename

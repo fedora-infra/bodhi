@@ -185,6 +185,7 @@ class AutomaticUpdateHandler:
                 autokarma=False,
                 user=user,
                 status=UpdateStatus.pending,
+                critpath=Update.contains_critpath_component([build], rel.branch),
             )
 
             # Comment on the update that it was automatically created.

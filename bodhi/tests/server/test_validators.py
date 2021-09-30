@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.validators."""
 from unittest import mock
-import datetime
+from datetime import date, datetime, timedelta
 
 from cornice.errors import Errors
 from fedora_messaging import api, testing as fml_testing
@@ -291,6 +291,20 @@ class TestValidateAcls(BasePyTestCase):
         validators.validate_acls(mock_request)
         assert not len(mock_request.errors)
 
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    def test_validate_acls_archived_release(self):
+        """ Test validate_acls when trying to edit an Update for an archived Release.
+        """
+        mock_request = self.get_mock_request()
+        mock_request.validated['update'].release.state = models.ReleaseState.archived
+        validators.validate_acls(mock_request)
+        error = [{
+            'location': 'body',
+            'name': 'update',
+            'description': 'cannot edit Update for an archived Release'
+        }]
+        assert mock_request.errors == error
+
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'nonexistent'})
     def test_validate_acls_invalid_acl_system(self):
         """ Test validate_acls when the acl system is invalid.
@@ -344,6 +358,36 @@ class TestValidateAcls(BasePyTestCase):
             'name': 'builds',
             'description': ('Update appear to be from side-tag, but we cannot determine '
                             'the side-tag owner')
+        }]
+        assert mock_request.errors == error
+        mock_gpcfp.assert_not_called()
+
+    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
+                return_value=(['guest'], []))
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    def test_validate_acls_sidetag_update_can_view_edit_page(self, mock_gpcfp):
+        """Test that a user can display the edit form."""
+        mock_request = self.get_mock_request()
+        mock_request.validated['update'].from_tag = 'f33-build-side-0000'
+        validators.validate_acls(mock_request)
+        assert not len(mock_request.errors)
+        mock_gpcfp.assert_not_called()
+
+    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
+                return_value=(['guest'], []))
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    def test_validate_acls_sidetag_update_cannot_view_edit_page(self, mock_gpcfp):
+        """Test that a user can display the edit form."""
+        user = self.db.query(models.User).filter_by(id=2).one()
+        self.db.flush()
+        mock_request = self.get_mock_request()
+        mock_request.validated['update'].from_tag = 'f33-build-side-0000'
+        mock_request.validated['update'].user = user
+        validators.validate_acls(mock_request)
+        error = [{
+            'location': 'body',
+            'name': 'builds',
+            'description': 'guest does not own f33-build-side-0000 side-tag'
         }]
         assert mock_request.errors == error
         mock_gpcfp.assert_not_called()
@@ -416,7 +460,7 @@ class TestValidateExpirationDate(BasePyTestCase):
         request = mock.Mock()
         request.errors = Errors()
         request.validated = {
-            'expiration_date': datetime.datetime.utcnow() - datetime.timedelta(days=1)}
+            'expiration_date': datetime.utcnow() - timedelta(days=1)}
 
         validators.validate_expiration_date(request)
 
@@ -425,6 +469,70 @@ class TestValidateExpirationDate(BasePyTestCase):
              'description': 'Expiration date in the past'}
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
+
+    def test_equaltoLimit(self):
+        """An expiration_date equal to the limit should pass the test."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {'expiration_date': datetime.utcnow() + timedelta(days=31)}
+
+        validators.validate_expiration_date(request)
+
+        assert not len(request.errors)
+
+    def test_higherthanLimit(self):
+        """An expiration_date higher than limit should report an error."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {
+            'expiration_date': datetime.utcnow() + timedelta(days=32)}
+
+        validators.validate_expiration_date(request)
+
+        assert request.errors == [
+            {'location': 'body', 'name': 'expiration_date',
+             'description': 'Expiration date may not be longer than 31'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
+
+
+class TestValidateEOLDate(BasePyTestCase):
+    """Test the validate_eol_date() function."""
+
+    def test_none(self):
+        """An eol None should be OK."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {'eol': None}
+
+        validators.validate_eol_date(request)
+
+        assert not len(request.errors)
+
+    def test_out_of_regex(self):
+        """An expiration_date in the past should make it sad."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {
+            'eol': date(3120, 11, 5)}
+
+        validators.validate_eol_date(request)
+
+        assert request.errors == [
+            {'location': 'body', 'name': 'eol',
+             'description': 'End-of-life date may not be in the right range of years (2000-2100)'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
+
+    def test_correct_date(self):
+        """A valid eol date should pass the test."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {'eol': date(2022, 11, 5)}
+
+        validators.validate_eol_date(request)
+
+        assert not len(request.errors)
 
 
 class TestValidateOverrideNotes(BasePyTestCase):

@@ -68,9 +68,16 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
     # Test the main code paths.
 
-    def test_consume(self, caplog):
+    @pytest.mark.parametrize('critpath', (True, False))
+    @mock.patch('bodhi.server.models.Update.contains_critpath_component')
+    def test_consume(self, contains, critpath, caplog):
         """Assert that messages about tagged builds create an update."""
         caplog.set_level(logging.DEBUG)
+
+        # The following is a really dirty hack
+        # We can't better mock things because 'util.get_critpath_components' uses a custom
+        # wrapper to "memoize" values that causes leakage between tests
+        contains.return_value = critpath
 
         # process the message
         self.handler(self.sample_message)
@@ -87,6 +94,10 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         assert update.autokarma == False
         assert update.test_gating_status is None
         assert update.builds[0].release == self.release
+        if critpath:
+            assert update.critpath == True
+        else:
+            assert update.critpath == False
 
         expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
         assert update.user and update.user.name == expected_username

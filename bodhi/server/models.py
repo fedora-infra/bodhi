@@ -1,5 +1,4 @@
 # Copyright © 2011-2019 Red Hat, Inc. and others.
-#
 # This file is part of Bodhi.
 #
 # This program is free software; you can redistribute it and/or
@@ -19,7 +18,7 @@
 
 from collections import defaultdict
 from copy import copy
-from datetime import datetime
+from datetime import datetime, timedelta, date
 from textwrap import wrap
 import hashlib
 import json
@@ -31,7 +30,7 @@ import uuid
 from urllib.error import URLError
 
 from simplemediawiki import MediaWiki
-from sqlalchemy import (and_, Boolean, Column, DateTime, event, func, ForeignKey,
+from sqlalchemy import (and_, Boolean, Column, Date, DateTime, event, func, ForeignKey,
                         Integer, or_, Table, Unicode, UnicodeText, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref, validates
@@ -419,8 +418,11 @@ class BodhiBase(object):
             d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
 
         for key, value in d.items():
+
             if isinstance(value, datetime):
                 d[key] = value.strftime('%Y-%m-%d %H:%M:%S')
+            elif isinstance(value, date):
+                d[key] = value.isoformat()
             if isinstance(value, EnumSymbol):
                 d[key] = str(value)
 
@@ -804,6 +806,7 @@ class Release(Base):
             the values defined in :class:`PackageManager`.
         testing_repository (str): The name of repository where updates are placed for
             testing before being pushed to the main repository.
+        eol (str): End-of-life of the release in a datetime.date() format '2020-05-17'.
     """
 
     __tablename__ = 'releases'
@@ -830,10 +833,11 @@ class Release(Base):
     composed_by_bodhi = Column(Boolean, default=True)
     create_automatic_updates = Column(Boolean, default=False)
 
-    _version_int_regex = re.compile(r'\D+(\d+)[CMF]?$')
+    _version_int_regex = re.compile(r'\D+(\d+)[CMFN]?$')
 
     package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
     testing_repository = Column(UnicodeText, nullable=True)
+    eol = Column(Date, nullable=True)
 
     # One-to-many relationships
     # builds backref from Build
@@ -1749,8 +1753,6 @@ class RpmBuild(Build):
                     timelimit = oldh['changelogtime']
                     if isinstance(timelimit, list):
                         timelimit = timelimit[0]
-            else:
-                return ""
 
         str = ""
         i = 0
@@ -2213,6 +2215,44 @@ class Update(Base):
         }
         return util.greenwave_api_post(self._greenwave_api_url, data)
 
+    @property
+    def _greenwave_requirements_generator(self):
+        """
+        Query Greenwave about this update and return satisfied and unsatisfied requirements.
+
+        Returns:
+            generator: An iterable of 2-tuples of lists of requirement dicts from each request
+            batch: first tuple item satisfied requirements, second item unsatisfied requirements.
+            Either list or both may be empty.
+
+        Raises:
+            BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
+            RuntimeError: If Greenwave did not give us a 200 code, including if no applicable
+            policies were found.
+        """
+        for data in self.greenwave_request_batches(verbose=False):
+            response = util.greenwave_api_post(self._greenwave_api_url, data)
+            satisfied = response.get('satisfied_requirements', [])
+            unsatisfied = response.get('unsatisfied_requirements', [])
+            yield (satisfied, unsatisfied)
+
+    @property
+    def _unsatisfied_requirements(self):
+        """Query Greenwave about this update and return all unsatisfied requirements.
+
+        Returns:
+            list: A list of unsatisfied requirement dicts.
+
+        Raises:
+            BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
+            RuntimeError: If Greenwave did not give us a 200 code, including if no applicable
+            policies were found.
+        """
+        ret = []
+        for (_, unsatisfied) in self._greenwave_requirements_generator:
+            ret.extend(unsatisfied)
+        return ret
+
     def _get_test_gating_status(self):
         """
         Query Greenwave about this update and return the information retrieved.
@@ -2220,35 +2260,38 @@ class Update(Base):
         Returns:
             TestGatingStatus:
                 - TestGatingStatus.ignored if no tests are required
-                - TestGatingStatus.failed if policies are not satisfied
-                - TestGatingStatus.passed if policies are satisfied, and there
-                  are required tests
+                - TestGatingStatus.passed if there are required tests and policies are satisfied
+                - TestGatingStatus.waiting if there are required tests that have not yet completed,
+                  no required test has failed, and update was last modified less than 2 hours ago
+                - TestGatingStatus.failed otherwise (failed required tests, missing required
+                  test results and last modified more than 2 hours ago)
 
         Raises:
             BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
-            RuntimeError: If Greenwave did not give us a 200 code.
+            RuntimeError: If Greenwave did not give us a 200 code, including if no applicable
+            policies were found.
         """
-        # If an unrestricted policy is applied and no tests are required
-        # on this update, let's set the test gating as ignored in Bodhi.
-        status = TestGatingStatus.ignored
-        for data in self.greenwave_request_batches(verbose=False):
-            response = util.greenwave_api_post(self._greenwave_api_url, data)
-            if not response['policies_satisfied']:
-                return TestGatingStatus.failed
+        gotsat = False
+        gotunsat = False
+        recent = datetime.utcnow() - self.last_modified < timedelta(hours=2)
+        for (satisfied, unsatisfied) in self._greenwave_requirements_generator:
+            if satisfied:
+                gotsat = True
+            if unsatisfied:
+                gotunsat = True
+                if not recent or not all(req.get('type', '') == 'test-result-missing'
+                                         for req in unsatisfied):
+                    return TestGatingStatus.failed
 
-            if status != TestGatingStatus.ignored or response['summary'] != 'no tests are required':
-                status = TestGatingStatus.passed
+        if not gotsat and not gotunsat:
+            return TestGatingStatus.ignored
 
-        return status
+        if gotsat and not gotunsat:
+            return TestGatingStatus.passed
 
-    @property
-    def _unsatisfied_requirements(self):
-        unsatisfied_requirements = []
-        for data in self.greenwave_request_batches(verbose=False):
-            response = util.greenwave_api_post(self._greenwave_api_url, data)
-            unsatisfied_requirements.extend(response['unsatisfied_requirements'])
-
-        return unsatisfied_requirements
+        # here, we have unsatisfied requirements but we never bailed early
+        # in the for loop, so they are all 'missing' and update was recently modified
+        return TestGatingStatus.waiting
 
     @property
     def install_command(self) -> str:
@@ -2373,12 +2416,17 @@ class Update(Base):
         log.debug(f"Triggering db commit for new update {up.alias}.")
         db.commit()
 
+        # track whether to set gating status shortly...
+        setgs = config.get('test_gating.required')
         # The request to testing for side-tag updates is set within the signed consumer
         if not data.get("from_tag"):
             log.debug(f"Setting request for new update {up.alias}.")
             up.set_request(db, req, request.user.name)
+            if req == UpdateRequest.testing:
+                # set_request will update gating status if necessary
+                setgs = False
 
-        if config.get('test_gating.required'):
+        if setgs:
             log.debug(
                 'Test gating required is enforced, marking the update as waiting on test gating')
             up.test_gating_status = TestGatingStatus.waiting
@@ -3684,6 +3732,10 @@ class Update(Base):
             text = config.get('disable_automatic_push_to_stable')
             self.comment(db, text, author='bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma:
+            if config.get('test_gating.required') and not self.test_gating_passed:
+                log.info("%s reached stable karma threshold, but does not meet gating "
+                         "requirements", self.alias)
+                return
             if self.autokarma:
                 log.info("Automatically marking %s as stable", self.alias)
                 self.set_request(db, UpdateRequest.stable, agent)
@@ -3993,7 +4045,7 @@ class Update(Base):
                 email_notification=notify,
             )
 
-    def _build_group_test_message(self):
+    def _build_group_test_message(self, agent="bodhi", retrigger=False):
         """
         Build the dictionary sent when an update is ready to be tested.
 
@@ -4003,7 +4055,11 @@ class Update(Base):
         by any CI system.
 
         Args:
-            target (Update): The update that has had a change to its status attribute.
+            agent (str): For the case where the message is sent as a test
+                re-trigger request, the user who requested it. Otherwise,
+                'bodhi'.
+            retrigger (bool): Whether the message is sent as a test re-
+                trigger request.
         Returns:
             dict: A dictionary corresponding to the message sent
         """
@@ -4037,8 +4093,8 @@ class Update(Base):
             "artifact": artifact,
             "generated_at": datetime.utcnow().isoformat() + 'Z',
             "version": "0.2.2",
-            'agent': 'bodhi',
-            're-trigger': False,
+            'agent': agent,
+            're-trigger': retrigger,
         }
 
     @staticmethod

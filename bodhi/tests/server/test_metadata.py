@@ -111,6 +111,7 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
              'TurboGears-1.0.2.2-2.fc17.src.rpm')
         assert pkg.version == '1.0.2.2'
         assert not pkg.reboot_suggested
+        assert not pkg.relogin_suggested
         assert pkg.arch == 'src'
         assert pkg.filename == 'TurboGears-1.0.2.2-2.fc17.src.rpm'
         pkg = col.packages[1]
@@ -121,6 +122,7 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
              'TurboGears-1.0.2.2-2.fc17.noarch.rpm')
         assert pkg.version == '1.0.2.2'
         assert not pkg.reboot_suggested
+        assert not pkg.relogin_suggested
         assert pkg.arch == 'noarch'
         assert pkg.filename == 'TurboGears-1.0.2.2-2.fc17.noarch.rpm'
 
@@ -367,6 +369,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
                  'TurboGears-1.0.2.2-2.fc17.src.rpm')
             assert pkg.version == '1.0.2.2'
             assert not pkg.reboot_suggested
+            assert not pkg.relogin_suggested
             assert pkg.arch == 'src'
             assert pkg.filename == 'TurboGears-1.0.2.2-2.fc17.src.rpm'
 

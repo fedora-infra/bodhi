@@ -1,0 +1,1 @@
+Fixed an issue with validators that prevented a side-tag update owner to edit their update after adding a build for which they don't have commit access
