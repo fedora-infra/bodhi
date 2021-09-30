@@ -4,6 +4,79 @@ Release notes
 
 .. towncrier release notes start
 
+v5.7.1
+======
+This is a bugfix release.
+
+
+Features
+^^^^^^^^
+
+* Added support for release names ending with "N" such as EPEL next
+  (:pr:`4222`).
+* Set a `delta` parameter of 30 days when quering datagrepper for bodhi-related
+  user activity (:pr:`4255`).
+* Added support for setting flags in generated advisories to require logging
+  out and logging back in for the update to take effect (:issue:`4213`).
+* Replace Greenwave decision change message consumer with ResultsDB and
+  WaiverDB message consumers (:issue:`4230`).
+
+Bug fixes
+^^^^^^^^^
+
+* Bodhi will now delete the side-tag in Koji when an update is pushed to
+  stable. Builds that were tagged in the side-tag but were not pushed as part
+  of the update will be untagged. This is required to make sure to not leave
+  stale side-tags in the Koji database (:pr:`4228`).
+* Updates for archived releases cannot be edited anymore (:pr:`4236`).
+* Correctly mark automatic updates as critpath when appropriate
+  (:issue:`4177`).
+* Fixed an issue with validators that prevents inconsistent refusal of bodhi
+  override with maximum duration (:issue:`4182`).
+* Fixed an issue where the search result box was cutted off out of screen
+  borders (:issue:`4206`).
+* Fixed a javascript bug which prevented the "waive tests" button to be
+  displayed in UI (:issue:`4208`).
+* Fixed an issue with validators that prevented a side-tag update owner to edit
+  their update after adding a build for which they don't have commit access
+  (:issue:`4209`).
+* Avoid gating status ping-pong on update creation, assume status 'waiting' for
+  2 hours or until first failed test (:issue:`4221`).
+* For new packages submitted to repositories, the changelog was not generated
+  and attached to the automatic Update. This prevented the bugs mentioned in
+  the changelog to be closed by Bodhi (:issue:`4232`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Add End of life (eol) field to the releases (:issue:`4240`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Saleh
+* Adam Williamson
+* Clement Verna
+* dalley
+* Justin Caratzas
+* Jonathan Wakely
+* Karma Dolkar
+* Kevin Fenzi
+* Lenka Segura
+* Mattia Verga
+* Miro Hrončok
+* Michael Scherer
+* Andrea Misuraca
+* Neal Gompa
+* Patrick Uiterwijk
+* Pierre-Yves Chibon
+* Rayan Das
+* Samyak Jain
+* Sebastian Wojciechowski
+* Tomas Hrcka
+
 v5.7.0
 ======
 This is a feature release.

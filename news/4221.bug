@@ -1,1 +1,0 @@
-Avoid gating status ping-pong on update creation, assume status 'waiting' for 2 hours or until first failed test
