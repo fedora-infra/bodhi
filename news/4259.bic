@@ -1,0 +1,1 @@
+Query on both relevant Greenwave decision contexts for critical-path updates. `Update.get_test_gating_info()` now returns a list of decision dictionaries, not a single decision dictionary. The API endpoint `/updates/{id}/get-test-results` similarly now returns a single-key dictionary whose value is a list of decisions, not a single decision dictionary.
