@@ -2452,6 +2452,8 @@ class Update(Base):
         buildinfo = request.buildinfo
         up = db.query(Update).filter_by(alias=data['edited']).first()
         del(data['edited'])
+        data.pop("request", None)
+        req = None
 
         caveats = []
         edited_builds = [build.nvr for build in up.builds]
@@ -2534,7 +2536,7 @@ class Update(Base):
 
         # Updates with new or removed builds always go back to testing
         if new_builds or removed_builds:
-            data['request'] = UpdateRequest.testing
+            req = UpdateRequest.testing
             # And, updates with new or removed builds always get their karma reset.
             # https://github.com/fedora-infra/bodhi/issues/511
             data['karma_critipath'] = 0
@@ -2562,7 +2564,6 @@ class Update(Base):
         new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])
 
-        req = data.pop("request", None)
         if req is not None and not data.get("from_tag"):
             up.set_request(db, req, request.user.name)
 
