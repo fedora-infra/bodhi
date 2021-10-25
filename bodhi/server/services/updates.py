@@ -698,13 +698,13 @@ def get_test_results(request):
     Args:
         request (pyramid.request): The current request.
     Returns:
-        dict: A dictionary mapping the key "update" to the update.
+        dict: A dictionary mapping the key 'decisions' to a list of result dictionaries.
     """
     update = request.validated['update']
 
-    decision = None
+    decisions = []
     try:
-        decision = update.get_test_gating_info()
+        decisions = update.get_test_gating_info()
     except RequestsTimeout as e:
         log.error("Error querying greenwave for test results - timed out")
         request.errors.add('body', 'request', str(e))
@@ -722,7 +722,7 @@ def get_test_results(request):
         request.errors.add('body', 'request', str(e))
         request.errors.status = 500
 
-    return dict(decision=decision)
+    return dict(decisions=decisions)
 
 
 @update_trigger_tests.post(schema=bodhi.server.schemas.TriggerTestsSchema,
