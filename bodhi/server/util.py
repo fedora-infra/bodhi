@@ -630,9 +630,8 @@ def bug_link(context, bug, short=False):
     Returns:
         str: The requested link.
     """
-    url = "https://bugzilla.redhat.com/show_bug.cgi?id=" + str(bug.bug_id)
-    display = "BZ#%i" % bug.bug_id
-    link = "<a target='_blank' href='%s' class='notblue'>%s</a>" % (url, display)
+    url = config.get('buglink') % str(bug.bug_id)
+    link = f"<a target='_blank' href='{url}' class='notblue'>BZ#{bug.bug_id}</a>"
     if not short:
         if bug.title:
             # We're good, but we do need to clean the bug title in case it contains malicious
