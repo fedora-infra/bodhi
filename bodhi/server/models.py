@@ -2150,12 +2150,13 @@ class Update(Base):
         subjects = self.greenwave_subject
         data = []
         while count < len(subjects):
-            data.append({
-                'product_version': self.product_version,
-                'decision_context': self._greenwave_decision_context,
-                'subject': subjects[count:count + batch_size],
-                'verbose': verbose,
-            })
+            for context in self._greenwave_decision_contexts:
+                data.append({
+                    'product_version': self.product_version,
+                    'decision_context': context,
+                    'subject': subjects[count:count + batch_size],
+                    'verbose': verbose,
+                })
             count += batch_size
         return data
 
@@ -2183,37 +2184,32 @@ class Update(Base):
         return '{}/decision'.format(config.get('greenwave_api_url'))
 
     @property
-    def _greenwave_decision_context(self):
+    def _greenwave_decision_contexts(self):
         # We retrieve updates going to testing (status=pending) and updates
         # (status=testing) going to stable.
         # We also query on different contexts for critpath and non-critpath
         # updates.
         # this is correct if update is already in testing...
-        context = "bodhi_update_push_stable"
+        contexts = ["bodhi_update_push_stable"]
         if self.request == UpdateRequest.testing and self.status == UpdateStatus.pending:
             # ...but if it is pending, we want to know if it can go to testing
-            context = "bodhi_update_push_testing"
+            contexts = ["bodhi_update_push_testing"]
         if self.critpath:
-            context = context + "_critpath"
-        return context
+            contexts.insert(0, contexts[0] + "_critpath")
+        return contexts
 
     def get_test_gating_info(self):
         """
         Query Greenwave about this update and return the information retrieved.
 
         Returns:
-            dict: The response from Greenwave for this update.
+            list: A list of response dicts from Greenwave for this update.
         Raises:
             BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
             RuntimeError: If Greenwave did not give us a 200 code.
         """
-        data = {
-            'product_version': self.product_version,
-            'decision_context': self._greenwave_decision_context,
-            'subject': self.greenwave_subject,
-            'verbose': True,
-        }
-        return util.greenwave_api_post(self._greenwave_api_url, data)
+        return [util.greenwave_api_post(self._greenwave_api_url, data)
+                for data in self.greenwave_request_batches(verbose=True)]
 
     @property
     def _greenwave_requirements_generator(self):
