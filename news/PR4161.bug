@@ -1,0 +1,1 @@
+Fix an issue that caused the builds in a side-tag update to not be tagged correctly when the build list of the update was modified

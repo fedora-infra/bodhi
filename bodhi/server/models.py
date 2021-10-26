@@ -2538,29 +2538,34 @@ class Update(Base):
             data['karma_critipath'] = 0
             up.date_testing = None
 
-            # Remove all koji tags and change the status back to pending
-            if up.status is not UpdateStatus.pending:
+            if up.status != UpdateStatus.pending:
+                # Remove all koji tags and change the status back to pending
                 up.unpush(db)
                 caveats.append({
                     'name': 'status',
                     'description': 'Builds changed.  Your update is being '
                     'sent back to testing.',
                 })
+                builds_to_tag = [b.nvr for b in up.builds]
+            else:
+                # No need to unpush the update, just tag new builds
+                builds_to_tag = new_builds
 
-            # Add the pending_signing_tag to all new builds
+            # Add the pending_signing_tag to builds where needed
             tag = None
-            if up.from_tag:
+            if up.from_tag and not up.release.composed_by_bodhi:
                 tag = up.release.get_pending_signing_side_tag(up.from_tag)
             elif up.release.pending_signing_tag:
                 tag = up.release.pending_signing_tag
 
             if tag is not None:
-                tag_update_builds_task.delay(tag=tag, builds=new_builds)
+                tag_update_builds_task.delay(tag=tag, builds=builds_to_tag)
 
         new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])
 
-        if req is not None and not data.get("from_tag"):
+        req = data.pop("request", None)
+        if req is not None and up.release.composed_by_bodhi and not data.get("from_tag"):
             up.set_request(db, req, request.user.name)
 
         for key, value in data.items():
