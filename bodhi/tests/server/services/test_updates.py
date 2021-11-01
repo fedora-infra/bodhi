@@ -3367,6 +3367,42 @@ class TestUpdatesService(BasePyTestCase):
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
     @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
+    def test_edit_testing_update_with_stable_request_no_edit_build(self, *args):
+        """An update with stable request should not be pushed back to testing if
+        build list is not changed."""
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', args)
+
+        # Mark it as testing
+        upd = Update.get(r.json['alias'])
+        upd.status = UpdateStatus.testing
+        upd.request = UpdateRequest.stable
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        args['edited'] = upd.alias
+        args['notes'] = 'A nifty description.'
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
+        up = r.json_body
+        assert up['title'] == 'bodhi-2.0.0-2.fc17'
+        assert up['status'] == 'testing'
+        assert up['request'] == 'stable'
+        assert up['notes'] == 'A nifty description.'
+        assert up['comments'][-1]['text'] == 'guest edited this update.'
+        assert up['comments'][-3]['text'] == 'This update has been submitted for testing by guest. '
+        assert len(up['builds']) == 1
+        assert up['builds'][0]['nvr'] == 'bodhi-2.0.0-2.fc17'
+
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
+    @mock.patch(**mock_valid_requirements)
     def test_edit_update_with_different_release(self, *args):
         """Test editing an update for one release with builds from another."""
         args = self.get_update('bodhi-2.0.0-2.fc17')
@@ -3462,23 +3498,6 @@ class TestUpdatesService(BasePyTestCase):
         assert up.notes == 'Some new notes'
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         assert up.builds == [build]
-
-        # Changing the request should fail
-        args['notes'] = 'Still new notes'
-        args['builds'] = nvr
-        args['request'] = 'stable'
-        r = self.app.post_json('/updates/', args, status=400).json_body
-        assert r['status'] == 'error'
-        assert 'errors' in r
-        assert {'description': "Can't change the request on a locked update",
-                'location': 'body', 'name': 'builds'} in r['errors']
-        up = self.db.query(Update).get(up_id)
-        assert up.notes == 'Some new notes'
-        # We need to re-retrieve the build since we started a new transaction in the call to
-        # /updates
-        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        assert up.builds == [build]
-        assert up.request is None
 
     @mock.patch(**mock_valid_requirements)
     def test_pending_update_on_stable_karma_reached_autopush_enabled(self, *args):

@@ -198,11 +198,6 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
         colander.String(),
         validator=colander.OneOf(list(UpdateType.values())),
     )
-    request = colander.SchemaNode(
-        colander.String(),
-        validator=colander.OneOf(list(UpdateRequest.values())),
-        missing='testing',
-    )
     severity = colander.SchemaNode(
         colander.String(),
         validator=colander.OneOf(list(UpdateSeverity.values())),
