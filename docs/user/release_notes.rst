@@ -9,6 +9,18 @@ v5.7.1
 This is a bugfix release.
 
 
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Summary of the migrations:
+
+* Add End of life (eol) field to the releases (:pr:`4241`).
+
 Backwards incompatible changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
