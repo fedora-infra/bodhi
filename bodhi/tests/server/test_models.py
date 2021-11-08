@@ -2992,6 +2992,52 @@ class TestUpdate(ModelTest):
                 ]
             )
 
+    def test_greenwave_request_batches_multiple_critpath(self):
+        """
+        Ensure that the greenwave_request_batches property returns the correct value
+        for critpath update with multiple batches.
+        """
+        with mock.patch.dict('bodhi.server.models.config', {'greenwave_batch_size': 1}):
+            self.obj.critpath = True
+            assert self.obj.greenwave_subject_batch_size == 1
+            assert self.obj.greenwave_request_batches(verbose=True) == (
+                [
+                    {
+                        'product_version': 'fedora-11',
+                        'decision_context': 'bodhi_update_push_testing_critpath',
+                        'verbose': True,
+                        'subject': [
+                            {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
+                        ]
+                    },
+                    {
+                        'product_version': 'fedora-11',
+                        'decision_context': 'bodhi_update_push_testing',
+                        'verbose': True,
+                        'subject': [
+                            {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
+                        ]
+                    },
+                    {
+                        'product_version': 'fedora-11',
+                        'decision_context': 'bodhi_update_push_testing_critpath',
+                        'verbose': True,
+                        'subject': [
+                            {'item': self.obj.alias, 'type': 'bodhi_update'},
+                        ]
+                    },
+                    {
+                        'product_version': 'fedora-11',
+                        'decision_context': 'bodhi_update_push_testing',
+                        'verbose': True,
+                        'subject': [
+                            {'item': self.obj.alias, 'type': 'bodhi_update'},
+                        ]
+                    },
+
+                ]
+            )
+
     def test_greenwave_request_batches_json(self):
         """Ensure that the greenwave_request_batches_json property returns the correct value."""
         requests = self.obj.greenwave_request_batches_json

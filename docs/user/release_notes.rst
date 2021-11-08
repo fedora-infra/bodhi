@@ -8,6 +8,27 @@ v5.7.1
 ======
 This is a bugfix release.
 
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Summary of the migrations:
+
+* Add End of life (eol) field to the releases (:pr:`4241`).
+
+Backwards incompatible changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Query on both relevant Greenwave decision contexts for critical-path updates.
+  `Update.get_test_gating_info()` now returns a list of decision dictionaries,
+  not a single decision dictionary. The API endpoint
+  `/updates/{id}/get-test-results` similarly now returns a single-key
+  dictionary whose value is a list of decisions, not a single decision
+  dictionary. (:issue:`4259`).
 
 Features
 ^^^^^^^^
@@ -24,6 +45,9 @@ Features
 Bug fixes
 ^^^^^^^^^
 
+=======
+* Fix an issue that caused the builds in a side-tag update to not be tagged
+  correctly when the build list of the update was modified (:pr:`4161`).
 * Bodhi will now delete the side-tag in Koji when an update is pushed to
   stable. Builds that were tagged in the side-tag but were not pushed as part
   of the update will be untagged. This is required to make sure to not leave
@@ -45,6 +69,10 @@ Bug fixes
 * For new packages submitted to repositories, the changelog was not generated
   and attached to the automatic Update. This prevented the bugs mentioned in
   the changelog to be closed by Bodhi (:issue:`4232`).
+* Staging Bodhi now uses staging Bugzilla URL for bug links (:issue:`4238`).
+* Fixed an issue where editing Updates always caused to set the request to
+  Testing (:issue:`4263`).
+
 
 Development improvements
 ^^^^^^^^^^^^^^^^^^^^^^^^

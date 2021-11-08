@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for the bodhi.server.tasks.check_policies module."""
 
-from unittest.mock import patch
+from unittest.mock import patch, call
 import datetime
 
 from bodhi.server import models
@@ -58,40 +58,57 @@ class TestCheckPolicies(BaseTaskTestCase):
         self.db.info['messages'] = []
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
-            greenwave_response = {
-                'policies_satisfied': True,
-                'summary': 'All required tests passed',
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
-                ],
-                'satisfied_requirements': [
-                    {
-                        'result_id': 39603316,
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-passed'
-                    },
-                ],
-                'unsatisfied_requirements': []
-            }
-            mock_greenwave.return_value = greenwave_response
+            greenwave_responses = [
+                {
+                    'policies_satisfied': True,
+                    'summary': 'All required tests passed',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements',
+                        'bodhiupdate_bodhipush_openqa'
+                    ],
+                    'satisfied_requirements': [
+                        {
+                            'result_id': 39603316,
+                            'subject_type': 'bodhi_update',
+                            'testcase': 'update.install_default_update_netinst',
+                            'type': 'test-result-passed'
+                        },
+                    ],
+                    'unsatisfied_requirements': []
+                },
+                {
+                    'policies_satisfied': True,
+                    'summary': 'no tests are required',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements'
+                    ],
+                    'satisfied_requirements': [],
+                    'unsatisfied_requirements': [],
+                }
+            ]
+            mock_greenwave.side_effect = greenwave_responses
             check_policies_main()
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             assert update.test_gating_status == models.TestGatingStatus.passed
 
-        expected_query = {
-            'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable_critpath',
-            'subject': [
-                {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                 'type': 'bodhi_update'}],
-            'verbose': False
-        }
-        mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
-                                               expected_query)
+        expected_queries = [
+            {
+                'product_version': 'fedora-17', 'decision_context': context,
+                'subject': [
+                    {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                     'type': 'bodhi_update'}],
+                'verbose': False
+            } for context in ('bodhi_update_push_stable_critpath', 'bodhi_update_push_stable')
+        ]
+        expected_calls = [
+            call(config['greenwave_api_url'] + '/decision', query) for query in expected_queries
+        ]
+        assert mock_greenwave.call_args_list == expected_calls
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_policies_pending_satisfied(self):
@@ -102,41 +119,58 @@ class TestCheckPolicies(BaseTaskTestCase):
         update.critpath = True
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
-            greenwave_response = {
-                'policies_satisfied': True,
-                'summary': 'All required tests passed',
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
-                ],
-                'satisfied_requirements': [
-                    {
-                        'result_id': 39603316,
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-passed'
-                    },
-                ],
-                'unsatisfied_requirements': []
-            }
-            mock_greenwave.return_value = greenwave_response
+            greenwave_responses = [
+                {
+                    'policies_satisfied': True,
+                    'summary': 'All required tests passed',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements',
+                        'bodhiupdate_bodhipush_openqa'
+                    ],
+                    'satisfied_requirements': [
+                        {
+                            'result_id': 39603316,
+                            'subject_type': 'bodhi_update',
+                            'testcase': 'update.install_default_update_netinst',
+                            'type': 'test-result-passed'
+                        },
+                    ],
+                    'unsatisfied_requirements': []
+                },
+                {
+                    'policies_satisfied': True,
+                    'summary': 'no tests are required',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements'
+                    ],
+                    'satisfied_requirements': [],
+                    'unsatisfied_requirements': [],
+                }
+            ]
+            mock_greenwave.side_effect = greenwave_responses
             check_policies_main()
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             assert update.test_gating_status == models.TestGatingStatus.passed
 
-        expected_query = {
-            'product_version': 'fedora-17',
-            'decision_context': 'bodhi_update_push_testing_critpath',
-            'subject': [
-                {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                 'type': 'bodhi_update'}],
-            'verbose': False,
-        }
-        mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
-                                               expected_query)
+        expected_queries = [
+            {
+                'product_version': 'fedora-17',
+                'decision_context': context,
+                'subject': [
+                    {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                     'type': 'bodhi_update'}],
+                'verbose': False,
+            } for context in ('bodhi_update_push_testing_critpath', 'bodhi_update_push_testing')
+        ]
+        expected_calls = [
+            call(config['greenwave_api_url'] + '/decision', query) for query in expected_queries
+        ]
+        assert mock_greenwave.call_args_list == expected_calls
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_policies_unsatisfied_waiting(self):
@@ -152,40 +186,54 @@ class TestCheckPolicies(BaseTaskTestCase):
         update.date_submitted = datetime.datetime.utcnow()
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
-            greenwave_response = {
-                'policies_satisfied': False,
-                'summary': '2 of 2 required test results missing',
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
-                ],
-                'satisfied_requirements': [],
-                'unsatisfied_requirements': [
-                    {
-                        'item': {
-                            'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                            'type': 'bodhi_update'
+            item = 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year)
+            greenwave_responses = [
+                {
+                    'policies_satisfied': False,
+                    'summary': '2 of 2 required test results missing',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements',
+                        'bodhiupdate_bodhipush_openqa'
+                    ],
+                    'satisfied_requirements': [],
+                    'unsatisfied_requirements': [
+                        {
+                            'item': {
+                                'item': item,
+                                'type': 'bodhi_update'
+                            },
+                            'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
+                            'subject_type': 'bodhi_update',
+                            'testcase': 'update.install_default_update_netinst',
+                            'type': 'test-result-missing'
                         },
-                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-missing'
-                    },
-                    {
-                        'item': {
-                            'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                            'type': 'bodhi_update'
+                        {
+                            'item': {
+                                'item': item,
+                                'type': 'bodhi_update'
+                            },
+                            'scenario': 'fedora.updates-everything-boot-iso.x86_64.uefi',
+                            'subject_type': 'bodhi_update',
+                            'testcase': 'update.install_default_update_netinst',
+                            'type': 'test-result-missing'
                         },
-                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.uefi',
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-missing'
-                    },
-                ]
-            }
-            mock_greenwave.return_value = greenwave_response
+                    ]
+                },
+                {
+                    'policies_satisfied': True,
+                    'summary': 'no tests are required',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements'
+                    ],
+                    'satisfied_requirements': [],
+                    'unsatisfied_requirements': [],
+                }
+            ]
+            mock_greenwave.side_effect = greenwave_responses
             check_policies_main()
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             assert update.test_gating_status == models.TestGatingStatus.waiting
@@ -193,16 +241,20 @@ class TestCheckPolicies(BaseTaskTestCase):
             expected_comment = "This update's test gating status has been changed to 'waiting'."
             assert update.comments[-1].text == expected_comment
 
-        expected_query = {
-            'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable_critpath',
-            'subject': [
-                {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                 'type': 'bodhi_update'}],
-            'verbose': False
-        }
-        mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
-                                               expected_query)
+        expected_queries = [
+            {
+                'product_version': 'fedora-17', 'decision_context': context,
+                'subject': [
+                    {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                     'type': 'bodhi_update'}],
+                'verbose': False
+            } for context in ('bodhi_update_push_stable_critpath', 'bodhi_update_push_stable')
+        ]
+        expected_calls = [
+            call(config['greenwave_api_url'] + '/decision', query) for query in expected_queries
+        ]
+        assert mock_greenwave.call_args_list == expected_calls
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_policies_unsatisfied_waiting_too_long(self):
@@ -218,40 +270,54 @@ class TestCheckPolicies(BaseTaskTestCase):
         update.date_submitted = datetime.datetime.utcnow() - datetime.timedelta(days=1)
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
-            greenwave_response = {
-                'policies_satisfied': False,
-                'summary': '2 of 2 required test results missing',
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
-                ],
-                'satisfied_requirements': [],
-                'unsatisfied_requirements': [
-                    {
-                        'item': {
-                            'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                            'type': 'bodhi_update'
+            item = 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year)
+            greenwave_responses = [
+                {
+                    'policies_satisfied': False,
+                    'summary': '2 of 2 required test results missing',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements',
+                        'bodhiupdate_bodhipush_openqa'
+                    ],
+                    'satisfied_requirements': [],
+                    'unsatisfied_requirements': [
+                        {
+                            'item': {
+                                'item': item,
+                                'type': 'bodhi_update'
+                            },
+                            'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
+                            'subject_type': 'bodhi_update',
+                            'testcase': 'update.install_default_update_netinst',
+                            'type': 'test-result-missing'
                         },
-                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-missing'
-                    },
-                    {
-                        'item': {
-                            'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                            'type': 'bodhi_update'
+                        {
+                            'item': {
+                                'item': item,
+                                'type': 'bodhi_update'
+                            },
+                            'scenario': 'fedora.updates-everything-boot-iso.x86_64.uefi',
+                            'subject_type': 'bodhi_update',
+                            'testcase': 'update.install_default_update_netinst',
+                            'type': 'test-result-missing'
                         },
-                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.uefi',
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-missing'
-                    },
-                ]
-            }
-            mock_greenwave.return_value = greenwave_response
+                    ]
+                },
+                {
+                    'policies_satisfied': True,
+                    'summary': 'no tests are required',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements'
+                    ],
+                    'satisfied_requirements': [],
+                    'unsatisfied_requirements': [],
+                }
+            ]
+            mock_greenwave.side_effect = greenwave_responses
             check_policies_main()
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             assert update.test_gating_status == models.TestGatingStatus.failed
@@ -267,13 +333,20 @@ class TestCheckPolicies(BaseTaskTestCase):
                  'type': 'bodhi_update'}],
             'verbose': False
         }
+        # we only expect *one* call here because the *first* query
+        # (on the _critpath context) should be enough to conclude the
+        # status is failed: it would be wrong to needlessly run the
+        # second query. note the mock responses are in the order we
+        # expect the queries to be run, critpath first
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_policies_unsatisfied_failed(self):
         """Assert correct behavior when the policies enforced by Greenwave are unsatisfied:
-        failed tests always means failed status.
+        failed tests always means failed status. This also tests that we behave correctly
+        even if the *first* query shows requirements satisfied, but the *second* query has
+        failed required tests.
         """
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
@@ -283,40 +356,56 @@ class TestCheckPolicies(BaseTaskTestCase):
         self.db.info['messages'] = []
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
-            greenwave_response = {
-                'policies_satisfied': False,
-                'summary': '1 of 2 required tests failed, 1 result missing',
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
-                ],
-                'satisfied_requirements': [],
-                'unsatisfied_requirements': [
-                    {
-                        'item': {
-                            'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                            'type': 'bodhi_update'
+            # here, we're mocking the scenario from
+            # https://pagure.io/fedora-ci/general/issue/263 , where
+            # openQA tests passed, but a package in the update had a
+            # local gating config that only specified the context
+            # bodhi_update_push_stable (not _push_stable_critpath),
+            # and a test specified in that local policy failed
+            greenwave_responses = [
+                {
+                    'policies_satisfied': True,
+                    'summary': 'All required tests passed',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements',
+                        'bodhiupdate_bodhipush_openqa'
+                    ],
+                    'satisfied_requirements': [
+                        {
+                            'result_id': 39603316,
+                            'subject_type': 'bodhi_update',
+                            'testcase': 'update.install_default_update_netinst',
+                            'type': 'test-result-passed'
                         },
-                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-failed'
-                    },
-                    {
-                        'item': {
-                            'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                            'type': 'bodhi_update'
+                    ],
+                    'unsatisfied_requirements': []
+                },
+                {
+                    'policies_satisfied': False,
+                    'summary': '1 of 1 required tests failed',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements'
+                    ],
+                    'satisfied_requirements': [],
+                    'unsatisfied_requirements': [
+                        {
+                            'item': {
+                                'item': 'bodhi-2.0-1.fc17',
+                                'type': 'koji_build'
+                            },
+                            'scenario': None,
+                            'subject_type': 'koji_build',
+                            'testcase': 'fedora-ci.koji-build.tier0.functional',
+                            'type': 'test-result-failed'
                         },
-                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.uefi',
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-missing'
-                    },
-                ]
-            }
-            mock_greenwave.return_value = greenwave_response
+                    ],
+                }
+            ]
+            mock_greenwave.side_effect = greenwave_responses
             check_policies_main()
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             assert update.test_gating_status == models.TestGatingStatus.failed
@@ -324,16 +413,20 @@ class TestCheckPolicies(BaseTaskTestCase):
             expected_comment = "This update's test gating status has been changed to 'failed'."
             assert update.comments[-1].text == expected_comment
 
-        expected_query = {
-            'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable_critpath',
-            'subject': [
-                {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                 'type': 'bodhi_update'}],
-            'verbose': False
-        }
-        mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
-                                               expected_query)
+        expected_queries = [
+            {
+                'product_version': 'fedora-17', 'decision_context': context,
+                'subject': [
+                    {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                     'type': 'bodhi_update'}],
+                'verbose': False
+            } for context in ('bodhi_update_push_stable_critpath', 'bodhi_update_push_stable')
+        ]
+        expected_calls = [
+            call(config['greenwave_api_url'] + '/decision', query) for query in expected_queries
+        ]
+        assert mock_greenwave.call_args_list == expected_calls
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_no_policies_enforced(self):
@@ -378,40 +471,54 @@ class TestCheckPolicies(BaseTaskTestCase):
         update.pushed = True
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
-            greenwave_response = {
-                'policies_satisfied': False,
-                'summary': '1 of 2 required tests failed, 1 result missing',
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
-                ],
-                'satisfied_requirements': [],
-                'unsatisfied_requirements': [
-                    {
-                        'item': {
-                            'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                            'type': 'bodhi_update'
+            item = 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year)
+            greenwave_responses = [
+                {
+                    'policies_satisfied': False,
+                    'summary': '1 of 2 required tests failed, 1 result missing',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements',
+                        'bodhiupdate_bodhipush_openqa'
+                    ],
+                    'satisfied_requirements': [],
+                    'unsatisfied_requirements': [
+                        {
+                            'item': {
+                                'item': item,
+                                'type': 'bodhi_update'
+                            },
+                            'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
+                            'subject_type': 'bodhi_update',
+                            'testcase': 'update.install_default_update_netinst',
+                            'type': 'test-result-failed'
                         },
-                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-failed'
-                    },
-                    {
-                        'item': {
-                            'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                            'type': 'bodhi_update'
+                        {
+                            'item': {
+                                'item': item,
+                                'type': 'bodhi_update'
+                            },
+                            'scenario': 'fedora.updates-everything-boot-iso.x86_64.uefi',
+                            'subject_type': 'bodhi_update',
+                            'testcase': 'update.install_default_update_netinst',
+                            'type': 'test-result-missing'
                         },
-                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.uefi',
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-missing'
-                    },
-                ]
-            }
-            mock_greenwave.return_value = greenwave_response
+                    ]
+                },
+                {
+                    'policies_satisfied': True,
+                    'summary': 'no tests are required',
+                    'applicable_policies': [
+                        'kojibuild_bodhipush_no_requirements',
+                        'kojibuild_bodhipush_remoterule',
+                        'bodhiupdate_bodhipush_no_requirements'
+                    ],
+                    'satisfied_requirements': [],
+                    'unsatisfied_requirements': [],
+                }
+            ]
+            mock_greenwave.side_effect = greenwave_responses
 
             check_policies_main()
 
@@ -424,6 +531,8 @@ class TestCheckPolicies(BaseTaskTestCase):
                          'type': 'bodhi_update'}],
             'verbose': False
         }
+        # we only expect *one* call here, as with the earlier
+        # 'failed' test
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
         # Check for the comment
