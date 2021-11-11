@@ -1056,7 +1056,7 @@ class TestCase(Base):
 
     __tablename__ = 'testcases'
     __get_by__ = ('name',)
-    __exclude_columns__ = ('builds',)
+    __exclude_columns__ = ('builds', 'feedback')
 
     name = Column(UnicodeText, nullable=False, unique=True)
 
