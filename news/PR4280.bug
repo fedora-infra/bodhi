@@ -1,0 +1,1 @@
+Fixed a possible call to Koji listTagged() passing an empty tag name
