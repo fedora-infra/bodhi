@@ -207,10 +207,10 @@ def set_request(request):
     if action == UpdateRequest.stable:
         settings = request.registry.settings
         result, reason = update.check_requirements(request.db, settings)
-        log.info(
-            f'Unable to set request for {update.alias} to {action} due to failed requirements: '
-            f'{reason}')
         if not result:
+            log.info(
+                f'Unable to set request for {update.alias} to stable due to failed requirements: '
+                f'{reason}')
             request.errors.add('body', 'request',
                                'Requirement not met %s' % reason)
             return
