@@ -376,7 +376,7 @@ def save_release(request):
 
         else:
             log.info("Editing release: %s" % edited)
-            r = request.db.query(Release).filter(Release.name == edited).one()
+            r = request.db.query(Release).filter(Release.name.lower() == edited.lower()).one()
             for k, v in data.items():
                 # We have to change updates status to obsolete
                 # if state of release changes to archived
