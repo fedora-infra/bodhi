@@ -3393,6 +3393,25 @@ class TestUpdate(ModelTest):
             ('dist-f11-updates-testing-pending', 'TurboGears-1.0.8-3.fc11'),
             ('dist-f11-updates-pending', 'TurboGears-1.0.8-3.fc11')]
 
+    def test_unpush_pending_stable_from_sidetag(self):
+        """Test unpush() on a pending stable tagged build originated from side-tag."""
+        release = self.obj.release
+        build = self.obj.builds[0]
+        koji = buildsys.get_session()
+        koji.__tagged__[build.nvr] = [
+            release.testing_tag, release.pending_signing_tag, release.pending_testing_tag,
+            release.pending_stable_tag, 'f35-build-side-12345',
+            # Add an unknown tag that we shouldn't touch
+            release.dist_tag + '-compose']
+
+        build.unpush(koji, from_side_tag=True)
+
+        assert koji.__untag__ == [
+            ('dist-f11-updates-testing', 'TurboGears-1.0.8-3.fc11'),
+            ('dist-f11-updates-testing-signing', 'TurboGears-1.0.8-3.fc11'),
+            ('dist-f11-updates-testing-pending', 'TurboGears-1.0.8-3.fc11'),
+            ('dist-f11-updates-pending', 'TurboGears-1.0.8-3.fc11')]
+
     @mock.patch('bodhi.server.models.log.info')
     def test_unpush_update(self, info):
         """Unpushing an update shouldn't clear the override tag from builds."""
