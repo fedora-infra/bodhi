@@ -1482,12 +1482,13 @@ class Build(Base):
         """Return the creation time of the build."""
         return datetime.fromisoformat(self._get_kojiinfo()['creation_time'])
 
-    def unpush(self, koji):
+    def unpush(self, koji, from_side_tag=False):
         """
         Move this build back to the candidate tag and remove any pending tags.
 
         Args:
             koji (bodhi.server.buildsys.Buildsysem or koji.ClientSession): A koji client.
+            from_side_tag (bool): if the build was originally built in a side-tag.
         """
         log.info('Unpushing %s' % self.nvr)
         release = self.update.release
@@ -1501,11 +1502,16 @@ class Build(Base):
             if tag == release.pending_stable_tag:
                 log.info('Removing %s tag from %s' % (tag, self.nvr))
                 koji.untagBuild(tag, self.nvr)
-            elif tag == release.testing_tag:
-                log.info(
-                    'Moving %s from %s to %s' % (
-                        self.nvr, tag, release.candidate_tag))
-                koji.moveBuild(tag, release.candidate_tag, self.nvr)
+            if tag == release.testing_tag:
+                if not from_side_tag:
+                    log.info(f'Moving {self.nvr} from {tag} to {release.candidate_tag}')
+                    koji.moveBuild(tag, release.candidate_tag, self.nvr)
+                else:
+                    log.info(f'Removing {tag} tag from {self.nvr}')
+                    koji.untagBuild(tag, self.nvr)
+            elif from_side_tag and tag == release.candidate_tag:
+                log.info(f'Removing {tag} tag from {self.nvr}')
+                koji.untagBuild(tag, self.nvr)
 
     def is_latest(self) -> bool:
         """Check if this is the latest build available in the stable tag."""
@@ -2495,7 +2501,7 @@ class Update(Base):
                     if b.nvr == build:
                         break
 
-                b.unpush(koji=request.koji)
+                b.unpush(koji=request.koji, from_side_tag=bool(up.from_tag))
                 up.builds.remove(b)
 
                 # Expire any associated buildroot override
@@ -2545,25 +2551,33 @@ class Update(Base):
                     'sent back to testing.',
                 })
                 builds_to_tag = [b.nvr for b in up.builds]
+                if up.from_tag and not up.release.composed_by_bodhi:
+                    tags = [up.release.get_pending_signing_side_tag(up.from_tag)]
+                elif up.release.pending_signing_tag:
+                    tags = [up.release.pending_signing_tag]
             else:
                 # No need to unpush the update, just tag new builds
+                # into the appropriate pending-signing tag
                 builds_to_tag = new_builds
+                if up.from_tag and not up.release.composed_by_bodhi:
+                    tags = [up.release.get_pending_signing_side_tag(up.from_tag)]
+                elif up.from_tag:
+                    tags = [up.release.candidate_tag]
+                    if up.release.pending_signing_tag:
+                        tags.append(up.release.pending_signing_tag)
+                else:
+                    # For normal updates the builds already have candidate_tag
+                    if up.release.pending_signing_tag:
+                        tags = [up.release.pending_signing_tag]
 
-            # Add the pending_signing_tag to builds where needed
-            tag = None
-            if up.from_tag and not up.release.composed_by_bodhi:
-                tag = up.release.get_pending_signing_side_tag(up.from_tag)
-            elif up.release.pending_signing_tag:
-                tag = up.release.pending_signing_tag
-
-            if tag is not None:
+            for tag in tags:
                 tag_update_builds_task.delay(tag=tag, builds=builds_to_tag)
 
         new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])
 
         req = data.pop("request", None)
-        if req is not None and up.release.composed_by_bodhi and not data.get("from_tag"):
+        if req is not None and up.release.composed_by_bodhi:
             up.set_request(db, req, request.user.name)
 
         for key, value in data.items():

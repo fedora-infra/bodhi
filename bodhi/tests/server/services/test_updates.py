@@ -3267,9 +3267,70 @@ class TestUpdatesService(BasePyTestCase):
         assert self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first() is None
 
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
-    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
-    def test_edit_testing_update_with_new_builds(self, *args):
+    @mock.patch('bodhi.server.models.tag_update_builds_task')
+    @mock.patch('bodhi.server.models.Build.get_tags')
+    @mock.patch('bodhi.server.models.log.info')
+    def test_edit_pending_update_with_new_builds(self, info, get_tags, tag_task, *args):
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', args)
+
+        # Mark it as pending
+        upd = Update.get(r.json['alias'])
+        upd.status = UpdateStatus.pending
+        upd.request = UpdateRequest.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        get_tags.return_value = ['f17-updates-candidate',
+                                 'f17-updates-testing-pending']
+
+        args['edited'] = upd.alias
+        args['builds'] = 'bodhi-2.0.0-3.fc17'
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
+        info.assert_any_call('Unpushing bodhi-2.0.0-2.fc17')
+        info.assert_any_call('Removing f17-updates-testing-pending tag from bodhi-2.0.0-2.fc17')
+        assert mock.call(
+            'Removing f17-updates-candidate tag from bodhi-2.0.0-2.fc17'
+        ) not in info.call_args_list
+        tag_task.delay.assert_called_once_with(tag='f17-updates-signing-pending',
+                                               builds=['bodhi-2.0.0-3.fc17'])
+        up = r.json_body
+        assert up['title'] == 'bodhi-2.0.0-3.fc17'
+        assert up['status'] == 'pending'
+        assert up['request'] == 'testing'
+        comment = textwrap.dedent("""
+        guest edited this update.
+
+        New build(s):
+
+        - bodhi-2.0.0-3.fc17
+
+        Removed build(s):
+
+        - bodhi-2.0.0-2.fc17
+
+        Karma has been reset.
+        """).strip()
+        assert_multiline_equal(up['comments'][-1]['text'], comment)
+        assert up['comments'][-3]['text'] == 'This update has been submitted for testing by guest. '
+        assert len(up['builds']) == 1
+        assert up['builds'][0]['nvr'] == 'bodhi-2.0.0-3.fc17'
+        assert self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first() is None
+
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.models.tag_update_builds_task')
+    @mock.patch('bodhi.server.models.Build.get_tags')
+    @mock.patch('bodhi.server.models.log.info')
+    def test_edit_testing_update_with_new_builds(self, info, get_tags, tag_task, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
 
@@ -3284,6 +3345,8 @@ class TestUpdatesService(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
+        get_tags.return_value = ['f17-updates-testing']
+
         args['edited'] = upd.alias
         args['builds'] = 'bodhi-2.0.0-3.fc17'
 
@@ -3291,6 +3354,11 @@ class TestUpdatesService(BasePyTestCase):
                                     update_schemas.UpdateEditV1):
             r = self.app.post_json('/updates/', args)
 
+        info.assert_any_call('Unpushing bodhi-2.0.0-2.fc17')
+        info.assert_any_call(
+            'Moving bodhi-2.0.0-2.fc17 from f17-updates-testing to f17-updates-candidate')
+        tag_task.delay.assert_called_once_with(tag='f17-updates-signing-pending',
+                                               builds=['bodhi-2.0.0-3.fc17'])
         up = r.json_body
         assert up['title'] == 'bodhi-2.0.0-3.fc17'
         assert up['status'] == 'pending'
@@ -3316,9 +3384,12 @@ class TestUpdatesService(BasePyTestCase):
         assert self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first() is None
 
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
-    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
-    def test_edit_testing_update_with_new_builds_with_stable_request(self, *args):
+    @mock.patch('bodhi.server.models.tag_update_builds_task')
+    @mock.patch('bodhi.server.models.Build.get_tags')
+    @mock.patch('bodhi.server.models.log.info')
+    def test_edit_testing_update_with_new_builds_with_stable_request(self, info, get_tags,
+                                                                     tag_task, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
 
@@ -3333,6 +3404,9 @@ class TestUpdatesService(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
+        get_tags.return_value = ['f17-updates-testing',
+                                 'f17-updates-pending']
+
         args['edited'] = upd.alias
         args['builds'] = 'bodhi-2.0.0-3.fc17'
 
@@ -3340,6 +3414,12 @@ class TestUpdatesService(BasePyTestCase):
                                     update_schemas.UpdateEditV1):
             r = self.app.post_json('/updates/', args)
 
+        info.assert_any_call('Unpushing bodhi-2.0.0-2.fc17')
+        info.assert_any_call('Removing f17-updates-pending tag from bodhi-2.0.0-2.fc17')
+        info.assert_any_call(
+            'Moving bodhi-2.0.0-2.fc17 from f17-updates-testing to f17-updates-candidate')
+        tag_task.delay.assert_called_once_with(tag='f17-updates-signing-pending',
+                                               builds=['bodhi-2.0.0-3.fc17'])
         up = r.json_body
         assert up['title'] == 'bodhi-2.0.0-3.fc17'
         assert up['status'] == 'pending'
@@ -3399,6 +3479,126 @@ class TestUpdatesService(BasePyTestCase):
         assert up['comments'][-3]['text'] == 'This update has been submitted for testing by guest. '
         assert len(up['builds']) == 1
         assert up['builds'][0]['nvr'] == 'bodhi-2.0.0-2.fc17'
+
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.models.tag_update_builds_task')
+    @mock.patch('bodhi.server.models.Build.get_tags')
+    @mock.patch('bodhi.server.models.log.info')
+    def test_edit_pending_sidetag_update_with_new_builds(self, info, get_tags, tag_task, *args):
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', args)
+
+        # Mark it as pending
+        upd = Update.get(r.json['alias'])
+        upd.status = UpdateStatus.pending
+        upd.request = UpdateRequest.testing
+        upd.from_tag = 'f17-build-side-12345'
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        get_tags.return_value = ['f17-updates-candidate',
+                                 'f17-updates-testing-pending',
+                                 'f17-build-side-12345']
+
+        args['edited'] = upd.alias
+        args['builds'] = 'bodhi-2.0.0-3.fc17'
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
+        info.assert_any_call('Unpushing bodhi-2.0.0-2.fc17')
+        info.assert_any_call('Removing f17-updates-testing-pending tag from bodhi-2.0.0-2.fc17')
+        info.assert_any_call('Removing f17-updates-candidate tag from bodhi-2.0.0-2.fc17')
+        tag_task.delay.assert_any_call(tag='f17-updates-signing-pending',
+                                       builds=['bodhi-2.0.0-3.fc17'])
+        tag_task.delay.assert_any_call(tag='f17-updates-candidate',
+                                       builds=['bodhi-2.0.0-3.fc17'])
+        up = r.json_body
+        assert up['title'] == 'bodhi-2.0.0-3.fc17'
+        assert up['status'] == 'pending'
+        assert up['request'] == 'testing'
+        comment = textwrap.dedent("""
+        guest edited this update.
+
+        New build(s):
+
+        - bodhi-2.0.0-3.fc17
+
+        Removed build(s):
+
+        - bodhi-2.0.0-2.fc17
+
+        Karma has been reset.
+        """).strip()
+        assert_multiline_equal(up['comments'][-1]['text'], comment)
+        assert up['comments'][-3]['text'] == 'This update has been submitted for testing by guest. '
+        assert len(up['builds']) == 1
+        assert up['builds'][0]['nvr'] == 'bodhi-2.0.0-3.fc17'
+        assert self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first() is None
+
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.models.tag_update_builds_task')
+    @mock.patch('bodhi.server.models.Build.get_tags')
+    @mock.patch('bodhi.server.models.log.info')
+    def test_edit_testing_sidetag_update_with_new_builds(self, info, get_tags, tag_task, *args):
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', args)
+
+        # Mark it as testing
+        upd = Update.get(r.json['alias'])
+        upd.status = UpdateStatus.testing
+        upd.from_tag = 'f17-build-side-12345'
+        upd.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        get_tags.return_value = ['f17-updates-testing',
+                                 'f17-build-side-12345']
+
+        args['edited'] = upd.alias
+        args['builds'] = 'bodhi-2.0.0-3.fc17'
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1,
+                                    update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
+        info.assert_any_call('Unpushing bodhi-2.0.0-2.fc17')
+        info.assert_any_call('Removing f17-updates-testing tag from bodhi-2.0.0-2.fc17')
+        tag_task.delay.assert_any_call(tag='f17-updates-signing-pending',
+                                       builds=['bodhi-2.0.0-3.fc17'])
+        up = r.json_body
+        assert up['title'] == 'bodhi-2.0.0-3.fc17'
+        assert up['status'] == 'pending'
+        assert up['request'] == 'testing'
+        assert up['comments'][-1]['text'] == 'This update has been submitted for testing by guest. '
+        comment = textwrap.dedent("""
+        guest edited this update.
+
+        New build(s):
+
+        - bodhi-2.0.0-3.fc17
+
+        Removed build(s):
+
+        - bodhi-2.0.0-2.fc17
+
+        Karma has been reset.
+        """).strip()
+        assert_multiline_equal(up['comments'][-2]['text'], comment)
+        assert up['comments'][-4]['text'] == 'This update has been submitted for testing by guest. '
+        assert len(up['builds']) == 1
+        assert up['builds'][0]['nvr'] == 'bodhi-2.0.0-3.fc17'
+        assert self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first() is None
 
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
     @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
