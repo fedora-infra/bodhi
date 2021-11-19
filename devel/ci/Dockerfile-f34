@@ -49,7 +49,7 @@ RUN dnf install -y \
     python3-wheel \
     python3-whitenoise \
     python3-yaml &&\
-    pip-3 install graphene graphene-sqlalchemy WebOb-GraphQL koji
+    pip-3 install koji
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji
