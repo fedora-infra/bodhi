@@ -1,5 +1,8 @@
-FROM registry.fedoraproject.org/fedora:33
-LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
+FROM registry.fedoraproject.org/fedora:35
+LABEL maintainer="Mattia Verga <mattia.verga@fedoraproject.org>"
+
+# RUN echo "fastestmirror=False" >> /etc/dnf/dnf.conf
+# RUN echo "zchunk = False" >> /etc/dnf/dnf.conf
 
 RUN dnf install -y \
     createrepo_c \
@@ -49,7 +52,7 @@ RUN dnf install -y \
     python3-wheel \
     python3-whitenoise \
     python3-yaml &&\
-    pip-3 install graphene graphene-sqlalchemy WebOb-GraphQL koji
+    pip-3 install koji
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji
