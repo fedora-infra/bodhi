@@ -366,11 +366,19 @@ class TestComposeInfo:
         result = runner.invoke(client.info_compose, ['EPEL-7', 'stable'])
 
         assert result.exit_code == 2
-        assert compare_output(
-            result.output,
-            ('Usage: info [OPTIONS] RELEASE REQUEST\n\n'
-             'Error: Invalid value for RELEASE/REQUEST: Compose with '
-             'request "stable" not found for release "EPEL-7"'))
+        if int(click.__version__.split('.')[0]) < 8:
+            assert compare_output(
+                result.output,
+                ('Usage: info [OPTIONS] RELEASE REQUEST\n\n'
+                 'Error: Invalid value for RELEASE/REQUEST: Compose with '
+                 'request "stable" not found for release "EPEL-7"'))
+        else:
+            assert compare_output(
+                result.output,
+                ('Usage: info [OPTIONS] RELEASE REQUEST\n'
+                 'Try \'info --help\' for help.\n\n'
+                 'Error: Invalid value for RELEASE/REQUEST: Compose with '
+                 'request "stable" not found for release "EPEL-7"'))
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
         __init__.assert_called_once_with(base_url=EXPECTED_DEFAULT_BASE_URL, staging=False)
 
@@ -830,9 +838,15 @@ class TestNew:
              '--notes', 'bla bla bla', '--type', 'security'])
 
         assert result.exit_code == 2
-        assert result.output == (
-            'Usage: new [OPTIONS] BUILDS_OR_TAG\n\nError: Invalid '
-            'value for severity: must specify severity for a security update\n')
+        if int(click.__version__.split('.')[0]) < 8:
+            assert result.output == (
+                'Usage: new [OPTIONS] BUILDS_OR_TAG\n\nError: Invalid '
+                'value for severity: must specify severity for a security update\n')
+        else:
+            assert result.output == (
+                'Usage: new [OPTIONS] BUILDS_OR_TAG\n'
+                'Try \'new --help\' for help.\n\nError: Invalid '
+                'value for severity: must specify severity for a security update\n')
 
 
 class TestPrintOverrideKojiHint:
@@ -1324,10 +1338,17 @@ class TestRequest:
                                                 'some_user', '--password', 's3kr3t'])
 
         assert result.exit_code == 2
-        assert compare_output(
-            result.output,
-            ('Usage: request [OPTIONS] UPDATE STATE\n\nError: Invalid value for UPDATE: Update not'
-             ' found: bodhi-2.2.4-99.el7\n'))
+        if int(click.__version__.split('.')[0]) < 8:
+            assert compare_output(
+                result.output,
+                ('Usage: request [OPTIONS] UPDATE STATE\n'
+                 '\nError: Invalid value for UPDATE: Update not found: bodhi-2.2.4-99.el7\n'))
+        else:
+            assert compare_output(
+                result.output,
+                ('Usage: request [OPTIONS] UPDATE STATE\n'
+                 'Try \'request --help\' for help.\n'
+                 '\nError: Invalid value for UPDATE: Update not found: bodhi-2.2.4-99.el7\n'))
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-99.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': 'revoke',
@@ -2044,11 +2065,17 @@ class TestEdit:
         click_ver = [int(n) for n in click.__version__.split('.')]
         if click_ver < [7, 0]:
             label = '"update"'
+            extra_help = ''
         elif click_ver == [7, 0]:
             label = '"UPDATE"'
+            extra_help = ''
+        elif click_ver < [8, 0]:
+            label = "'UPDATE'"
+            extra_help = ''
         else:
             label = "'UPDATE'"
-        expected = f'Usage: edit [OPTIONS] UPDATE\n\n' \
+            extra_help = 'Try \'edit --help\' for help.\n'
+        expected = f'Usage: edit [OPTIONS] UPDATE\n{extra_help}\n' \
                    f'Error: Invalid value for {label}: ' \
                    f'Please provide an Update ID\n'
 
@@ -2174,9 +2201,15 @@ class TestEdit:
                           '--type', 'security', '--severity', 'unspecified'])
 
         assert result.exit_code == 2
-        assert result.output == ('Usage: edit [OPTIONS] UPDATE\n\nError: Invalid '
-                                 'value for severity: must specify severity for '
-                                 'a security update\n')
+        if int(click.__version__.split('.')[0]) < 8:
+            assert result.output == ('Usage: edit [OPTIONS] UPDATE\n\nError: Invalid '
+                                     'value for severity: must specify severity for '
+                                     'a security update\n')
+        else:
+            assert result.output == ('Usage: edit [OPTIONS] UPDATE\n'
+                                     'Try \'edit --help\' for help.\n\nError: Invalid '
+                                     'value for severity: must specify severity for '
+                                     'a security update\n')
 
 
 class TestEditBuildrootOverrides:
