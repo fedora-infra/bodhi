@@ -159,6 +159,7 @@ def approve_update(update: Update, db: Session):
                 update.remove_tag(update.release.pending_testing_tag)
                 update.remove_tag(update.release.pending_stable_tag)
                 update.remove_tag(update.release.pending_signing_tag)
+                update.remove_tag(update.release.testing_tag)
                 update.remove_tag(update.release.candidate_tag)
 
     log.info(f'{update.alias} processed by approve_testing')
