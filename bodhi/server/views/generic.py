@@ -349,7 +349,8 @@ def latest_candidates(request):
             if testing:
                 koji.listTagged(release.testing_tag, **kwargs)
                 koji.listTagged(release.pending_testing_tag, **kwargs)
-                koji.listTagged(release.pending_signing_tag, **kwargs)
+                if release.pending_signing_tag:
+                    koji.listTagged(release.pending_signing_tag, **kwargs)
 
         response = koji.multiCall() or []  # Protect against None
         for taglist in response:
@@ -357,6 +358,7 @@ def latest_candidates(request):
             # in the reponse as dicts. Here we detect these, and log
             # the errors
             if isinstance(taglist, dict):
+                log.error('latest_candidates endpoint asked Koji about a non-existent tag:')
                 log.error(taglist)
             else:
                 for build in taglist[0]:

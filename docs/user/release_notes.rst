@@ -45,7 +45,6 @@ Features
 Bug fixes
 ^^^^^^^^^
 
-=======
 * Fix an issue that caused the builds in a side-tag update to not be tagged
   correctly when the build list of the update was modified (:pr:`4161`).
 * Bodhi will now delete the side-tag in Koji when an update is pushed to
