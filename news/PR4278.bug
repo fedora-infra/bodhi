@@ -1,0 +1,1 @@
+Fixed an issue where JSON serialization of a TestCase object hangs the server
