@@ -60,6 +60,7 @@ def main():
             return
 
         kc = buildsys.get_session()
+        stuck_builds = []
 
         for update in updates:
             # Let Bodhi have its times
@@ -80,6 +81,20 @@ def main():
                     continue
                 build_tags = [t['name'] for t in kc.listTags(build=build.nvr)]
                 if pending_signing_tag not in build_tags and pending_testing_tag in build_tags:
+                    # Our composer missed the message that the build got signed
                     log.debug(f'Changing signed status of {build.nvr}')
                     build.signed = True
+                if pending_signing_tag in build_tags and pending_testing_tag not in build_tags:
+                    # autosign missed the message that the build is waiting to be signed
+                    log.debug(f'{build.nvr} is stuck waiting to be signed, let\'s try again')
+                    stuck_builds.append(build.nvr)
             session.flush()
+
+        if stuck_builds:
+            kc.multicall = True
+            for b in stuck_builds:
+                kc.untagBuild(pending_signing_tag, b, force=True)
+            kc.multiCall()
+            for b in stuck_builds:
+                kc.tagBuild(pending_signing_tag, b, force=True)
+            kc.multiCall()

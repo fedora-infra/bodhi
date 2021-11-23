@@ -109,6 +109,8 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
     def test_check_signed_builds_still_not_signed(self, debug, buildsys):
         """
         The task should NOT mark signed builds if it is still pending-signing.
+
+        Instead it should try to resubmit the builds to signing.
         """
         update = models.Update.query.first()
         update.builds[0].signed = False
@@ -119,7 +121,7 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
             {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
              'name': 'f17-updates-candidate', 'perm': None, 'perm_id': None},
             {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-             'name': 'f17-signing-pending', 'perm': None, 'perm_id': None}, ]
+             'name': 'f17-updates-signing-pending', 'perm': None, 'perm_id': None}, ]
 
         buildsys.get_session.return_value.listTags.return_value = listTags
         check_signed_builds_main()
@@ -127,6 +129,12 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         update = models.Update.query.first()
         buildsys.get_session.assert_called_once()
         assert update.builds[0].signed == False
+        debug.assert_called_once_with('bodhi-2.0-1.fc17 is stuck waiting to be signed, '
+                                      'let\'s try again')
+        buildsys.get_session.return_value.untagBuild.assert_called_once_with(
+            'f17-updates-signing-pending', 'bodhi-2.0-1.fc17', force=True)
+        buildsys.get_session.return_value.tagBuild.assert_called_once_with(
+            'f17-updates-signing-pending', 'bodhi-2.0-1.fc17', force=True)
 
     @patch('bodhi.server.tasks.check_signed_builds.buildsys')
     @patch('bodhi.server.tasks.check_signed_builds.log.debug')
