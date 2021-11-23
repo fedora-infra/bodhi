@@ -25,8 +25,8 @@ import munch
 import pytest
 
 from bodhi.client import bindings
-from bodhi.tests import client as client_test_data
-from bodhi.tests.utils import compare_output
+from tests import client_data as client_test_data
+from tests.utils import compare_output
 
 
 @mock.patch('fedora.client.openidproxyclient.FEDORA_OPENID_API', 'default')

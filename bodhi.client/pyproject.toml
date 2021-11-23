@@ -1,0 +1,106 @@
+[tool.poetry]
+name = "bodhi.client"
+version = "5.7.2"
+description = "Console commands for datanommer"
+authors = [
+  "Fedora Infrastructure <admin@fedoraproject.org>"
+]
+license = "GPL-3.0-or-later"
+readme = "README.rst"
+repository = "https://github.com/fedora-infra/bodhi"
+homepage = "https://github.com/fedora-infra/bodhi"
+packages = [
+    { include = "bodhi" },
+]
+include = [
+    "tests/*",
+    "tox.ini",
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+click = "^7.1.2"
+python-fedora = "^1.1.1"
+koji = "^1.27.0"
+munch = "^2.5.0"
+requests = "^2.25.1"
+
+[tool.poetry.dev-dependencies]
+pre-commit = "^2.13.0"
+black = "^21.6b0"
+isort = "^5.9.2"
+flake8 = "^3.9.2"
+pytest = "^6.2.4"
+liccheck = "^0.6.0"
+mypy = "*"
+types-requests = "*"
+pytest-cov = "^2.12.1"
+pytest-mock = "^3.6.1"
+towncrier = "^21.3.0"
+
+[tool.poetry.scripts]
+bodhi = "bodhi.client:cli"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+# mypy global options:
+
+[tool.mypy]
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+# mypy per-module options:
+
+[[tool.mypy.overrides]]
+module = [
+    "backoff",
+    "bugzilla",
+    "dnf",
+    "fedora",
+    "fedora_messaging",
+    "koji",
+    "munch",
+    "pyramid",
+    "xmlrpc"
+]
+ignore_missing_imports = true
+
+[tool.liccheck]
+authorized_licenses = [
+  "bsd",
+  "new bsd",
+  "simplified bsd",
+  "apache",
+  "apache 2.0",
+  "apache software",
+  "Apache License 2.0",
+  "Apache License, Version 2.0",
+  "gnu lgpl",
+  "gpl v2",
+  "GNU General Public License v2 or later (GPLv2+)",
+  "GNU General Public License v3 (GPLv3)",
+  "GNU General Public License v3 or later (GPLv3+)",
+  "GNU Library or Lesser General Public License (LGPL)",
+  "GNU Lesser General Public License v2 or later (LGPLv2+)",
+  "GNU Lesser General Public License v3 or later (LGPLv3+)",
+  "GPLv3+",
+  "LGPLv2+",
+  "gpl v3",
+  "lgpl with exceptions or zpl",
+  "isc",
+  "isc license (iscl)",
+  "mit",
+  "python software foundation",
+  "zpl 2.1",
+  "mpl-2.0",
+  "MPL 2.0",
+  "Mozilla Public License 2.0 (MPL 2.0)",
+  "lgpl",
+  "CC0 (copyright waived)",
+  "Public Domain",
+  "Public Domain <http://unlicense.org>",
+  'Zope Public',
+]

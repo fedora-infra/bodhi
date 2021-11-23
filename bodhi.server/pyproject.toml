@@ -1,0 +1,55 @@
+[tool.towncrier]
+package = "bodhi_server"
+filename = "../docs/user/release_notes.rst"
+directory = "../news/"
+title_format = "v{version}"
+issue_format = "{issue}"
+template = "../news/_template.rst"
+underlines = "=^-"
+wrap = true
+all_bullets = true
+
+  [[tool.towncrier.type]]
+  directory = "bic"
+  name = "Backwards incompatible changes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "dependency"
+  name = "Dependency changes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "migration"
+  name = "Server upgrade instructions"
+  showcontent = false
+
+  [[tool.towncrier.type]]
+  directory = "feature"
+  name = "Features"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "bug"
+  name = "Bug fixes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "dev"
+  name = "Development improvements"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "docs"
+  name = "Documentation improvements"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "other"
+  name = "Other changes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "author"
+  name = "Contributors"
+  showcontent = true

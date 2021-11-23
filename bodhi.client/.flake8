@@ -1,0 +1,7 @@
+[flake8]
+max-line-length = 100
+exclude = .git,.tox,dist,*egg,build,tools
+ignore = E711,E712,W503
+# Configure flake8-import-order
+application-import-names = bodhi
+import-order-style = pep8

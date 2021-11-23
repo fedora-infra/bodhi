@@ -30,8 +30,8 @@ import munch
 
 from bodhi import client
 from bodhi.client import bindings, AuthError
-from bodhi.tests import client as client_test_data
-from bodhi.tests.utils import compare_output
+from tests import client_data as client_test_data
+from tests.utils import compare_output
 
 
 EXPECTED_DEFAULT_BASE_URL = os.environ.get('BODHI_URL', bindings.BASE_URL)

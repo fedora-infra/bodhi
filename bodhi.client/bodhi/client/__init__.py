@@ -841,7 +841,7 @@ def _get_notes(**kwargs) -> str:
             click.echo("ERROR: Cannot specify --notes and --notes-file", err=True)
             sys.exit(1)
     else:
-        return kwargs['notes']
+        return str(kwargs['notes'])
 
 
 @updates.command()

@@ -1,0 +1,29 @@
+alembic
+arrow
+backoff
+bleach
+celery>=4.2
+click
+colander
+cornice>=3.1.0
+dogpile.cache
+pyasn1-modules  # Due to an unfortunate dash in its name, installs break if pyasn1 is installed first
+fedora_messaging
+feedgen>=0.7.0
+jinja2
+markdown
+koji
+prometheus_client
+psycopg2
+py3dns  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
+pylibravatar
+pyramid>=1.7
+pyramid_fas_openid
+pyramid_mako
+python-bugzilla
+python-fedora
+PyYAML
+simplemediawiki
+sqlalchemy
+waitress
+whitenoise
