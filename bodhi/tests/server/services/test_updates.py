@@ -1151,8 +1151,8 @@ class TestSetRequest(BasePyTestCase):
 
         assert res.json_body['status'] == 'error'
         assert res.json_body['errors'][0]['description'] == 'BodhiException. oops!'
-        assert log_info.call_count == 2
-        assert log_info.call_args_list[1][0][0] == "Failed to set the request: %s"
+        assert log_info.call_count == 1
+        assert log_info.call_args_list[0][0][0] == "Failed to set the request: %s"
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.set_request',
