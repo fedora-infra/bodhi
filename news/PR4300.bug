@@ -1,0 +1,1 @@
+Bodhi will now try to resubmit a build to signing if it detects that is stuck in pending signing for some time

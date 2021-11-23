@@ -153,6 +153,7 @@ class DevBuildsys:
         log.debug("moveBuild(%s, %s, %s)" % (from_tag, to_tag, build))
         DevBuildsys.__moved__.append((from_tag, to_tag, build))
 
+    @multicall_enabled
     def tagBuild(self, tag: str, build: str, *args, **kw):
         """Emulate Koji's tagBuild."""
         if tag is None:
@@ -160,6 +161,7 @@ class DevBuildsys:
         log.debug("tagBuild(%s, %s)" % (tag, build))
         DevBuildsys.__added__.append((tag, build))
 
+    @multicall_enabled
     def untagBuild(self, tag: str, build: str, *args, **kw):
         """Emulate Koji's untagBuild."""
         if tag is None:
