@@ -4,6 +4,28 @@ Release notes
 
 .. towncrier release notes start
 
+v5.7.2
+======
+This is a bugfix release that should help with several problems after 7.5.1 release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed an issue where JSON serialization of a TestCase object hangs the server
+  (:pr:`4278`).
+* Fixed a possible call to Koji listTagged() passing an empty tag name
+  (:pr:`4280`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Saleh
+* Mattia Verga
+
+
 v5.7.1
 ======
 This is a bugfix release.
