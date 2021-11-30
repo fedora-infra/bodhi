@@ -1918,8 +1918,8 @@ class Update(Base):
 
     # One-to-many relationships
     comments = relationship('Comment', backref='update', cascade="all,delete,delete-orphan",
-                            order_by='Comment.timestamp')
-    builds = relationship('Build', backref='update', order_by='Build.nvr')
+                            order_by='Comment.timestamp', lazy='joined',)
+    builds = relationship('Build', backref='update', order_by='Build.nvr', lazy='joined')
 
     # Many-to-many relationships
     bugs = relationship('Bug', secondary=update_bug_table, backref='updates', order_by='Bug.bug_id')
