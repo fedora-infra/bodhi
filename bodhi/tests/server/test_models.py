@@ -188,7 +188,8 @@ class TestBodhiBase(BasePyTestCase):
 
     def test_grid_columns(self):
         """Assert correct return value from the grid_columns() method."""
-        assert model.Build.grid_columns() == ['nvr', 'signed', 'release_id', 'type', 'epoch']
+        assert sorted(model.Build.grid_columns()) == sorted(['nvr', 'signed', 'release_id',
+                                                             'type', 'epoch'])
 
     def test_find_child_for_rpm(self):
         subclass = model.Package.find_polymorphic_child(model.ContentType.rpm)
