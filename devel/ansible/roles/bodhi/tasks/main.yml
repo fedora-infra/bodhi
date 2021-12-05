@@ -32,7 +32,6 @@
       - python3-colander
       - python3-conu
       - python3-cornice
-      - python3-cornice-sphinx
       - python3-createrepo_c
       - python3-diff-cover
       - python3-dogpile-cache

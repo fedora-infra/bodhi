@@ -26,39 +26,4 @@ schemas via `JSON Schema`_.
    messages/update
 
 
-REST API
-========
-
-This section of the documentation describes Bodhi's REST API. You can read about the various
-sections of the API by following the links below:
-
-
-.. toctree::
-   :maxdepth: 2
-
-   rest/builds
-   rest/comments
-   rest/composes
-   rest/csrf
-   rest/markdown
-   rest/overrides
-   rest/packages
-   rest/releases
-   rest/schemas
-   rest/updates
-   rest/users
-
-
 .. _JSON Schema: https://json-schema.org/
-
-GRAPHQL API
-===========
-
-This section of the documentation describes Bodhi's GraphQL API. You can read about the various
-sections of the API by following the links below:
-
-
-.. toctree::
-   :maxdepth: 2
-
-   graphql/documentation
