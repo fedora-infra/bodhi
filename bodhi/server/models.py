@@ -794,7 +794,6 @@ class Release(Base):
         mail_template (str): The notification mail template.
         state (:class:`ReleaseState`): The current state of the release. Defaults to
             ``ReleaseState.disabled``.
-        id (int): The primary key of this release.
         builds (sqlalchemy.orm.collections.InstrumentedList): An iterable of :class:`Builds <Build>`
             associated with this release.
         composed_by_bodhi (bool): The flag that indicates whether the release is composed by
@@ -4178,8 +4177,6 @@ class Compose(Base):
             reached.
         date_created (datetime.datetime): The time this Compose was created.
         error_message (str): An error message indicating what happened if the Compose failed.
-        id (None): We don't want the superclass's primary key since we will use a natural primary
-            key for this model.
         release_id (int): The primary key of the :class:`Release` that is being composed. Forms half
             of the primary key, with the other half being the ``request``.
         request (UpdateRequest): The request of the release that is being composed. Forms half of
