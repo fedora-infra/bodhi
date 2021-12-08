@@ -4,6 +4,16 @@ Release notes
 
 .. towncrier release notes start
 
+v5.7.3
+======
+This is a bugfix release that should help with several more problems after 7.5.2 release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed an issue where Bodhi was throwing 5xx "NoSuchColumnError testcases.id" errors because of a misconfigured table (:issue:`4302`).
+
 v5.7.2
 ======
 This is a bugfix release that should help with several problems after 7.5.1 release.
