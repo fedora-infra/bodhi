@@ -1,0 +1,13 @@
+---
+- job:
+    name: bodhi-pre-commit
+    run: devel/ci/bodhi-pre-commit.yaml
+    nodeset:
+      nodes:
+        name: test-node
+        label: pod-python-f35
+
+- project:
+    check:
+      jobs:
+        - bodhi-pre-commit
