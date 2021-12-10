@@ -2,9 +2,12 @@
 - job:
     name: bodhi-pre-commit
     run: devel/ci/bodhi-pre-commit.yaml
-    nodeset: pod-python-f35
+    nodeset:
+      nodes:
+        name: test-node
+        label: pod-python-f35
 
 - project:
     check:
       jobs:
-        - pre-commit
+        - bodhi-pre-commit
