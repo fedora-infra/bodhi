@@ -7,4 +7,45 @@ repos:
     hooks:
       - id: flake8
         args: ['--config=setup.cfg']
+default_language_version:
+  python: python3.9
 
+repos:
+  - repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+        args: ['--config=setup.cfg']
+  - repo: local
+    # We do not use pre-commit/mirrors-mypy, 
+    # as it comes with opinionated defaults 
+    # (like --ignore-missing-imports)
+    # and is difficult to configure to run 
+    # with the dependencies correctly installed.
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: "./run-mypy"
+        language: python
+        # use your preferred Python version
+        language_version: python3.9
+        additional_dependencies: ["mypy==0.812"]
+        types: [python]
+        # use require_serial so that script
+        # is only called once per commit
+        require_serial: true
+        # Print the number of files as a sanity-check 
+        verbose: true
+      - id: pydocstyle
+        name: pydocstyle
+        entry: "./run-pydocstyle"
+        language: python
+        # use your preferred Python version
+        language_version: python3.9
+        additional_dependencies: ["pydocstyle==6.1.1"]
+        types: [python]
+        # use require_serial so that script
+        # is only called once per commit
+        require_serial: true
+        # Print the number of files as a sanity-check 
+        verbose: true
