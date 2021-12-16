@@ -2418,6 +2418,16 @@ class Update(Base):
         log.debug(f"Triggering db commit for new update {up.alias}.")
         db.commit()
 
+        log.info("Deferring working on bugs and fetching test cases to celery")
+        alias = up.alias
+        if not bool(config.get('bodhi_email')):
+            log.warning("Not configured to handle bugs")
+        else:
+            bug_ids = [bug.bug_id for bug in up.bugs]
+            work_on_bugs_task.delay(alias, bug_ids)
+
+        fetch_test_cases_task.delay(alias)
+
         # track whether to set gating status shortly...
         setgs = config.get('test_gating.required')
         # The request to testing for side-tag updates is set within the signed consumer
@@ -3052,9 +3062,6 @@ class Update(Base):
             )
         self.comment(db, comment_text, author=u'bodhi')
 
-        # Store the update alias so Celery doesn't have to emit SQL
-        alias = self.alias
-
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
@@ -3072,15 +3079,6 @@ class Update(Base):
                 log.info(f"Updating test gating status of {self.alias}")
                 self.update_test_gating_status()
                 db.commit()
-
-            log.info("Deferring working on bugs and fetching test cases to celery")
-            if not bool(config.get('bodhi_email')):
-                log.warning("Not configured to handle bugs")
-            else:
-                bugs = [bug.bug_id for bug in self.bugs]
-                work_on_bugs_task.delay(alias, bugs)
-
-            fetch_test_cases_task.delay(alias)
 
     def waive_test_results(self, username, comment=None, tests=None):
         """
