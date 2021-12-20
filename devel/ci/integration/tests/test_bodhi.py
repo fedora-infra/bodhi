@@ -1044,7 +1044,8 @@ def test_get_compose_json(bodhi_container, db_container):
         "  composed_by_bodhi, "
         "  create_automatic_updates, "
         "  package_manager, "
-        "  testing_repository "
+        "  testing_repository, "
+        "  eol "
         "FROM releases "
         "WHERE id = %s "
     )
