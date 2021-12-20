@@ -242,6 +242,7 @@ def test_releases_info(bodhi_container, db_container):
   Create Automatic Updates: {create_automatic_updates}
   Package Manager:          {package_manager}
   Testing Repository:       {testing_repository}
+  End of Life:              {eol}
 """.format(**release)
         assert result.output == expected
 
