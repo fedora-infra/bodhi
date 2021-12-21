@@ -47,7 +47,7 @@ def rabbitmq_container(
     # we need to wait for the broker to start listening
     container.wait_for_port(5672, timeout=30)
     # wait until the embedded consumer is connected
-    for i in range(15):
+    for i in range(60):
         if _consumer_is_connected(container, "dumper"):
             break
         print("Consumer not connected yet, retrying")
