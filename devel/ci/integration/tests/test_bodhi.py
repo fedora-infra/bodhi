@@ -478,7 +478,8 @@ def test_get_users_json(bodhi_container, db_container):
         "  groups.name as group_name "
         "FROM user_group_table "
         "JOIN groups ON user_group_table.group_id = groups.id "
-        "WHERE user_group_table.user_id = %s"
+        "WHERE user_group_table.user_id = %s "
+        "ORDER BY groups.name"
     )
     query_total_users = (
         "SELECT "
@@ -516,8 +517,12 @@ def test_get_users_json(bodhi_container, db_container):
 
     try:
         assert http_response.ok
+        response_users = http_response.json()["users"]
+        for user in response_users:
+            # Sort groups for comparaison
+            user["groups"].sort(key=lambda d: d["name"])
         for user in users:
-            assert user in http_response.json()["users"]
+            assert user in response_users
         assert http_response.json()["page"] == 1
         assert http_response.json()["pages"] == int(math.ceil(total / float(20)))
         assert http_response.json()["rows_per_page"] == 20
