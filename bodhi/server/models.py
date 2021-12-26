@@ -1239,6 +1239,23 @@ class Package(Base):
         return name
 
     @staticmethod
+    def check_existence(build):
+        """
+        Check if the Package instance associated with the build is already in database.
+
+        Args:
+            build (dict): Information about the build from the build system (koji).
+        Returns:
+            bool: True if the type-specific instance of Package is alreadi in database.
+        """
+        base = ContentType.infer_content_class(Package, build['info'])
+        name = base._get_name(build)
+        package = base.query.filter_by(name=name).one_or_none()
+        if not package:
+            return False
+        return True
+
+    @staticmethod
     def get_or_create(session, build):
         """
         Identify and return the Package instance associated with the build.
