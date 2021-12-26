@@ -987,8 +987,8 @@ class MockWiki(object):
         return self.response
 
 
-class TestPackageUniqueConstraints(BasePyTestCase):
-    """Tests for the Package model's uniqueness constraints."""
+class TestPackageModel(BasePyTestCase):
+    """Tests for the Package model."""
 
     def test_two_package_different_types(self):
         """Assert two different package types with the same name is fine."""
@@ -1007,6 +1007,24 @@ class TestPackageUniqueConstraints(BasePyTestCase):
         self.db.add(package1)
         self.db.add(package2)
         pytest.raises(IntegrityError, self.db.flush)
+
+    @pytest.mark.parametrize('exists', (False, True))
+    def test_package_existence(self, exists):
+        """Assert package existence check works based on specific type."""
+        if exists:
+            package1 = model.RpmPackage(name='python-requests')
+        else:
+            package1 = model.ModulePackage(name='python-requests')
+        self.db.add(package1)
+        self.db.flush()
+
+        koji = buildsys.get_session()
+        kbuildinfo = koji.getBuild('python-requests-1.0-1.fc36')
+        rbuildinfo = {
+            'info': kbuildinfo,
+            'nvr': kbuildinfo['nvr'].rsplit('-', 2),
+        }
+        assert model.Package.check_existence(rbuildinfo) is exists
 
 
 class TestModulePackage(ModelTest):
