@@ -1,0 +1,37 @@
+---
+- hosts: all
+
+  tasks:
+    - name: List project directory on the test system
+      command: "ls -al {{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
+    - name: prepare unit
+      command:
+        chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
+        cmd: sed -i '/pyramid_debugtoolbar/d' setup.py
+    - name: prepare unit
+      command:
+        chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
+        cmd: sed -i '/pyramid_debugtoolbar/d' devel/development.ini.example
+    - name: install deps
+      become: true
+      command: dnf -y install pungi python3-pip python3-createrepo_c python3-dnf python3-setuptools python3-mock python3-bugzilla python3-fedora
+    - name: prepare unit
+      command:
+        chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
+        cmd: mv devel/development.ini.example development.ini
+    - name: create venv
+      command:
+        chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
+        cmd: "python3 -m venv --system-site-packages --without-pip .test-venv"
+    - name: setup bodhi
+      command:
+        chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
+        cmd: ".test-venv/bin/python3 -m pip install -r requirements.txt"
+    - name: setup bodhi
+      command:
+        chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
+        cmd: ".test-venv/bin/python3 setup.py develop"
+    - name: run tests
+      command:
+        chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
+        cmd: ".test-venv/bin/python3 /usr/bin/py.test-3 -v bodhi/tests"
