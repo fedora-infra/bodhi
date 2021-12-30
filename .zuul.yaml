@@ -34,7 +34,6 @@
       nodes:
         name: bodhi-pip-node
         label: pod-python-f33
-
 - project:
     check:
       jobs:
