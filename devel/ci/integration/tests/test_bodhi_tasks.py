@@ -140,7 +140,8 @@ def test_update_edit(
         "ipsilon",
         "--bugs",
         bug_id,
-        "--autokarma",
+        "--stable-karma",
+        "1",
         update_alias,
     ]
     try:
@@ -150,9 +151,11 @@ def test_update_edit(
             print(log.read())
         assert False, str(e)
     try:
-        bodhi_container.execute(["wait-for-file", "-t", "10", "-d", "/srv/celery-results"])
+        bodhi_container.execute(["wait-for-file", "-d", "/srv/celery-results"])
     except ConuException as e:
         print(f"Waiting for celery results failed, relevant update: {update_alias}")
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
         raise e
     results = get_task_results(bodhi_container)
     assert len(results) > 0
