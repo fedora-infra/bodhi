@@ -23,7 +23,8 @@ pyramid_mako
 python-bugzilla
 python-fedora
 PyYAML
-simplemediawiki
+requests
+simplemediawiki==1.2.0b2
 sqlalchemy
 waitress
 whitenoise

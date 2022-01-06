@@ -18,7 +18,7 @@
     - name: prepare unit
       command:
         chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
-        cmd: mv devel/development.ini.example development.ini
+        cmd: cp devel/development.ini.example development.ini
     - name: create venv
       command:
         chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
