@@ -187,20 +187,17 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 ```"""
         assert len(update.bugs) == 0
 
+    @mock.patch('bodhi.server.consumers.automatic_updates.log.warning')
+    @mock.patch('bodhi.server.consumers.automatic_updates.sleep')
     @mock.patch('bodhi.server.models.RpmBuild.get_changelog')
-    def test_changelog_handled_exception(self, mock_generate_changelog):
-        """Assert that update creation is succesful if get_changelog() raises ValueError."""
+    def test_changelog_handled_exception(self, mock_generate_changelog, sleep, warning):
+        """Assert that update creation is not successful if get_changelog() raises ValueError."""
         mock_generate_changelog.side_effect = ValueError('Handled exception')
-
-        # process the message
-        self.handler(self.sample_message)
-
-        # check if the update exists...
-        update = self.db.query(Update).filter(
-            Update.builds.any(Build.nvr == self.sample_nvr)
-        ).first()
-
-        assert update.notes == "Automatic update for colord-1.3.4-1.fc26."
+        with pytest.raises(ValueError) as exc:
+            self.handler(self.sample_message)
+        assert str(exc.value) == 'Handled exception'
+        sleep.assert_called_once_with(5)
+        warning.assert_called_once_with('Handled exception')
 
     @mock.patch('bodhi.server.models.RpmBuild.get_changelog')
     def test_changelog_unhandled_exception(self, mock_generate_changelog):
