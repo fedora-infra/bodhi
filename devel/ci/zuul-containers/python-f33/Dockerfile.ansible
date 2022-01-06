@@ -1,0 +1,2 @@
+FROM registry.fedoraproject.org/fedora:33
+RUN dnf install -y ansible

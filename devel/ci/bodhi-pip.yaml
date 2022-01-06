@@ -14,11 +14,15 @@
         cmd: sed -i '/pyramid_debugtoolbar/d' devel/development.ini.example
     - name: install deps
       become: true
-      command: dnf -y install pungi python3-pip python3-createrepo_c python3-dnf python3-setuptools python3-mock python3-bugzilla python3-fedora
+      command: dnf -y install pungi  python3-psycopg2 python3-librepo python3-pip python3-createrepo_c python3-dnf python3-setuptools python3-mock python3-bugzilla python3-fedora
     - name: prepare unit
       command:
         chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
-        cmd: mv devel/development.ini.example development.ini
+        cmd: cp devel/development.ini.example development.ini
+    - name: setup tests
+      command:
+        chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
+        cmd: "pip install alembic webtest pytest pytest-cov"
     - name: create venv
       command:
         chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
@@ -34,4 +38,4 @@
     - name: run tests
       command:
         chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
-        cmd: ".test-venv/bin/python3 /usr/bin/py.test-3 -v bodhi/tests"
+        cmd: ".test-venv/bin/python3 -m pytest -v -x bodhi/tests"
