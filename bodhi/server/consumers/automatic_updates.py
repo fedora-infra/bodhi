@@ -22,6 +22,7 @@ This module is responsible for the process of creating updates when builds are
 tagged with certain tags.
 """
 
+from time import sleep
 import logging
 import re
 
@@ -148,10 +149,13 @@ class AutomaticUpdateHandler:
             log.debug(f"Creating new update for {bnvr}.")
             try:
                 changelog = build.get_changelog(lastupdate=True)
-            except ValueError:
+            except ValueError as e:
                 # Often due to bot-generated builds
-                # https://github.com/fedora-infra/bodhi/issues/4146
-                changelog = None
+                # https://pagure.io/koji/issue/3178
+                log.warning(str(e))
+                sleep(5)
+                # Re-raise exception, so that the message can be re-queued
+                raise
             except Exception:
                 # Re-raise exception, so that the message can be re-queued
                 raise
