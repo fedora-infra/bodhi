@@ -143,6 +143,10 @@ ul.updateslist li {
     padding:        5px;
 }
 
+.markdown img {
+    max-width: 100%;
+}
+
 #markdown-help strong {
     text-transform: uppercase;
 }
