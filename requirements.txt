@@ -24,6 +24,7 @@ python-bugzilla
 python-fedora
 PyYAML
 requests
+responses
 simplemediawiki==1.2.0b2
 sqlalchemy
 waitress

@@ -3,12 +3,12 @@
 
   tasks:
     - name: List project directory on the test system
-      command: "ls -al {{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
+      command: "ls -al /workspace/{{ zuul.project.src_dir }}"
 
     - name: install pre-commit
       command: pip install pre-commit --user
 
     - name: run pre-commit
       command:
-        chdir: "{{ ansible_user_dir }}/{{ zuul.project.src_dir }}"
+        chdir: "/workspace/{{ zuul.project.src_dir }}"
         cmd: pre-commit run --all
