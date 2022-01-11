@@ -5,41 +5,33 @@
     nodeset:
       nodes:
         name: bodhi-precommit-node
-        label: pod-python-f35
+        label: zuul-worker-f34
 - job:
-    name: bodhi-unit-f35
+    name: bodhi-unit-f34
     run: devel/ci/bodhi-unit.yaml
     nodeset:
       nodes:
-        name: bodhi-unit-f35-node
-        label: pod-python-f35
-- job:
-    name: bodhi-unit-f33
-    run: devel/ci/bodhi-unit.yaml
-    nodeset:
-      nodes:
-        name: bodhi-unit-f33-node
-        label: pod-python-f33
+        name: bodhi-unit-f34-node
+        label: zuul-worker-f34
 - job:
     name: bodhi-docs
     run: devel/ci/bodhi-docs.yaml
     nodeset:
       nodes:
         name: bodhi-docs-node
-        label: pod-python-f33
+        label: zuul-worker-f34
 - job:
     name: bodhi-pip
     run: devel/ci/bodhi-pip.yaml
     nodeset:
       nodes:
         name: bodhi-pip-node
-        label: pod-python-f33
+        label: zuul-worker-f34
 - project:
     check:
       jobs:
         - bodhi-pre-commit
-        - bodhi-unit-f33
-        - bodhi-unit-f35
+        - bodhi-unit-f34
         - bodhi-pip
         - bodhi-docs
 
