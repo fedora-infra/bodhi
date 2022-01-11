@@ -1,9 +1,24 @@
+queue_rules:
+  - name: default
+    conditions:
+    - label!=WIP
+    - approved-reviews-by=@fedora-infra/bodhi
+    - status-success=DCO
+    - status-success=f34-docs
+    - status-success=f34-unit
+    - status-success=f34-diff-cover
+    - status-success=pip-docs
+    - status-success=pip-flake8
+    - status-success=pip-mypy
+    - status-success=pip-pydocstyle
+    - status-success=pip-unit
+    - status-success=pip-diff-cover
+
 pull_request_rules:
 - actions:
-    merge:
+    queue:
       method: rebase
-      rebase_fallback: null
-      strict: true
+      name: default
   conditions:
   - label!=WIP
   - approved-reviews-by=@fedora-infra/bodhi
