@@ -118,68 +118,6 @@ client_setup = {
     ''',
 }
 
-messages_setup = {
-    'manifest': 'MESSAGES_MANIFEST.in',
-    'name': 'bodhi-messages',
-    'description': 'JSON schema for messages sent by Bodhi',
-    'long_description': (
-        'Bodhi Messages\n==============\n\n This package contains the schema for '
-        'messages published by Bodhi.'
-    ),
-    'keywords': ["fedora", "fedora-messaging"],
-    'packages': messages_pkgs,
-    'include_package_data': True,
-    'install_requires': ['bodhi', 'fedora_messaging'],
-    'test_suite': 'bodhi.tests.messages',
-    'entry_points': {
-        "fedora.messages": [
-            (
-                "bodhi.buildroot_override.tag.v1="
-                "bodhi.messages.schemas.buildroot_override:BuildrootOverrideTagV1"
-            ),
-            (
-                "bodhi.buildroot_override.untag.v1="
-                "bodhi.messages.schemas.buildroot_override:BuildrootOverrideUntagV1"
-            ),
-            "bodhi.errata.publish.v1=bodhi.messages.schemas.errata:ErrataPublishV1",
-            "bodhi.compose.complete.v1=bodhi.messages.schemas.compose:ComposeCompleteV1",
-            "bodhi.compose.composing.v1=bodhi.messages.schemas.compose:ComposeComposingV1",
-            "bodhi.compose.start.v1=bodhi.messages.schemas.compose:ComposeStartV1",
-            "bodhi.compose.sync.done.v1=bodhi.messages.schemas.compose:ComposeSyncDoneV1",
-            "bodhi.compose.sync.wait.v1=bodhi.messages.schemas.compose:ComposeSyncWaitV1",
-            "bodhi.repo.done.v1=bodhi.messages.schemas.compose:RepoDoneV1",
-            "bodhi.update.comment.v1=bodhi.messages.schemas.update:UpdateCommentV1",
-            (
-                "bodhi.update.complete.stable.v1="
-                "bodhi.messages.schemas.update:UpdateCompleteStableV1"
-            ),
-            (
-                "bodhi.update.complete.testing.v1="
-                "bodhi.messages.schemas.update:UpdateCompleteTestingV1"
-            ),
-            (
-                "bodhi.update.status.testing.v1="
-                "bodhi.messages.schemas.update:UpdateReadyForTestingV1"
-            ),
-            "bodhi.update.edit.v1=bodhi.messages.schemas.update:UpdateEditV1",
-            "bodhi.update.eject.v1=bodhi.messages.schemas.update:UpdateEjectV1",
-            "bodhi.update.karma.threshold.v1=bodhi.messages.schemas.update:UpdateKarmaThresholdV1",
-            "bodhi.update.request.revoke.v1=bodhi.messages.schemas.update:UpdateRequestRevokeV1",
-            "bodhi.update.request.stable.v1=bodhi.messages.schemas.update:UpdateRequestStableV1",
-            "bodhi.update.request.testing.v1=bodhi.messages.schemas.update:UpdateRequestTestingV1",
-            "bodhi.update.request.unpush.v1=bodhi.messages.schemas.update:UpdateRequestUnpushV1",
-            (
-                "bodhi.update.request.obsolete.v1="
-                "bodhi.messages.schemas.update:UpdateRequestObsoleteV1"
-            ),
-            (
-                "bodhi.update.requirements_met.stable.v1="
-                "bodhi.messages.schemas.update:UpdateRequirementsMetStableV1"
-            ),
-        ]
-    },
-}
-
 server_setup = {
     'manifest': 'SERVER_MANIFEST.in',
     'name': 'bodhi-server',
@@ -215,7 +153,7 @@ server_setup = {
     'paster_plugins': ['pyramid'],
 }
 
-for s in [bodhi_setup, client_setup, messages_setup, server_setup, ]:
+for s in [bodhi_setup, client_setup, server_setup, ]:
     setuptools.command.egg_info.manifest_maker.template = s.pop('manifest')
     p = Process(target=setup, kwargs={**base_setup, **s})
     p.start()

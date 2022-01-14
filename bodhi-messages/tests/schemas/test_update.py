@@ -32,7 +32,7 @@ from bodhi.messages.schemas.update import (
     UpdateRequestObsoleteV1,
     UpdateRequirementsMetStableV1,
 )
-from bodhi.tests.messages.utils import check_message
+from ..utils import check_message
 
 
 class TestUpdateMessage:

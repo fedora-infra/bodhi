@@ -28,7 +28,7 @@ import typing
 from fedora_messaging import message
 from fedora_messaging.schema_utils import user_avatar_url
 
-from bodhi import MENTION_RE
+from bodhi.messages.utils import MENTION_RE
 
 
 SCHEMA_URL = 'https://bodhi.fedoraproject.org/message-schemas'
