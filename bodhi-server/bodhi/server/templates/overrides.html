@@ -1,0 +1,243 @@
+<%!
+def inherit(context):
+  if context.get('chrome'):
+    return 'master.html'
+  return None
+%>
+<%inherit file="${inherit(context)}"/>
+
+<%namespace name="fragments" file="fragments.html"/>
+
+% if chrome:
+<%block name="css">
+${parent.css()}
+<link href="${request.static_url('bodhi.server:static/vendor/selectize/selectize.bootstrap3-0.12.3.css') }" rel="stylesheet" />
+<link rel="alternate" type="application/atom+xml" title="New Buildroot Overrides" href="${request.route_url('overrides_rss') + '?' + request.query_string}"/>
+</%block>
+% endif
+
+% if chrome:
+<div class="subheader">
+    <div class="container py-4">
+      <div class="row">
+        <div class="col">
+            <h3 class="font-weight-bold m-0 d-flex align-items-center">Overrides
+                % if request.user:
+                <a class="btn btm-sm font-weight-bold btn-outline-primary ml-auto" href="${request.route_url('new_override')}"><i class="fa fa-plus pr-2"></i>New Override</a>
+                % endif
+            </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="container pt-4">
+<div class="row">
+  <div class="col-md-12">
+%endif
+      <div class="list-group">
+        %if chrome:
+          <div class="list-group-item bg-light d-flex font-weight-bold">
+            ${total} Overrides
+            % if page == 1:
+            <a class="ml-1" href="${request.route_url('overrides_rss') + '?' + request.query_string}">
+              <span class="fa fa-rss"></span>
+            </a>
+            % endif
+            <%
+              visibleParams = ['search', 'expired', "user", 'releases']
+              allValidParams = ["expired",
+                                "builds",
+                                "packages",
+                                "releases",
+                                "like",
+                                "user"]
+              macroCatReleases = [('__current__', 'all current'),
+                                  ('__pending__', 'all pending'),
+                                  ('__archived__', 'all archived')]
+              searchterm=''
+              parameters = request.params.dict_of_lists()
+              if 'search' in parameters:
+                searchterm = parameters['search'][0]
+              %>
+              <div class="ml-auto">
+              <form id="filters-form">
+                <div class="dropdown">
+            <div class="input-group input-group-sm" data-toggle="dropdown">
+              <div class="input-group-prepend ml-auto">
+                  <div class="btn btn-sm btn-outline-secondary border" id="overrides-filterslist">
+
+                    % for param, values in request.params.dict_of_lists().items():
+                      % for i, value in enumerate(values):
+                        % if param in allValidParams:
+                          % if i > 0:
+                          or
+                          %else:
+                          <strong>${param}: </strong>
+                          %endif
+                          ${value}
+                        % endif
+                      % endfor
+                    % endfor
+                  </div>
+
+              </div>
+              <input name="search" type="text" autocomplete='off' class="form-control" id="overrides-search" value="${searchterm}" placeholder="search">
+            </div>
+            <div class="dropdown-menu dropdown-menu-right p-3" style="min-width:400px; max-width: 400px" id="filters-dropdown">
+                % for param, values in parameters.items():
+                  % for i, value in enumerate(values):
+                    % if (param in allValidParams) and (param not in visibleParams):
+                      <input type="hidden" name="${param}" value="${value}">
+                    % endif
+                  % endfor
+              % endfor
+
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="overrideexpired" class="col-auto align-self-center pl-1 pr-0 m-0">Status:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="overrideexpired" name="expired" class="custom-select">
+                          <option value="">&nbsp;</option>
+                          <option value="False"
+                          % if 'expired' in parameters and 'False' in parameters['expired']:
+                          selected="selected"
+                          % endif
+                          >active</option>
+                          <option value="True"
+                          % if 'expired' in parameters and 'True' in parameters['expired']:
+                          selected="selected"
+                          % endif
+                          >expired</option>
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="overrideexpired"></i>
+                  </div>
+              </div>
+
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="overridereleases" class="col-auto align-self-center pl-1 pr-0 m-0">Releases:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="overridereleases" name="releases" multiple="multiple">
+                          <option value="">&nbsp;</option>
+                          <optgroup label="quick filters">
+                          % for macrocat in macroCatReleases:
+                            <option value="${macrocat[0]}"
+                            % if 'releases' in parameters and macrocat[0] in parameters['releases']:
+                            selected="selected"
+                            % endif
+                            >${macrocat[1]}</option>
+                          %endfor
+                          % for rstatus in ['current', 'pending', "archived"]:
+                            <optgroup label="${rstatus}">
+                            % for value in releases[rstatus]:
+                            <option value="${value['name']}"
+                            % if 'releases' in parameters and value['name'] in parameters['releases']:
+                            selected="selected"
+                            % endif
+                            >${value['long_name']}</option>
+                            % endfor
+                            </optgroup>
+                          %endfor
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="overridereleases"></i>
+                  </div>
+              </div>
+
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="overrideuser" class="col-auto align-self-center pl-1 pr-0 m-0">User:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <input type="text" id="overrideuser" name="user" class="form-control" value="${parameters['user'][0] if 'user' in parameters else '' | h}"/>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="overrideuser"></i>
+                  </div>
+              </div>
+
+              <input type="submit" class="btn btn-block btn-primary" value="Apply Filters" />
+
+              <a href="${request.route_url('overrides')}" class="btn btn-link btn-block">Clear Filters</a>
+              </div>
+          </div>
+              </form></div>
+          </div>
+        % endif
+        % for override in overrides:
+          ${fragments.override(override, display_user)}
+        %endfor
+        % if chrome:
+        <div class="list-group-item bg-light">
+          %if pages > 1:
+            ${self.pager.render(page, pages)}
+          %endif
+        </div>
+        % endif
+      </div>
+    % if chrome:
+    </div>
+  </div>
+</div>
+% endif
+% if chrome:
+<%block name="javascript">
+${parent.javascript()}
+<script src="${request.static_url('bodhi.server:static/vendor/selectize/selectize-0.12.3.min.js')}"></script>
+<script>
+  $(document).ready(function() {
+
+  var $releases_selectize = $('#overridereleases').selectize();
+  var releases_selectize_control = $releases_selectize[0].selectize;
+
+  $("#filters-dropdown select").on('click', function(event){
+        event.stopPropagation();
+  });
+
+  $('#overrides-search, #overrides-filterslist, #filters-dropdown').on('click', function(event){
+    if ($("#filters-dropdown").hasClass("show")){
+      event.stopPropagation();
+    }
+  });
+
+  $('.clear-button').on('click', function(event){
+    event.stopPropagation();
+    if ($(this).attr("data-clear") == 'overridereleases'){
+      releases_selectize_control.clear();
+    } else {
+      $("select#"+$(this).attr("data-clear")+" option:selected").removeAttr("selected")
+      $("input#"+$(this).attr("data-clear")).val("");
+    }
+  });
+
+  $("#overrides-search").on('keypress',function(e) {
+    if(e.which == 13) {
+        $("#filters-form").submit();
+    }
+    });
+  $( "#filters-form" ).submit(function( event ) {
+
+    if ($('select[name="expired"]').val() == ''){
+        $('select[name="expired"]').prop("disabled", true);
+    }
+
+    if ($('select[name="releases"]').val() == ''){
+        $('select[name="releases"]').prop("disabled", true);
+    }
+
+    if ($('input[name="user"]').val() == ''){
+        $('input[name="user"]').prop("disabled", true);
+    }
+  });
+
+  });
+
+
+</script>
+</%block>
+%endif

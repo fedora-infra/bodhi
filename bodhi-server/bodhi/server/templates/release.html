@@ -1,0 +1,332 @@
+<%inherit file="master.html"/>
+<%block name="css">
+${parent.css()}
+<link href="${request.static_url('bodhi.server:static/vendor/chartjs/Chart.min.css')}" rel="stylesheet" />
+</%block>
+<div class="subheader">
+    <div class="container py-4">
+      <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <h3 class="font-weight-bold m-0"><a href="${request.route_url('releases')}">Releases</a>
+              <span class="text-muted">/</span> 
+              ${release['long_name']}
+            </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="container pt-2">
+  <div class="row">
+    <div class="col-md-5">
+      <table class="table table-sm">
+        <caption class="caption-top">Release properties</caption>
+        % for property, value in {'State': 'state',\
+                                  'Name': 'name',\
+                                  'Version': 'version',\
+                                  'Branch': 'branch',\
+                                  'ID Prefix': 'id_prefix',\
+                                  'Dist Tag': 'dist_tag',\
+                                  'Stable Tag': 'stable_tag',\
+                                  'Testing Tag': 'testing_tag',\
+                                  'Candidate Tag': 'candidate_tag',\
+                                  'Pending Signing Tag': 'pending_signing_tag',\
+                                  'Pending Testing Tag': 'pending_testing_tag',\
+                                  'Pending Stable Tag': 'pending_stable_tag',\
+                                  'Override Tag': 'override_tag',\
+                                  'Email Template': 'mail_template',\
+                                  'Composed by Bodhi': 'composed_by_bodhi',\
+                                  'Create Automatic Updates': 'create_automatic_updates',\
+                                  'Package Manager': 'package_manager',\
+                                  'Testing Repository': 'testing_repository',\
+                                  'End of Life': 'eol'}.items():
+        <tr class="d-flex">
+          <td class="col-6">${property}</td>
+          <td class="col-6">
+            ${release[value]}
+          </td>
+        </tr>
+        % endfor
+        <tr class="d-flex">
+          <td class="col-6">Total updates</td>
+          <td class="col-6">${count}</td>
+        </tr>
+      </table>
+
+      <table class="table">
+        <caption class="caption-top">Updates by status</caption>
+        <tr>
+          <td class="col-12">
+            <canvas id="releasestatus" class="clearfix">
+                Enable Javascript to see charts
+            </canvas>
+          </td>
+        </tr>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Pending</td>
+          <td class="col-6">
+            <a href="${request.route_url('updates')}?releases=${release['name']}&status=pending">
+              <span class="fa fa-chevron-right">${num_updates_pending}</span>
+            </a>
+          </td>
+        </tr>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Testing</td>
+          <td class="col-6">
+            <a href="${request.route_url('updates')}?releases=${release['name']}&status=testing">
+              <span class="fa fa-chevron-right">${num_updates_testing}</span>
+            </a>
+          </td>
+        </tr>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Stable</td>
+          <td class="col-6">
+            <a href="${request.route_url('updates')}?releases=${release['name']}&status=stable">
+              <span class="fa fa-chevron-right">${num_updates_stable}</span>
+            </a>
+          </td>
+        </tr>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Unpushed</td>
+          <td class="col-6">
+            <a href="${request.route_url('updates')}?releases=${release['name']}&status=unpushed">
+              <span class="fa fa-chevron-right">${num_updates_unpushed}</span>
+            </a>
+          </td>
+        </tr>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Obsolete</td>
+          <td class="col-6">
+            <a href="${request.route_url('updates')}?releases=${release['name']}&status=obsolete">
+              <span class="fa fa-chevron-right">${num_updates_obsolete}</span>
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <table class="table">
+        <caption class="caption-top">Updates by type</caption>
+        <tr class="d-flex">
+          <td class="col-12">
+            <canvas id="releasetypes" class="clearfix">
+                Enable Javascript to see charts
+            </canvas>
+          </td>
+        </tr>
+        <tr class="d-flex">
+          <td class="col-6 text-right">New Package</td>
+          <td class="col-6">
+            <a href="${request.route_url('updates')}?releases=${release['name']}&type=newpackage">
+              <span class="fa fa-chevron-right">${num_updates_newpackage}</span>
+            </a>
+          </td>
+        </tr>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Bugfix</td>
+          <td class="col-6">
+            <a href="${request.route_url('updates')}?releases=${release['name']}&type=bugfix">
+              <span class="fa fa-chevron-right">${num_updates_bugfix}</span>
+            </a>
+          </td>
+        </tr>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Enhancement</td>
+          <td class="col-6">
+            <a href="${request.route_url('updates')}?releases=${release['name']}&type=enhancement">
+              <span class="fa fa-chevron-right">${num_updates_enhancement}</span>
+            </a>
+          </td>
+        </tr>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Security</td>
+          <td class="col-6">
+            <a href="${request.route_url('updates')}?releases=${release['name']}&type=security">
+              <span class="fa fa-chevron-right">${num_updates_security}</span>
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <table class="table">
+        <caption class="caption-top">Updates by gating status</caption>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Passed</td>
+          <td class="col-6">
+            <a href="${request.route_url('updates')}?releases=${release['name']}&gating=passed">
+              <span class="fa fa-chevron-right">${num_gating_passed}</span>
+            </a>
+          </td>
+        </tr>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Ignored</td>
+          <td class="col-6">
+            <a href="${request.route_url('updates')}?releases=${release['name']}&gating=ignored">
+              <span class="fa fa-chevron-right">${num_gating_ignored}</span>
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <table class="table">
+        <caption class="caption-top">Buildroot overrides</caption>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Active</td>
+          <td class="col-6">
+            <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=0">
+              <span class="fa fa-chevron-right">${num_active_overrides}</span>
+            </a>
+          </td>
+        </tr>
+        <tr class="d-flex">
+          <td class="col-6 text-right">Expired</td>
+          <td class="col-6">
+            <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=1">
+              <span class="fa fa-chevron-right">${num_expired_overrides}</span>
+            </a>
+          </td>
+      </table>
+
+    </div>
+    <div class="col-md-7">
+      <div class="mb-4">
+        <canvas id="releasetimeline" class="clearfix">
+            Enable Javascript to see charts
+        </canvas>
+      </div>
+      <div>
+        <div class="panel-heading clearfix">
+          <span class="float-left">Latest ${release['long_name']} updates</span>
+          <span class="float-right">
+            <a href="${request.route_url('updates')}?releases=${release['name']}">
+              View all
+              <span class="fa fa-chevron-right"></span>
+            </a>
+          </span>
+        </div>
+        <div class="panel-body">
+          <div class="list-group">
+            % for update in latest_updates:
+              ${self.fragments.update(update, display_karma=False)}
+            % endfor
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%block name="javascript">
+${parent.javascript()}
+<script src="${request.static_url('bodhi.server:static/vendor/chartjs/Chart.min.js')}"></script>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    Chart.platform.disableCSSInjection = true;
+    $('#releasetimeline').html('');
+    $('#releasestatus').html('');
+    $('#releasetypes').html('');
+    /* Timeline graph */
+    var data_timeline = {
+      labels : [${', '.join(map(lambda x: '"' + x + '"', dates)) | n}],
+      datasets : [
+        % for ud_type in date_commits:
+        {
+          label : "${ud_type}",
+          backgroundColor : "${self.util.type2color(ud_type)}",
+          borderColor : "${self.util.type2color(ud_type)}",
+          pointBackgroundColor : "${self.util.type2color(ud_type)}",
+          pointBorderColor : "#fff",
+          fill : "False",
+          data : [
+            % for yearmonth in date_commits[ud_type]:
+            ${date_commits[ud_type][yearmonth]},
+            % endfor
+          ]
+        },
+        % endfor
+      ]
+    }
+    var options_timeline = {
+        scales: {
+            yAxes: [{
+                stacked: false
+            }]
+        },
+        title: {
+            display: true,
+            text: "${release['long_name']} Updates Timeline"
+        }
+    }
+    // About 25 labels should be printed at most.
+    let every_nth = Math.max(1, Math.round(data_timeline.labels.length / 25));
+    let every_filter = function(element, index) {
+        return index % every_nth == 0;
+    }
+    data_timeline.labels = data_timeline.labels.filter(every_filter);
+    for (let dataset of data_timeline.datasets) {
+        dataset.data = dataset.data.filter(every_filter);
+    }
+    var releasetimeline = document.getElementById("releasetimeline").getContext("2d");
+    var timelineChart = new Chart(releasetimeline, {
+        type: 'line',
+        data: data_timeline,
+        options: options_timeline
+        });
+
+    /* By Status graph */
+    var data_status = {
+      labels : ["Pending", "Testing", "Stable", "Unpushed", "Obsolete"],
+      datasets : [{
+        data: ["${num_updates_pending}",
+               "${num_updates_testing}",
+               "${num_updates_stable}",
+               "${num_updates_unpushed}",
+               "${num_updates_obsolete}"],
+        backgroundColor: ["${self.util.type2color('bugfix')}",
+                          "${self.util.type2color('enhancement')}",
+                          "${self.util.type2color('newpackage')}",
+                          "${self.util.type2color('security')}",
+                          "${self.util.type2color('unspecified')}"]
+      }]
+    }
+    var options_status = {
+        legend: {
+            display: true,
+            position: "right"
+        }
+    }
+    var releasestatus = document.getElementById("releasestatus").getContext("2d");
+    var statusChart = new Chart(releasestatus, {
+        type: 'doughnut',
+        data: data_status,
+        options: options_status
+        });
+
+    /* By Type chart */
+    var data_types = {
+      labels : ["New Package", "Bugfix", "Enhancement", "Security"],
+      datasets : [{
+        data: ["${num_updates_newpackage}",
+               "${num_updates_bugfix}",
+               "${num_updates_enhancement}",
+               "${num_updates_security}"],
+        backgroundColor: ["${self.util.type2color('newpackage')}",
+                          "${self.util.type2color('bugfix')}",
+                          "${self.util.type2color('enhancement')}",
+                          "${self.util.type2color('security')}"]
+      }]
+    }
+    var options_types = {
+        legend: {
+            display: true,
+            position: "right"
+        }
+    }
+    var releasetypes = document.getElementById("releasetypes").getContext("2d");
+    var typesChart = new Chart(releasetypes, {
+        type: 'doughnut',
+        data: data_types,
+        options: options_types
+        });
+  });
+</script>
+</%block>
