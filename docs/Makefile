@@ -3,7 +3,8 @@
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build-3
+PYTHON = python
+SPHINXBUILD   = $(PYTHON) -m sphinx
 PAPER         =
 BUILDDIR      = _build
 
@@ -13,6 +14,7 @@ PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -W -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
+BODHI_SERVER_PATH = ../bodhi-server
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext schema
 
@@ -44,11 +46,11 @@ clean:
 
 schema:
 	@mkdir -p generated
-	@PYTHONPATH=.. ./generate_db_schema
-	@PYTHONPATH=.. ./generate_json_schema
+	@PYTHONPATH=$(BODHI_SERVER_PATH) $(PYTHON) ./generate_db_schema
+	@PYTHONPATH=$(BODHI_SERVER_PATH) $(PYTHON) ./generate_json_schema
 
 html: schema
-	@PYTHONPATH=.. $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
