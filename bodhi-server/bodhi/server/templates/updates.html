@@ -1,0 +1,363 @@
+<%!
+def inherit(context):
+  if context.get('chrome'):
+    return 'master.html'
+  return None
+%>
+<%inherit file="${inherit(context)}"/>
+
+<%namespace name="fragments" file="fragments.html"/>
+
+
+% if chrome:
+<%block name="css">
+${parent.css()}
+<link href="${request.static_url('bodhi.server:static/vendor/selectize/selectize.bootstrap3-0.12.3.css') }" rel="stylesheet" />
+<link rel="alternate" type="application/atom+xml" title="New Updates" href="${request.route_url('updates_rss') + '?' + request.query_string}"/>
+</%block>
+<div class="subheader">
+    <div class="container py-4">
+      <div class="row">
+        <div class="col">
+            <h3 class="font-weight-bold m-0 d-flex align-items-center">Updates
+                % if request.user:
+                <a class="btn btm-sm font-weight-bold btn-outline-primary ml-auto" href="${request.route_url('new_update')}"><i class="fa fa-plus pr-2"></i>New Update</a>
+                % endif
+            </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="container pt-4">
+  <div class="row">
+    <div class="col-md-12">
+  % endif
+          <div class="list-group">
+            % if chrome:
+            <div class="list-group-item bg-light d-flex font-weight-bold">
+              ${total} Updates
+              % if page == 1:
+              <a class="ml-1" href="${request.route_url('updates_rss') + '?' + request.query_string}">
+                <span class="fa fa-rss"></span>
+              </a>
+              % endif
+              <%
+              visibleParams = ['search', 'type', "severity","user","status",'releases', "gating", "from_side_tag"]
+              allValidParams = ["approved_since",
+                                "approved_before",
+                                "bugs",
+                                "critpath",
+                                "from_side_tag",
+                                "like",
+                                "locked",
+                                "modified_since",
+                                "modified_before",
+                                "packages",
+                                "package",
+                                "builds",
+                                "pushed",
+                                "pushed_since",
+                                "pushed_before",
+                                "releases",
+                                "release",
+                                "request",
+                                "severity",
+                                "status",
+                                "submitted_since",
+                                "submitted_before",
+                                "suggest",
+                                "type",
+                                "content_type",
+                                "gating",
+                                "user",
+                                "updateid",
+                                "alias"]
+              macroCatReleases = [('__current__', 'all current'),
+                                  ('__pending__', 'all pending'),
+                                  ('__archived__', 'all archived')]
+              searchterm=''
+              parameters = request.params.dict_of_lists()
+              if 'search' in parameters:
+                searchterm = parameters['search'][0]
+              %>
+              <div class="ml-auto">
+              <form id="filters-form">
+                <div class="dropdown">
+            <div class="input-group input-group-sm" data-toggle="dropdown">
+              <div class="input-group-prepend ml-auto">
+                  <div class="btn btn-sm btn-outline-secondary border" id="updates-filterslist">
+
+                    % for param, values in request.params.dict_of_lists().items():
+                      % for i, value in enumerate(values):
+                        % if param in allValidParams:
+                          % if i > 0:
+                          or
+                          %else:
+                          <strong>${param}: </strong>
+                          %endif
+                          ${value}
+                        % endif
+                      % endfor
+                    % endfor
+                  </div>
+
+              </div>
+              <input name="search" type="text" autocomplete='off' class="form-control" id="updates-search" value="${searchterm}" placeholder="search">
+            </div>
+            <div class="dropdown-menu dropdown-menu-right p-3" style="min-width:400px; max-width: 400px" id="filters-dropdown">
+                % for param, values in parameters.items():
+                  % for i, value in enumerate(values):
+                    % if (param in allValidParams) and (param not in visibleParams):
+                      <input type="hidden" name="${param}" value="${value}">
+                    % endif
+                  % endfor
+              % endfor
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="updatestatus" class="col-auto align-self-center pl-1 pr-0 m-0">Status:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="updatestatus" name="status" multiple="multiple">
+                          <option value="">&nbsp;</option>
+                          % for value in statuses:
+                          <option value="${value}"
+                          % if 'status' in parameters and value in parameters['status']:
+                          selected="selected"
+                          % endif
+                          >${value}</option>
+                          % endfor
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updatestatus"></i>
+                  </div>
+              </div>
+
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="updatereleases" class="col-auto align-self-center pl-1 pr-0 m-0">Releases:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="updatereleases" name="releases" multiple="multiple">
+                          <option value="">&nbsp;</option>
+                          <optgroup label="quick filters">
+                          % for macrocat in macroCatReleases:
+                            <option value="${macrocat[0]}"
+                            % if 'releases' in parameters and macrocat[0] in parameters['releases']:
+                            selected="selected"
+                            % endif
+                            >${macrocat[1]}</option>
+                          %endfor
+                          % for rstatus in ['current', 'pending', "archived"]:
+                            <optgroup label="${rstatus}">
+                            % for value in releases[rstatus]:
+                            <option value="${value['name']}"
+                            % if 'releases' in parameters and value['name'] in parameters['releases']:
+                            selected="selected"
+                            % endif
+                            >${value['long_name']}</option>
+                            % endfor
+                            </optgroup>
+                          %endfor
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updatereleases"></i>
+                  </div>
+              </div>
+
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="updatetypes" class="col-auto align-self-center pl-1 pr-0 m-0">Type:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="updatetypes" name="type" class="custom-select">
+                          <option value="">&nbsp;</option>
+                          % for value in types:
+                          <option value="${value}"
+                          % if 'type' in parameters and parameters['type'][0] == value:
+                          selected="selected"
+                          % endif
+                          >${value}</option>
+                          % endfor
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updatetypes"></i>
+                  </div>
+              </div>
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="updateseverity" class="col-auto align-self-center pl-1 pr-0 m-0">Severity:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="updateseverity" name="severity" class="custom-select">
+                          <option value="">&nbsp;</option>
+                          % for value in severities:
+                          <option value="${value}"
+                          % if 'severity' in parameters and parameters['severity'][0] == value:
+                          selected="selected"
+                          % endif
+                          >${value}</option>
+                          % endfor
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updateseverity"></i>
+                  </div>
+              </div>
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="isfromsidetag" class="col-auto align-self-center pl-1 pr-0 m-0">From side-tag:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="isfromsidetag" name="from_side_tag" class="custom-select">
+                          <option value="">&nbsp;</option>
+                          <option value="False"
+                          % if 'from_side_tag' in parameters and 'False' in parameters['from_side_tag']:
+                          selected="selected"
+                          % endif
+                          >False</option>
+                          <option value="True"
+                          % if 'from_side_tag' in parameters and 'True' in parameters['from_side_tag']:
+                          selected="selected"
+                          % endif
+                          >True</option>
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="isfromsidetag"></i>
+                  </div>
+              </div>
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="gatingstatus" class="col-auto align-self-center pl-1 pr-0 m-0">Gating status:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="gatingstatus" name="gating" class="custom-select">
+                          <option value="">&nbsp;</option>
+                          % for value in gating_statuses:
+                          <option value="${value}"
+                          % if 'gating' in parameters and parameters['gating'][0] == value:
+                          selected="selected"
+                          % endif
+                          >${value}</option>
+                          % endfor
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="gatingstatus"></i>
+                  </div>
+              </div>
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="updateuser" class="col-auto align-self-center pl-1 pr-0 m-0">User:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <input type="text" id="updateuser" name="user" class="form-control" value="${parameters['user'][0] if 'user' in parameters else '' | h}"/>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updateuser"></i>
+                  </div>
+              </div>
+
+              <input type="submit" class="btn btn-block btn-primary" value="Apply Filters" />
+
+              <a href="${request.route_url('updates')}" class="btn btn-link btn-block">Clear Filters</a>
+              </div>
+          </div>
+              </form></div>
+            </div>
+            % endif
+            % for update in updates:
+              ${fragments.update(update, display_user)}
+            % endfor
+            %if chrome:
+            <div class="list-group-item bg-light">
+              %if pages > 1:
+                ${self.pager.render(page, pages)}
+              %endif
+            </div>
+            %endif
+          </div>
+  % if chrome:
+    </div>
+  </div>
+</div>
+% endif
+% if chrome:
+<%block name="javascript">
+${parent.javascript()}
+<script src="${request.static_url('bodhi.server:static/vendor/selectize/selectize-0.12.3.min.js')}"></script>
+<script>
+  $(document).ready(function() {
+
+  var $status_selectize = $('#updatestatus').selectize();
+  var status_selectize_control = $status_selectize[0].selectize;
+
+  var $releases_selectize = $('#updatereleases').selectize();
+  var releases_selectize_control = $releases_selectize[0].selectize;
+
+  $("#filters-dropdown select").on('click', function(event){
+        event.stopPropagation();
+  })
+
+  $('#updates-search, #updates-filterslist, #filters-dropdown').on('click', function(event){
+    if ($("#filters-dropdown").hasClass("show")){
+      event.stopPropagation();
+    }
+  })
+
+  $('.clear-button').on('click', function(event){
+    event.stopPropagation();
+    if ($(this).attr("data-clear") == 'updatereleases'){
+      releases_selectize_control.clear();
+    } else if ($(this).attr("data-clear") == 'updatestatus'){
+      status_selectize_control.clear();
+    } else {
+      $("select#"+$(this).attr("data-clear")+" option:selected").removeAttr("selected")
+      $("input#"+$(this).attr("data-clear")).val("");
+    }
+  })
+
+  $("#updates-search").on('keypress',function(e) {
+    if(e.which == 13) {
+        $("#filters-form").submit();
+    }
+    });
+    $( "#filters-form" ).submit(function( event ) {
+        if ($('select[name="type"]').val() == ''){
+          $('select[name="type"]').prop("disabled", true);
+        }
+
+        if ($('select[name="releases"]').val() == ''){
+          $('select[name="releases"]').prop("disabled", true);
+        }
+
+        if ($('select[name="severity"]').val() == ''){
+          $('select[name="severity"]').prop("disabled", true);
+        }
+
+        if ($('select[name="status"]').val() == ''){
+          $('select[name="status"]').prop("disabled", true);
+        }
+
+        if ($('select[name="from_side_tag"]').val() == ''){
+          $('select[name="from_side_tag"]').prop("disabled", true);
+        }
+
+        if ($('select[name="gating"]').val() == ''){
+          $('select[name="gating"]').prop("disabled", true);
+        }
+
+        if ($('input[name="user"]').val() == ''){
+          $('input[name="user"]').prop("disabled", true);
+        }
+  });
+
+  });
+
+
+</script>
+</%block>
+%endif

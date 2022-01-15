@@ -1,7 +1,0 @@
-include *.txt *.ini *.cfg *.rst README.rst
-recursive-include bodhi *.ico *.png *.css *.gif *.jpg *.pt *.txt *.mak *.mako *.js *.html *.xml *.ttf *.woff *.woff2 *.eot *.otf *.svg *.tpl
-recursive-include apache *
-recursive-include alembic *.py *.mako *.rst
-recursive-include tools *
-include bodhi/server/locale/.placeholder
-include COPYING
