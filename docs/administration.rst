@@ -17,7 +17,7 @@ an example ``production.ini`` file that has all settings documented. Most settin
 defaults if not defined, and the example settings file describes the default values in the
 commented settings. Here is a copy of the example config file with in-line documentation:
 
-.. include:: ../production.ini
+.. include:: ../bodhi-server/production.ini
    :literal:
 
 
