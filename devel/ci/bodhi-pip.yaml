@@ -2,40 +2,69 @@
 - hosts: all
 
   tasks:
-    - name: List project directory on the test system
-      command: "ls -al /workspace/{{ zuul.project.src_dir }}"
-    - name: prepare unit
-      command:
-        chdir: "/workspace/{{ zuul.project.src_dir }}"
-        cmd: sed -i '/pyramid_debugtoolbar/d' setup.py
-    - name: prepare unit
-      command:
-        chdir: "/workspace/{{ zuul.project.src_dir }}"
-        cmd: sed -i '/pyramid_debugtoolbar/d' devel/development.ini.example
     - name: install deps
       become: true
-      command: dnf -y install pungi python3-psycopg2 python3-librepo python3-pip python3-createrepo_c python3-dnf python3-setuptools python3-mock python3-bugzilla python3-fedora
+      dnf:
+        name:
+          - pungi
+          - python3-psycopg2
+          - python3-librepo
+          - python3-pip
+          - python3-createrepo_c
+          - python3-dnf
+          - python3-setuptools
+          - python3-mock
+          - python3-bugzilla
+          - python3-fedora
+
     - name: prepare unit
-      command:
-        chdir: "/workspace/{{ zuul.project.src_dir }}"
-        cmd: cp devel/development.ini.example development.ini
+      copy:
+        src: "/workspace/{{ zuul.project.src_dir }}/devel/development.ini.example"
+        dest: "/workspace/{{ zuul.project.src_dir }}/bodhi-server/development.ini"
+        remote_src: yes
+        force: no
+        unsafe_writes: yes
+
+    - name: prepare unit
+      lineinfile:
+        path: "/workspace/{{ zuul.project.src_dir }}/bodhi-server/development.ini"
+        regexp: pyramid_debugtoolbar
+        state: absent
+        unsafe_writes: yes
+
     - name: setup tests
       command:
         chdir: "/workspace/{{ zuul.project.src_dir }}"
         cmd: "pip install alembic webtest pytest pytest-cov"
+
     - name: create venv
       command:
-        chdir: "/workspace/{{ zuul.project.src_dir }}"
-        cmd: "python3 -m venv --system-site-packages --without-pip .test-venv"
+        chdir: "/workspace"
+        cmd: "python3 -m venv --system-site-packages venv"
+
+    - name: install celery separately because it has a versionned dep on setuptools
+      command:
+        cmd: "/workspace/venv/bin/pip install celery"
+
+    # For some reason pyasn1-modules is preventing pyasn1 from installing correctly if it's installed with the rest. Install it first now.
+    - name: install pyasn1 now
+      command:
+        cmd: "/workspace/venv/bin/pip install pyasn1"
+
     - name: setup bodhi
       command:
-        chdir: "/workspace/{{ zuul.project.src_dir }}"
-        cmd: ".test-venv/bin/python3 -m pip install -r requirements.txt"
-    - name: setup bodhi
-      command:
-        chdir: "/workspace/{{ zuul.project.src_dir }}"
-        cmd: ".test-venv/bin/python3 setup.py develop"
+        chdir: "/workspace/{{ zuul.project.src_dir }}/{{ item }}"
+        cmd: "/workspace/venv/bin/python3 setup.py develop"
+      loop:
+        - bodhi-messages
+        - bodhi-client
+        - bodhi-server
+
     - name: run tests
       command:
-        chdir: "/workspace/{{ zuul.project.src_dir }}"
-        cmd: ".test-venv/bin/python3 -m pytest -v -x bodhi/tests"
+        chdir: "/workspace/{{ zuul.project.src_dir }}/{{ item }}"
+        cmd: "/workspace/venv/bin/python3 -m pytest -v tests"
+      loop:
+        - bodhi-messages
+        - bodhi-client
+        - bodhi-server

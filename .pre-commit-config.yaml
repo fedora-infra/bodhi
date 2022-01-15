@@ -47,5 +47,8 @@ repos:
         # use require_serial so that script
         # is only called once per commit
         require_serial: true
+        # the script does not use the filenames, it checks the whole source
+        # code each time, because it's hard to exclude the devel directory.
+        pass_filenames: false
         # Print the number of files as a sanity-check 
         verbose: true

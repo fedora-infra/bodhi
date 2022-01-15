@@ -24,11 +24,7 @@ RUN dnf install -y \
     python3-whitenoise \
     python3-prometheus_client
 
-COPY requirements.txt /bodhi/requirements.txt
-
-RUN pip-3 install -r /bodhi/requirements.txt
 RUN pip-3 install \
-    alembic \
     diff-cover \
     docutils \
     flake8 \
@@ -40,7 +36,9 @@ RUN pip-3 install \
     sphinx \
     sqlalchemy_schemadisplay \
     urllib3 \
-    webtest
+    webtest \
+    pyasn1 \
+    celery
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji
@@ -48,9 +46,8 @@ VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
 COPY . /bodhi
-RUN sed -i '/pyramid_debugtoolbar/d' setup.py
-RUN sed -i '/pyramid_debugtoolbar/d' devel/development.ini.example
-# The Makefile is set to use sphinx-build-3, but the pip installed sphinx is just called
-# sphinx-build.
-RUN sed -i 's/sphinx-build-3/sphinx-build/' docs/Makefile
-RUN cp devel/development.ini.example development.ini
+RUN cp devel/development.ini.example bodhi-server/development.ini
+RUN sed -i '/pyramid_debugtoolbar/d' bodhi-server/development.ini
+RUN for pkg in bodhi-client bodhi-messages bodhi-server; do \
+    cd $pkg ; python3 setup.py install || exit $? ; cd -; \
+    done

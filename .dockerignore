@@ -2,8 +2,12 @@
 **/__pycache__
 *.egg-info
 .git
-build
-dist
+*/build
+*/dist
+*/htmlcov/
+*/.coverage
+*/coverage.xml
 devel/ci/integration/dumps/*
 docs/_build
 docs/developer/docblocks
+test_results

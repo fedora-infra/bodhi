@@ -56,6 +56,5 @@ VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
 COPY . /bodhi
-RUN sed -i '/pyramid_debugtoolbar/d' setup.py
-RUN sed -i '/pyramid_debugtoolbar/d' devel/development.ini.example
-RUN cp devel/development.ini.example development.ini
+RUN cp devel/development.ini.example bodhi-server/development.ini
+RUN sed -i '/pyramid_debugtoolbar/d' bodhi-server/development.ini

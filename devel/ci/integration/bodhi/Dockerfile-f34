@@ -21,7 +21,13 @@ RUN dnf install -y \
 RUN groupadd -r bodhi && \
     useradd  -r -s /sbin/nologin -d /home/bodhi/ -m -c 'Bodhi Server' -g bodhi bodhi
 # Install it
-RUN python3 setup.py bdist_wheel && pip3 install ./dist/*.whl && pip3 install koji
+RUN \
+    for pkg in bodhi-client bodhi-messages bodhi-server; do \
+        cd $pkg && \
+        python3 setup.py bdist_wheel && \
+        pip3 install ./dist/*.whl && \
+        cd -; \
+    done
 
 # Configuration
 RUN mkdir -p /etc/bodhi
@@ -31,7 +37,7 @@ COPY devel/ci/integration/bodhi/celeryconfig.py /etc/bodhi/celeryconfig.py
 COPY devel/ci/integration/bodhi/start.sh /etc/bodhi/start.sh
 COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/config.toml
 COPY devel/ci/integration/bodhi/httpd.conf /etc/bodhi/httpd.conf
-COPY apache/bodhi.wsgi /etc/bodhi/bodhi.wsgi
+COPY bodhi-server/apache/bodhi.wsgi /etc/bodhi/bodhi.wsgi
 RUN sed -i -e 's,/var/www,/httpdir,g' /etc/bodhi/bodhi.wsgi
 COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/config.toml
 # Composes
