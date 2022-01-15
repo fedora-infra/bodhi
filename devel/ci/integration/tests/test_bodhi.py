@@ -137,7 +137,7 @@ def test_get_api_version(bodhi_container):
     # Get bodhi version from source
     ret = bodhi_container.execute(
         "python3 -c \"import pkg_resources; print(pkg_resources."
-        "get_distribution('bodhi').version, end='', flush=True)\""
+        "get_distribution('bodhi-server').version, end='', flush=True)\""
     )
     bodhi_version = ret[0].decode("utf-8")
     try:

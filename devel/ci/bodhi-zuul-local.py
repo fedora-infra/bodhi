@@ -16,6 +16,7 @@ ZUUL_YAML = os.path.realpath(os.path.join(
 
 
 def runcmd(command):
+    print(f"Running: {command}")
     p = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
@@ -54,7 +55,9 @@ def main():
         nodes = job['nodeset']['nodes']
         label = nodes['label']
         ans_file = os.path.join('/workspace/src', job['run'])
-        ans_cmd = f"ansible-playbook -e '{ans_env}' {ans_local} {ans_file}"
+        ans_cmd = (
+            f"ANSIBLE_STDOUT_CALLBACK=yaml ansible-playbook -e '{ans_env}' {ans_local} {ans_file}"
+        )
         if len(label) > 4 and 'pod-' == label[0:4]:
             name = label[4:]
             dockerfile = os.path.join(SCRIPT_DIR, f"zuul-containers/{name}/Dockerfile")

@@ -57,7 +57,7 @@ def bodhi_container(
         container.get_id(), docker_network["Id"], aliases=["bodhi", "bodhi.ci"],
     )
     # Update the database schema
-    container.execute(["alembic-3", "-c", "/bodhi/alembic.ini", "upgrade", "head"])
+    container.execute(["alembic-3", "-c", "/bodhi/bodhi-server/alembic.ini", "upgrade", "head"])
     # we need to wait for the webserver to start serving
     container.wait_for_port(8080, timeout=30)
     yield container

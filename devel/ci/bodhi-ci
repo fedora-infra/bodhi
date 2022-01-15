@@ -41,6 +41,7 @@ LABEL_TEMPLATE = '{:>8}-{:<34}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 RELEASES = ('f34', 'f35', 'rawhide', 'pip')
 INTEGRATION_APPS = ("resultsdb", "waiverdb", "greenwave", "rabbitmq", "ipsilon")
+SUBMODULES = ("bodhi-client", "bodhi-messages", "bodhi-server")
 
 
 def _set_concurrency(ctx, param, value):
@@ -625,6 +626,8 @@ class Job(object):
             mount_flags = ['ro']
             if z:
                 mount_flags.append('Z')
+            else:
+                mount_flags.append('z')
             args.extend([
                 '-v', f"{os.path.join(PROJECT_PATH, '.git')}:/bodhi/.git:{','.join(mount_flags)}"])
 
@@ -745,8 +748,11 @@ class DiffCoverJob(Job):
             executable = '/usr/local/bin/diff-cover'
         else:
             executable = '/usr/bin/diff-cover'
-        self._command = [executable, '/results/coverage.xml',
-                         '--compare-branch=origin/develop', '--fail-under=100']
+        self._command = [executable] + [
+            f'/results/coverage-{s}.xml' for s in SUBMODULES
+        ] + [
+            '--compare-branch=origin/develop', '--fail-under=100'
+        ]
         self._convert_command_for_container(archive=archive, archive_path=archive_path,
                                             include_git=True)
 
@@ -756,8 +762,9 @@ class DiffCoverJob(Job):
         """
         if not os.path.exists(self.archive_dir):
             os.makedirs(self.archive_dir)
-        shutil.copy(os.path.join(self.depends_on[0].archive_dir, 'coverage.xml'),
-                    os.path.join(self.archive_dir, 'coverage.xml'))
+        for submodule in SUBMODULES:
+            shutil.copy(os.path.join(self.depends_on[0].archive_dir, submodule, 'coverage.xml'),
+                        os.path.join(self.archive_dir, f'coverage-{submodule}.xml'))
 
         super(DiffCoverJob, self)._pre_start_hook()
 
@@ -771,8 +778,14 @@ class DocsJob(Job):
 
     _command = [
         '/usr/bin/bash', '-c',
-        ('/usr/bin/python3 setup.py develop && make -C docs clean && make -C docs html && make '
-         '-C docs man && cp -rv docs/_build/* /results/')]
+        (
+            'for submodule in ' + ' '.join(SUBMODULES) + '; do '
+            'cd $submodule && /usr/bin/python3 setup.py develop && cd ..; done && '
+            'make -C docs clean && '
+            'make -C docs html PYTHON=/usr/bin/python3 && '
+            'make -C docs man PYTHON=/usr/bin/python3 && '
+            'cp -rv docs/_build/* /results/'
+        )]
     _label = 'docs'
 
     def __init__(self, archive, archive_path, *args, **kwargs):
@@ -924,22 +937,25 @@ class UnitJob(Job):
         """
         super(UnitJob, self).__init__(*args, **kwargs)
 
-        pytest_flags = '--junit-xml=nosetests.xml bodhi/tests -v'
+        pytest_flags = '--junit-xml=nosetests.xml -v tests'
         if failfast:
             pytest_flags += ' -x'
 
-        test_command = ('({} setup.py develop && {} {} || (cp *.xml /results && exit 1)) '
-                        '&& cp *.xml /results')
+        submodules = " ".join(SUBMODULES)
 
-        if self.release == 'pip':
-            # pip installs some of the executables in different places than Fedora does.
-            self._command = [
-                '/usr/bin/bash', '-c',
-                test_command.format('/usr/bin/python3', '/usr/local/bin/py.test', pytest_flags)]
-        else:
-            self._command = [
-                '/usr/bin/bash', '-c',
-                test_command.format('/usr/bin/python3', '/usr/bin/py.test-3', pytest_flags)]
+        test_command = (
+            # Run setup.py develop in each submodule
+            f'for submodule in {submodules}; do '
+            'cd $submodule; /usr/bin/python3 setup.py develop; cd ..; done; '
+            # Run the tests in each submodule
+            f'for submodule in {submodules}; do '
+            'mkdir -p /results/$submodule; '
+            f'cd $submodule; /usr/bin/python3 -m pytest {pytest_flags} || '
+                '(cp *.xml /results/$submodule/ && exit 1) && '
+                ' cp *.xml /results/$submodule/;'
+            'cd ..; done'
+        )
+        self._command = ['/usr/bin/bash', '-c', test_command]
 
         self._convert_command_for_container(archive=archive, archive_path=archive_path)
 
