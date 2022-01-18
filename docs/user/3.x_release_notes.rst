@@ -576,7 +576,7 @@ Features
 * Comments have a mouse hoverover for timestamps (:commit:`60e2cddb`).
 * The compose is now skipped if the repo is already staged (:commit:`9d94edb4`).
 * Update statuses have a descriptive tooltip in the web UI (:commit:`40d04226`).
-* A new ``/updates/{id}/get-test-results`` :doc:`../server_api/rest/updates` API endpoint was added
+* A new ``/updates/{id}/get-test-results`` API endpoint was added
   that can retrieve the test results for an update from Greenwave (:commit:`9631a9b6`).
 * API users can specify which results they'd like to waive in the waiver API (:commit:`7d51ee54`).
 * Update CI status is now displayed in the CLI (:commit:`4ab03afe`).

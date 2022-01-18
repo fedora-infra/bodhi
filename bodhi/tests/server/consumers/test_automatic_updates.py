@@ -89,7 +89,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         # ...and some of its properties
         assert update is not None
-        assert update.type == UpdateType.unspecified
+        assert update.type == UpdateType.newpackage
         assert update.status == UpdateStatus.pending
         assert update.autokarma == False
         assert update.test_gating_status is None

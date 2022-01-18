@@ -138,6 +138,36 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
 
     @patch('bodhi.server.tasks.check_signed_builds.buildsys')
     @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    def test_check_signed_builds_never_sent_to_signing(self, debug, buildsys):
+        """
+        When an Update is created, its builds should have been sent to pending-signing.
+
+        If an update exists with a build which is not marked neither pending-signing or
+        pending-testing, something is wrong and we must re-try to push the build
+        to signing-pending.
+        """
+        update = models.Update.query.first()
+        update.builds[0].signed = False
+
+        self.db.commit()
+
+        listTags = [
+            {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+             'name': 'f17-updates-candidate', 'perm': None, 'perm_id': None}, ]
+
+        buildsys.get_session.return_value.listTags.return_value = listTags
+        check_signed_builds_main()
+
+        update = models.Update.query.first()
+        buildsys.get_session.assert_called_once()
+        assert update.builds[0].signed == False
+        debug.assert_called_once_with('Oh, no! We\'ve never sent bodhi-2.0-1.fc17 for signing, '
+                                      'let\'s fix it')
+        buildsys.get_session.return_value.tagBuild.assert_called_once_with(
+            'f17-updates-signing-pending', 'bodhi-2.0-1.fc17', force=True)
+
+    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
+    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
     def test_check_signed_builds_mark_signed(self, debug, buildsys):
         """
         The task should mark signed builds with correct tags.

@@ -1,4 +1,5 @@
 # Files to be ignored by all git checkouts
+*.directory
 *.egg*
 *.pyc
 *.pyo

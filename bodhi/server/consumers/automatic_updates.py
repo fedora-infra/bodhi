@@ -120,6 +120,11 @@ class AutomaticUpdateHandler:
                 log.info(f"Build, active update for {bnvr} exists already, skipping.")
                 return
 
+            utype = (
+                UpdateType.unspecified if Package.check_existence(rbuildinfo)
+                else UpdateType.newpackage
+            )
+
             if not build:
                 log.debug(f"Build for {bnvr} doesn't exist yet, creating.")
 
@@ -183,7 +188,7 @@ class AutomaticUpdateHandler:
                 builds=[build],
                 bugs=closing_bugs,
                 notes=notes,
-                type=UpdateType.unspecified,
+                type=utype,
                 stable_karma=3,
                 unstable_karma=-3,
                 autokarma=False,

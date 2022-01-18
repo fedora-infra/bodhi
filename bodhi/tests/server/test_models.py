@@ -987,8 +987,8 @@ class MockWiki(object):
         return self.response
 
 
-class TestPackageUniqueConstraints(BasePyTestCase):
-    """Tests for the Package model's uniqueness constraints."""
+class TestPackageModel(BasePyTestCase):
+    """Tests for the Package model."""
 
     def test_two_package_different_types(self):
         """Assert two different package types with the same name is fine."""
@@ -1007,6 +1007,24 @@ class TestPackageUniqueConstraints(BasePyTestCase):
         self.db.add(package1)
         self.db.add(package2)
         pytest.raises(IntegrityError, self.db.flush)
+
+    @pytest.mark.parametrize('exists', (False, True))
+    def test_package_existence(self, exists):
+        """Assert package existence check works based on specific type."""
+        if exists:
+            package1 = model.RpmPackage(name='python-requests')
+        else:
+            package1 = model.ModulePackage(name='python-requests')
+        self.db.add(package1)
+        self.db.flush()
+
+        koji = buildsys.get_session()
+        kbuildinfo = koji.getBuild('python-requests-1.0-1.fc36')
+        rbuildinfo = {
+            'info': kbuildinfo,
+            'nvr': kbuildinfo['nvr'].rsplit('-', 2),
+        }
+        assert model.Package.check_existence(rbuildinfo) is exists
 
 
 class TestModulePackage(ModelTest):
@@ -1907,6 +1925,34 @@ class TestUpdateInit(BasePyTestCase):
         with pytest.raises(ValueError) as exc:
             model.Update()
         assert str(exc.value) == 'You must specify a Release when creating an Update.'
+
+
+@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
+@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
+class TestUpdateNew(BasePyTestCase):
+    """Tests for the Update.new() method."""
+
+    @mock.patch.dict('bodhi.server.config.config', {'bodhi_email': None})
+    @mock.patch('bodhi.server.models.log.warning')
+    def test_add_bugs_bodhi_not_configured(self, warning):
+        """Adding a bug should log a warning if Bodhi isn't configured to handle bugs."""
+        release = self.create_release('36')
+        package = model.RpmPackage.query.filter_by(name='bodhi').one()
+        build = model.RpmBuild(nvr='bodhi-6.0.0-1.fc36', release=release,
+                               package=package, signed=False)
+        self.db.add(build)
+        data = {'release': release, 'builds': [build], 'from_tag': 'f36-build-side-1234',
+                'bugs': [], 'requirements': '', 'edited': '', 'autotime': True,
+                'stable_days': 3, 'stable_karma': 3, 'unstable_karma': -1,
+                'notes': 'simple update', 'type': 'unspecified'}
+        request = mock.MagicMock()
+        request.db = self.db
+        request.user.name = 'tester'
+        self.db.flush()
+
+        model.Update.new(request, data)
+
+        warning.assert_called_with('Not configured to handle bugs')
 
 
 @mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
@@ -3906,22 +3952,6 @@ class TestUpdate(ModelTest):
 
         assert self.obj.request == UpdateRequest.testing
         assert self.obj.test_gating_status == TestGatingStatus.failed
-
-    @mock.patch.dict('bodhi.server.config.config', {'bodhi_email': None})
-    @mock.patch('bodhi.server.models.log.warning')
-    def test_add_bugs_bodhi_not_configured(self, warning):
-        """Adding a bug should log a warning if Bodhi isn't configured to handle bugs."""
-        req = DummyRequest(user=DummyUser())
-        req.errors = cornice.Errors()
-        req.koji = buildsys.get_session()
-        self.obj.request = None
-        self.obj.test_gating_status = None
-        assert self.obj.status == UpdateStatus.pending
-
-        with mock_sends(Message):
-            self.obj.set_request(self.db, UpdateRequest.testing, req.user.name)
-
-        warning.assert_called_with('Not configured to handle bugs')
 
     def test_set_request_pending_stable(self):
         """Ensure that we can submit an update to stable if it is pending and has enough karma."""
