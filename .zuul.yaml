@@ -14,7 +14,7 @@
         name: bodhi-unit-f34-node
         label: zuul-worker-f34
 - job:
-    name: bodhi-docs
+    name: bodhi-docs-f34
     run: devel/ci/bodhi-docs.yaml
     nodeset:
       nodes:
@@ -27,11 +27,18 @@
       nodes:
         name: bodhi-pip-node
         label: zuul-worker-f34
+- job:
+    name: bodhi-unit-f35
+    run: devel/ci/bodhi-unit.yaml
+    nodeset:
+      nodes:
+        name: bodhi-unit-f35-node
+        label: cloud-fedora-35
 - project:
     check:
       jobs:
         - bodhi-pre-commit
         - bodhi-unit-f34
+        - bodhi-unit-f35
         - bodhi-pip
         - bodhi-docs
-

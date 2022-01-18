@@ -103,21 +103,6 @@ def test_release = { String release ->
 
     parallel(
         docs: {bodhi_ci(release, 'docs', 'docs', '--no-build --no-init')},
-        flake8: {
-            if(release == 'pip') {
-                bodhi_ci(release, 'flake8', 'flake8', '--no-build --no-init')
-            }
-        },
-        pydocstyle: {
-            if(release == 'pip') {
-                bodhi_ci(release, 'pydocstyle', 'pydocstyle', '--no-build --no-init')
-            }
-        },
-        mypy: {
-            if(release == 'pip') {
-                bodhi_ci(release, 'mypy', 'mypy', '--no-build --no-init')
-            }
-        },
         unit: {
             bodhi_ci(release, 'unit', 'unit', '--no-build --no-init')
             bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build --no-init -Z')
@@ -161,9 +146,7 @@ node('bodhi') {
 
         try {
             parallel(
-                f34: {test_release('f34')},
                 f35: {test_release('f35')},
-                pip: {test_release('pip')},
                 rawhide: {test_release('rawhide')},
             )
         } catch(error) {

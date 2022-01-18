@@ -24,7 +24,6 @@ pyramid.debug_notfound = true
 pyramid.debug_routematch = true
 pyramid.default_locale_name = en
 pyramid.includes =
-    pyramid_debugtoolbar
 debugtoolbar.hosts = 127.0.0.1 ::1
 sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2
 authtkt.secret = changethisinproduction!
