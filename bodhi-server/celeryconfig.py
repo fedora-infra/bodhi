@@ -57,3 +57,5 @@ beat_schedule = {
         "schedule": 60 * 60,  # every hour
     },
 }
+# The celery process must have write access to this file:
+beat_schedule_filename = "/tmp/celerybeat-schedule"
