@@ -61,6 +61,7 @@ def main():
 
         kc = buildsys.get_session()
         stuck_builds = []
+        overlooked_builds = []
 
         for update in updates:
             # Let Bodhi have its times
@@ -84,10 +85,16 @@ def main():
                     # Our composer missed the message that the build got signed
                     log.debug(f'Changing signed status of {build.nvr}')
                     build.signed = True
-                if pending_signing_tag in build_tags and pending_testing_tag not in build_tags:
+                elif pending_signing_tag in build_tags and pending_testing_tag not in build_tags:
                     # autosign missed the message that the build is waiting to be signed
                     log.debug(f'{build.nvr} is stuck waiting to be signed, let\'s try again')
                     stuck_builds.append(build.nvr)
+                elif (pending_signing_tag not in build_tags
+                      and pending_testing_tag not in build_tags):
+                    # this means that an update has been created but we never tagged the build
+                    # as pending-signing
+                    log.debug(f'Oh, no! We\'ve never sent {build.nvr} for signing, let\'s fix it')
+                    overlooked_builds.append(build.nvr)
             session.flush()
 
         if stuck_builds:
@@ -96,5 +103,11 @@ def main():
                 kc.untagBuild(pending_signing_tag, b, force=True)
             kc.multiCall()
             for b in stuck_builds:
+                kc.tagBuild(pending_signing_tag, b, force=True)
+            kc.multiCall()
+
+        if overlooked_builds:
+            kc.multicall = True
+            for b in overlooked_builds:
                 kc.tagBuild(pending_signing_tag, b, force=True)
             kc.multiCall()

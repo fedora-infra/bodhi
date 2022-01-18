@@ -860,6 +860,9 @@ class BodhiClient(OpenIdBaseClient):
             elif 'decision' in test_status:
                 info = test_status.decision.summary
                 waivers = test_status.decision.waivers
+            elif 'decisions' in test_status:
+                info = '\n'.join([d.summary for d in test_status.decisions])
+                waivers = list(itertools.chain(*(d.waivers for d in test_status.decisions)))
             else:
                 log.debug('No `errors` nor `decision` in the data returned')
             if info:

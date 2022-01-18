@@ -84,6 +84,10 @@ def test_update_edit(
             "JOIN releases r ON u.release_id = r.id "
             "JOIN users us ON u.user_id = us.id "
             "WHERE r.state != 'archived' AND r.composed_by_bodhi = TRUE "
+            # Recent EPEL releases are more complex and lead to flakiness. Example:
+            # Cannot find release associated with build: netatalk-3.1.12-27.el9,
+            # tags: ['el9-updates-candidate', 'el9', 'el9-updates-testing']
+            "AND r.id_prefix = 'FEDORA' "
             "AND u.locked = FALSE AND u.status IN ('pending', 'testing') "
             "AND us.name NOT LIKE '%packagerbot%' "
             "ORDER BY u.date_submitted DESC LIMIT 1"
@@ -121,8 +125,6 @@ def test_update_edit(
     bug_id = find_bug()
     # Remove previous task results
     # bodhi_container.execute(["find", "/srv/celery-results", "-type", "f", "-delete"])
-    celery_tasks = bodhi_container.execute(["ls", "/srv/celery-results"])
-    print(list(celery_tasks))
     cmd = [
         "bodhi",
         "updates",
@@ -138,10 +140,10 @@ def test_update_edit(
         "ipsilon",
         "--bugs",
         bug_id,
+        "--stable-karma",
+        "1",
         update_alias,
     ]
-    celery_tasks = bodhi_container.execute(["ls", "/srv/celery-results"])
-    print(list(celery_tasks))
     try:
         bodhi_container.execute(cmd)
     except ConuException as e:
@@ -149,9 +151,11 @@ def test_update_edit(
             print(log.read())
         assert False, str(e)
     try:
-        bodhi_container.execute(["wait-for-file", "/srv/celery-results"])
+        bodhi_container.execute(["wait-for-file", "-d", "/srv/celery-results"])
     except ConuException as e:
         print(f"Waiting for celery results failed, relevant update: {update_alias}")
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
         raise e
     results = get_task_results(bodhi_container)
     assert len(results) > 0

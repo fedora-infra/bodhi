@@ -794,7 +794,6 @@ class Release(Base):
         mail_template (str): The notification mail template.
         state (:class:`ReleaseState`): The current state of the release. Defaults to
             ``ReleaseState.disabled``.
-        id (int): The primary key of this release.
         builds (sqlalchemy.orm.collections.InstrumentedList): An iterable of :class:`Builds <Build>`
             associated with this release.
         composed_by_bodhi (bool): The flag that indicates whether the release is composed by
@@ -2435,6 +2434,16 @@ class Update(Base):
         log.debug(f"Triggering db commit for new update {up.alias}.")
         db.commit()
 
+        log.info("Deferring working on bugs and fetching test cases to celery")
+        alias = up.alias
+        if not bool(config.get('bodhi_email')):
+            log.warning("Not configured to handle bugs")
+        else:
+            bug_ids = [bug.bug_id for bug in up.bugs]
+            work_on_bugs_task.delay(alias, bug_ids)
+
+        fetch_test_cases_task.delay(alias)
+
         # track whether to set gating status shortly...
         setgs = config.get('test_gating.required')
         # The request to testing for side-tag updates is set within the signed consumer
@@ -3069,9 +3078,6 @@ class Update(Base):
             )
         self.comment(db, comment_text, author=u'bodhi')
 
-        # Store the update alias so Celery doesn't have to emit SQL
-        alias = self.alias
-
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
@@ -3089,15 +3095,6 @@ class Update(Base):
                 log.info(f"Updating test gating status of {self.alias}")
                 self.update_test_gating_status()
                 db.commit()
-
-            log.info("Deferring working on bugs and fetching test cases to celery")
-            if not bool(config.get('bodhi_email')):
-                log.warning("Not configured to handle bugs")
-            else:
-                bugs = [bug.bug_id for bug in self.bugs]
-                work_on_bugs_task.delay(alias, bugs)
-
-            fetch_test_cases_task.delay(alias)
 
     def waive_test_results(self, username, comment=None, tests=None):
         """
@@ -4195,8 +4192,6 @@ class Compose(Base):
             reached.
         date_created (datetime.datetime): The time this Compose was created.
         error_message (str): An error message indicating what happened if the Compose failed.
-        id (None): We don't want the superclass's primary key since we will use a natural primary
-            key for this model.
         release_id (int): The primary key of the :class:`Release` that is being composed. Forms half
             of the primary key, with the other half being the ``request``.
         request (UpdateRequest): The request of the release that is being composed. Forms half of
