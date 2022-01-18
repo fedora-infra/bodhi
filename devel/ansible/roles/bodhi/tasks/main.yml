@@ -21,6 +21,7 @@
       - openssl-devel
       - pcaro-hermit-fonts
       - pcp-system-tools
+      - pre-commit
       - postgresql-devel
       - postgresql-server
       - python3-alembic
@@ -121,10 +122,14 @@
   register: python3_version
 
 - name: Install bodhi in developer mode for Python 3
-  command: python3 /home/vagrant/bodhi/setup.py develop
+  command: python3 setup.py develop
   args:
-      chdir: /home/vagrant/bodhi
-      creates: /usr/lib/python{{ python3_version.stdout }}/site-packages/bodhi.egg-link
+      chdir: /home/vagrant/bodhi/{{ item }}
+      creates: /usr/lib/python{{ python3_version.stdout }}/site-packages/{{ item }}.egg-link
+  loop:
+    - bodhi-messages
+    - bodhi-client
+    - bodhi-server
 
 - name: Retrieve database dump
   get_url:
@@ -136,9 +141,9 @@
   args:
       creates: /home/vagrant/.db-imported
 
-- command: cp /home/vagrant/bodhi/devel/development.ini.example /home/vagrant/bodhi/development.ini
+- command: cp /home/vagrant/bodhi/devel/development.ini.example /home/vagrant/bodhi/bodhi-server/development.ini
   args:
-      creates: /home/vagrant/bodhi/development.ini
+      creates: /home/vagrant/bodhi/bodhi-server/development.ini
 
 - name: Change development.ini to make bodhi use the staging infrastructure
   import_tasks: configure_stg.yml
@@ -149,24 +154,10 @@
     path: /etc/bodhi
     state: directory
 
-- name: Copy celery configuration to correct path
-  copy:
-    src: celeryconfig.py
-    dest: /etc/bodhi/celeryconfig.py
-    owner: root
-    group: root
-    mode: 644
-
-# Bug in zope.interface filled here https://github.com/zopefoundation/zope.interface/issues/114
-- name: Fix namespace-package bug in zope.interface
-  copy:
-      content: "__import__('pkg_resources').declare_namespace(__name__)"
-      dest: "/usr/lib64/python{{ python3_version.stdout }}/site-packages/zope/__init__.py"
-
 - name: Apply database migrations
   shell: PYTHONPATH=. alembic upgrade head
   args:
-      chdir: /home/vagrant/bodhi
+      chdir: /home/vagrant/bodhi/bodhi-server
 
 - name: Install the systemd unit files
   copy:
@@ -224,7 +215,7 @@
 
 - name: Link the bodhi bash completion script
   file:
-    src: /home/vagrant/bodhi/bodhi-complete.sh
+    src: /home/vagrant/bodhi/bodhi-client/bodhi-complete.sh
     dest: /etc/bash_completion.d/bodhi-complete.sh
     state: link
 
