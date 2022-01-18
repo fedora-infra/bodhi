@@ -17,7 +17,6 @@ RUN dnf install -y \
     python3-click \
     python3-colander \
     python3-cornice \
-    python3-cornice-sphinx \
     python3-createrepo_c \
     python3-diff-cover \
     python3-dnf \
@@ -42,14 +41,14 @@ RUN dnf install -y \
     python3-pytest-cov \
     python3-responses \
     python3-simplemediawiki \
+    python3-sphinx \
     python3-sqlalchemy \
     python3-sqlalchemy_schemadisplay \
     python3-waitress \
     python3-webtest \
     python3-wheel \
     python3-whitenoise \
-    python3-yaml &&\
-    pip-3 install koji
+    python3-yaml
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji

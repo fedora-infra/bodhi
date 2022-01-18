@@ -29,7 +29,6 @@ COPY requirements.txt /bodhi/requirements.txt
 RUN pip-3 install -r /bodhi/requirements.txt
 RUN pip-3 install \
     alembic \
-    cornice_sphinx \
     diff-cover \
     docutils \
     flake8 \
@@ -38,7 +37,7 @@ RUN pip-3 install \
     pydocstyle \
     pytest \
     pytest-cov \
-    'sphinx<4.0' \
+    sphinx \
     sqlalchemy_schemadisplay \
     urllib3 \
     webtest
