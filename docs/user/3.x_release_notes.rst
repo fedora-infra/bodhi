@@ -1182,7 +1182,7 @@ Development improvements
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 * The database migrations are now shipped as part of the Python distribution
-  (`#1777 <https://github.com/fedora-infra/bodhi/pull/1777>`_).
+  (:pr:`1777`).
 * The developer docs pertaining to using virtualenvs have been corrected and improved
   (:issue:`1797`).
 * The ``test_utils.py`` tests now use the ``BaseTestCase``, which allows them to pass when run by
@@ -1239,7 +1239,7 @@ Backwards incompatible changes
 * Support for the ``USERNAME`` environment variable in all of Bodhi's CLI tools has been dropped, as
   it conflicts with GDM's variable by the same name. Many users do not have the same FAS username as
   they use on their desktop, and this variable causes confusion in the CLI
-  (`#1789 <https://github.com/fedora-infra/bodhi/issues/1789>`_).
+  (:issue:`1789`).
 * The layout of the repositories after mash is now different.
 * The following settings have been removed from Bodhi, as Pungi now manages
   comps files instead of Bodhi::
@@ -1303,27 +1303,26 @@ deliver update repositories for modules, but in general all of Pungi's feature s
 for Bodhi to use.
 
 * Bodhi now supports non-RPM artifacts, namely, modules
-  (`#653 <https://github.com/fedora-infra/bodhi/issues/653>`_,
-  `#1330 <https://github.com/fedora-infra/bodhi/issues/1330>`_).
+  (:issue:`653`, :issue:`1330`).
 * Via Pungi, Bodhi is now able to use Koji signed repos
-  (`#909 <https://github.com/fedora-infra/bodhi/issues/909>`_).
+  (:issue:`909`).
 * Via Pungi, Bodhi is now able to generate OSTrees that are more consistent with Fedora's release
   day OSTrees
-  (`#1182 <https://github.com/fedora-infra/bodhi/issues/1182>`_).
+  (:issue:`1182`).
 * Bodhi now uses Pungi instead of the retiring mash project
-  (`#1219 <https://github.com/fedora-infra/bodhi/issues/1219>`_).
+  (:issue:`1219`).
 
 
 Bugs
 ^^^^
 
 * Bodhi, via Pungi, will now reliably produce repomd files
-  (`#887 <https://github.com/fedora-infra/bodhi/issues/887>`_).
+  (:issue:`887`).
 * Bodhi's CLI no longer uses USERNAME, which conflicted with GDM for users who use a different local
   system username than their FAS username. For such users, there was no workaround other than to
   constantly use the ``--user`` flag, and the environment variable wasn't particularly useful
   anymore now that the Bodhi CLI remembers usernames after one successful authentication
-  (`#1789 <https://github.com/fedora-infra/bodhi/issues/1789>`_).
+  (:issue:`1789`).
 
 
 Release contributors
