@@ -1,0 +1,14 @@
+---
+- hosts: all
+  tasks:
+    - name: List project directory on the test system
+      command: "ls -l {{ansible_user_dir}}/{{ zuul.project.src_dir }}"
+    - name: install deps
+      become: true
+      command: dnf -y install podman python-click python-conu python-pytest python-pytest-cov python-munch python-psycopg2 python-fedora-messaging
+    - name: run integration tests
+      become: true
+      command:
+        chdir: "{{ansible_user_dir}}/{{ zuul.project.src_dir }}"
+        cmd: "devel/ci/bodhi-ci integration -r f34 -c podman"
+# comment

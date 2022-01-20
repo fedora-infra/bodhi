@@ -27,11 +27,16 @@
       nodes:
         name: bodhi-pip-node
         label: zuul-worker-f34
+- job:
+    name: bodhi-integration
+    run: devel/ci/bodhi-integration.yaml
+    nodeset: fedora-35-vm
+
 - project:
     check:
       jobs:
-        - bodhi-pre-commit
-        - bodhi-unit-f34
-        - bodhi-pip
-        - bodhi-docs
-
+        - bodhi-integration
+        # - bodhi-pre-commit
+        # - bodhi-unit-f34
+        # - bodhi-pip
+        # - bodhi-docs
