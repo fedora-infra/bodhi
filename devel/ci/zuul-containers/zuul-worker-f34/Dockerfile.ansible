@@ -1,2 +1,0 @@
-FROM quay.io/software-factory/zuul-worker-f34
-RUN dnf install -y ansible

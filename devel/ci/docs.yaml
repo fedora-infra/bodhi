@@ -1,0 +1,103 @@
+---
+- hosts: all
+
+  tasks:
+    - name: install deps
+      become: true
+      tags:
+        - prep
+      dnf:
+        name:
+          - pungi
+          - python3-createrepo_c
+          - python3-devel
+          - python3-dnf
+          - python3-koji
+          - python3-librepo
+          - python3-setuptools
+          - python3-alembic
+          - python3-arrow
+          - python3-backoff
+          - python3-bleach
+          - python3-celery
+          - python3-click
+          - python3-colander
+          - python3-cornice
+          - python3-cornice-sphinx
+          - python3-dogpile-cache
+          - python3-fedora-messaging
+          - python3-feedgen
+          - python3-iniparse
+          - python3-jinja2
+          - python3-markdown
+          - python3-mock
+          - python3-prometheus_client
+          - python3-psycopg2
+          - python3-pylibravatar
+          - python3-pyramid
+          - python3-pyramid-fas-openid
+          - python3-pyramid-mako
+          - python3-bugzilla
+          - python3-fedora
+          - python3-pyyaml
+          - python3-responses
+          - python3-simplemediawiki
+          - python3-sphinx
+          - python3-sqlalchemy
+          - python3-sqlalchemy_schemadisplay
+          - python3-twisted
+          - python3-webob
+          - python3-webtest
+          - python3-whitenoise
+          - python3-pytest
+          - python3-pytest-cov
+
+    - name: prepare development.ini
+      copy:
+        src: "/workspace/{{ zuul.project.src_dir }}/devel/development.ini.example"
+        dest: "/workspace/{{ zuul.project.src_dir }}/bodhi-server/development.ini"
+        remote_src: yes
+        force: no
+        unsafe_writes: yes
+      tags:
+        - prep
+
+    - name: remove devel dependency
+      lineinfile:
+        path: "/workspace/{{ zuul.project.src_dir }}/bodhi-server/development.ini"
+        regexp: pyramid_debugtoolbar
+        state: absent
+        unsafe_writes: yes
+      tags:
+        - prep
+
+    - name: create venv
+      command:
+        chdir: "/workspace"
+        cmd: "python3 -m venv --system-site-packages --without-pip venv"
+        creates: "/workspace/venv"
+      tags:
+        - prep
+
+    - name: Get Python 3 version
+      command: python3 -c "import sys; print('%s.%s' % sys.version_info[0:2])"
+      register: python3_version
+      tags:
+        - prep
+
+    - name: setup bodhi
+      command:
+        chdir: "/workspace/{{ zuul.project.src_dir }}/{{ item }}"
+        cmd: "/workspace/venv/bin/python3 setup.py develop"
+        creates: /workspace/venv/lib/python{{ python3_version.stdout }}/site-packages/{{ item }}.egg-link
+      loop:
+        - bodhi-messages
+        - bodhi-client
+        - bodhi-server
+      tags:
+        - prep
+
+    - name: build docs
+      command:
+        chdir: "/workspace/{{ zuul.project.src_dir }}"
+        cmd: "sh -c 'make -C docs PYTHON=/workspace/venv/bin/python3 html'"
