@@ -6,6 +6,8 @@
       nodes:
         name: bodhi-precommit-node
         label: zuul-worker-f34
+
+# Define the Unit Tests jobs
 - job:
     name: bodhi-unit-f34
     run: devel/ci/bodhi-unit.yaml
@@ -13,25 +15,78 @@
       nodes:
         name: bodhi-unit-f34-node
         label: zuul-worker-f34
+
 - job:
-    name: bodhi-docs
+    name: bodhi-unit-f35
+    run: devel/ci/bodhi-unit.yaml
+    nodeset:
+      nodes:
+        name: bodhi-unit-f35-node
+        label: zuul-worker-f35
+
+- job:
+    name: bodhi-unit-pip
+    run: devel/ci/bodhi-pip.yaml
+    nodeset:
+      nodes:
+        name: bodhi-pip-node
+        label: zuul-worker-f34
+
+# Define the Docs Jobs
+- job:
+    name: bodhi-docs-f34
     run: devel/ci/bodhi-docs.yaml
     nodeset:
       nodes:
         name: bodhi-docs-node
         label: zuul-worker-f34
 - job:
-    name: bodhi-pip
-    run: devel/ci/bodhi-pip.yaml
+    name: bodhi-docs-f35
+    run: devel/ci/bodhi-docs.yaml
     nodeset:
       nodes:
-        name: bodhi-pip-node
-        label: zuul-worker-f34
+        name: bodhi-docs-node
+        label: zuul-worker-f35
+
+# Define the Integration tests jobs
+- job:
+    name: bodhi-integration-f34
+    run: devel/ci/bodhi-integration.yaml
+    vars:
+      test_release: "f34"
+    nodeset: fedora-latest-vm
+
+- job:
+    name: bodhi-integration-f35
+    run: devel/ci/bodhi-integration.yaml
+    vars:
+      test_release: "f35"
+    nodeset: fedora-latest-vm
+
+- job:
+    name: bodhi-integration-pip
+    run: devel/ci/bodhi-integration.yaml
+    vars:
+      test_release: "pip"
+    nodeset: fedora-latest-vm
+
+- job:
+    name: bodhi-integration-rawhide
+    run: devel/ci/bodhi-integration.yaml
+    vars:
+      test_release: "rawhide"
+    nodeset: fedora-latest-vm
+
 - project:
     check:
       jobs:
         - bodhi-pre-commit
+        - bodhi-integration-f34
+        - bodhi-integration-f35
+        - bodhi-integration-pip
+        - bodhi-integration-rawhide
         - bodhi-unit-f34
-        - bodhi-pip
-        - bodhi-docs
-
+        - bodhi-unit-f35
+        - bodhi-unit-pip
+        - bodhi-docs-f34
+        - bodhi-docs-f35
