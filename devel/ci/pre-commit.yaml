@@ -2,11 +2,14 @@
 - hosts: all
 
   tasks:
-    - name: List project directory on the test system
-      command: "ls -al /workspace/{{ zuul.project.src_dir }}"
-
     - name: install pre-commit
-      command: pip install --user pre-commit types-requests types-click
+      pip:
+        name:
+          - pre-commit
+          - types-requests
+          - types-click
+      tags:
+        - prep
 
     - name: run pre-commit
       command:
