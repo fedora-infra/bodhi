@@ -42,6 +42,10 @@ def update_from_db_message(msgid: str, itemdict: dict):
     if not itemtype:
         log.error(f"Couldn't find item type in message {msgid}")
         return None
+    if isinstance(itemtype, list):
+        # In resultsdb.result.new messages, the values are all lists
+        # for some reason
+        itemtype = itemtype[0]
     if itemtype not in ("koji_build", "bodhi_update"):
         log.debug(f"Irrelevant item type {itemtype}")
         return None
@@ -49,6 +53,8 @@ def update_from_db_message(msgid: str, itemdict: dict):
     # find the update
     if itemtype == "bodhi_update":
         updateid = itemdict.get("item")
+        if isinstance(updateid, list):
+            updateid = updateid[0]
         if not updateid:
             log.error(f"Couldn't find update ID in message {msgid}")
             return None
@@ -58,6 +64,8 @@ def update_from_db_message(msgid: str, itemdict: dict):
             return None
     else:
         nvr = itemdict.get("nvr", itemdict.get("item"))
+        if isinstance(nvr, list):
+            nvr = nvr[0]
         if not nvr:
             log.error(f"Couldn't find nvr in message {msgid}")
             return None

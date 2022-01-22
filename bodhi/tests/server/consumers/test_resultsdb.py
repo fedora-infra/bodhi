@@ -45,10 +45,10 @@ class TestResultsdbHandler(BasePyTestCase):
         if not passed:
             outcome = "FAILED"
         if typ == "bodhi_update":
-            data = {"item": self.single_build_update.alias, "type": "bodhi_update"}
+            data = {"item": [self.single_build_update.alias], "type": ["bodhi_update"]}
         elif typ == "koji_build":
             nvr = self.single_build_update.builds[0].nvr
-            data = {"nvr": nvr, "item": nvr, "type": "koji_build"}
+            data = {"nvr": [nvr], "item": [nvr], "type": ["koji_build"]}
         return Message(
             topic="org.fedoraproject.prod.resultsdb.result.new",
             body={
@@ -279,7 +279,7 @@ class TestResultsdbHandler(BasePyTestCase):
         build nvr in the DB.
         """
         testmsg = self.get_sample_message(typ="koji_build", passed=True)
-        testmsg.body["data"]["nvr"] = "notapackage-2.0-1.fc17"
+        testmsg.body["data"]["nvr"] = ["notapackage-2.0-1.fc17"]
         self.handler(testmsg)
         assert mock_log.error.call_count == 1
         mock_log.error.assert_called_with("Couldn't find build notapackage-2.0-1.fc17 in DB")
@@ -303,7 +303,7 @@ class TestResultsdbHandler(BasePyTestCase):
         update ID in the DB.
         """
         testmsg = self.get_sample_message(typ="bodhi_update", passed=True)
-        testmsg.body["data"]["item"] = "NOTANUPDATE"
+        testmsg.body["data"]["item"] = ["NOTANUPDATE"]
         self.handler(testmsg)
         assert mock_log.error.call_count == 1
         mock_log.error.assert_called_with("Couldn't find update NOTANUPDATE in DB")
