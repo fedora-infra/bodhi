@@ -223,6 +223,12 @@
       group: root
       mode: 644
 
+- name: Link the bodhi bash completion script
+  file:
+    src: /home/vagrant/bodhi/bodhi-complete.sh
+    dest: /etc/bash_completion.d/bodhi-complete.sh
+    state: link
+
 - name: Start and enable the bodhi-related services
   service:
       name: "{{ item }}"
@@ -234,12 +240,3 @@
       - celery
       - fm-consumer@config
       - print-messages
-
-- name: Link the bodhi bash completion script
-  file:
-    src: /home/vagrant/bodhi/bodhi-complete.sh
-    dest: /etc/bash_completion.d/bodhi-complete.sh
-    state: link
-
-- name: Reboot the vagrant box
-  reboot:
