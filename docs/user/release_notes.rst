@@ -4,6 +4,39 @@ Release notes
 
 .. towncrier release notes start
 
+v5.7.4
+======
+This is a bugfix release that should help with several more problems after 7.5.3 release.
+
+
+Features
+^^^^^^^^
+
+* Automatic updates consumer can now identify new packages and mark updates
+  with the appropriate type (:pr:`4324`).
+* Detect stuck updates with builds that were never been sent to pending-signing
+  and unstuck them (:issue:`4307`).
+
+Bug fixes
+^^^^^^^^^
+
+* Bodhi will now retry to get a build changelog if Koji returns empty rpm
+  headers. See also https://pagure.io/koji/issue/3178 (:issue:`4316`).
+* Fixed an issue about some bug title never fetched from Bugzilla
+  (:issue:`4317`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Saleh
+* Aurélien Bompard
+* Adam Williamson
+* Lenka Segura
+* Mattia Verga
+
+
 v5.7.3
 ======
 This is a bugfix release that should help with several more problems after 7.5.2 release.
