@@ -402,11 +402,11 @@ infrastructure mailing list.
 
 
 .. _semantic versioning: https://semver.org
-.. _Mergify: https://mergify.io
-.. _patch backporting feature: https://doc.mergify.io/actions.html#backport
+.. _Mergify: https://mergify.com
+.. _patch backporting feature: https://docs.mergify.com/actions/backport
 .. _Fedora Rawhide spec file: https://src.fedoraproject.org/rpms/bodhi/blob/master/f/bodhi.spec
-.. _Fedora Infrastructure repositories: https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/infra-repo.html
+.. _Fedora Infrastructure repositories: https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/bodhi/
 .. _Fedora's staging instance: https://bodhi.stg.fedoraproject.org
-.. _Fedora Infrastructure Bodhi SOP: https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/bodhi.html#performing-a-bodhi-upgrade
+.. _Fedora Infrastructure Bodhi SOP: https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/bodhi/#_performing_a_bodhi_upgrade
 .. _python-rpdb: https://src.stg.fedoraproject.org/rpms/python-rpdb
 .. _backwards incompatible: https://www.theonion.com/craftsman-confirms-new-hammer-backwards-compatible-with-1834722479
