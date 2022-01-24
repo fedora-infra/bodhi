@@ -1,0 +1,92 @@
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+name: Run tests
+
+jobs:
+
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit checks
+        run: pre-commit run --all-files
+
+  integration_tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install deps
+        run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging
+
+      - name: Run the integration tests
+        run: devel/ci/bodhi-ci integration -r ${{ matrix.release }}
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [f34,f35,pip,rawhide]
+
+  unit_tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install deps
+        run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging
+
+      - name: Run the unit tests
+        run: devel/ci/bodhi-ci unit -r ${{ matrix.release }}
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [f34,f35,pip,rawhide]
+
+  docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install deps
+        run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging
+
+      - name: Build the docs
+        run: devel/ci/bodhi-ci docs -r ${{ matrix.release }}
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [f34,f35,pip,rawhide]
+
+  diff_cover:
+    name: Run the Diff Cover checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install deps
+        run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging
+
+      - name: Build the docs
+        run: sudo devel/ci/bodhi-ci diff-cover -r ${{ matrix.release }}
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [f34,f35,pip,rawhide]
