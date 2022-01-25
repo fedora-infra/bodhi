@@ -8,9 +8,7 @@ queue_rules:
     - status-success=f34-unit
     - status-success=f34-diff-cover
     - status-success=pip-docs
-    - status-success=pip-flake8
-    - status-success=pip-mypy
-    - status-success=pip-pydocstyle
+    - status-success=pip-pre-commit
     - status-success=pip-unit
     - status-success=pip-diff-cover
 
@@ -27,9 +25,7 @@ pull_request_rules:
   - status-success=f34-unit
   - status-success=f34-diff-cover
   - status-success=pip-docs
-  - status-success=pip-flake8
-  - status-success=pip-mypy
-  - status-success=pip-pydocstyle
+  - status-success=pip-pre-commit
   - status-success=pip-unit
   - status-success=pip-diff-cover
   name: default

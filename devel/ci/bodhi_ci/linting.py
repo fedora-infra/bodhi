@@ -18,97 +18,27 @@
 
 """Linting jobs."""
 
-import typing
-
 from .job import BuildJob, Job
 
 
-class Flake8Job(Job):
+class PreCommitJob(Job):
     """
-    Define a Job for running flake8.
+    Define a Job for running the pre-commit linters.
 
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _label = 'flake8'
+    _label = 'pre-commit'
+    _command = ["/usr/bin/pre-commit", "run", "-a"]
     _dependencies = [BuildJob]
     only_releases = ["pip"]
 
     def __init__(self, *args, **kwargs):
         """
-        Initialize the Flake8Job.
+        Initialize the job.
 
         See the superclass's docblock for details about accepted parameters.
         """
         super().__init__(*args, **kwargs)
-
-        if self.release == 'pip':
-            self._command = ['/usr/local/bin/flake8']
-        else:
-            self._command = ['/usr/bin/flake8']
-        self._convert_command_for_container()
-
-
-class MyPyBuildJob(BuildJob):
-    """
-    Define a Job for building mypy container images.
-
-    See the Job superclass's docblock for details about its attributes.
-    """
-
-    # We don't want the --pull build arg because we are based on a container built by bodhi-ci.
-    _build_args = []  # type: typing.List[str]
-    _container_image_template = '{}/{}/mypy'
-    _dockerfile_template = 'Dockerfile-mypy-{}'
-    _label = 'mypy-build'
-    _dependencies = [BuildJob]
-
-
-class MyPyJob(Job):
-    """
-    Define a Job for running mypy.
-
-    See the Job superclass's docblock for details about its attributes.
-    """
-
-    _container_image_template = '{}/{}/mypy'
-    _label = 'mypy'
-    _dependencies = [MyPyBuildJob]
-    only_releases = ["pip"]
-
-    def __init__(self, *args, **kwargs):
-        """
-        Initialize the MyPyJob.
-
-        See the superclass's docblock for details about accepted parameters.
-        """
-        super().__init__(*args, **kwargs)
-
-        self._command = ['/usr/local/bin/mypy']
-        self._convert_command_for_container()
-
-
-class PydocstyleJob(Job):
-    """
-    Define a Job for running pydocstyle.
-
-    See the Job superclass's docblock for details about its attributes.
-    """
-
-    _label = 'pydocstyle'
-    _dependencies = [BuildJob]
-    only_releases = ["pip"]
-
-    def __init__(self, *args, **kwargs):
-        """
-        Initialize the PydocstyleJob.
-
-        See the superclass's docblock for details about accepted parameters.
-        """
-        super().__init__(*args, **kwargs)
-
-        if self.release == 'pip':
-            self._command = ['/usr/local/bin/pydocstyle', 'bodhi']
-        else:
-            self._command = ['/usr/bin/pydocstyle', 'bodhi']
-        self._convert_command_for_container()
+        # Pre-commit requires a git repo and network access
+        self._convert_command_for_container(include_git=True, network="bridge")
