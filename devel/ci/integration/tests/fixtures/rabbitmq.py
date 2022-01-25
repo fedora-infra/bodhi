@@ -39,11 +39,13 @@ def rabbitmq_container(
     # Define the container and start it
     image_name = "bodhi-ci-integration-rabbitmq"
     image = docker_backend.ImageClass(image_name)
-    container = image.run_via_api()
+    run_opts = [
+        "--network", docker_network.get_id(),
+        "--network-alias", "rabbitmq",
+        "--network-alias", "rabbitmq.ci",
+    ]
+    container = image.run_via_binary(additional_opts=run_opts)
     container.start()
-    docker_backend.d.connect_container_to_network(
-        container.get_id(), docker_network["Id"], aliases=["rabbitmq", "rabbitmq.ci"]
-    )
     # we need to wait for the broker to start listening
     container.wait_for_port(5672, timeout=30)
     # wait until the embedded consumer is connected

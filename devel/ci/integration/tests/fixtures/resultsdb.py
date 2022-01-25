@@ -40,11 +40,13 @@ def resultsdb_container(docker_backend, docker_network, db_container, rabbitmq_c
     # Define the container and start it
     image_name = "bodhi-ci-integration-resultsdb"
     image = docker_backend.ImageClass(image_name)
-    container = image.run_via_api()
+    run_opts = [
+        "--network", docker_network.get_id(),
+        "--network-alias", "resultsdb",
+        "--network-alias", "resultsdb.ci",
+    ]
+    container = image.run_via_binary(additional_opts=run_opts)
     container.start()
-    docker_backend.d.connect_container_to_network(
-        container.get_id(), docker_network["Id"], aliases=["resultsdb", "resultsdb.ci"],
-    )
     # Add sample data in the database
     container.execute(["resultsdb", "init_db"])
     # we need to wait for the webserver to start serving
