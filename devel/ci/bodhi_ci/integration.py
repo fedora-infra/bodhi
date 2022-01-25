@@ -189,6 +189,7 @@ class IntegrationJob(Job):
         bodhi_container_image = f'{self._get_container_name()}-integration-bodhi/{self.release}'
         self._popen_kwargs["env"] = os.environ.copy()
         self._popen_kwargs["env"]["BODHI_INTEGRATION_IMAGE"] = bodhi_container_image
+        self._popen_kwargs["env"]["CONTAINER_RUNTIME"] = self.options["container_runtime"]
         if self.options["failfast"]:
             self._command.append('-x')
         if self.options["archive"]:

@@ -20,7 +20,6 @@ import os
 
 import docker.errors
 import pytest
-from conu.backend.docker.container_parameters import DockerContainerParameters
 
 
 @pytest.fixture(scope="session")
@@ -40,12 +39,15 @@ def db_container(docker_backend, docker_network):
         os.environ.get("BODHI_INTEGRATION_POSTGRESQL_IMAGE", "quay.io/bodhi-ci/postgresql"),
         tag="latest"
     )
-    params = DockerContainerParameters(env_variables={"POSTGRES_HOST_AUTH_METHOD": "trust"})
-    container = image.run_via_api(params)
+    run_opts = [
+        "-e", "POSTGRES_HOST_AUTH_METHOD=trust",
+        "--network", docker_network.get_id(),
+        "--network-alias", "db",
+        "--network-alias", "db.ci",
+    ]
+    container = image.run_via_binary(additional_opts=run_opts)
     container.start()
-    docker_backend.d.connect_container_to_network(
-        container.get_id(), docker_network["Id"], aliases=["db", "db.ci"],
-    )
+    print(container.get_metadata())
     container.wait_for_port(5432, timeout=64)
     container.execute(
         ["/usr/bin/pg_isready", "-q", "-t", "64"]

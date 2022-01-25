@@ -16,14 +16,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from __future__ import absolute_import, unicode_literals
-
 import logging
+import os
 import uuid
 
 import pytest
-from conu import DockerBackend
+from conu import DockerBackend, PodmanBackend
 from docker import errors
+
+from .conu_ext import DockerNetwork, PodmanNetwork
 
 
 @pytest.fixture(scope="session")
@@ -31,10 +32,22 @@ def docker_backend():
     """Fixture yielding a Conu Docker backend.
 
     Yields:
-        conu.DockerBackend: The Docker backend.
+        conu.DockerBackend or conu.PodmanBackend: The container backend.
     """
     # Redefined to set the scope
-    with DockerBackend(logging_level=logging.DEBUG) as backend:
+    runtime = os.environ.get("CONTAINER_RUNTIME", "docker")
+    if runtime == "podman":
+        backend_class = PodmanBackend
+        network_class = PodmanNetwork
+        # Podman support is still unstable: https://github.com/user-cont/conu/issues/388
+        raise ValueError("Running the integration tests with podman is not supported yet.")
+    elif runtime == "docker":
+        backend_class = DockerBackend
+        network_class = DockerNetwork
+    else:
+        raise ValueError(f"Unsupported container runtime: {runtime}")
+    with backend_class(logging_level=logging.DEBUG) as backend:
+        backend.NetworkClass = network_class
         yield backend
 
 
@@ -48,9 +61,9 @@ def docker_network(docker_backend):
     Yields:
         dict: The Docker network.
     """
-    network = docker_backend.d.create_network(f"bodhi_test-{uuid.uuid4()}", driver="bridge")
+    network = docker_backend.NetworkClass.create(f"bodhi_test-{uuid.uuid4()}", driver="bridge")
     yield network
     try:
-        docker_backend.d.remove_network(network["Id"])
+        network.remove()
     except errors.APIError as e:
         raise e

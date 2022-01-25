@@ -51,11 +51,13 @@ def bodhi_container(
     image = docker_backend.ImageClass(
         os.environ.get("BODHI_INTEGRATION_IMAGE", "bodhi-ci-integration-bodhi")
     )
-    container = image.run_via_api()
+    run_opts = [
+        "--network", docker_network.get_id(),
+        "--network-alias", "bodhi",
+        "--network-alias", "bodhi.ci",
+    ]
+    container = image.run_via_binary(additional_opts=run_opts)
     container.start()
-    docker_backend.d.connect_container_to_network(
-        container.get_id(), docker_network["Id"], aliases=["bodhi", "bodhi.ci"],
-    )
     # Update the database schema
     container.execute(["alembic-3", "-c", "/bodhi/bodhi-server/alembic.ini", "upgrade", "head"])
     # we need to wait for the webserver to start serving
