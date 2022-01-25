@@ -269,7 +269,9 @@ class Job:
         if self.options["init"]:
             args.append('--init')
 
-        if self.options["tty"]:
+        if self.options["tty"] and not self.options["buffer_output"]:
+            # Don't request a TTY when outputing to pipes.
+            # https://github.com/containers/podman/issues/9718
             args.append('-t')
 
         if self.options["archive"]:
