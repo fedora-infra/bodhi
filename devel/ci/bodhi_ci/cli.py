@@ -23,7 +23,7 @@ import asyncio
 
 import click
 
-from .constants import DEFAULT_OPTIONS, RELEASES
+from .constants import DEFAULT_OPTIONS, MODULES, RELEASES
 from .integration import IntegrationJob
 from .job import Job
 from .runner import Runner
@@ -95,6 +95,10 @@ releases_option = click.option(
     '--release', '-r', "releases", default=list(RELEASES), multiple=True,
     help=("Limit to a particular release. May be specified multiple times. "
           "Acceptable values: {}".format(', '.join(RELEASES))))
+modules_option = click.option(
+    '--module', '-m', 'modules', default=list(MODULES), type=click.Choice(MODULES), multiple=True,
+    show_default=True, callback=_set_context, expose_value=False,
+    help='The Bodhi modules to run CI for (can be specified multiple times).')
 tty_option = click.option('--tty/--no-tty', default=True, help='Allocate a pseudo-TTY.',
                           callback=_set_context, expose_value=False)
 z_option = click.option(
@@ -122,6 +126,7 @@ def cli(ctx):
 @init_option
 @no_build_option
 @releases_option
+@modules_option
 @tty_option
 @click.pass_context
 def all(ctx, releases):
@@ -192,6 +197,7 @@ def pre_commit(ctx, releases):
 @failfast_option
 @no_build_option
 @releases_option
+@modules_option
 @archive_path_option
 @tty_option
 @click.pass_context
@@ -209,6 +215,7 @@ def unit(ctx, releases):
 @init_option
 @no_build_option
 @releases_option
+@modules_option
 @tty_option
 @z_option
 @click.pass_context

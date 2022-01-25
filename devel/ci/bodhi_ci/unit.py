@@ -19,7 +19,6 @@
 import os
 import shutil
 
-from .constants import SUBMODULES
 from .job import BuildJob, Job
 
 
@@ -45,14 +44,14 @@ class UnitJob(Job):
         if self.options["failfast"]:
             pytest_flags += ' -x'
 
-        submodules = " ".join(SUBMODULES)
+        modules = " ".join(self.options["modules"])
 
         test_command = (
             # Run setup.py develop in each submodule
-            f'for submodule in {submodules}; do '
+            f'for submodule in {modules}; do '
             'cd $submodule; /usr/bin/python3 setup.py develop; cd ..; done; '
             # Run the tests in each submodule
-            f'for submodule in {submodules}; do '
+            f'for submodule in {modules}; do '
             'mkdir -p /results/$submodule; '
             f'cd $submodule; /usr/bin/python3 -m pytest {pytest_flags} || '
             '   (cp *.xml /results/$submodule/ && exit 1) && '
@@ -104,7 +103,7 @@ class DiffCoverJob(Job):
         else:
             executable = '/usr/bin/diff-cover'
         self._command = [executable] + [
-            f'/results/coverage-{s}.xml' for s in SUBMODULES
+            f'/results/coverage-{m}.xml' for m in self.options["modules"]
         ] + [
             '--compare-branch=origin/develop', '--fail-under=100'
         ]
@@ -115,6 +114,6 @@ class DiffCoverJob(Job):
         Copy the coverage.xml from the unit test job to the diff_cover container.
         """
         super()._pre_start_hook()
-        for submodule in SUBMODULES:
-            shutil.copy(os.path.join(self.depends_on[0].archive_dir, submodule, 'coverage.xml'),
-                        os.path.join(self.archive_dir, f'coverage-{submodule}.xml'))
+        for module in self.options["modules"]:
+            shutil.copy(os.path.join(self.depends_on[0].archive_dir, module, 'coverage.xml'),
+                        os.path.join(self.archive_dir, f'coverage-{module}.xml'))

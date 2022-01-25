@@ -18,8 +18,8 @@
 
 """Documentation build job."""
 
-from .constants import SUBMODULES
-from .job import Job, BuildJob
+from .constants import MODULES
+from .job import BuildJob, Job
 
 
 class DocsJob(Job):
@@ -32,7 +32,7 @@ class DocsJob(Job):
     _command = [
         '/usr/bin/bash', '-c',
         (
-            'for submodule in ' + ' '.join(SUBMODULES) + '; do '
+            'for submodule in ' + ' '.join(MODULES) + '; do '
             'cd $submodule && /usr/bin/python3 setup.py develop && cd ..; done && '
             'make -C docs clean && '
             'make -C docs html PYTHON=/usr/bin/python3 && '
