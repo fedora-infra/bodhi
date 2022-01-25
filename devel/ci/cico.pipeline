@@ -154,9 +154,6 @@ node('bodhi') {
             synctoduffynode('bodhi')
         }
 
-        // Download the database dumps for the integration tests.
-        onmyduffynode 'cd payload && python3.6 ./devel/ci/bodhi-ci integration-download --no-tty'
-
         def failed = false
 
         try {
@@ -170,7 +167,7 @@ node('bodhi') {
             failed = error
         }
 
-        def releases = ['f34', 'f35', 'pip', 'rawhide']
+        def releases = ['f34', 'f35', 'rawhide']
         for (release in releases) {
             try {
                 bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
