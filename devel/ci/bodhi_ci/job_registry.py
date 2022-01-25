@@ -24,14 +24,12 @@ from .docs import DocsJob
 from .integration import (IntegrationBuildJob, IntegrationCleanJob,
                           IntegrationJob)
 from .job import BuildJob, CleanJob, Job
-from .linting import Flake8Job, MyPyJob, PydocstyleJob
+from .linting import PreCommitJob
 from .unit import DiffCoverJob, UnitJob
 
 AVAILABLE_JOBS: typing.Dict[str, typing.Type['Job']] = {
     "build": BuildJob,
-    "flake8": Flake8Job,
-    "mypy": MyPyJob,
-    "pydocstyle": PydocstyleJob,
+    "pre-commit": PreCommitJob,
     "docs": DocsJob,
     "unit": UnitJob,
     "diff-cover": DiffCoverJob,

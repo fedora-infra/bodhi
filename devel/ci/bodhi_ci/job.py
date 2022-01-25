@@ -250,7 +250,7 @@ class Job:
             for dep_class in self._dependencies
         ]
 
-    def _convert_command_for_container(self, include_git: bool = False):
+    def _convert_command_for_container(self, include_git: bool = False, network: str = "none"):
         """
         Use this to convert self._command to run in a container.
 
@@ -263,7 +263,7 @@ class Job:
             include_git: If True, also bind mount the .git folder into the /bodhi folder inside
                 the container. This is needed for the diff-cover test. Default: False.
         """
-        args = [self.options["container_runtime"], 'run', '--network', 'none', '--rm',
+        args = [self.options["container_runtime"], 'run', '--network', network, '--rm',
                 '--label', CONTAINER_LABEL]
 
         if self.options["init"]:

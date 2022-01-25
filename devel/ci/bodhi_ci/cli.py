@@ -126,7 +126,7 @@ def cli(ctx):
 @click.pass_context
 def all(ctx, releases):
     """Run all the types of tests in parallel."""
-    job_names = ("flake8", "mypy", "pydocstyle", "docs", "unit", "diff-cover", "integration")
+    job_names = ["pre-commit", "docs", "unit", "diff-cover", "integration"]
     Runner(options=ctx.obj).run_jobs(job_names, releases=releases)
 
 
@@ -156,22 +156,6 @@ def clean(ctx, releases):
 
 
 @cli.command()
-@archive_option
-@archive_path_option
-@concurrency_option
-@container_runtime_option
-@failfast_option
-@no_build_option
-@releases_option
-@tty_option
-@z_option
-@click.pass_context
-def diff_cover(ctx, releases):
-    """Run the diff cover test."""
-    Runner(options=ctx.obj).run_jobs(["diff-cover"], releases=releases)
-
-
-@cli.command()
 @concurrency_option
 @container_runtime_option
 @failfast_option
@@ -196,36 +180,9 @@ def docs(ctx, releases):
 @releases_option
 @tty_option
 @click.pass_context
-def flake8(ctx, releases):
-    """Run flake8 tests."""
-    Runner(options=ctx.obj).run_jobs(["flake8"], releases=releases)
-
-
-@cli.command()
-@concurrency_option
-@container_runtime_option
-@failfast_option
-@init_option
-@no_build_option
-@releases_option
-@tty_option
-@click.pass_context
-def mypy(ctx, releases):
-    """Run mypy tests."""
-    Runner(options=ctx.obj).run_jobs(["mypy"], releases=releases)
-
-
-@cli.command()
-@concurrency_option
-@container_runtime_option
-@failfast_option
-@no_build_option
-@releases_option
-@tty_option
-@click.pass_context
-def pydocstyle(ctx, releases):
-    """Run pydocstyle tests."""
-    Runner(options=ctx.obj).run_jobs(["pydocstyle"], releases=releases)
+def pre_commit(ctx, releases):
+    """Run pre-commit checks."""
+    Runner(options=ctx.obj).run_jobs(["pre-commit"], releases=releases)
 
 
 @cli.command()
@@ -233,7 +190,6 @@ def pydocstyle(ctx, releases):
 @concurrency_option
 @container_runtime_option
 @failfast_option
-@init_option
 @no_build_option
 @releases_option
 @archive_path_option
@@ -242,6 +198,23 @@ def pydocstyle(ctx, releases):
 def unit(ctx, releases):
     """Run the unit tests."""
     Runner(options=ctx.obj).run_jobs(["unit"], releases=releases)
+
+
+@cli.command()
+@archive_option
+@archive_path_option
+@concurrency_option
+@container_runtime_option
+@failfast_option
+@init_option
+@no_build_option
+@releases_option
+@tty_option
+@z_option
+@click.pass_context
+def diff_cover(ctx, releases):
+    """Run the diff cover test."""
+    Runner(options=ctx.obj).run_jobs(["diff-cover"], releases=releases)
 
 
 @cli.command("integration-build")

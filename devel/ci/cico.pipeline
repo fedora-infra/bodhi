@@ -103,19 +103,9 @@ def test_release = { String release ->
 
     parallel(
         docs: {bodhi_ci(release, 'docs', 'docs', '--no-build --no-init')},
-        flake8: {
+        precommit: {
             if(release == 'pip') {
-                bodhi_ci(release, 'flake8', 'flake8', '--no-build --no-init')
-            }
-        },
-        pydocstyle: {
-            if(release == 'pip') {
-                bodhi_ci(release, 'pydocstyle', 'pydocstyle', '--no-build --no-init')
-            }
-        },
-        mypy: {
-            if(release == 'pip') {
-                bodhi_ci(release, 'mypy', 'mypy', '--no-build --no-init')
+                bodhi_ci(release, 'pre-commit', 'pre-commit', '--no-build --no-init')
             }
         },
         unit: {

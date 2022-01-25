@@ -22,15 +22,13 @@ RUN dnf install -y \
     python3-pip \
     python3-wheel \
     python3-whitenoise \
-    python3-prometheus_client
+    python3-prometheus_client \
+    pre-commit
 
 RUN pip-3 install \
     diff-cover \
     docutils \
-    flake8 \
-    flake8-import-order \
     responses \
-    pydocstyle \
     pytest \
     pytest-cov \
     sphinx \
@@ -49,5 +47,5 @@ COPY . /bodhi
 RUN cp devel/development.ini.example bodhi-server/development.ini
 RUN sed -i '/pyramid_debugtoolbar/d' bodhi-server/development.ini
 RUN for pkg in bodhi-client bodhi-messages bodhi-server; do \
-    cd $pkg ; python3 setup.py install || exit $? ; cd -; \
+    cd $pkg ; pip3 install . || exit $? ; cd -; \
     done

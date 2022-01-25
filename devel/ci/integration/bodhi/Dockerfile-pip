@@ -30,7 +30,7 @@ RUN groupadd -r bodhi && \
 RUN \
     for pkg in bodhi-client bodhi-messages bodhi-server; do \
         cd $pkg && \
-        python3 setup.py install && \
+        pip3 install . && \
         cd -; \
     done
 
