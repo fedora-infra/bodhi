@@ -144,8 +144,7 @@ class IntegrationDumpDownloadJob(BuildJob):
             if datetime.datetime.now() - modified_time < datetime.timedelta(days=1):
                 # Our download is within a day and infrastructure only produces downloads once a
                 # day, so let's skip this task.
-                self.complete.set()
-                self.skipped = True
+                self.skip()
                 return self
 
         return await super().run()

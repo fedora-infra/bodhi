@@ -73,8 +73,7 @@ class UnitJob(Job):
             self.options["no_build"]
             and os.path.exists(os.path.join(self.archive_dir, 'coverage.xml'))
         ):
-            self.complete.set()
-            self.skipped = True
+            self.skip()
         else:
             await super().run()
         return self
