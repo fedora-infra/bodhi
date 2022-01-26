@@ -84,10 +84,6 @@ container_runtime_option = click.option(
 failfast_option = click.option(
     '--failfast', '-x', is_flag=True, callback=_set_context, expose_value=False,
     help='Exit immediately upon error.')
-init_option = click.option(
-    '--init/--no-init', default=True, callback=_set_context,
-    help=("Use docker's --init flag. This option only has an effect when docker is "
-          "the container runtime being used."))
 no_build_option = click.option(
     '--no-build', is_flag=True, callback=_set_context, expose_value=False,
     help='Do not run docker build if the image already exists.')
@@ -123,7 +119,6 @@ def cli(ctx):
 @concurrency_option
 @container_runtime_option
 @failfast_option
-@init_option
 @no_build_option
 @releases_option
 @modules_option
@@ -150,7 +145,6 @@ def build(ctx, releases):
 @cli.command()
 @concurrency_option
 @container_runtime_option
-@init_option
 @releases_option
 @tty_option
 @click.pass_context
@@ -164,7 +158,6 @@ def clean(ctx, releases):
 @concurrency_option
 @container_runtime_option
 @failfast_option
-@init_option
 @no_build_option
 @releases_option
 @tty_option
@@ -180,7 +173,6 @@ def docs(ctx, releases):
 @concurrency_option
 @container_runtime_option
 @failfast_option
-@init_option
 @no_build_option
 @releases_option
 @tty_option
@@ -212,7 +204,6 @@ def unit(ctx, releases):
 @concurrency_option
 @container_runtime_option
 @failfast_option
-@init_option
 @no_build_option
 @releases_option
 @modules_option
@@ -241,7 +232,6 @@ def integration_build(ctx, releases):
 @concurrency_option
 @container_runtime_option
 @failfast_option
-@init_option
 @no_build_option
 @releases_option
 @archive_path_option

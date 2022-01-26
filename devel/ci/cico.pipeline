@@ -102,15 +102,15 @@ def test_release = { String release ->
     retry_with_sleep({ bodhi_ci(release, 'integration-build', 'integration-build', '') })
 
     parallel(
-        docs: {bodhi_ci(release, 'docs', 'docs', '--no-build --no-init')},
+        docs: {bodhi_ci(release, 'docs', 'docs', '--no-build')},
         precommit: {
             if(release == 'pip') {
-                bodhi_ci(release, 'pre-commit', 'pre-commit', '--no-build --no-init')
+                bodhi_ci(release, 'pre-commit', 'pre-commit', '--no-build')
             }
         },
         unit: {
-            bodhi_ci(release, 'unit', 'unit', '--no-build --no-init')
-            bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build --no-init -Z')
+            bodhi_ci(release, 'unit', 'unit', '--no-build')
+            bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build -Z')
         }
     )
 }
@@ -160,7 +160,7 @@ node('bodhi') {
         def releases = ['f34', 'f35', 'rawhide']
         for (release in releases) {
             try {
-                bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
+                bodhi_ci(release, 'integration', 'integration', '--no-build')
             } catch(error) {
                 failed = error
             }

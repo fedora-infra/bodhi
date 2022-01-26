@@ -269,10 +269,7 @@ class Job:
                 the container. This is needed for the diff-cover test. Default: False.
         """
         args = [self.options["container_runtime"], 'run', '--network', network, '--rm',
-                '--label', CONTAINER_LABEL]
-
-        if self.options["init"]:
-            args.append('--init')
+                '--label', CONTAINER_LABEL, '--init']
 
         if self.options["tty"] and not self.options["buffer_output"]:
             # Don't request a TTY when outputing to pipes.
