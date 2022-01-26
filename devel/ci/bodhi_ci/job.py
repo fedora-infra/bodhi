@@ -166,6 +166,11 @@ class Job:
             return None
         return self._finish_time - self._start_time
 
+    def skip(self):
+        """Mark this job as skipped."""
+        self.skipped = True
+        self.complete.set()
+
     async def run(self):
         """
         Run the job, returning itself.
@@ -340,8 +345,7 @@ class BuildJob(Job):
             BuildJob: Returns self.
         """
         if self.options["no_build"] and self._build_exists:
-            self.complete.set()
-            self.skipped = True
+            self.skip()
         else:
             await super().run()
         return self
