@@ -169,7 +169,7 @@ def docs(ctx, releases):
     Runner(options=ctx.obj).run_jobs(["docs"], releases=releases)
 
 
-@cli.command()
+@cli.command("pre-commit")
 @concurrency_option
 @container_runtime_option
 @failfast_option
@@ -198,7 +198,7 @@ def unit(ctx, releases):
     Runner(options=ctx.obj).run_jobs(["unit"], releases=releases)
 
 
-@cli.command()
+@cli.command("diff-cover")
 @archive_option
 @archive_path_option
 @concurrency_option
