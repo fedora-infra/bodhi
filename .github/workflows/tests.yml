@@ -1,0 +1,91 @@
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+name: Run tests
+
+jobs:
+
+  precommit:
+    name: Pre-commit checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install deps
+        run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging
+
+      # we only really need to run the precommit checks for one release,
+      # so we just do it for pip
+      - name: Run the pre-commit checks
+        run: devel/ci/bodhi-ci pre-commit -r pip
+  
+  
+  diff_cover:
+    name: Diff-cover check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install deps
+        run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging
+
+      # we only really need to run the diff cover checks for one release,
+      # so we just do it for pip
+      - name: Run the diff-cover check
+        run: sudo devel/ci/bodhi-ci diff-cover -r pip
+
+  integration_tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install deps
+        run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging
+
+      - name: Run the integration tests
+        run: devel/ci/bodhi-ci integration -r ${{ matrix.release }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # integration tests are broken on pip atm, so not included in this list.
+        release: [f34,f35,rawhide]
+
+  unit_tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install deps
+        run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging
+
+      - name: Run the unit tests
+        run: devel/ci/bodhi-ci unit -r ${{ matrix.release }} -m ${{matrix.module}}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [f34,f35,pip,rawhide]
+        module: [bodhi-client, bodhi-messages, bodhi-server]
+
+  docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install deps
+        run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging
+
+      - name: Build the docs
+        run: devel/ci/bodhi-ci docs -r ${{ matrix.release }}
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [f34,f35,pip,rawhide]
