@@ -4,13 +4,27 @@ queue_rules:
     - label!=WIP
     - approved-reviews-by=@fedora-infra/bodhi
     - status-success=DCO
-    - status-success=f34-docs
-    - status-success=f34-unit
-    - status-success=f34-diff-cover
-    - status-success=pip-docs
-    - status-success=pip-pre-commit
-    - status-success=pip-unit
-    - status-success=pip-diff-cover
+    - status-success=Pre-commit checks
+    - status-success=Diff-cover check
+    - status-success=Integration Tests (f34)
+    - status-success=Integration Tests (f35)
+    - status-success=Integration Tests (rawhide)
+    - status-success=Unit Tests (f34, bodhi-client)
+    - status-success=Unit Tests (f34, bodhi-messages)
+    - status-success=Unit Tests (f34, bodhi-server)
+    - status-success=Unit Tests (f35, bodhi-client)
+    - status-success=Unit Tests (f35, bodhi-messages)
+    - status-success=Unit Tests (f35, bodhi-server)
+    - status-success=Unit Tests (pip, bodhi-client)
+    - status-success=Unit Tests (pip, bodhi-messages)
+    - status-success=Unit Tests (pip, bodhi-server)
+    - status-success=Unit Tests (rawhide, bodhi-client)
+    - status-success=Unit Tests (rawhide, bodhi-messages)
+    - status-success=Unit Tests (rawhide, bodhi-server)
+    - status-success=Build Documentation (f34)
+    - status-success=Build Documentation (f35)
+    - status-success=Build Documentation (pip)
+    - status-success=Build Documentation (rawhide)
 
 pull_request_rules:
 - actions:
@@ -21,13 +35,27 @@ pull_request_rules:
   - label!=WIP
   - approved-reviews-by=@fedora-infra/bodhi
   - status-success=DCO
-  - status-success=f34-docs
-  - status-success=f34-unit
-  - status-success=f34-diff-cover
-  - status-success=pip-docs
-  - status-success=pip-pre-commit
-  - status-success=pip-unit
-  - status-success=pip-diff-cover
+  - status-success=Run the precommit checks
+  - status-success=Run the Diff Cover checks
+  - status-success=Integration Tests (f34)
+  - status-success=Integration Tests (f35)
+  - status-success=Integration Tests (rawhide)
+  - status-success=Unit Tests (f34, bodhi-client)
+  - status-success=Unit Tests (f34, bodhi-messages)
+  - status-success=Unit Tests (f34, bodhi-server)
+  - status-success=Unit Tests (f35, bodhi-client)
+  - status-success=Unit Tests (f35, bodhi-messages)
+  - status-success=Unit Tests (f35, bodhi-server)
+  - status-success=Unit Tests (pip, bodhi-client)
+  - status-success=Unit Tests (pip, bodhi-messages)
+  - status-success=Unit Tests (pip, bodhi-server)
+  - status-success=Unit Tests (rawhide, bodhi-client)
+  - status-success=Unit Tests (rawhide, bodhi-messages)
+  - status-success=Unit Tests (rawhide, bodhi-server)
+  - status-success=Build Documentation (f34)
+  - status-success=Build Documentation (f35)
+  - status-success=Build Documentation (pip)
+  - status-success=Build Documentation (rawhide)
   name: default
 - actions:
     backport:
