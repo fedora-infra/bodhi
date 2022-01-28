@@ -19,6 +19,7 @@
 import os
 import shutil
 
+from .constants import MODULES
 from .job import BuildJob, Job
 
 
@@ -47,16 +48,18 @@ class UnitJob(Job):
         modules = " ".join(self.options["modules"])
 
         test_command = (
-            # Run setup.py develop in each submodule
-            f'for submodule in {modules}; do '
+            # Run setup.py develop in all 3 modules
+            f'for submodule in {" ".join(MODULES)}; do '
             'cd $submodule; /usr/bin/python3 setup.py develop; cd ..; done; '
             # Run the tests in each submodule
             f'for submodule in {modules}; do '
-            'mkdir -p /results/$submodule; '
-            f'cd $submodule; /usr/bin/python3 -m pytest {pytest_flags} || '
-            '   (cp *.xml /results/$submodule/ && exit 1) && '
-            '   cp *.xml /results/$submodule/; '
-            'cd ..; done'
+            '  mkdir -p /results/$submodule; '
+            '  cd $submodule; '
+            f' /usr/bin/python3 -m pytest {pytest_flags} && '
+            '    cp *.xml /results/$submodule/ || '
+            '    (cp *.xml /results/$submodule/ && exit 1); '
+            '  cd ..; '
+            'done'
         )
         self._command = ['/usr/bin/bash', '-c', test_command]
 
