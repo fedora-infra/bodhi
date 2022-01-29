@@ -102,13 +102,13 @@ prometheus-client = ">=0.13.1"
 psycopg2 = ">=2.8.6"
 py3dns = ">=3.2.1" # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
 pyLibravatar = ">=1.6"
+pymediawiki = "^0.7"
 pyramid = ">=1.10.5"
 pyramid-fas-openid = ">=0.4.0"
 pyramid-mako = ">=1.0.2"
 python-bugzilla = ">=3.2.0"
 PyYAML = ">=5.4.1"
 requests = ">=2.25.1"
-simplemediawiki = {version = "^1.2.0b2", allow-prereleases = true}
 SQLAlchemy = ">=1.3.24"
 waitress = ">=1.4.4"
 

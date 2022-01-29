@@ -41,6 +41,7 @@ RUN dnf install -y \
     python3-psycopg2 \
     python3-prometheus_client \
     python3-pylibravatar \
+    python3-pymediawiki \
     python3-pyramid \
     python3-pyramid-fas-openid \
     python3-pyramid-mako \
@@ -49,7 +50,6 @@ RUN dnf install -y \
     python3-pytest-mock \
     python3-requests-kerberos \
     python3-responses \
-    python3-simplemediawiki \
     python3-sphinx \
     python3-sqlalchemy \
     python3-sqlalchemy_schemadisplay \

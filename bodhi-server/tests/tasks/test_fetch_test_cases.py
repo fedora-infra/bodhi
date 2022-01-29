@@ -20,8 +20,8 @@ This module contains tests for the bodhi.server.fetch_test_cases module.
 """
 
 from unittest.mock import patch
-from urllib.error import URLError
 
+from mediawiki.exceptions import HTTPTimeoutError
 import pytest
 
 from bodhi.server import config, models
@@ -70,7 +70,7 @@ class TestFetchTestCases(BaseTaskTestCase):
         """
         Assert that fetch_test_cases logs a warning when an exception is raised.
         """
-        MediaWiki.return_value.call.side_effect = URLError("oh no!")
+        MediaWiki.return_value.categorymembers.side_effect = HTTPTimeoutError("oh no!")
 
         update = self.db.query(models.Update).join(models.Build).filter(
             models.Build.nvr == 'bodhi-2.0-1.fc17').one()
