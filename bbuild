@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+GREEN='\033[0;32m'$(tput bold)
+NC=$(tput sgr0)'\033[0m' # No Color
+
+set -e
+
+if [ $1 = "all" ]
+then
+  pkgs=( "bodhi-client" "bodhi-messages" "bodhi-server" )
+else
+  pkgs=( $1 )
+fi
+
+for mod in "${pkgs[@]}"
+do
+  echo -e "Building sdist and wheel for ${GREEN}${mod}${NC}..."
+  python -m build --outdir ./dist ${mod}
+done
