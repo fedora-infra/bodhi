@@ -30,14 +30,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Install deps
         run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging
-
-      - name: Fetch the origin/develop branch to compare
-        run: |
-          git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
-          git fetch -p --no-tags origin
 
       # we only really need to run the diff cover checks for one release,
       # so we just do it for pip
