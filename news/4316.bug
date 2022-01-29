@@ -1,1 +1,0 @@
-Bodhi will now retry to get a build changelog if Koji returns empty rpm headers. See also https://pagure.io/koji/issue/3178
