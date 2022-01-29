@@ -29,8 +29,8 @@ import time
 import typing
 import uuid
 
+from mediawiki import MediaWiki
 from packaging.version import parse as parse_version
-from simplemediawiki import MediaWiki
 from sqlalchemy import __version__ as sqlalchemy_version
 from sqlalchemy import (
     and_,
@@ -1592,30 +1592,26 @@ class Build(Base):
 
         start = datetime.utcnow()
         log.debug(f'Querying the wiki for test cases of {self.nvr}')
-
-        wiki = MediaWiki(config.get('wiki_url'))
-        cat_page = f'Category:Package {self.package.external_name} test cases'
+        try:
+            wiki = MediaWiki(config.get('wiki_url'),
+                             user_agent=config.get('wiki_user_agent'))
+        except Exception as ex:
+            raise ExternalCallException(f'Failed to connect to Fedora Wiki: {ex}')
+        cat_page = f'Package {self.package.external_name} test cases'
 
         def list_categorymembers(wiki, cat_page, limit=500):
-            # Build query arguments and call wiki
-            query = dict(action='query', list='categorymembers',
-                         cmtitle=cat_page, cmlimit=limit)
             try:
-                response = wiki.call(query)
-            except URLError:
-                raise ExternalCallException('Failed retrieving testcases from Wiki')
-            members = [entry['title'] for entry in
-                       response.get('query', {}).get('categorymembers', {})
-                       if 'title' in entry]
+                response = wiki.categorymembers(cat_page, results=limit, subcategories=True)
+            except Exception as ex:
+                raise ExternalCallException(f'Failed retrieving testcases from Wiki: {ex}')
+            members = [entry for entry in response[0] if entry != '']
 
             # Determine whether we need to recurse
-            if limit > 0:
-                for idx, member in enumerate(copy(members)):
-                    if member.startswith('Category:'):
-                        members.extend(list_categorymembers(wiki, member, limit - 1))
-                        members.remove(members[idx])  # remove Category from list
+            if len(response[1]) > 0 and len(members) < limit:
+                for subcat in response[1]:
+                    members.extend(list_categorymembers(wiki, subcat, limit=limit - len(members)))
 
-            log.debug(f'Found the following unit tests: {members}')
+            log.debug(f'Found the following testcases: {members}')
             return members
 
         fetched = set(list_categorymembers(wiki, cat_page))

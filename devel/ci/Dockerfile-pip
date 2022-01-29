@@ -15,7 +15,6 @@ RUN dnf install -y \
     postgresql-devel \
     python3-devel \
     python3-librepo \
-    python3-simplemediawiki \
     redhat-rpm-config \
     python3-libcomps \
     python3-gssapi \
@@ -27,6 +26,7 @@ RUN dnf install -y \
 
 RUN pip-3 install \
     pyasn1 \
+    pymediawiki \
     celery
 
 # Force authlib 1.0rc1 even if it's a RC

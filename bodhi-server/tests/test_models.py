@@ -24,10 +24,10 @@ import json
 import pickle
 import time
 import uuid
-from urllib.error import URLError
 
 from fedora_messaging.testing import mock_sends
 from fedora_messaging.api import Message
+from mediawiki.exceptions import HTTPTimeoutError, MediaWikiAPIURLError
 from pyramid.testing import DummyRequest
 import pytest
 from sqlalchemy.exc import IntegrityError
@@ -973,20 +973,6 @@ class TestReleaseFlatpak(ModelTest):
         assert model.Release._all_releases is None
 
 
-class MockWiki(object):
-    """ Mocked simplemediawiki.MediaWiki class. """
-    def __init__(self, response):
-        self.response = response
-        self.query = None
-
-    def __call__(self, *args, **kwargs):
-        return self
-
-    def call(self, query):
-        self.query = query
-        return self.response
-
-
 class TestPackageModel(BasePyTestCase):
     """Tests for the Package model."""
 
@@ -1603,41 +1589,29 @@ class TestBuild(ModelTest):
         return {'package': model.Package(name='TurboGears')}
 
     @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    def test_wiki_test_cases(self):
+    @mock.patch('bodhi.server.models.MediaWiki')
+    def test_wiki_test_cases(self, MediaWiki):
         """Test querying the wiki for test cases"""
-        # Mock out mediawiki so we don't do network calls in our tests
-        response = {
-            'query': {
-                'categorymembers': [{
-                    'title': 'Fake test case',
-                }],
-            }
-        }
-
-        # Now, our actual test.
-        with mock.patch('bodhi.server.models.MediaWiki', MockWiki(response)):
-            pkg = model.RpmPackage(name='gnome-shell')
-            self.db.add(pkg)
-            build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
-            self.db.add(build)
-            build.update_test_cases(self.db)
-            assert build.testcases[0].name == 'Fake test case'
-            assert len(build.testcases) == 1
+        responses = [
+            (['Fake test case'], [])]
+        MediaWiki.return_value.categorymembers.side_effect = responses
+        pkg = model.RpmPackage(name='gnome-shell')
+        self.db.add(pkg)
+        build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+        self.db.add(build)
+        build.update_test_cases(self.db)
+        assert model.TestCase.query.count() == 1
+        assert build.testcases[0].name == 'Fake test case'
+        assert len(build.testcases) == 1
 
     @mock.patch.dict(config, {'query_wiki_test_cases': True})
     @mock.patch('bodhi.server.models.MediaWiki')
     def test_wiki_test_cases_recursive(self, MediaWiki):
         """Test querying the wiki for test cases when recursion is necessary."""
         responses = [
-            {'query': {
-                'categorymembers': [
-                    {'title': 'Fake'},
-                    {'title': 'Category:Bodhi'},
-                    {'title': 'Uploading cat pictures'}]}},
-            {'query': {
-                'categorymembers': [
-                    {'title': 'Does Bodhi eat +1s'}]}}]
-        MediaWiki.return_value.call.side_effect = responses
+            (['Fake', 'Uploading cat pictures'], ['Bodhi']),
+            (['Does Bodhi eat +1s'], [])]
+        MediaWiki.return_value.categorymembers.side_effect = responses
         pkg = model.RpmPackage(name='gnome-shell')
         self.db.add(pkg)
         build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
@@ -1655,10 +1629,7 @@ class TestBuild(ModelTest):
     def test_wiki_test_cases_removed(self, MediaWiki):
         """Test querying the wiki for test cases and remove test which aren't actual."""
         responses = [
-            {'query': {
-                'categorymembers': [
-                    {'title': 'Fake test case'},
-                    {'title': 'Does Bodhi eat +1s'}]}}]
+            (['Fake test case', 'Does Bodhi eat +1s'], [])]
 
         pkg = model.RpmPackage(name='gnome-shell')
         self.db.add(pkg)
@@ -1666,7 +1637,7 @@ class TestBuild(ModelTest):
         self.db.add(build)
 
         # Add both tests to build
-        MediaWiki.return_value.call.side_effect = responses
+        MediaWiki.return_value.categorymembers.side_effect = responses
         build.update_test_cases(self.db)
         assert model.TestCase.query.count() == 2
         assert len(build.testcases) == 2
@@ -1675,10 +1646,8 @@ class TestBuild(ModelTest):
 
         # Now remove one test
         responses = [
-            {'query': {
-                'categorymembers': [
-                    {'title': 'Fake test case'}]}}]
-        MediaWiki.return_value.call.side_effect = responses
+            (['Fake test case'], [])]
+        MediaWiki.return_value.categorymembers.side_effect = responses
         build.update_test_cases(self.db)
         assert model.TestCase.query.count() == 2
         assert len(build.testcases) == 1
@@ -1686,9 +1655,9 @@ class TestBuild(ModelTest):
 
     @mock.patch.dict(config, {'query_wiki_test_cases': True})
     @mock.patch('bodhi.server.models.MediaWiki')
-    def test_wiki_test_cases_exception(self, MediaWiki):
+    def test_wiki_connection_failed(self, MediaWiki):
         """Test querying the wiki for test cases when connection to Wiki failed"""
-        MediaWiki.return_value.call.side_effect = URLError("oh no!")
+        MediaWiki.side_effect = MediaWikiAPIURLError("https://bad-api-url")
 
         with pytest.raises(ExternalCallException) as exc_context:
             pkg = model.RpmPackage(name='gnome-shell')
@@ -1697,7 +1666,22 @@ class TestBuild(ModelTest):
             self.db.add(build)
             build.update_test_cases(self.db)
         assert len(build.testcases) == 0
-        assert str(exc_context.value) == 'Failed retrieving testcases from Wiki'
+        assert str(exc_context.value).startswith('Failed to connect to Fedora Wiki:')
+
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
+    @mock.patch('bodhi.server.models.MediaWiki')
+    def test_wiki_query_timeout(self, MediaWiki):
+        """Test querying the wiki for test cases when connection to Wiki failed"""
+        MediaWiki.return_value.categorymembers.side_effect = HTTPTimeoutError("oh no!")
+
+        with pytest.raises(ExternalCallException) as exc_context:
+            pkg = model.RpmPackage(name='gnome-shell')
+            self.db.add(pkg)
+            build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+            self.db.add(build)
+            build.update_test_cases(self.db)
+        assert len(build.testcases) == 0
+        assert str(exc_context.value).startswith('Failed retrieving testcases from Wiki:')
 
 
 class TestRpmBuild(ModelTest):

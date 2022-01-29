@@ -49,6 +49,7 @@
       - python3-psycopg2
       - python3-pydocstyle
       - python3-pylibravatar
+      - python3-pymediawiki
       - python3-pyramid
       - python3-pyramid-fas-openid
       - python3-pytest
@@ -56,7 +57,6 @@
       - python3-pytest-mock
       - python3-responses
       - python3-rpdb
-      - python3-simplemediawiki
       - python3-sphinx
       - python3-sqlalchemy
       - python3-sqlalchemy_schemadisplay

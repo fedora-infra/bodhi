@@ -615,6 +615,9 @@ class BodhiConfig(dict):
         'wiki_url': {
             'value': 'https://fedoraproject.org/w/api.php',
             'validator': str},
+        'wiki_user_agent': {
+            'value': 'FedoraLinuxBodhi-User-Agent',
+            'validator': str},
     }
 
     def __getitem__(self, key: typing.Hashable) -> typing.Any:
