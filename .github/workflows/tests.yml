@@ -23,8 +23,8 @@ jobs:
       # so we just do it for pip
       - name: Run the pre-commit checks
         run: devel/ci/bodhi-ci pre-commit -r pip
-  
-  
+
+
   diff_cover:
     name: Diff-cover check
     runs-on: ubuntu-latest
@@ -33,6 +33,11 @@ jobs:
 
       - name: Install deps
         run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging
+
+      - name: Fetch the origin/develop branch to compare
+        run: |
+          git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
+          git fetch -p --no-tags origin
 
       # we only really need to run the diff cover checks for one release,
       # so we just do it for pip
