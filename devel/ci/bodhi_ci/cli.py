@@ -242,5 +242,21 @@ def integration(ctx, releases):
     Runner(options=ctx.obj).run_jobs(["integration"], releases=releases)
 
 
+@cli.command()
+@concurrency_option
+@container_runtime_option
+@failfast_option
+@no_build_option
+@releases_option
+@tty_option
+@archive_option
+@archive_path_option
+@modules_option
+@click.pass_context
+def rpm(ctx, releases):
+    """Build the rpms."""
+    Runner(options=ctx.obj).run_jobs(["rpm"], releases=releases)
+
+
 if __name__ == "__main__":
     cli()
