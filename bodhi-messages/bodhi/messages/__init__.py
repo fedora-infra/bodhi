@@ -16,4 +16,4 @@
 """This package defines Bodhi's messages."""
 
 
-__version__ = "5.7.4"
+__version__ = "5.7.4+devel"

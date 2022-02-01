@@ -18,6 +18,7 @@ RUN dnf install -y \
     python3-colander \
     python3-cornice \
     python3-createrepo_c \
+    python3-devel \
     python3-diff-cover \
     python3-dnf \
     python3-dogpile-cache \
@@ -48,7 +49,8 @@ RUN dnf install -y \
     python3-webtest \
     python3-wheel \
     python3-whitenoise \
-    python3-yaml
+    python3-yaml \
+    rpm-build
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji

@@ -34,7 +34,7 @@ import munch
 from bodhi.client import bindings
 
 
-__version__ = "5.7.4"
+__version__ = "5.7.4+devel"
 
 log = logging.getLogger(__name__)
 
