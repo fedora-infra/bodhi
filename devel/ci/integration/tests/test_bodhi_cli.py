@@ -21,13 +21,13 @@ import json
 import re
 import textwrap
 
-from conu import ConuException
-from munch import Munch
-import requests
 import psycopg2
 import pytest
+import requests
+from conu import ConuException
+from munch import Munch
 
-from .utils import replace_file, read_file
+from .utils import read_file, replace_file
 
 
 def _run_cli(bodhi_container, args, **kwargs):
@@ -351,6 +351,7 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
         "JOIN users ON updates.user_id = users.id "
         "JOIN releases ON updates.release_id = releases.id "
         "WHERE releases.state = 'current' "
+        "AND updates.critpath = FALSE "  # Greenwave results are more complex for critpath
         "ORDER BY date_submitted DESC LIMIT 1"
     )
     query_comments = (
@@ -450,6 +451,7 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
             "verbose": True,
         }),
     ).json()
+    print("greenwave result:", greenwave_result)
     assert "summary" in greenwave_result
     assert "CI Status: {}".format(greenwave_result["summary"]) in result.output
 
