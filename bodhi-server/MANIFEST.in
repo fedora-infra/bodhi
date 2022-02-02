@@ -1,4 +1,5 @@
 include *.txt *.ini *.cfg *.rst
+exclude development.ini
 include celeryconfig.py
 recursive-include bodhi *.ico *.png *.css *.gif *.jpg *.pt *.txt *.mak *.mako *.js *.html *.xml *.ttf *.woff *.woff2 *.eot *.otf *.svg *.tpl *.rst
 recursive-include tests *.py
