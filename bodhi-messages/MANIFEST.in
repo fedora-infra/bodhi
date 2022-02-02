@@ -1,1 +1,2 @@
-include ../COPYING *.txt
+include COPYING *.txt
+recursive-include tests *.py
