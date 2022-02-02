@@ -6,7 +6,7 @@ Release notes
 
 v5.7.4
 ======
-This is a bugfix release that should help with several more problems after 7.5.3 release.
+This is a bugfix release that should help with several more problems after 5.7.3 release.
 
 
 Features
@@ -39,7 +39,7 @@ The following developers contributed to this release of Bodhi:
 
 v5.7.3
 ======
-This is a bugfix release that should help with several more problems after 7.5.2 release.
+This is a bugfix release that should help with several more problems after 5.7.2 release.
 
 
 Bug fixes
@@ -49,7 +49,7 @@ Bug fixes
 
 v5.7.2
 ======
-This is a bugfix release that should help with several problems after 7.5.1 release.
+This is a bugfix release that should help with several problems after 5.7.1 release.
 
 
 Bug fixes
