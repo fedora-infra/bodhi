@@ -1,1 +1,2 @@
 include *.sh
+recursive-include tests *.py
