@@ -41,6 +41,7 @@ def db_container(docker_backend, docker_network):
     )
     run_opts = [
         "-e", "POSTGRES_HOST_AUTH_METHOD=trust",
+        "--name", "database",
         "--network", docker_network.get_id(),
         "--network-alias", "db",
         "--network-alias", "db.ci",

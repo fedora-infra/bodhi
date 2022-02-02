@@ -41,6 +41,7 @@ def resultsdb_container(docker_backend, docker_network, db_container, rabbitmq_c
     image_name = "bodhi-ci-integration-resultsdb"
     image = docker_backend.ImageClass(image_name)
     run_opts = [
+        "--name", "resultsdb",
         "--network", docker_network.get_id(),
         "--network-alias", "resultsdb",
         "--network-alias", "resultsdb.ci",

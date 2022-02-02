@@ -40,6 +40,7 @@ def rabbitmq_container(
     image_name = "bodhi-ci-integration-rabbitmq"
     image = docker_backend.ImageClass(image_name)
     run_opts = [
+        "--name", "rabbitmq",
         "--network", docker_network.get_id(),
         "--network-alias", "rabbitmq",
         "--network-alias", "rabbitmq.ci",

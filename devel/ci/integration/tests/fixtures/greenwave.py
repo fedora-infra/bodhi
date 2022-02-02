@@ -38,6 +38,7 @@ def greenwave_container(docker_backend, docker_network, rabbitmq_container):
     image_name = "bodhi-ci-integration-greenwave"
     image = docker_backend.ImageClass(image_name)
     run_opts = [
+        "--name", "greenwave",
         "--network", docker_network.get_id(),
         "--network-alias", "greenwave",
         "--network-alias", "greenwave.ci",

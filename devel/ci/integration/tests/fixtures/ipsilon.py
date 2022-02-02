@@ -38,6 +38,7 @@ def ipsilon_container(
     image_name = "bodhi-ci-integration-ipsilon"
     image = docker_backend.ImageClass(image_name)
     run_opts = [
+        "--name", "ipsilon",
         "--network", docker_network.get_id(),
         "--network-alias", "ipsilon",
         "--network-alias", "ipsilon.ci",

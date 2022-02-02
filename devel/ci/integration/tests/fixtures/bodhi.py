@@ -52,6 +52,7 @@ def bodhi_container(
         os.environ.get("BODHI_INTEGRATION_IMAGE", "bodhi-ci-integration-bodhi")
     )
     run_opts = [
+        "--name", "bodhi",
         "--network", docker_network.get_id(),
         "--network-alias", "bodhi",
         "--network-alias", "bodhi.ci",

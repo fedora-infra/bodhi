@@ -41,6 +41,7 @@ def waiverdb_container(docker_backend, docker_network, db_container, rabbitmq_co
     image_name = "bodhi-ci-integration-waiverdb"
     image = docker_backend.ImageClass(image_name)
     run_opts = [
+        "--name", "waiverdb",
         "--network", docker_network.get_id(),
         "--network-alias", "waiverdb",
         "--network-alias", "waiverdb.ci",
