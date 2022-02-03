@@ -54,6 +54,6 @@ class DocsJob(Job):
             archive_path (str): A path on the host to share as a volume into the container for
                 its /results path.
         """
-        super(DocsJob, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self._convert_command_for_container()
