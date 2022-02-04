@@ -29,7 +29,6 @@ class RPMJob(Job):
     """
 
     _label = 'rpm'
-    skip_releases = ['pip']
     _dependencies = [BuildJob]
 
     def __init__(self, *args, **kwargs):
