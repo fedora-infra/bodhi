@@ -33,7 +33,6 @@ rm -rf %{pypi_name}.egg-info
 %py3_install
 
 %files -n %{pypi_name}
-%exclude %{python3_sitelib}/tests
 %{_bindir}/bodhi
 %{python3_sitelib}/bodhi
 %{python3_sitelib}/bodhi_client-%{pypi_version}-py%{python3_version}-*.pth
