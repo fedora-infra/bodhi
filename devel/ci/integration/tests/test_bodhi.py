@@ -16,16 +16,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import math
 import hashlib
-from urllib.parse import urlencode
+import math
 import xml.etree.ElementTree as ET
+from urllib.parse import urlencode
 
 import psycopg2
 import pytest
 
 from .utils import read_file
-
 
 content_type_mapping = {
     'base': 'Base',
@@ -720,17 +719,18 @@ def test_get_packages_json(bodhi_container, db_container):
     with bodhi_container.http_client(port="8080") as c:
         http_response = c.get(f"/packages/?name={packages[0]['name']}")
 
-    expected_json = {
-        "packages": packages,
-        "page": 1,
-        "pages": 1,
-        "rows_per_page": 20,
-        "total": 1,
-    }
-
     try:
         assert http_response.ok
-        assert expected_json == http_response.json()
+        response = http_response.json()
+        assert response['total'] == 1
+        response_packages = response["packages"]
+        # let's compare sorted lists to avoid flakiness
+        # XXX: wait, there's two packages but total==1?
+        # So you return one with type==rpm and one with type==module but still total==1?
+        # WTF Bodhi.
+        packages.sort(key=lambda p: p["type"])
+        response_packages.sort(key=lambda p: p["type"])
+        assert packages == response_packages
     except AssertionError:
         print(http_response)
         print(http_response.text)
