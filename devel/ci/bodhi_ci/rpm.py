@@ -47,25 +47,7 @@ class RPMJob(Job):
         super().__init__(*args, **kwargs)
 
         self._command = [
-            '/usr/bin/bash', '-c',
-            (
-                'mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS} &&'
-                'for submodule in ' + ' '.join(self.options["modules"]) + '; do '
-                'cd $submodule &&'
-                '/usr/bin/python3 setup.py sdist &&'
-                'cp dist/* ~/rpmbuild/SOURCES/ &&'
-                'cp $submodule.spec ~/rpmbuild/SPECS/ &&'
-                'githash=$(git rev-parse --short HEAD) &&'
-                'moduleversion=$(python3 setup.py --version) &&'
-                'sed -i \"s/^%global pypi_version.*/%global pypi_version $moduleversion/g\" ~/rpmbuild/SPECS/$submodule.spec &&'  # noqa: E501
-                'sed -i \"s/^Version:.*/Version:%{pypi_version}^$(date +%Y%m%d)git$githash/g\" ~/rpmbuild/SPECS/$submodule.spec &&'   # noqa: E501
-                'rpmdev-bumpspec ~/rpmbuild/SPECS/$submodule.spec &&'
-                'rpmbuild -ba ~/rpmbuild/SPECS/$submodule.spec &&'
-                'cp ~/rpmbuild/SRPMS/$submodule*.src.rpm /results/ &&'
-                'cp ~/rpmbuild/RPMS/noarch/$submodule*.rpm /results/ &&'
-                'cd ..; '
-                'done'
-
-            )]
+            '/usr/bin/bash', '-c', './devel/ci/build-rpms.sh'
+        ] + list(self.options["modules"])
 
         self._convert_command_for_container(include_git=True)
