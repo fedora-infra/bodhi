@@ -7,6 +7,7 @@ fi
 
 # Uncomment the following line if you don't like systemctl's auto-paging feature:
 # export SYSTEMD_PAGER=
+source /srv/venv/bin/activate
 
 shopt -s expand_aliases
 alias bci="sudo -E /home/vagrant/bodhi/devel/ci/bodhi-ci"

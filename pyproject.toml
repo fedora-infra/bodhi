@@ -1,3 +1,104 @@
+[tool.poetry]
+name = "bodhi"
+version = "5.7.4"
+description = "Fedora's update gating system"
+authors = ["Fedora Infrastructure <admin@fedoraproject.org>"]
+license = "GPL-2.0-or-later"
+readme = "README.rst"
+repository = "https://github.com/fedora-infra/bodhi"
+homepage = "https://github.com/fedora-infra/bodhi"
+include = [
+    "*.txt",
+    "*.rst",
+    "docs/*",
+    "COPYING",
+]
+packages = [
+    { include = "bodhi-client" },
+    { include = "bodhi-messages" },
+    { include = "bodhi-server" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+bodhi-client = "^5.5"
+bodhi-messages = "^5.5"
+bodhi-server = "^5.5"
+
+[tool.poetry.dev-dependencies]
+pre-commit = "^2.17.0"
+flake8 = "^4.0.1"
+black = "^22.1.0"
+isort = "^5.10.1"
+bodhi-client = {path = "bodhi-client"}
+bodhi-messages = {path = "bodhi-messages"}
+bodhi-server = {path = "bodhi-server"}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.flake8]
+show-source = true
+max-line-length = 100
+exclude = [".git", ".tox", "dist", "*egg" , "build", "tools", "*.wsgi", "bodhi-ci"]
+ignore = ["E711", "E712", "W503"]
+# Configure flake8-import-order
+application-import-names = "bodhi"
+import-order-style = "pep8"
+
+[tool.mypy]
+files = "bodhi-client/bodhi/client/bindings.py,bodhi-messages/bodhi/messages,bodhi-server/bodhi/server/bugs.py,bodhi-server/bodhi/server/buildsys.py,devel/ci/bodhi_ci"
+mypy_path = "bodhi-client:bodhi-messages:bodhi-server"
+namespace_packages = true
+explicit_package_bases = true
+follow_imports = "silent"
+
+  [[tool.mypy.overrides]]
+  module = 'backoff.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'bugzilla.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'dnf.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'fedora.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'fedora_messaging.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'koji.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'munch.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'pyramid.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'xmlrpc.*'
+  ignore_missing_imports = true
+
+[tool.pydocstyle]
+inherit = true
+add-ignore = "D413"
+
+[tool.pytest.ini_options]
+addopts = "--cov-config .coveragerc --cov=bodhi --cov-report term --cov-report xml --cov-report html"
+verbosity = 1
+testpaths = ["tests"]
+
 [tool.towncrier]
 package = "bodhi"
 filename = "docs/user/release_notes.rst"

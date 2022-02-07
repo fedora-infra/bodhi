@@ -4,3 +4,4 @@ pytest-mock
 diff-cover
 responses
 webtest
+bodhi-messages

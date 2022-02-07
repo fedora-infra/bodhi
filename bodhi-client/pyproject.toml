@@ -1,3 +1,52 @@
+[tool.poetry]
+name = "bodhi-client"
+version = "5.7.5"
+description = "Bodhi client"
+#readme = "README.rst"
+authors = ["Fedora Infrastructure team"]
+maintainers = ["Fedora Infrastructure Team <infrastructure@lists.fedoraproject.org>"]
+#platforms = "Fedora, GNU/Linux"
+homepage = "https://bodhi.fedoraproject.org/"
+repository = "https://github.com/fedora-infra/bodhi"
+keywords = ["fedora"]
+license = "GPL-2.0-or-later"
+# Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Topic :: System :: Software Distribution"
+]
+packages = [
+    { include = "bodhi" },
+]
+include = ["*.sh", "tests/*.py"]
+# tests should be recursive include
+
+#zip_safe = False
+#include_package_data = False
+#[options.packages.find]
+#exclude =
+#    tests
+
+
+[tool.poetry.dev-dependencies]
+Sphinx = "^4.4.0"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+click = "^8.0.3"
+koji = "^1.27.1"
+python-fedora = "^1.1.1"
+
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+bodhi = "bodhi.client:cli"

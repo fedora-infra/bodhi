@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Coverage report</title>
+    <link rel="icon" sizes="32x32" href="favicon_32.png">
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.ba-throttle-debounce.min.js"></script>
+    <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="jquery.hotkeys.js"></script>
+    <script type="text/javascript" src="coverage_html.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(coverage.index_ready);
+    </script>
+</head>
+<body class="indexfile">
+<div id="header">
+    <div class="content">
+        <h1>Coverage report:
+            <span class="pc_cov">99.17%</span>
+        </h1>
+        <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
+        <form id="filter_container">
+            <input id="filter" type="text" value="" placeholder="filter..." />
+        </form>
+    </div>
+</div>
+<div class="help_panel">
+    <img id="panel_icon" src="keybd_open.png" alt="Hide keyboard shortcuts" />
+    <p class="legend">Hot-keys on this page</p>
+    <div>
+    <p class="keyhelp">
+        <span class="key">n</span>
+        <span class="key">s</span>
+        <span class="key">m</span>
+        <span class="key">x</span>
+        <span class="key">b</span>
+        <span class="key">p</span>
+        <span class="key">c</span> &nbsp; change column sorting
+    </p>
+    </div>
+</div>
+<div id="index">
+    <table class="index">
+        <thead>
+            <tr class="tablehead" title="Click to sort">
+                <th class="name left headerSortDown shortkey_n">Module</th>
+                <th class="shortkey_s">statements</th>
+                <th class="shortkey_m">missing</th>
+                <th class="shortkey_x">excluded</th>
+                <th class="shortkey_b">branches</th>
+                <th class="shortkey_p">partial</th>
+                <th class="right shortkey_c">coverage</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr class="total">
+                <td class="name left">Total</td>
+                <td>8672</td>
+                <td>23</td>
+                <td>338</td>
+                <td>3116</td>
+                <td>73</td>
+                <td class="right" data-ratio="11690 11788">99.17%</td>
+            </tr>
+        </tfoot>
+        <tbody>
+            <tr class="file">
+                <td class="name left"><a href="bodhi___init___py.html">bodhi/__init__.py</a></td>
+                <td>3</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="3 3">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_client___init___py.html">bodhi/client/__init__.py</a></td>
+                <td>568</td>
+                <td>2</td>
+                <td>7</td>
+                <td>208</td>
+                <td>4</td>
+                <td class="right" data-ratio="770 776">99.23%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_client_bindings_py.html">bodhi/client/bindings.py</a></td>
+                <td>363</td>
+                <td>0</td>
+                <td>4</td>
+                <td>156</td>
+                <td>3</td>
+                <td class="right" data-ratio="516 519">99.42%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_messages___init___py.html">bodhi/messages/__init__.py</a></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="1 1">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_messages_schemas___init___py.html">bodhi/messages/schemas/__init__.py</a></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="1 1">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_messages_schemas_base_py.html">bodhi/messages/schemas/base.py</a></td>
+                <td>83</td>
+                <td>0</td>
+                <td>0</td>
+                <td>12</td>
+                <td>0</td>
+                <td class="right" data-ratio="95 95">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_messages_schemas_buildroot_override_py.html">bodhi/messages/schemas/buildroot_override.py</a></td>
+                <td>33</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="33 33">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_messages_schemas_compose_py.html">bodhi/messages/schemas/compose.py</a></td>
+                <td>61</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+                <td>0</td>
+                <td class="right" data-ratio="63 63">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_messages_schemas_errata_py.html">bodhi/messages/schemas/errata.py</a></td>
+                <td>25</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+                <td>0</td>
+                <td class="right" data-ratio="29 29">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_messages_schemas_update_py.html">bodhi/messages/schemas/update.py</a></td>
+                <td>139</td>
+                <td>0</td>
+                <td>0</td>
+                <td>22</td>
+                <td>1</td>
+                <td class="right" data-ratio="160 161">99.38%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_messages_utils_py.html">bodhi/messages/utils.py</a></td>
+                <td>5</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+                <td>0</td>
+                <td class="right" data-ratio="7 7">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server___init___py.html">bodhi/server/__init__.py</a></td>
+                <td>126</td>
+                <td>0</td>
+                <td>0</td>
+                <td>28</td>
+                <td>1</td>
+                <td class="right" data-ratio="153 154">99.35%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_bugs_py.html">bodhi/server/bugs.py</a></td>
+                <td>137</td>
+                <td>0</td>
+                <td>2</td>
+                <td>59</td>
+                <td>0</td>
+                <td class="right" data-ratio="196 196">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_buildsys_py.html">bodhi/server/buildsys.py</a></td>
+                <td>72</td>
+                <td>0</td>
+                <td>275</td>
+                <td>26</td>
+                <td>0</td>
+                <td class="right" data-ratio="98 98">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_config_py.html">bodhi/server/config.py</a></td>
+                <td>111</td>
+                <td>0</td>
+                <td>0</td>
+                <td>52</td>
+                <td>0</td>
+                <td class="right" data-ratio="163 163">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_consumers___init___py.html">bodhi/server/consumers/__init__.py</a></td>
+                <td>37</td>
+                <td>0</td>
+                <td>0</td>
+                <td>8</td>
+                <td>0</td>
+                <td class="right" data-ratio="45 45">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_consumers_automatic_updates_py.html">bodhi/server/consumers/automatic_updates.py</a></td>
+                <td>101</td>
+                <td>0</td>
+                <td>0</td>
+                <td>38</td>
+                <td>2</td>
+                <td class="right" data-ratio="137 139">98.56%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_consumers_ci_py.html">bodhi/server/consumers/ci.py</a></td>
+                <td>55</td>
+                <td>0</td>
+                <td>0</td>
+                <td>24</td>
+                <td>0</td>
+                <td class="right" data-ratio="79 79">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_consumers_greenwave_py.html">bodhi/server/consumers/greenwave.py</a></td>
+                <td>42</td>
+                <td>0</td>
+                <td>0</td>
+                <td>16</td>
+                <td>0</td>
+                <td class="right" data-ratio="58 58">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_consumers_signed_py.html">bodhi/server/consumers/signed.py</a></td>
+                <td>55</td>
+                <td>0</td>
+                <td>0</td>
+                <td>18</td>
+                <td>1</td>
+                <td class="right" data-ratio="72 73">98.63%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_exceptions_py.html">bodhi/server/exceptions.py</a></td>
+                <td>5</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="5 5">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_ffmarkdown_py.html">bodhi/server/ffmarkdown.py</a></td>
+                <td>60</td>
+                <td>0</td>
+                <td>3</td>
+                <td>2</td>
+                <td>0</td>
+                <td class="right" data-ratio="62 62">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_logging_py.html">bodhi/server/logging.py</a></td>
+                <td>26</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+                <td>0</td>
+                <td class="right" data-ratio="30 30">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_mail_py.html">bodhi/server/mail.py</a></td>
+                <td>122</td>
+                <td>0</td>
+                <td>2</td>
+                <td>48</td>
+                <td>2</td>
+                <td class="right" data-ratio="168 170">98.82%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_metadata_py.html">bodhi/server/metadata.py</a></td>
+                <td>150</td>
+                <td>0</td>
+                <td>0</td>
+                <td>46</td>
+                <td>0</td>
+                <td class="right" data-ratio="196 196">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_models_py.html">bodhi/server/models.py</a></td>
+                <td>1923</td>
+                <td>12</td>
+                <td>11</td>
+                <td>832</td>
+                <td>39</td>
+                <td class="right" data-ratio="2702 2755">98.08%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_notifications_py.html">bodhi/server/notifications.py</a></td>
+                <td>29</td>
+                <td>0</td>
+                <td>2</td>
+                <td>8</td>
+                <td>0</td>
+                <td class="right" data-ratio="37 37">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_push_py.html">bodhi/server/push.py</a></td>
+                <td>111</td>
+                <td>0</td>
+                <td>2</td>
+                <td>72</td>
+                <td>0</td>
+                <td class="right" data-ratio="183 183">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_renderers_py.html">bodhi/server/renderers.py</a></td>
+                <td>64</td>
+                <td>0</td>
+                <td>0</td>
+                <td>26</td>
+                <td>1</td>
+                <td class="right" data-ratio="89 90">98.89%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_schemas_py.html">bodhi/server/schemas.py</a></td>
+                <td>177</td>
+                <td>0</td>
+                <td>0</td>
+                <td>6</td>
+                <td>0</td>
+                <td class="right" data-ratio="183 183">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_scripts___init___py.html">bodhi/server/scripts/__init__.py</a></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="1 1">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_scripts_bshell_py.html">bodhi/server/scripts/bshell.py</a></td>
+                <td>16</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+                <td>0</td>
+                <td class="right" data-ratio="18 18">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_scripts_compat_py.html">bodhi/server/scripts/compat.py</a></td>
+                <td>46</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+                <td>0</td>
+                <td class="right" data-ratio="50 50">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_scripts_initializedb_py.html">bodhi/server/scripts/initializedb.py</a></td>
+                <td>20</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+                <td>0</td>
+                <td class="right" data-ratio="22 22">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_scripts_sar_py.html">bodhi/server/scripts/sar.py</a></td>
+                <td>47</td>
+                <td>0</td>
+                <td>2</td>
+                <td>20</td>
+                <td>0</td>
+                <td class="right" data-ratio="67 67">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_scripts_skopeo_lite_py.html">bodhi/server/scripts/skopeo_lite.py</a></td>
+                <td>289</td>
+                <td>0</td>
+                <td>3</td>
+                <td>78</td>
+                <td>0</td>
+                <td class="right" data-ratio="367 367">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_scripts_untag_branched_py.html">bodhi/server/scripts/untag_branched.py</a></td>
+                <td>54</td>
+                <td>0</td>
+                <td>0</td>
+                <td>18</td>
+                <td>0</td>
+                <td class="right" data-ratio="72 72">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_security_py.html">bodhi/server/security.py</a></td>
+                <td>107</td>
+                <td>1</td>
+                <td>3</td>
+                <td>38</td>
+                <td>3</td>
+                <td class="right" data-ratio="141 145">97.24%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services___init___py.html">bodhi/server/services/__init__.py</a></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="1 1">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_builds_py.html">bodhi/server/services/builds.py</a></td>
+                <td>51</td>
+                <td>0</td>
+                <td>0</td>
+                <td>16</td>
+                <td>0</td>
+                <td class="right" data-ratio="67 67">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_comments_py.html">bodhi/server/services/comments.py</a></td>
+                <td>85</td>
+                <td>0</td>
+                <td>0</td>
+                <td>30</td>
+                <td>1</td>
+                <td class="right" data-ratio="114 115">99.13%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_composes_py.html">bodhi/server/services/composes.py</a></td>
+                <td>26</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+                <td>0</td>
+                <td class="right" data-ratio="28 28">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_csrf_py.html">bodhi/server/services/csrf.py</a></td>
+                <td>11</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="11 11">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_errors_py.html">bodhi/server/services/errors.py</a></td>
+                <td>32</td>
+                <td>0</td>
+                <td>9</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="32 32">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_markdown_py.html">bodhi/server/services/markdown.py</a></td>
+                <td>11</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="11 11">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_metrics_tween_py.html">bodhi/server/services/metrics_tween.py</a></td>
+                <td>29</td>
+                <td>0</td>
+                <td>0</td>
+                <td>8</td>
+                <td>1</td>
+                <td class="right" data-ratio="36 37">97.30%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_overrides_py.html">bodhi/server/services/overrides.py</a></td>
+                <td>123</td>
+                <td>0</td>
+                <td>0</td>
+                <td>50</td>
+                <td>1</td>
+                <td class="right" data-ratio="172 173">99.42%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_packages_py.html">bodhi/server/services/packages.py</a></td>
+                <td>33</td>
+                <td>0</td>
+                <td>0</td>
+                <td>6</td>
+                <td>0</td>
+                <td class="right" data-ratio="39 39">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_releases_py.html">bodhi/server/services/releases.py</a></td>
+                <td>141</td>
+                <td>0</td>
+                <td>0</td>
+                <td>42</td>
+                <td>0</td>
+                <td class="right" data-ratio="183 183">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_schemas_py.html">bodhi/server/services/schemas.py</a></td>
+                <td>25</td>
+                <td>0</td>
+                <td>2</td>
+                <td>4</td>
+                <td>0</td>
+                <td class="right" data-ratio="29 29">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_updates_py.html">bodhi/server/services/updates.py</a></td>
+                <td>325</td>
+                <td>0</td>
+                <td>0</td>
+                <td>144</td>
+                <td>1</td>
+                <td class="right" data-ratio="468 469">99.79%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_services_user_py.html">bodhi/server/services/user.py</a></td>
+                <td>64</td>
+                <td>0</td>
+                <td>0</td>
+                <td>16</td>
+                <td>0</td>
+                <td class="right" data-ratio="80 80">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_tasks___init___py.html">bodhi/server/tasks/__init__.py</a></td>
+                <td>85</td>
+                <td>5</td>
+                <td>4</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="80 85">94.12%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_tasks_approve_testing_py.html">bodhi/server/tasks/approve_testing.py</a></td>
+                <td>79</td>
+                <td>0</td>
+                <td>0</td>
+                <td>22</td>
+                <td>0</td>
+                <td class="right" data-ratio="101 101">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_tasks_check_policies_py.html">bodhi/server/tasks/check_policies.py</a></td>
+                <td>16</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+                <td>0</td>
+                <td class="right" data-ratio="18 18">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_tasks_check_signed_builds_py.html">bodhi/server/tasks/check_signed_builds.py</a></td>
+                <td>36</td>
+                <td>0</td>
+                <td>0</td>
+                <td>16</td>
+                <td>0</td>
+                <td class="right" data-ratio="52 52">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_tasks_clean_old_composes_py.html">bodhi/server/tasks/clean_old_composes.py</a></td>
+                <td>28</td>
+                <td>0</td>
+                <td>0</td>
+                <td>11</td>
+                <td>0</td>
+                <td class="right" data-ratio="39 39">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_tasks_composer_py.html">bodhi/server/tasks/composer.py</a></td>
+                <td>723</td>
+                <td>0</td>
+                <td>0</td>
+                <td>272</td>
+                <td>5</td>
+                <td class="right" data-ratio="990 995">99.50%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_tasks_expire_overrides_py.html">bodhi/server/tasks/expire_overrides.py</a></td>
+                <td>29</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+                <td>0</td>
+                <td class="right" data-ratio="33 33">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_tasks_fetch_test_cases_py.html">bodhi/server/tasks/fetch_test_cases.py</a></td>
+                <td>18</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+                <td>0</td>
+                <td class="right" data-ratio="22 22">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_tasks_handle_side_and_related_tags_py.html">bodhi/server/tasks/handle_side_and_related_tags.py</a></td>
+                <td>27</td>
+                <td>0</td>
+                <td>0</td>
+                <td>12</td>
+                <td>3</td>
+                <td class="right" data-ratio="36 39">92.31%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_tasks_tag_update_builds_py.html">bodhi/server/tasks/tag_update_builds.py</a></td>
+                <td>15</td>
+                <td>0</td>
+                <td>0</td>
+                <td>2</td>
+                <td>0</td>
+                <td class="right" data-ratio="17 17">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_tasks_work_on_bugs_py.html">bodhi/server/tasks/work_on_bugs.py</a></td>
+                <td>37</td>
+                <td>0</td>
+                <td>0</td>
+                <td>10</td>
+                <td>0</td>
+                <td class="right" data-ratio="47 47">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_util_py.html">bodhi/server/util.py</a></td>
+                <td>445</td>
+                <td>2</td>
+                <td>7</td>
+                <td>160</td>
+                <td>1</td>
+                <td class="right" data-ratio="602 605">99.50%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_validators_py.html">bodhi/server/validators.py</a></td>
+                <td>680</td>
+                <td>1</td>
+                <td>0</td>
+                <td>334</td>
+                <td>3</td>
+                <td class="right" data-ratio="1010 1014">99.61%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_views___init___py.html">bodhi/server/views/__init__.py</a></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td class="right" data-ratio="1 1">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_views_generic_py.html">bodhi/server/views/generic.py</a></td>
+                <td>215</td>
+                <td>0</td>
+                <td>0</td>
+                <td>64</td>
+                <td>0</td>
+                <td class="right" data-ratio="279 279">100.00%</td>
+            </tr>
+            <tr class="file">
+                <td class="name left"><a href="bodhi_server_webapp_py.html">bodhi/server/webapp.py</a></td>
+                <td>16</td>
+                <td>0</td>
+                <td>0</td>
+                <td>4</td>
+                <td>0</td>
+                <td class="right" data-ratio="20 20">100.00%</td>
+            </tr>
+        </tbody>
+    </table>
+    <p id="no_rows">
+        No items found using the specified filter.
+    </p>
+</div>
+<div id="footer">
+    <div class="content">
+        <p>
+            <a class="nav" href="https://coverage.readthedocs.io">coverage.py v5.5</a>,
+            created at 2021-09-16 08:20 +0000
+        </p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,3 +1,140 @@
+[tool.poetry]
+name = "bodhi-server"
+version = "5.7.5"
+description = "Bodhi server"
+readme = "README.rst"
+authors = ["Fedora Infrastructure Team"]
+maintainers = ["Fedora Infrastructure Team <infrastructure@lists.fedoraproject.org>"]
+#platforms = ["Fedora", "GNU/Linux"]
+repository = "https://github.com/fedora-infra/bodhi"
+homepage = "https://bodhi.fedoraproject.rog"
+keywords = ["web", "fedora", "pyramid"]
+license = "GPL-2.0-or-later"
+# Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Topic :: System :: Software Distribution",
+    "Framework :: Pyramid",
+    "Programming Language :: JavaScript",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+]
+packages = [
+    { include = "bodhi" },
+]
+include = ["*.txt", "*.ini", "*.cfg", "*.rst", "celeryconfig.py",
+    "tests/*.py", "COPYING",
+    "bodhi/server/locale/.placeholder", "bodhi/*.ico", "bodhi/*.png", "bodhi/*.css",
+    "bodhi/*.gif", "bodhi/*.jpg", "bodhi/*.pt", "bodhi/*.txt", "bodhi/*.mak",
+    "bodhi/*.mako", "bodhi/*.js", "bodhi/*.html", "bodhi/*.xml", "bodhi/*.ttf",
+    "bodhi/*.woff", "bodhi/*.woff2", "bodhi/*.eot", "bodhi/*.otf", "bodhi/*.svg",
+    "bodhi/*.tpl", "bodhi/*.rst",
+    "apache/*"]
+exclude = ["development.ini"]
+
+#paster_plugins = pyramid
+#message_extractors = 
+#    . = []
+
+
+[tool.poetry.dev-dependencies]
+bodhi-messages = {path = "../bodhi-messages"}
+
+[tool.poetry.dependencies]
+Jinja2 = "^3.0.3"
+Markdown = "^3.3.6"
+PyYAML = "^6.0"
+SQLAlchemy = "^1.4.31"
+alembic = "^1.7.6"
+arrow = "^1.2.2"
+backoff = "^1.11.1"
+bleach = "^4.1.0"
+bodhi-messages = "^5.7.4"
+celery = "^4.2"
+click = "^8.0.3"
+colander = "^1.8.3"
+cornice = "^3.1.0"
+"dogpile.cache" = "^1.1.5"
+fedora-messaging = "^3.0.0"
+feedgen= "^0.7.0"
+koji = "^1.27.1"
+libcomps ="^0.1.15"
+prometheus-client = "^0.13.1"
+psycopg2 = "^2.9.3"
+py3dns = "^3.2.1" # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
+pyLibravatar = "^1.7"
+pyasn1-modules = "^0.2.8" # Due to an unfortunate dash in its name, installs break if pyasn1 is installed first 
+pyramid = "^1.7"
+pyramid-fas-openid = "^0.4.0"
+pyramid-mako = "^1.1.0"
+python = "^3.9"
+python-bugzilla = "^3.2.0"
+python-fedora = "^1.1.1"
+requests = "^2.27.1"
+responses = "^0.18.0"
+rpm-py-installer = "^1.1.0"
+simplemediawiki = {version = "^1.2.0b2", allow-prereleases = true}
+waitress = "^2.0.0"
+whitenoise = "^5.3.0"
+
+[tool.pytest.ini_options]
+addopts = "--cov-config .coveragerc --cov=bodhi --cov-report term --cov-report xml --cov-report html"
+verbosity = 1
+testpaths = ["tests"]
+
+
+#[options.packages.find]
+#exclude =
+#    tests*
+#
+#[options.exclude_package_data]
+#apache =
+#    *
+
+[tool.poetry.plugins."paste.app_factory"]
+main = "bodhi.server:main"
+
+[tool.poetry.scripts]
+initialize_bodhi_db = "bodhi.server.scripts.initializedb:main"
+bodhi-push = "bodhi.server.push:push"
+bodhi-untag-branched = "bodhi.server.scripts.untag_branched:main"
+bodhi-skopeo-lite = "bodhi.server.scripts.skopeo_lite:main"
+bodhi-sar = "bodhi.server.scripts.sar:get_user_data"
+bodhi-shell = "bodhi.server.scripts.bshell:get_bodhi_shell"
+bodhi-clean-old-composes = "bodhi.server.scripts.compat:clean_old_composes"
+bodhi-expire-overrides = "bodhi.server.scripts.compat:expire_overrides"
+bodhi-approve-testing = "bodhi.server.scripts.compat:approve_testing"
+bodhi-check-policies = "bodhi.server.scripts.compat:check_policies"
+
+#[init_catalog]
+#domain = bodhi
+#input_file = bodhi/server/locale/bodhi.pot
+#output_dir = bodhi/server/locale
+
+#[compile_catalog]
+#directory = bodhi/server/locale
+#domain = bodhi
+#statistics = true
+
+#[extract_messages]
+#add_comments = TRANSLATORS:
+#output_file = bodhi/server/locale/bodhi.pot
+#width = 80
+
+#[update_catalog]
+#domain = bodhi
+#input_file = bodhi/server/locale/bodhi.pot
+#output_dir = bodhi/server/locale
+#previous = true
+
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+

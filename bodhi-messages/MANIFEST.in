@@ -1,2 +1,0 @@
-include COPYING *.txt
-recursive-include tests *.py

@@ -11,6 +11,7 @@ RUN dnf install -y \
     git \
     make \
     pip \
+    poetry \
     python3-alembic \
     python3-arrow \
     python3-authlib \
@@ -63,5 +64,7 @@ VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
 COPY . /bodhi
+ENV VIRTUAL_ENV=/srv/venv
 RUN cp devel/development.ini.example bodhi-server/development.ini
 RUN sed -i '/pyramid_debugtoolbar/d' bodhi-server/development.ini
+RUN poetry config virtualenvs.create false
