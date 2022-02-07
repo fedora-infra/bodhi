@@ -1,0 +1,130 @@
+# See production.ini for documentation on the settings that can be used in this file.
+[app:main]
+use = call:bodhi.server:main
+base_address = http://localhost:6543/
+fedora_announce_list = package-announce@lists.fedoraproject.org
+fedora_test_announce_list = test@lists.fedoraproject.org
+fedora_epel_announce_list = epel-package-announce@lists.fedoraproject.org
+fedora_epel_test_announce_list = epel-devel@lists.fedoraproject.org
+dogpile.cache.backend = dogpile.cache.memory_pickle
+dogpile.cache.expiration_time = 3600
+fedora.mandatory_days_in_testing = 7
+fedora_epel.mandatory_days_in_testing = 14
+f7.status = post_beta
+f7.post_beta.mandatory_days_in_testing = 7
+f7.post_beta.critpath.num_admin_approvals = 0
+f7.post_beta.critpath.min_karma = 2
+f7.post_beta.critpath.stable_after_days_without_negative_karma = 3
+cors_origins_ro = *
+cors_origins_rw = http://0.0.0.0:6543
+cors_connect_src = http://0.0.0.0:6543 http://localhost:6543 https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/
+pyramid.reload_templates = true
+pyramid.debug_authorization = true
+pyramid.debug_notfound = true
+pyramid.debug_routematch = true
+pyramid.default_locale_name = en
+pyramid.includes =
+    pyramid_debugtoolbar
+debugtoolbar.hosts = 127.0.0.1 ::1
+sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2
+authtkt.secret = changethisinproduction!
+session.secret = ChangeThisSecret!!1
+authtkt.secure = false
+authtkt.timeout = 2592000
+session.type = file
+session.data_dir = %(here)s/data/sessions/data
+session.lock_dir = %(here)s/data/sessions/lock
+session.key = mykey
+session.cookie_on_exception = true
+cache.regions = default_term, second, short_term, long_term
+cache.type = memory
+cache.second.expire = 1
+cache.short_term.expire = 60
+cache.default_term.expire = 300
+cache.long_term.expire = 3600
+# Uncomment this line and add your username here to enable ACL rights in the development environment
+# acl_dummy_committer = mattia
+
+# If you want to test composing containers in development, it can be handy to run your own container
+# registry locally. To do that, you can run a container registry like this:
+#
+#   $ sudo docker run -e REGISTRY_STORAGE_DELETE_ENABLED=true -it -d -p 5000:5000 --restart=always --name registry registry:2
+#
+# The following settings should work with a local container registry as described above:
+container.destination_registry = localhost:5000
+skopeo.extra_copy_flags = --dest-tls-verify=false
+openid.provider = https://id.stg.fedoraproject.org/openid/
+openid.url = https://id.stg.fedoraproject.org/
+openid_template = {username}.id.stg.fedoraproject.org
+# The cache warming is annoying during development because it takes so long. Let's disable it by default.
+warm_cache_on_start = false
+# Celery configuration file
+celery_config = %(here)s/celeryconfig.py
+# Composes
+compose_dir = /srv/composes/final
+compose_stage_dir = /srv/composes/stage
+pungi.basepath = %(here)s/devel/ci/integration/bodhi/
+pungi.conf.rpm = pungi.rpm.conf.j2
+pungi.conf.module = pungi.module.conf.j2
+
+test_gating.required = True
+# WaiverDB and Greenwave in vagrant are provided via docker local services
+waiverdb_api_url = http://bodhi_user:pass@localhost:6544/api/v1.0
+greenwave_api_url = http://localhost:6545/api/v1.0
+
+[server:main]
+use = egg:waitress#main
+host = 0.0.0.0
+port = 6543
+
+[pshell]
+m = bodhi.server.models
+s = bodhi.server.Session
+
+[loggers]
+keys = root, bodhi, sqlalchemy, fedora_messaging, celery, celery_worker_job
+
+[handlers]
+keys = console
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = INFO
+handlers = console
+
+[logger_bodhi]
+level = DEBUG
+handlers =
+qualname = bodhi
+
+[logger_fedora_messaging]
+level = INFO
+handlers = console
+qualname = fedora_messaging
+
+[logger_sqlalchemy]
+level = WARN
+handlers =
+qualname = sqlalchemy.engine
+
+[logger_celery]
+level = INFO
+handlers =
+qualname = celery
+
+[logger_celery_worker_job]
+level = ERROR
+handlers =
+qualname = celery.worker.job
+propagate = 1
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[formatter_generic]
+format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s

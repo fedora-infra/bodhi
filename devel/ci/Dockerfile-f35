@@ -11,6 +11,7 @@ RUN dnf install -y \
     git \
     make \
     pip \
+    poetry \
     python3-alembic \
     python3-arrow \
     python3-authlib \
@@ -59,9 +60,11 @@ RUN dnf install -y \
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji
+ENV VIRTUAL_ENV=/srv/venv
 VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
 COPY . /bodhi
 RUN cp devel/development.ini.example bodhi-server/development.ini
 RUN sed -i '/pyramid_debugtoolbar/d' bodhi-server/development.ini
+RUN poetry config virtualenvs.create false

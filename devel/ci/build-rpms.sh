@@ -17,10 +17,11 @@ sed -i "s/\(bodhi-server \${util.version()}\)/\1$versionsuffix/g" bodhi-server/b
 
 for submodule in ${MODULES}; do
     cd $submodule
-    /usr/bin/python3 setup.py sdist
+    poetry build
     cp dist/* ~/rpmbuild/SOURCES/
     cp $submodule.spec ~/rpmbuild/SPECS/
-    moduleversion=$(python3 setup.py --version)
+    githash=$(git rev-parse --short HEAD)
+    moduleversion=$(poetry version)
     sed -i "s/^%global pypi_version.*/%global pypi_version $moduleversion/g" ~/rpmbuild/SPECS/$submodule.spec
     sed -i "s/^Version:.*/Version:%{pypi_version}$versionsuffix/g" ~/rpmbuild/SPECS/$submodule.spec
     rpmdev-bumpspec ~/rpmbuild/SPECS/$submodule.spec

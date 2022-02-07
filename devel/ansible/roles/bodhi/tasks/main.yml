@@ -22,19 +22,21 @@
       - pcaro-hermit-fonts
       - pcp-system-tools
       - pre-commit
+      - poetry
       - postgresql-devel
       - postgresql-server
-      - python3-alembic
       - python3-arrow
       - python3-authlib
       - python3-backoff
       - python3-bleach
+      - python3-bugzilla
       - python3-celery
       - python3-click
       - python3-colander
       - python3-conu
       - python3-cornice
       - python3-createrepo_c
+      - python3-devel
       - python3-diff-cover
       - python3-dogpile-cache
       - python3-flake8
@@ -74,6 +76,11 @@
       - httpd
       - mod_ssl
       - ipa-client
+    state: present
+
+- name: Install krb5-devel with yum
+  yum:
+    name: krb5-devel
     state: present
 
 - name: Initialize PostgreSQL
@@ -117,19 +124,29 @@
 
 - name: Fake a pungi install
   file:
-      src: /usr/bin/true
-      dest: /usr/bin/pungi-koji
-      state: link
+    src: /usr/bin/true
+    dest: /usr/bin/pungi-koji
+    state: link
 
-- name: Get Python 3 version
-  command: python3 -c "import sys; print('%s.%s' % sys.version_info[0:2])"
-  register: python3_version
+- name: Create a directory for the virtualenv
+  file:
+    name: /srv/venv
+    state: directory
+    mode: 0755
+    owner: vagrant
+    group: vagrant
 
-- name: Install bodhi in developer mode for Python 3
-  command: python3 setup.py develop
+- name: Create the virtualenv
+  shell: virtualenv --system-site-packages /srv/venv/
+  become: yes
+  become_user: vagrant
+
+- name: Install bodhi with poetry
+  shell: VIRTUAL_ENV=/srv/venv poetry install
+  become: yes
+  become_user: vagrant
   args:
       chdir: /home/vagrant/bodhi/{{ item }}
-      creates: /usr/lib/python{{ python3_version.stdout }}/site-packages/{{ item }}.egg-link
   loop:
     - bodhi-messages
     - bodhi-client
@@ -170,7 +187,9 @@
     state: directory
 
 - name: Apply database migrations
-  shell: PYTHONPATH=. alembic upgrade head
+  become: yes
+  become_user: vagrant
+  shell: VIRTUAL_ENV=/srv/venv poetry run alembic -c alembic.ini upgrade head
   args:
       chdir: /home/vagrant/bodhi/bodhi-server
 
@@ -226,9 +245,9 @@
 
 - name: Link the bodhi bash completion script
   file:
-    src: /home/vagrant/bodhi/bodhi-client/bodhi-complete.sh
-    dest: /etc/bash_completion.d/bodhi-complete.sh
-    state: link
+     src: /home/vagrant/bodhi/bodhi-client/bodhi-complete.sh
+     dest: /etc/bash_completion.d/bodhi-complete.sh
+     state: link
 
 # Auth
 
