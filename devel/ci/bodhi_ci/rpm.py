@@ -46,7 +46,9 @@ class RPMJob(Job):
         super().__init__(*args, **kwargs)
 
         self._command = [
-            '/usr/bin/bash', '-c', './devel/ci/build-rpms.sh'
-        ] + list(self.options["modules"])
+            '/usr/bin/bash',
+            '-c',
+            ('./devel/ci/build-rpms.sh ' + ' '.join(self.options["modules"]))
+        ]
 
         self._convert_command_for_container(include_git=True)
