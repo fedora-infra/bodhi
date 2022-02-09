@@ -17,7 +17,7 @@
 
 
 from bodhi.messages.schemas.errata import BuildV1, ErrataPublishV1, ReleaseV1, UpdateV1, UserV1
-from ..utils import check_message
+from .utils import check_message
 
 
 class TestErrataMessage:

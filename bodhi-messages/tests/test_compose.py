@@ -24,7 +24,7 @@ from bodhi.messages.schemas.compose import (
     ComposeSyncDoneV1,
     RepoDoneV1,
 )
-from ..utils import check_message
+from .utils import check_message
 
 
 class TestComposeMessage:

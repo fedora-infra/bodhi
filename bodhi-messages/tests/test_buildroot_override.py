@@ -18,7 +18,7 @@
 from bodhi.messages.schemas import base
 from bodhi.messages.schemas.buildroot_override import (BuildrootOverrideTagV1,
                                                        BuildrootOverrideUntagV1)
-from ..utils import check_message
+from .utils import check_message
 
 
 class TestBuildrootOverrideMessage:

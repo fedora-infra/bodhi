@@ -17,22 +17,20 @@
 
 
 from bodhi.messages.schemas.base import BuildV1, ReleaseV1, UpdateV1, UserV1
-from bodhi.messages.schemas.update import (
-    UpdateCommentV1,
-    UpdateCompleteStableV1,
-    UpdateCompleteTestingV1,
-    UpdateEditV1,
-    UpdateEjectV1,
-    UpdateKarmaThresholdV1,
-    UpdateReadyForTestingV1,
-    UpdateRequestRevokeV1,
-    UpdateRequestStableV1,
-    UpdateRequestTestingV1,
-    UpdateRequestUnpushV1,
-    UpdateRequestObsoleteV1,
-    UpdateRequirementsMetStableV1,
-)
-from ..utils import check_message
+from bodhi.messages.schemas.update import (UpdateCommentV1,
+                                           UpdateCompleteStableV1,
+                                           UpdateCompleteTestingV1,
+                                           UpdateEditV1, UpdateEjectV1,
+                                           UpdateKarmaThresholdV1,
+                                           UpdateReadyForTestingV1,
+                                           UpdateRequestObsoleteV1,
+                                           UpdateRequestRevokeV1,
+                                           UpdateRequestStableV1,
+                                           UpdateRequestTestingV1,
+                                           UpdateRequestUnpushV1,
+                                           UpdateRequirementsMetStableV1)
+
+from .utils import check_message
 
 
 class TestUpdateMessage:
