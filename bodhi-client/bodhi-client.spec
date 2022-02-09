@@ -12,6 +12,7 @@ URL:            https://github.com/fedora-infra/bodhi
 Source0:        %{pypi_name}-%{pypi_version}.tar.gz
 BuildArch:      noarch
 
+BuildRequires:  make
 BuildRequires:  python3-devel
 BuildRequires:  python3-sphinx
 BuildRequires:  python3dist(click)
