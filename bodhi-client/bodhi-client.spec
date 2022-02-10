@@ -4,7 +4,7 @@
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
-Release:        1%{?dist}
+Release:        0%{?dist}
 Summary:        Bodhi client
 
 License:        GPLv2+
@@ -17,6 +17,8 @@ BuildRequires:  python3dist(click)
 BuildRequires:  python3dist(koji)
 BuildRequires:  python3dist(python-fedora) >= 0.9
 BuildRequires:  python3dist(setuptools)
+
+%py_provides python3-bodhi-client
 
 %description
 

@@ -46,6 +46,8 @@ BuildRequires:  python3dist(sqlalchemy)
 BuildRequires:  python3dist(waitress)
 BuildRequires:  python3dist(whitenoise)
 
+%py_provides python3-bodhi-server
+
 %description
 
 

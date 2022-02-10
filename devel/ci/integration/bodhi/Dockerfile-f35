@@ -31,7 +31,7 @@ RUN \
         cp dist/* ~/rpmbuild/SOURCES/ && \
         cp $pkg.spec ~/rpmbuild/SPECS/ && \
         rpmbuild -ba ~/rpmbuild/SPECS/$pkg.spec && \
-        dnf install -y $(ls ~/rpmbuild/RPMS/noarch/$pkg*.rpm) && \
+        dnf install -y $(ls ~/rpmbuild/RPMS/noarch/*$pkg*.rpm) && \
         cd ..; \
     done
 
