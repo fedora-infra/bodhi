@@ -2093,7 +2093,7 @@ class TestUpdateEdit(BasePyTestCase):
         request.db = self.db
         request.user.name = 'tester'
 
-        with mock_sends(update_schemas.UpdateEditV1, update_schemas.UpdateReadyForTestingV1):
+        with mock_sends(update_schemas.UpdateEditV1, update_schemas.UpdateReadyForTestingV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
                     'policies_satisfied': False,
@@ -4891,7 +4891,7 @@ class TestUpdate(ModelTest):
     def test_set_status_testing(self):
         """Test that setting an update's status to testing sends a message."""
         self.db.info['messages'] = []
-        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+        with mock_sends(update_schemas.UpdateReadyForTestingV2):
             self.obj.status = UpdateStatus.testing
             msg = self.db.info['messages'][0]
             self.db.commit()
@@ -4903,7 +4903,7 @@ class TestUpdate(ModelTest):
     def test_create_with_status_testing(self):
         """Test that creating an update with the status set to testing sends a message."""
         self.db.info['messages'] = []
-        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+        with mock_sends(update_schemas.UpdateReadyForTestingV2):
             self.get_update(name="TurboGears-1.0.8-4.fc11", override_args={
                 "status": UpdateStatus.testing,
                 "user": self.db.query(model.User).filter_by(name='lmacken').one()

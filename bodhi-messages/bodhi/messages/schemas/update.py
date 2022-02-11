@@ -21,6 +21,7 @@ Each message is defined as a Python class. For details, see `fedora-messaging
 messages.
 """
 
+import copy
 import typing
 
 from .base import BodhiMessage, BuildV1, ReleaseV1, SCHEMA_URL, UpdateV1, UserV1
@@ -571,7 +572,11 @@ class UpdateRequirementsMetStableV1(UpdateMessage):
 
 
 class UpdateReadyForTestingV1(BodhiMessage):
-    """Sent when an update is ready to be tested."""
+    """
+    Sent when an update is ready to be tested. Original version.
+
+    Does not have 'update' property or inherit from UpdateMessage.
+    """
 
     body_schema = {
         'id': f'{SCHEMA_URL}/v1/bodhi.update.status.testing#',
@@ -750,3 +755,24 @@ class UpdateReadyForTestingV1(BodhiMessage):
             The agent's username, or None if the body has no agent key.
         """
         return self.body.get('agent', None)
+
+
+class UpdateReadyForTestingV2(UpdateReadyForTestingV1):
+    """
+    Sent when an update is ready to be tested. Newer version.
+
+    Has 'update' property, like other update messages.
+    """
+
+    # mypy infers that lots of the things we touch below should be
+    # collections of strings and doesn't like us doing unexpected
+    # things to them, so the typing.Any shuts it up
+    body_schema: typing.Any = copy.deepcopy(UpdateReadyForTestingV1.body_schema)
+    # we have to rename this definition as it will conflict with the
+    # one expected by UpdateV1.schema()
+    body_schema['definitions']['artifactbuild'] = copy.deepcopy(body_schema['definitions']['build'])
+    renamed = {'$ref': '#/definitions/artifactbuild'}
+    body_schema['properties']['artifact']['properties']['builds']['items'] = renamed
+    body_schema['definitions']['build'] = BuildV1.schema()
+    body_schema['properties']['update'] = UpdateV1.schema()
+    body_schema['required'].append('update')

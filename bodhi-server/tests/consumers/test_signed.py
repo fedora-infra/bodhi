@@ -257,7 +257,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
                 'unsatisfied_requirements': []
             }
             mock_greenwave.return_value = greenwave_response
-            with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV1):
+            with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV2):
                 self.handler(self.sample_side_tag_message)
 
         assert update.builds[0].signed is True
