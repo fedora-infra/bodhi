@@ -747,7 +747,7 @@ def trigger_tests(request):
         request.errors.add('body', 'request', 'Update is not in testing status')
     else:
         if update.content_type == ContentType.rpm:
-            message = update_schemas.UpdateReadyForTestingV1.from_dict(
+            message = update_schemas.UpdateReadyForTestingV2.from_dict(
                 message=update._build_group_test_message(agent=request.user.name, retrigger=True)
             )
             notifications.publish(message)
