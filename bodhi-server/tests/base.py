@@ -22,12 +22,23 @@ import os
 import subprocess
 import unittest
 
-from webtest import TestApp
+from pyramid import testing
 from sqlalchemy import event
+from webtest import TestApp
 import createrepo_c
 
-from bodhi.server import (bugs, buildsys, models, initialize_db, Session, config, main, metadata,
-                          webapp)
+from bodhi.server import (
+    bugs,
+    buildsys,
+    config,
+    initialize_db,
+    main,
+    metadata,
+    models,
+    Session,
+    webapp,
+)
+
 from . import create_update, populate
 
 
@@ -142,6 +153,7 @@ class BaseTestCaseMixin:
 
     def _setup_method(self):
         """Set up Bodhi for testing."""
+        self.config = testing.setUp()
         # Ensure "cached" objects are cleared before each test.
         models.Release.clear_all_releases_cache()
         models.Release._tag_cache = None
@@ -183,6 +195,7 @@ class BaseTestCaseMixin:
             with mock.patch('bodhi.server.Session.remove'):
                 _app = TestApp(main({}, testing='guest', **self.app_settings))
         self.app = _app
+        self.registry = self.app.app.application.registry
 
         # ensure a clean state of the dev build system
         buildsys.DevBuildsys.clear()
@@ -246,6 +259,7 @@ class BaseTestCaseMixin:
         self.transaction.rollback()
         self.connection.close()
         Session.remove()
+        testing.tearDown()
 
     def create_update(self, build_nvrs, release_name='F17'):
         """

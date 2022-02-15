@@ -16,6 +16,7 @@ BuildRequires:  python3-devel
 BuildRequires:  python3-sphinx
 BuildRequires:  python3dist(alembic)
 BuildRequires:  python3dist(arrow)
+BuildRequires:  python3dist(authlib)
 BuildRequires:  python3dist(backoff)
 BuildRequires:  python3dist(bleach)
 BuildRequires:  python3dist(celery) >= 4.2
@@ -37,7 +38,6 @@ BuildRequires:  python3dist(pyramid) >= 1.7
 BuildRequires:  python3dist(pyramid-fas-openid)
 BuildRequires:  python3dist(pyramid-mako)
 BuildRequires:  python3dist(python-bugzilla)
-BuildRequires:  python3dist(python-fedora)
 BuildRequires:  python3dist(pyyaml)
 BuildRequires:  python3dist(requests)
 BuildRequires:  python3dist(responses)

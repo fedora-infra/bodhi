@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Bodhi's configuration and configuration loading and validation mechanisms."""
 from datetime import datetime
-import os
 import logging
+import os
 import typing
 
 from pyramid import settings
@@ -480,13 +480,22 @@ class BodhiConfig(dict):
             'value': 'email nickname',
             'validator': str},
         'openid.success_callback': {
-            'value': 'bodhi.server.security:remember_me',
+            'value': 'bodhi.server.auth.utils:remember_me',
             'validator': str},
         'openid.url': {
             'value': 'https://id.fedoraproject.org/',
             'validator': str},
         'openid_template': {
             'value': '{username}.id.fedoraproject.org',
+            'validator': str},
+        'oidc.fedora.client_id': {
+            'value': '',
+            'validator': str},
+        'oidc.fedora.client_secret': {
+            'value': '',
+            'validator': str},
+        'oidc.fedora.server_metadata_url': {
+            'value': 'https://id.fedoraproject.org/openidc/.well-known/openid-configuration',
             'validator': str},
         'pagure_namespaces': {
             'value': ('rpm:rpms, module:modules, container:container, flatpak:flatpaks'),
