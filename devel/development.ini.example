@@ -53,9 +53,17 @@ cache.long_term.expire = 3600
 # The following settings should work with a local container registry as described above:
 container.destination_registry = localhost:5000
 skopeo.extra_copy_flags = --dest-tls-verify=false
+
+# OpenID
 openid.provider = https://id.stg.fedoraproject.org/openid/
 openid.url = https://id.stg.fedoraproject.org/
 openid_template = {username}.id.stg.fedoraproject.org
+
+# OIDC (OpenID Connect)
+oidc.fedora.client_id = oidc-client_id
+oidc.fedora.client_secret = oidc-client_secret
+oidc.fedora.server_metadata_url = https://id.dev.fedoraproject.org/openidc/.well-known/openid-configuration
+
 # The cache warming is annoying during development because it takes so long. Let's disable it by default.
 warm_cache_on_start = false
 # Celery configuration file

@@ -10,6 +10,7 @@ RUN dnf install -y \
     pip \
     python3-alembic \
     python3-arrow \
+    python3-authlib \
     python3-backoff \
     python3-bleach \
     python3-bugzilla \

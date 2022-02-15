@@ -1,0 +1,1 @@
+Support authentication with OpenID Connect, in addition to OpenID. The old OpenID authentication can be accessed by using ``/login?method=openid`` as the login URL.
