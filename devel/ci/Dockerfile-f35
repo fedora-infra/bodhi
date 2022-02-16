@@ -43,6 +43,7 @@ RUN dnf install -y \
     python3-pyramid-mako \
     python3-pytest \
     python3-pytest-cov \
+    python3-pytest-mock \
     python3-responses \
     python3-simplemediawiki \
     python3-sphinx \

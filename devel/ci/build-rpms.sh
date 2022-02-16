@@ -6,6 +6,8 @@ set -e
 
 MODULES=$@
 
+set -x
+
 mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
 for submodule in ${MODULES}; do

@@ -21,7 +21,6 @@ import json
 import re
 import textwrap
 
-from conu import ConuException
 from munch import Munch
 import psycopg2
 import pytest
@@ -499,26 +498,11 @@ def test_updates_request(bodhi_container, ipsilon_container, db_container):
         return update_alias
 
     update_alias = find_update()
-    cmd = [
-        "bodhi",
-        "updates",
-        "request",
-        "--url",
-        "http://localhost:8080",
-        "--openid-api",
-        "http://id.dev.fedoraproject.org/api/v1/",
-        "--user",
-        "guest",
-        "--password",
-        "ipsilon",
-        update_alias,
-        "stable",
-    ]
-    try:
-        output = bodhi_container.execute(cmd)
-    except ConuException as e:
+    result = run_cli(
+        bodhi_container, ["updates", "request", update_alias, "stable"]
+    )
+    if result.exit_code != 0:
         with read_file(bodhi_container, "/httpdir/errorlog") as log:
             print(log.read())
-        assert False, str(e)
-    output = "".join(line.decode("utf-8") for line in output)
-    assert "This update has been submitted for stable by guest." in output
+        assert False, result.output
+    assert "This update has been submitted for stable by guest." in result.output

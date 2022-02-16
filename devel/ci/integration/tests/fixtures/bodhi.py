@@ -26,7 +26,7 @@ from .utils import make_db_and_user, stop_and_delete
 @pytest.fixture(scope="session")
 def bodhi_container(
     docker_backend, docker_network, db_container, resultsdb_container,
-    waiverdb_container, greenwave_container, rabbitmq_container,
+    waiverdb_container, greenwave_container, rabbitmq_container, ipsilon_container,
 ):
     """Fixture preparing and yielding a Bodhi container to test against.
 
@@ -57,9 +57,13 @@ def bodhi_container(
         "--network", docker_network.get_id(),
         "--network-alias", "bodhi",
         "--network-alias", "bodhi.ci",
+        "-e", "REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ipsilon.crt",
     ]
     container = image.run_via_binary(additional_opts=run_opts)
     container.start()
+    # Copy Ipsilon's SSL server
+    ipsilon_container.copy_from("/etc/pki/tls/certs/localhost-ca.crt", "/tmp/ipsilon.crt")
+    container.copy_to("/tmp/ipsilon.crt", "/etc/pki/tls/certs/ipsilon.crt")
     # Update the database schema
     container.execute(["alembic-3", "-c", "/bodhi/bodhi-server/alembic.ini", "upgrade", "head"])
     # we need to wait for the webserver to start serving
