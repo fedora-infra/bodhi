@@ -23,19 +23,16 @@ This module provides Python bindings to the Bodhi REST API.
 .. moduleauthor:: Randy Barlow <bowlofeggs@fedoraproject.org>
 """
 
+from urllib.parse import urlparse
 import configparser
 import datetime
 import functools
-import getpass
 import itertools
-import json
 import logging
 import os
 import re
 import textwrap
 import typing
-
-from fedora.client import AuthError, FedoraClientError, OpenIdBaseClient, ServerError
 
 
 try:
@@ -43,9 +40,20 @@ try:
 except ImportError:  # pragma: no cover
     # dnf is not available on EL 7.
     dnf = None  # pragma: no cover
-import fedora.client.openidproxyclient
+from munch import munchify
+from requests.exceptions import RequestException
 import koji
-import requests.exceptions
+
+from .constants import (
+    BASE_URL,
+    CLIENT_ID,
+    IDP,
+    SCOPE,
+    STG_BASE_URL,
+    STG_CLIENT_ID,
+    STG_IDP,
+)
+from .oidcclient import JSONStorage, OIDCClient, OIDCClientError
 
 
 if typing.TYPE_CHECKING:  # pragma: no cover
@@ -54,15 +62,12 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 
 log = logging.getLogger(__name__)
 
-BASE_URL = 'https://bodhi.fedoraproject.org/'
-STG_BASE_URL = 'https://bodhi.stg.fedoraproject.org/'
-STG_OPENID_API = 'https://id.stg.fedoraproject.org/api/v1/'
 
 UPDATE_ID_RE = r'FEDORA-(EPEL-)?\d{4,4}'
 UPDATE_TITLE_RE = r'(\.el|\.fc)\d\d?'
 
 
-class BodhiClientException(FedoraClientError):
+class BodhiClientException(RequestException):
     """Used to indicate there was an error in the client."""
 
 
@@ -114,35 +119,19 @@ class ComposeNotFound(BodhiClientException):
 
 def errorhandled(method: typing.Callable) -> typing.Callable:
     """Raise exceptions on failure. Used as a decorator for BodhiClient methods."""
+
     @functools.wraps(method)
     def wrapper(*args, **kwargs) -> typing.Any:
-        try:
-            result = method(*args, **kwargs)
-            # Bodhi allows comments to be written by unauthenticated users if they solve a Captcha.
-            # Due to this, an authentication error is not raised by the server if the client fails
-            # to authenticate for any reason, and instead an error about needing a captcha key is
-            # presented instead. If we see that error, we can just raise an AuthError to trigger the
-            # retry logic in the exception handler below.
-            if 'errors' in result:
-                for error in result['errors']:
-                    if 'name' in error and error['name'] == 'captcha_key':
-                        raise AuthError('Captcha key needed.')
-        except AuthError:
-            # An AuthError can be raised for four different reasons:
-            #
-            # 0) The password is wrong.
-            # 1) The session cookies are expired. fedora.python does not handle this automatically.
-            # 2) The session cookies are not expired, but are no longer valid (for example, this can
-            #    happen if the server's auth secret has changed.)
-            # 3) The client received a captcha_key error, as described in the try block above.
-            #
-            # We don't know the difference between the cases here, but case #1 is fairly common and
-            # we can work around it and case #2 by removing the session cookies and csrf token and
-            # retrying the request. If the password is wrong, the second attempt will also fail but
-            # we won't guard it and the AuthError will still be raised.
-            args[0]._session.cookies.clear()
-            args[0].csrf_token = None
-            result = method(*args, **kwargs)
+        result = method(*args, **kwargs)
+        # Bodhi allows comments to be written by unauthenticated users if they solve a Captcha.
+        # Due to this, an authentication error is not raised by the server if the client fails
+        # to authenticate for any reason, and instead an error about needing a captcha key is
+        # presented instead. If we see that error, we can just clear authentication and retry.
+        if 'errors' in result:
+            for error in result['errors']:
+                if 'name' in error and error['name'] == 'captcha_key':
+                    args[0].clear_auth()
+                    result = method(*args, **kwargs)
 
         if 'errors' not in result:
             return result
@@ -176,56 +165,88 @@ def _days_since(data_str: str) -> int:
     return (datetime.datetime.utcnow() - update_time).days
 
 
-class BodhiClient(OpenIdBaseClient):
+class BodhiClient:
     """Python bindings to the Bodhi server REST API."""
 
-    def __init__(self, base_url: str = BASE_URL, username: typing.Optional[str] = None,
-                 password: typing.Optional[str] = None, staging: bool = False,
-                 openid_api: typing.Optional[str] = None, **kwargs):
+    def __init__(
+        self,
+        base_url: str = BASE_URL,
+        client_id: str = CLIENT_ID,
+        id_provider: str = IDP,
+        staging: bool = False,
+    ):
         """
         Initialize the Bodhi client.
 
         Args:
             base_url: The URL of the Bodhi server to connect to. Ignored if
                       ```staging``` is True.
-            username: The username to use to authenticate with the server.
-            password: The password to use to authenticate with the server.
+            client_id: The OpenID Connect Client ID.
             staging: If True, use the staging server. If False, use base_url.
-            openid_api: If not None, the URL to an OpenID API to use to authenticate
-                to Bodhi. Ignored if staging is True.
-            kwargs: Other keyword arguments to pass on to
-                    :class:`fedora.client.OpenIdBaseClient`
         """
-        if openid_api:
-            fedora.client.openidproxyclient.FEDORA_OPENID_API = openid_api
-
         if staging:
-            fedora.client.openidproxyclient.FEDORA_OPENID_API = STG_OPENID_API
             base_url = STG_BASE_URL
+            id_provider = STG_IDP
+            client_id = STG_CLIENT_ID
 
         if base_url[-1] != '/':
             base_url = base_url + '/'
+        self.base_url = base_url
+        self.csrf_token = ''
+        self._build_oidc_client(client_id, id_provider)
 
-        super(BodhiClient, self).__init__(
-            base_url, login_url=base_url + 'login?method=openid', username=username, **kwargs
+    def _build_oidc_client(self, client_id, id_provider):
+        storage_path = os.path.join(os.environ["HOME"], ".config", "bodhi", "client.json")
+        self.oidc = OIDCClient(
+            client_id,
+            SCOPE,
+            id_provider.rstrip("/"),
+            storage=JSONStorage(storage_path),
         )
 
-        self._password = password
-        self.csrf_token = ''
+    def send_request(self, url, verb="GET", **kwargs):
+        """Send the request to the Bodhi server.
 
-    @property
-    def password(self) -> str:
-        """
-        Return the user's password.
-
-        If the user's password is not known, prompt the user for their password.
+        Args:
+            url (str): The relative URL on the Bodhi server
+            verb (str, optional): The HTTP method. Defaults to "GET".
 
         Returns:
-            The user's password.
+            requests.Response: The response as returned by python-requests.
         """
-        if not self._password:
-            self._password = getpass.getpass()
-        return self._password
+        if kwargs.pop("auth", False):
+            self.ensure_auth()
+        try:
+            response = self.oidc.request(verb, f"{self.base_url}{url}", **kwargs)
+        except OIDCClientError as e:
+            raise BodhiClientException(str(e))
+        if not response.ok:
+            raise BodhiClientException(response.text)
+        return munchify(response.json())
+
+    def ensure_auth(self):
+        """Make sure we are authenticated."""
+        self.oidc.ensure_auth()
+        if not self.oidc.has_cookie("auth_tkt", domain=urlparse(self.base_url).hostname):
+            while True:
+                resp = self.oidc.request("GET", f"{self.base_url}oidc/login-token")
+                if resp.ok:
+                    break
+                if resp.status_code == 401:
+                    self.clear_auth()
+                    self.oidc.login()
+                else:
+                    resp.raise_for_status()
+
+    def clear_auth(self):
+        """Clear the authentication information."""
+        self.oidc.clear_auth()
+        self.csrf_token = ""
+
+    @property
+    def username(self):
+        """Return the authenticated username."""
+        return self.oidc.username
 
     @errorhandled
     def save(self, **kwargs) -> 'munch.Munch':
@@ -302,8 +323,8 @@ class BodhiClient(OpenIdBaseClient):
                                      verb='POST', auth=True,
                                      data={'update': update, 'request': request,
                                            'csrf_token': self.csrf()})
-        except fedora.client.ServerError as exc:
-            if exc.code == 404:
+        except RequestException as exc:
+            if exc.response is not None and exc.response.status_code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
                 raise UpdateNotFound(update)
             else:
@@ -329,8 +350,8 @@ class BodhiClient(OpenIdBaseClient):
         try:
             return self.send_request(f'updates/{update}/waive-test-results',
                                      verb='POST', auth=True, data=data)
-        except fedora.client.ServerError as exc:
-            if exc.code == 404:
+        except RequestException as exc:
+            if exc.response.status_code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
                 raise UpdateNotFound(update)
             else:
@@ -350,8 +371,8 @@ class BodhiClient(OpenIdBaseClient):
             return self.send_request(
                 f'updates/{update}/trigger-tests', verb='POST', auth=True,
                 data={'update': update, 'csrf_token': self.csrf()})
-        except fedora.client.ServerError as exc:
-            if exc.code == 404:
+        except RequestException as exc:
+            if exc.response.status_code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
                 raise UpdateNotFound(update)
             else:
@@ -417,6 +438,8 @@ class BodhiClient(OpenIdBaseClient):
             del(kwargs['limit'])
         # 'mine' may be in kwargs, but set False
         if kwargs.get('mine'):
+            if self.username is None:
+                raise BodhiClientException("Could not get user info.")
             kwargs['user'] = self.username
         if 'package' in kwargs:
             # for Bodhi 1, 'package' could be a package name, build, or
@@ -516,8 +539,8 @@ class BodhiClient(OpenIdBaseClient):
         """
         try:
             return self.send_request(f'composes/{release}/{request}', verb='GET')
-        except fedora.client.ServerError as exc:
-            if exc.code == 404:
+        except RequestException as exc:
+            if exc.response.status_code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an ComposeNotFound.
                 raise ComposeNotFound(release, request)
             else:
@@ -571,36 +594,6 @@ class BodhiClient(OpenIdBaseClient):
             params['page'] = page
         return self.send_request('overrides/', verb='GET', params=params)
 
-    def init_username(self):
-        """
-        Check to see if the username attribute on self is set, and set if if it is not.
-
-        If the username is already set on self, return.
-
-        If the username is not already set on self, attempt to find if there is a username that has
-        successfully authenticated in the Fedora session file. If that doesn't work, fall back to
-        prompting the terminal for a username. Once the username has been set, re-run
-        self._load_cookies() so we can re-use the user's last session.
-        """
-        if not self.username:
-            if os.path.exists(fedora.client.openidbaseclient.b_SESSION_FILE):
-                with open(fedora.client.openidbaseclient.b_SESSION_FILE) as session_cache:
-                    try:
-                        sc = json.loads(session_cache.read())
-                    except ValueError:
-                        # If the session cache can't be decoded as JSON, it could be corrupt or
-                        # empty. Either way we can't use it, so let's just pretend it's empty.
-                        sc = {}
-                for key in sc.keys():
-                    if key.startswith(self.base_url) and sc[key]:
-                        self.username = key.split(f'{self.base_url}:')[1]
-                        break
-
-            if not self.username:
-                self.username = input('Username: ')
-
-            self._load_cookies()
-
     @errorhandled
     def csrf(self) -> str:
         """
@@ -615,9 +608,6 @@ class BodhiClient(OpenIdBaseClient):
             The CSRF token.
         """
         if not self.csrf_token:
-            self.init_username()
-            if not self.has_cookies():
-                self.login(self.username, self.password)
             self.csrf_token = self.send_request(
                 'csrf', verb='GET', auth=True)['csrf_token']
         return self.csrf_token
@@ -852,7 +842,7 @@ class BodhiClient(OpenIdBaseClient):
 
         try:
             test_status = self.get_test_status(update['alias'])
-        except (ServerError, requests.exceptions.RequestException) as err:
+        except RequestException as err:
             log.debug('ERROR while retrieving CI status: %s', err)
             test_status = None
 
@@ -982,7 +972,6 @@ class BodhiClient(OpenIdBaseClient):
             A list of koji builds (dictionaries returned by koji.listTagged()) that are tagged
             as candidate builds and are owned by the current user.
         """
-        self.init_username()
         builds = []
         data = self.get_releases()
         koji = self.get_koji_session()

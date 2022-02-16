@@ -15,26 +15,36 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
 """This module contains tests for bodhi.client.bindings."""
+
 from datetime import datetime, timedelta
 from unittest import mock
 import copy
+import os
 
-import fedora.client
+from requests import HTTPError
 import munch
 import pytest
 
-from bodhi.client import bindings
+from bodhi.client import bindings, constants
+from bodhi.client.oidcclient import OIDCClientError
 
 from . import fixtures as client_test_data
-from .utils import compare_output
+from .utils import build_response, compare_output
 
 
-@mock.patch('fedora.client.openidproxyclient.FEDORA_OPENID_API', 'default')
-class TestBodhiClient___init__:
-    """
-    This class contains tests for the BodhiClient.__init__() method.
-    """
+class BodhiClientTestCase:
+    def setup_method(self, method):
+        self.oidcclient_patcher = mock.patch("bodhi.client.bindings.OIDCClient")
+        self.oidcclient_class = self.oidcclient_patcher.start()
+
+    def teardown_method(self, method):
+        self.oidcclient_patcher.stop()
+
+
+class TestBodhiClientBase(BodhiClientTestCase):
+
     def test_base_url_not_ends_in_slash(self):
         """
         If the base_url doesn't end in a slash, __init__() should append one.
@@ -42,66 +52,139 @@ class TestBodhiClient___init__:
         client = bindings.BodhiClient(base_url='http://localhost:6543')
 
         assert client.base_url == 'http://localhost:6543/'
-        assert fedora.client.openidproxyclient.FEDORA_OPENID_API == 'default'
 
-    def test_openid_api(self):
-        """Test the openid_api parameter."""
+    def test_id_provider(self, mocker):
+        """Test the id_provider parameter."""
+        storage = mocker.patch("bodhi.client.bindings.JSONStorage")
+        storage.return_value = mocker.Mock()
+
         client = bindings.BodhiClient(
-            base_url='http://example.com/bodhi/', username='some_user', password='s3kr3t',
-            staging=False, timeout=60, openid_api='https://example.com/api/v1/')
+            base_url='http://example.com/bodhi/', client_id='CLIENT_ID',
+            id_provider='https://id.example.com/', staging=False)
 
         assert client.base_url == 'http://example.com/bodhi/'
-        assert client.login_url == 'http://example.com/bodhi/login?method=openid'
-        assert client.username == 'some_user'
-        assert client.timeout == 60
-        assert client._password == 's3kr3t'
+        self.oidcclient_class.assert_called_with(
+            "CLIENT_ID",
+            constants.SCOPE,
+            "https://id.example.com",
+            storage=storage.return_value
+        )
+        storage.assert_called_with(os.path.expanduser("~/.config/bodhi/client.json"))
         assert client.csrf_token == ''
-        assert fedora.client.openidproxyclient.FEDORA_OPENID_API == 'https://example.com/api/v1/'
 
-    def test_staging_false(self):
-        """
-        Test with staging set to False.
-        """
-        client = bindings.BodhiClient(base_url='http://example.com/bodhi/', username='some_user',
-                                      password='s3kr3t', staging=False, timeout=60)
-
-        assert client.base_url == 'http://example.com/bodhi/'
-        assert client.login_url == 'http://example.com/bodhi/login?method=openid'
-        assert client.username == 'some_user'
-        assert client.timeout == 60
-        assert client._password == 's3kr3t'
-        assert client.csrf_token == ''
-        assert fedora.client.openidproxyclient.FEDORA_OPENID_API == 'default'
-
-    def test_staging_true(self):
+    def test_staging_true(self, mocker):
         """
         Test with staging set to True.
         """
+        storage = mocker.patch("bodhi.client.bindings.JSONStorage")
+        storage.return_value = mocker.Mock()
+
         client = bindings.BodhiClient(
-            base_url='http://example.com/bodhi/', username='some_user', password='s3kr3t',
-            staging=True, retries=5, openid_api='ignored')
+            base_url='http://example.com/bodhi/', client_id='CLIENT_ID',
+            id_provider='https://id.example.com/', staging=True)
 
-        assert client.base_url == bindings.STG_BASE_URL
-        assert client.login_url == bindings.STG_BASE_URL + 'login?method=openid'
-        assert client.username == 'some_user'
-        assert client.timeout is None
-        assert client.retries == 5
-        assert client._password == 's3kr3t'
+        assert client.base_url == constants.STG_BASE_URL
+        self.oidcclient_class.assert_called_with(
+            constants.STG_CLIENT_ID,
+            constants.SCOPE,
+            constants.STG_IDP,
+            storage=storage.return_value
+        )
         assert client.csrf_token == ''
-        assert fedora.client.openidproxyclient.FEDORA_OPENID_API == bindings.STG_OPENID_API
 
 
-class TestBodhiClient_comment:
-    """
-    Test the BodhiClient.comment() method.
-    """
-    def test_comment(self):
+class TestBodhiClientAuth(BodhiClientTestCase):
+    def setup_method(self, method):
+        super().setup_method(method)
+        self.oidc = mock.Mock(name="oidc")
+        self.oidcclient_class.return_value = self.oidc
+
+    def test_ensure_auth_ok(self):
+        self.oidc.has_cookie.return_value = False
+        self.oidc.request.return_value = build_response(200, "/login-token", "")
+        client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
+
+        client.ensure_auth()
+
+        self.oidc.ensure_auth.assert_called_once_with()
+        self.oidc.request.assert_called_once_with(
+            "GET", "http://example.com/bodhi/oidc/login-token"
+        )
+        self.oidc.login.assert_not_called()
+
+    def test_ensure_auth_retry(self):
+        self.oidc.has_cookie.return_value = False
+        self.oidc.request.side_effect = [
+            build_response(401, "/login-token", "nope"),
+            build_response(401, "/login-token", "still no"),
+            build_response(200, "/login-token", "fine."),
+        ]
+        client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
+
+        client.ensure_auth()
+
+        expected_call = mock.call("GET", "http://example.com/bodhi/oidc/login-token")
+        self.oidc.request.call_args_list == [expected_call, expected_call, expected_call]
+        self.oidc.clear_auth.call_count == 2
+        self.oidc.login.call_count == 2
+
+    def test_ensure_auth_failure(self):
+        self.oidc.has_cookie.return_value = False
+        self.oidc.request.return_value = build_response(500, "/login-token", "wat?")
+        client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
+
+        with pytest.raises(HTTPError):
+            client.ensure_auth()
+
+        self.oidc.request.assert_called_once_with(
+            "GET", "http://example.com/bodhi/oidc/login-token"
+        )
+        self.oidc.login.assert_not_called()
+
+    def test_send_request_ok(self):
+        self.oidc.request.return_value = build_response(200, "/url", '{"foo": "bar"}')
+        client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
+
+        response = client.send_request("somewhere", "GET")
+
+        self.oidc.request.assert_called_once_with("GET", "http://example.com/bodhi/somewhere")
+        assert "foo" in response
+        assert response.foo == "bar"
+
+    def test_send_request_with_auth(self, mocker):
+        self.oidc.request.return_value = build_response(200, "/url", '{"foo": "bar"}')
+        client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
+
+        client.send_request("somewhere", "GET", auth=True)
+
+        self.oidc.request.assert_called_once_with("GET", "http://example.com/bodhi/somewhere")
+        self.oidc.ensure_auth.assert_called_once_with()
+
+    def test_send_request_error(self, mocker):
+        self.oidc.request.return_value = build_response(500, "/url", "error")
+        client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
+
+        with pytest.raises(bindings.BodhiClientException) as exc:
+            client.send_request("somewhere", "GET")
+        assert str(exc.value) == "error"
+
+    def test_send_request_failure(self, mocker):
+        self.oidc.request.side_effect = OIDCClientError("Something went wrong")
+        client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
+
+        with pytest.raises(bindings.BodhiClientException) as exc:
+            client.send_request("somewhere", "GET")
+        assert str(exc.value) == "Something went wrong"
+
+
+class TestComment(BodhiClientTestCase):
+    def test_comment(self, mocker):
         """
         Test the comment() method.
         """
         client = bindings.BodhiClient()
         client.csrf_token = 'a token'
-        client.send_request = mock.MagicMock(return_value='response')
+        client.send_request = mocker.MagicMock(return_value='response')
 
         response = client.comment('bodhi-2.4.0-1.fc25', 'It ate my cat!', karma=-1)
 
@@ -112,15 +195,13 @@ class TestBodhiClient_comment:
                   'csrf_token': 'a token'})
 
 
-class TestBodhiClient_compose_str:
-    """Test the BodhiClient.compose_str() method."""
-
-    def test_error_message(self):
+class TestComposeStr(BodhiClientTestCase):
+    def test_error_message(self, mocker):
         """Assert that an error message gets rendered in the long form."""
-        with mock.patch.dict(client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0],
-                             {'error_message': 'some error'}):
-            s = bindings.BodhiClient.compose_str(
-                client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=False)
+        mocker.patch.dict(client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0],
+                          {'error_message': 'some error'})
+        s = bindings.BodhiClient.compose_str(
+            client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=False)
 
         assert '*EPEL-7-stable  :   2 updates (requested)' in s
         assert 'Content Type: rpm' in s
@@ -152,291 +233,51 @@ class TestBodhiClient_compose_str:
 
         assert s == '*EPEL-7-stable  :   2 updates (requested) '
 
-    def test_non_security_update(self):
+    def test_non_security_update(self, mocker):
         """Non-security updates should not have a leading *."""
-        with mock.patch.dict(client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0],
-                             {'security': False}):
-            s = bindings.BodhiClient.compose_str(
-                client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=True)
+        mocker.patch.dict(client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0],
+                          {'security': False})
+        s = bindings.BodhiClient.compose_str(
+            client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=True)
 
         assert s == ' EPEL-7-stable  :   2 updates (requested) '
 
 
-class TestBodhiClient_init_username:
-    """Test the BodhiClient.init_username() method."""
-    TEST_EMPTY_OBJECT_SESSION_CACHE = '{}'
-    TEST_FAILED_SESSION_CACHE = '{"https://bodhi.fedoraproject.org/:bowlofeggs": []}'
-    TEST_HOT_SESSION_CACHE = '{"https://bodhi.fedoraproject.org/:bowlofeggs": [["stuff", "login"]]}'
-    TEST_OTHER_SESSION_CACHE = '{"https://other_domain/:bowlofeggs": [["stuff", "login"]]}'
-
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.input', create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_auth_cache_empty(self, exists, _load_cookies, mock_input, mock_open):
-        """
-        Test the method when there is no username, the session cache exists, and the session cache
-        is 0 bytes.
-        """
-        exists.return_value = True
-        mock_open.side_effect = mock.mock_open(read_data='')
-        mock_input.return_value = 'pongou'
-        client = bindings.BodhiClient()
-
-        client.init_username()
-
-        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
-        assert mock_input.call_count == 1
-        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert client.username == 'pongou'
-
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.input', create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_auth_cache_empty_object(self, exists, _load_cookies, mock_input, mock_open):
-        """
-        Test the method when there is no username, the session cache exists, and the session cache
-        is an empty object.
-        """
-        exists.return_value = True
-        mock_open.side_effect = mock.mock_open(read_data=self.TEST_EMPTY_OBJECT_SESSION_CACHE)
-        mock_input.return_value = 'pongou'
-        client = bindings.BodhiClient()
-
-        client.init_username()
-
-        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
-        assert mock_input.call_count == 1
-        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert client.username == 'pongou'
-
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.input', create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_auth_cache_failed(self, exists, _load_cookies, mock_input, mock_open):
-        """
-        Test the method when there is no username, the session cache exists, and the session cache
-        is missing the cookies.
-        """
-        exists.return_value = True
-        mock_open.side_effect = mock.mock_open(read_data=self.TEST_FAILED_SESSION_CACHE)
-        mock_input.return_value = 'pongou'
-        client = bindings.BodhiClient()
-
-        client.init_username()
-
-        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
-        assert mock_input.call_count == 1
-        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert client.username == 'pongou'
-
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.input', create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_auth_cache_hot(self, exists, _load_cookies, mock_input, mock_open):
-        """
-        Test the method when there is no username, the session cache exists, and the session cache
-        has cookies.
-        """
-        exists.return_value = True
-        mock_open.side_effect = mock.mock_open(read_data=self.TEST_HOT_SESSION_CACHE)
-        client = bindings.BodhiClient()
-
-        client.init_username()
-
-        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
-        assert mock_input.call_count == 0
-        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert client.username == 'bowlofeggs'
-
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.input', create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.json.loads')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_auth_cache_loop(self, exists, loads, _load_cookies, mock_input, mock_open):
-        """
-        Test the method when there is no username, the session cache exists, and the session cache
-        has cookies but iteration is needed to find them.
-        """
-        def fake_keys():
-            return [
-                'http://wrong_host:wrong', 'also:wrong',
-                'https://bodhi.fedoraproject.org/:correct',
-                'https://bodhi.fedoraproject.org/:shouldntgethere']
-
-        exists.return_value = True
-        loads.return_value.keys.side_effect = fake_keys
-        mock_open.side_effect = mock.mock_open(read_data=self.TEST_HOT_SESSION_CACHE)
-        client = bindings.BodhiClient()
-
-        client.init_username()
-
-        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        loads.assert_called_once_with(self.TEST_HOT_SESSION_CACHE)
-        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
-        assert mock_input.call_count == 0
-        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert client.username == 'correct'
-
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.input', create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_auth_cache_missing(self, exists, _load_cookies, mock_input, mock_open):
-        """
-        Test the method when there is no username and the session cache doesn't exist.
-        """
-        exists.return_value = False
-        mock_input.return_value = 'pongou'
-        client = bindings.BodhiClient()
-
-        client.init_username()
-
-        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
-        assert mock_input.call_count == 1
-        assert mock_open.call_count == 0
-        assert client.username == 'pongou'
-
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.input', create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_auth_cache_other_domain(self, exists, _load_cookies, mock_input, mock_open):
-        """
-        Test the method when there is no username, the session cache exists, and the session cache
-        has cookies but they are for a different domain.
-        """
-        exists.return_value = True
-        mock_open.side_effect = mock.mock_open(read_data=self.TEST_OTHER_SESSION_CACHE)
-        mock_input.return_value = 'pongou'
-        client = bindings.BodhiClient()
-
-        client.init_username()
-
-        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
-        assert mock_input.call_count == 1
-        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert client.username == 'pongou'
-
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.input', create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_username_set(self, exists, _load_cookies, mock_input, mock_open):
-        """
-        Test the method when the username is set.
-        """
-        client = bindings.BodhiClient(username='coolbeans')
-
-        client.init_username()
-
-        assert exists.call_count == 0
-        assert _load_cookies.mock_calls == [mock.call()]
-        assert mock_input.call_count == 0
-        assert mock_open.call_count == 0
-        assert client.username == 'coolbeans'
-
-
-class TestBodhiClient_csrf:
-    """
-    Test the BodhiClient.csrf() method.
-    """
-    @mock.patch('bodhi.client.bindings.BodhiClient.init_username')
-    def test_with_csrf_token(self, init_username):
+class TestCSRF(BodhiClientTestCase):
+    def test_with_csrf_token(self, mocker):
         """
         Test the method when csrf_token is set.
         """
         client = bindings.BodhiClient()
         client.csrf_token = 'a token'
-        client.send_request = mock.MagicMock(return_value='response')
+        client.send_request = mocker.MagicMock(return_value='response')
 
         csrf = client.csrf()
 
         assert csrf == 'a token'
         assert client.send_request.call_count == 0
-        # No need to init the username since we already have a token.
-        assert init_username.call_count == 0
 
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.input', create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_without_csrf_token_with_cookies(self, exists, _load_cookies, mock_input,
-                                             mock_open):
+    def test_without_csrf_token_without_cookies(self, mocker):
         """
-        Test the method when csrf_token is not set and has_cookies() returns True.
+        Test the method when csrf_token is not set.
         """
-        exists.return_value = True
-        mock_open.side_effect = mock.mock_open(
-            read_data=TestBodhiClient_init_username.TEST_HOT_SESSION_CACHE)
         client = bindings.BodhiClient()
-        client.has_cookies = mock.MagicMock(return_value=True)
-        client.login = mock.MagicMock(return_value='login successful')
-        client.send_request = mock.MagicMock(return_value={'csrf_token': 'a great token'})
+        client.send_request = mocker.MagicMock(return_value={'csrf_token': 'a great token'})
 
         csrf = client.csrf()
 
         assert csrf == 'a great token'
         assert client.csrf_token == 'a great token'
-        client.has_cookies.assert_called_once_with()
-        assert client.login.call_count == 0
         client.send_request.assert_called_once_with('csrf', verb='GET', auth=True)
-        # Ensure that init_username() was called and did its thing.
-        exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
-        assert mock_input.call_count == 0
-        mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        assert client.username == 'bowlofeggs'
-
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.input', create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_without_csrf_token_without_cookies(self, exists, _load_cookies, mock_input,
-                                                mock_open):
-        """
-        Test the method when csrf_token is not set and has_cookies() returns False.
-        """
-        client = bindings.BodhiClient(username='pongou', password='illnevertell')
-        client.has_cookies = mock.MagicMock(return_value=False)
-        client.login = mock.MagicMock(return_value='login successful')
-        client.send_request = mock.MagicMock(return_value={'csrf_token': 'a great token'})
-
-        csrf = client.csrf()
-
-        assert csrf == 'a great token'
-        assert client.csrf_token == 'a great token'
-        client.has_cookies.assert_called_once_with()
-        client.login.assert_called_once_with('pongou', 'illnevertell')
-        client.send_request.assert_called_once_with('csrf', verb='GET', auth=True)
-        # Ensure that init_username() didn't do anything since a username was given.
-        assert exists.call_count == 0
-        assert _load_cookies.mock_calls == [mock.call()]
-        assert mock_input.call_count == 0
-        assert mock_open.call_count == 0
-        assert client.username == 'pongou'
 
 
-class TestBodhiClient_latest_builds:
-    """
-    Test the BodhiClient.latest_builds() method.
-    """
-    def test_latest_builds(self):
+class TestLatestBuilds(BodhiClientTestCase):
+    def test_latest_builds(self, mocker):
         """
         Test latest_builds().
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='bodhi-2.4.0-1.fc25')
+        client.send_request = mocker.MagicMock(return_value='bodhi-2.4.0-1.fc25')
 
         latest_builds = client.latest_builds('bodhi')
 
@@ -444,24 +285,20 @@ class TestBodhiClient_latest_builds:
         client.send_request.assert_called_once_with('latest_builds', params={'package': 'bodhi'})
 
 
-class TestBodhiClient_get_compose:
-    """
-    This class contains tests for BodhiClient.get_compose().
-    """
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                side_effect=fedora.client.ServerError(
-                    url='http://example.com/tests/composes/EPEL-7/stable', status=404,
-                    msg='update not found'))
-    def test_404_error(self, send_request, __init__):
+class TestCompose(BodhiClientTestCase):
+    def test_get_compose_404_error(self, mocker):
         """
         Test for the case when the server returns a 404 error code.
         """
-        client = bindings.BodhiClient(staging=False)
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        client.csrf_token = 'a_csrf_token'
+        send_request = mocker.patch.object(client, "send_request")
+        send_request.side_effect = HTTPError(
+            response=build_response(
+                404, "http://example.com/tests/composes/EPEL-7/stable", "update not found"
+            )
+        )
 
         with pytest.raises(bindings.ComposeNotFound) as exc:
             client.get_compose('EPEL-7', 'stable')
@@ -470,59 +307,48 @@ class TestBodhiClient_get_compose:
         assert exc.value.request == 'stable'
 
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
-        __init__.assert_called_once_with(staging=False)
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_COMPOSE_MUNCH)
-    def test_successful_request(self, send_request, __init__):
+    def test_get_compose_successful_request(self, mocker):
         """
         Test with a successful request.
         """
-        client = bindings.BodhiClient(staging=False)
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        client.csrf_token = 'a_csrf_token'
+        send_request = mocker.patch.object(client, "send_request")
+        send_request.return_value = client_test_data.EXAMPLE_COMPOSE_MUNCH
 
         response = client.get_compose('EPEL-7', 'stable')
 
         assert response == client_test_data.EXAMPLE_COMPOSE_MUNCH
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
-        __init__.assert_called_once_with(staging=False)
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request')
-    def test_other_ServerError(self, send_request, __init__):
+    def test_get_compose_other_http_error(self, mocker):
         """
-        Test for the case when a non-404 ServerError is raised.
+        Test for the case when a non-404 http error is raised.
         """
-        server_error = fedora.client.ServerError(
-            url='http://example.com/tests/composes/EPEL-7/stable', status=500,
-            msg='Internal server error')
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        client.csrf_token = 'a_csrf_token'
+        send_request = mocker.patch.object(client, "send_request")
+        server_error = HTTPError(
+            response=build_response(
+                500, "http://example.com/tests/composes/EPEL-7/stable", "Internal server error"
+            )
+        )
         send_request.side_effect = server_error
-        client = bindings.BodhiClient(staging=False)
 
-        with pytest.raises(fedora.client.ServerError) as exc:
+        with pytest.raises(HTTPError) as exc:
             client.get_compose('EPEL-7', 'stable')
 
         assert exc.value is server_error
 
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
-        __init__.assert_called_once_with(staging=False)
 
-
-class TestBodhiClient_list_composes:
-    """Test the BodhiClient.list_composes() method."""
-
-    def test_list_composes(self):
+    def test_list_composes(self, mocker):
         """Assert a correct call to send_request() from list_composes()."""
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='some_composes')
+        client.send_request = mocker.MagicMock(return_value='some_composes')
 
         composes = client.list_composes()
 
@@ -530,16 +356,13 @@ class TestBodhiClient_list_composes:
         client.send_request.assert_called_once_with('composes/', verb='GET')
 
 
-class TestBodhiClient_list_overrides:
-    """
-    Test the BodhiClient.list_overrides() method.
-    """
-    def test_with_user(self):
+class TestListOverrides(BodhiClientTestCase):
+    def test_with_user(self, mocker):
         """
         Test with the user parameter.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='response')
+        client.send_request = mocker.MagicMock(return_value='response')
 
         response = client.list_overrides(user='bowlofeggs')
 
@@ -547,24 +370,24 @@ class TestBodhiClient_list_overrides:
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'user': 'bowlofeggs'})
 
-    def test_without_parameters(self):
+    def test_without_parameters(self, mocker):
         """
         Test without the parameters.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='response')
+        client.send_request = mocker.MagicMock(return_value='response')
 
         response = client.list_overrides()
 
         assert response == 'response'
         client.send_request.assert_called_once_with('overrides/', verb='GET', params={})
 
-    def test_with_package(self):
+    def test_with_package(self, mocker):
         """
         Test with the package parameter.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='response')
+        client.send_request = mocker.MagicMock(return_value='response')
 
         response = client.list_overrides(packages='bodhi')
 
@@ -572,12 +395,12 @@ class TestBodhiClient_list_overrides:
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'packages': 'bodhi'})
 
-    def test_with_expired(self):
+    def test_with_expired(self, mocker):
         """
         Test --expired with the expired/active click boolean parameter.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='response')
+        client.send_request = mocker.MagicMock(return_value='response')
 
         response = client.list_overrides(expired=True)
 
@@ -585,12 +408,12 @@ class TestBodhiClient_list_overrides:
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'expired': True})
 
-    def test_with_active(self):
+    def test_with_active(self, mocker):
         """
         Test --active with the expired/active click boolean parameter.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='response')
+        client.send_request = mocker.MagicMock(return_value='response')
 
         response = client.list_overrides(expired=False)
 
@@ -598,12 +421,12 @@ class TestBodhiClient_list_overrides:
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'expired': False})
 
-    def test_with_releases(self):
+    def test_with_releases(self, mocker):
         """
         Test with the releases parameter.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='response')
+        client.send_request = mocker.MagicMock(return_value='response')
 
         response = client.list_overrides(releases='F24')
 
@@ -611,12 +434,12 @@ class TestBodhiClient_list_overrides:
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'releases': 'F24'})
 
-    def test_with_builds(self):
+    def test_list_overrides_with_builds(self, mocker):
         """
         Test with the builds parameter.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='response')
+        client.send_request = mocker.MagicMock(return_value='response')
 
         response = client.list_overrides(builds='python-1.5.6-3.fc26')
 
@@ -624,12 +447,12 @@ class TestBodhiClient_list_overrides:
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'builds': 'python-1.5.6-3.fc26'})
 
-    def test_with_rows_per_page(self):
+    def test_list_overrides_with_rows_per_page(self, mocker):
         """
         Test with the rows_per_page parameter.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='response')
+        client.send_request = mocker.MagicMock(return_value='response')
 
         response = client.list_overrides(rows_per_page=10)
 
@@ -637,12 +460,12 @@ class TestBodhiClient_list_overrides:
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'rows_per_page': 10})
 
-    def test_with_page(self):
+    def test_list_overrides_with_page(self, mocker):
         """
         Test with the page parameter.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='response')
+        client.send_request = mocker.MagicMock(return_value='response')
 
         response = client.list_overrides(page=5)
 
@@ -651,10 +474,7 @@ class TestBodhiClient_list_overrides:
                                                     params={'page': 5})
 
 
-class TestBodhiClient_override_str:
-    """
-    Test the BodhiClient.override_str() method.
-    """
+class TestOverrideStr(BodhiClientTestCase):
     def test_with_min_dict(self):
         """
         Test override_str() with a dict argument and minimal set to true.
@@ -689,42 +509,13 @@ class TestBodhiClient_override_str:
         assert override == 'this is an override'
 
 
-class TestBodhiClient_password:
-    """
-    This class contains tests for the BodhiClient.password property.
-    """
-    @mock.patch('bodhi.client.bindings.getpass.getpass', return_value='typed password')
-    def test_password_not_set(self, getpass):
-        """
-        Assert correct behavior when the _password attribute is not set.
-        """
-        client = bindings.BodhiClient()
-
-        assert client.password == 'typed password'
-
-        getpass.assert_called_once_with()
-
-    @mock.patch('bodhi.client.bindings.getpass.getpass', return_value='typed password')
-    def test_password_set(self, getpass):
-        """
-        Assert correct behavior when the _password attribute is set.
-        """
-        client = bindings.BodhiClient(password='arg password')
-
-        assert client.password == 'arg password'
-        assert getpass.call_count == 0
-
-
-class TestBodhiClient_query:
-    """
-    Test BodhiClient.query().
-    """
-    def test_with_bugs_empty_string(self):
+class TestQuery(BodhiClientTestCase):
+    def test_with_bugs_empty_string(self, mocker):
         """
         Test with the bugs kwargs set to an empty string.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(builds='bodhi-2.4.0-1.fc26', bugs='')
 
@@ -732,12 +523,12 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'builds': 'bodhi-2.4.0-1.fc26', 'bugs': None})
 
-    def test_with_limit(self):
+    def test_with_limit(self, mocker):
         """
         Assert that the limit kwargs gets translated to rows_per_page correctly.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(builds='bodhi-2.4.0-1.fc26', limit=50)
 
@@ -745,12 +536,12 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'builds': 'bodhi-2.4.0-1.fc26', 'rows_per_page': 50})
 
-    def test_with_mine_false(self):
+    def test_with_mine_false(self, mocker):
         """
         Assert correct behavior when the mine kwargs is False.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(builds='bodhi-2.4.0-1.fc26', mine=False)
 
@@ -758,13 +549,13 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'builds': 'bodhi-2.4.0-1.fc26', 'mine': False})
 
-    def test_with_mine_true(self):
+    def test_with_mine_true(self, mocker):
         """
         Assert correct behavior when the mine kwargs is True.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
-        client.username = 'bowlofeggs'
+        client.send_request = mocker.MagicMock(return_value='return_value')
+        client.oidc.username = 'bowlofeggs'
 
         result = client.query(builds='bodhi-2.4.0-1.fc26', mine=True)
 
@@ -773,12 +564,24 @@ class TestBodhiClient_query:
             'updates/', verb='GET',
             params={'builds': 'bodhi-2.4.0-1.fc26', 'mine': True, 'user': 'bowlofeggs'})
 
-    def test_with_package_el_build(self):
+    def test_with_mine_no_username(self, mocker):
+        """
+        Assert correct behavior when the mine kwargs is True but we are not authentified.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mocker.MagicMock(return_value='return_value')
+        client.oidc.username = None
+
+        with pytest.raises(bindings.BodhiClientException) as exc:
+            client.query(builds='bodhi-2.4.0-1.fc26', mine=True)
+        assert str(exc.value) == "Could not get user info."
+
+    def test_with_package_el_build(self, mocker):
         """
         Test with the package arg expressed as an el7 build.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(package='bodhi-2.4.0-1.el7')
 
@@ -786,12 +589,12 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'builds': 'bodhi-2.4.0-1.el7'})
 
-    def test_with_package_epel_id(self):
+    def test_with_package_epel_id(self, mocker):
         """
         Test with the package arg expressed as a EPEL update id.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(package='FEDORA-EPEL-2017-c3b112eb9e')
 
@@ -799,12 +602,12 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'updateid': 'FEDORA-EPEL-2017-c3b112eb9e'})
 
-    def test_with_package_fc_build(self):
+    def test_with_package_fc_build(self, mocker):
         """
         Test with the package arg expressed as a fc26 build.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(package='bodhi-2.4.0-1.fc26')
 
@@ -812,12 +615,12 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'builds': 'bodhi-2.4.0-1.fc26'})
 
-    def test_with_package_fedora_id(self):
+    def test_with_package_fedora_id(self, mocker):
         """
         Test with the package arg expressed as a Fedora update id.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(package='FEDORA-2017-52506b30d4')
 
@@ -825,12 +628,12 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'updateid': 'FEDORA-2017-52506b30d4'})
 
-    def test_with_package_name(self):
+    def test_with_package_name(self, mocker):
         """
         Test with the package arg expressed as a package name.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(package='bodhi')
 
@@ -838,12 +641,12 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi'})
 
-    def test_with_release_list(self):
+    def test_with_release_list(self, mocker):
         """
         Test with a 'release' kwarg set to a list.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(packages='bodhi', release=['f27'])
 
@@ -851,12 +654,12 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi', 'releases': ['f27']})
 
-    def test_with_release_str(self):
+    def test_with_release_str(self, mocker):
         """
         Test with a 'release' kwarg set to a str.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(packages='bodhi', release='f26')
 
@@ -864,12 +667,12 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi', 'releases': ['f26']})
 
-    def test_with_type_(self):
+    def test_with_type_(self, mocker):
         """
         Test with the type_ kwarg.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(packages='bodhi', type_='security')
 
@@ -877,12 +680,12 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi', 'type': 'security'})
 
-    def test_with_rows_per_page(self):
+    def test_query_with_rows_per_page(self, mocker):
         """
         Test with the 'rows_per_page' kwarg.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(packages='bodhi', rows_per_page=10)
 
@@ -890,12 +693,12 @@ class TestBodhiClient_query:
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi', 'rows_per_page': 10})
 
-    def test_with_page(self):
+    def test_query_with_page(self, mocker):
         """
         Test with the 'page' kwarg.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
 
         result = client.query(packages='bodhi', page=5)
 
@@ -904,16 +707,13 @@ class TestBodhiClient_query:
             'updates/', verb='GET', params={'packages': 'bodhi', 'page': 5})
 
 
-class TestBodhiClient_save:
-    """
-    This class contains tests for BodhiClient.save().
-    """
-    def test_with_type_(self):
+class TestSave(BodhiClientTestCase):
+    def test_save_with_type_(self, mocker):
         """
         Assert that save() handles type_ as a kwargs for backwards compatibility.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
         client.csrf_token = 'a token'
         kwargs = {
             'builds': ['bodhi-2.4.0-1.fc26'], 'type_': 'enhancement', 'notes': 'This is a test',
@@ -927,12 +727,12 @@ class TestBodhiClient_save:
         kwargs['csrf_token'] = 'a token'
         client.send_request.assert_called_once_with('updates/', verb='POST', auth=True, data=kwargs)
 
-    def test_without_type_(self):
+    def test_without_type_(self, mocker):
         """
         Assert correct operation when type_ isn't given.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
         client.csrf_token = 'a token'
         kwargs = {
             'builds': ['bodhi-2.4.0-1.fc26'], 'type': 'enhancement', 'notes': 'This is a test',
@@ -946,16 +746,13 @@ class TestBodhiClient_save:
         client.send_request.assert_called_once_with('updates/', verb='POST', auth=True, data=kwargs)
 
 
-class TestBodhiClient_save_override:
-    """
-    This class contains tests for BodhiClient.save_override().
-    """
-    def test_save_override(self):
+class TestSaveOverride(BodhiClientTestCase):
+    def test_save_override(self, mocker):
         """
         Test the save_override() method.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
         client.csrf_token = 'a token'
         now = datetime.utcnow()
         response = client.save_override(nvr='python-pyramid-1.5.6-3.el7',
@@ -975,12 +772,12 @@ class TestBodhiClient_save_override:
         expected_expiration = now + timedelta(days=2)
         assert (actual_expiration - expected_expiration) < timedelta(minutes=5)
 
-    def test_save_override_edit(self):
+    def test_save_override_edit(self, mocker):
         """
         Test the save_override() method with the edit argument.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
         client.csrf_token = 'a token'
         now = datetime.utcnow()
         response = client.save_override(nvr='python-pyramid-1.5.6-3.el7',
@@ -1002,12 +799,12 @@ class TestBodhiClient_save_override:
         expected_expiration = now + timedelta(days=2)
         assert (actual_expiration - expected_expiration) < timedelta(minutes=5)
 
-    def test_save_override_expired(self):
+    def test_save_override_expired(self, mocker):
         """
         Test the save_override() method with the edit argument.
         """
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
+        client.send_request = mocker.MagicMock(return_value='return_value')
         client.csrf_token = 'a token'
         now = datetime.utcnow()
         response = client.save_override(nvr='python-pyramid-1.5.6-3.el7',
@@ -1030,24 +827,21 @@ class TestBodhiClient_save_override:
         assert (actual_expiration - expected_expiration) < timedelta(minutes=5)
 
 
-class TestBodhiClient_request:
-    """
-    This class contains tests for BodhiClient.request().
-    """
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                side_effect=fedora.client.ServerError(
-                    url='http://example.com/tests/updates/bodhi-2.2.4-99.el7/request', status=404,
-                    msg='update not found'))
-    def test_404_error(self, send_request, __init__):
+class TestRequest(BodhiClientTestCase):
+    def test_request_404_error(self, mocker):
         """
         Test for the case when the server returns a 404 error code.
         """
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
+        client = bindings.BodhiClient()
+        client.csrf_token = 'a_csrf_token'
+        send_request = mocker.patch.object(client, "send_request")
+        send_request.side_effect = HTTPError(
+            response=build_response(
+                404,
+                "http://example.com/tests/updates/bodhi-2.2.4-99.el7/request",
+                "update not found"
+            )
+        )
 
         with pytest.raises(bindings.UpdateNotFound) as exc:
             client.request('bodhi-2.2.4-1.el7', 'revoke')
@@ -1058,20 +852,15 @@ class TestBodhiClient_request:
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': 'revoke',
                   'update': 'bodhi-2.2.4-1.el7'})
-        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH)
-    def test_successful_request(self, send_request, __init__):
+    def test_request_successful_request(self, mocker):
         """
         Test with a successful request.
         """
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
+        client = bindings.BodhiClient()
+        send_request = mocker.patch.object(client, "send_request")
+        send_request.return_value = client_test_data.EXAMPLE_UPDATE_MUNCH
+        client.csrf_token = 'a_csrf_token'
 
         response = client.request('bodhi-2.2.4-1.el7', 'revoke')
 
@@ -1080,25 +869,24 @@ class TestBodhiClient_request:
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': 'revoke',
                   'update': 'bodhi-2.2.4-1.el7'})
-        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request')
-    def test_other_ServerError(self, send_request, __init__):
+    def test_request_other_http_error(self, mocker):
         """
-        Test for the case when a non-404 ServerError is raised.
+        Test for the case when a non-404 http error is raised.
         """
-        server_error = fedora.client.ServerError(
-            url='http://example.com/tests/updates/bodhi-2.2.4-99.el7/request', status=500,
-            msg='Internal server error')
+        client = bindings.BodhiClient()
+        send_request = mocker.patch.object(client, "send_request")
+        client.csrf_token = 'a_csrf_token'
+        server_error = HTTPError(
+            response=build_response(
+                500,
+                "http://example.com/tests/updates/bodhi-2.2.4-99.el7/request",
+                "Internal server error",
+            )
+        )
         send_request.side_effect = server_error
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
 
-        with pytest.raises(fedora.client.ServerError) as exc:
+        with pytest.raises(HTTPError) as exc:
             client.request('bodhi-2.2.4-1.el7', 'revoke')
 
         assert exc.value is server_error
@@ -1107,18 +895,18 @@ class TestBodhiClient_request:
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': 'revoke',
                   'update': 'bodhi-2.2.4-1.el7'})
-        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
 
-class TestBodhiClient_update_str:
-    """This test contains tests for BodhiClient.update_str."""
-    @mock.patch.dict(
-        client_test_data.EXAMPLE_UPDATE_MUNCH,
-        {'bugs': [{'bug_id': 1234, 'title': 'it broke'}, {'bug_id': 1235, 'title': 'halp'}]})
-    def test_bugs(self):
+class TestUpdateStr(BodhiClientTestCase):
+    def test_bugs(self, mocker):
         """Ensure correct output when there are bugs on the update."""
+        mocker.patch.dict(
+            client_test_data.EXAMPLE_UPDATE_MUNCH,
+            {'bugs': [{'bug_id': 1234, 'title': 'it broke'}, {'bug_id': 1235, 'title': 'halp'}]}
+        )
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        mocker.patch.object(client, "send_request")
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
@@ -1127,9 +915,9 @@ class TestBodhiClient_update_str:
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
                 'Autotime: True', 'Autotime: True\n   Bugs: 1234 - it broke\n    : 1235 - halp'))
 
-    @mock.patch('bodhi.client.bindings.datetime.datetime')
-    def test_minimal(self, mock_datetime):
+    def test_minimal(self, mocker):
         """Ensure correct output when minimal is True."""
+        mock_datetime = mocker.patch("bodhi.client.bindings.datetime.datetime")
         client = bindings.BodhiClient()
         mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
         mock_datetime.strptime = datetime.strptime
@@ -1140,14 +928,13 @@ class TestBodhiClient_update_str:
                            '2016-10-21 (2)')
         assert text == expected_output
 
-    @mock.patch.dict(
-        client_test_data.EXAMPLE_UPDATE_MUNCH,
-        {'date_pushed': '',
-         'pushed': False,
-         'status': 'pending'})
-    @mock.patch('bodhi.client.bindings.datetime.datetime')
-    def test_minimal_not_pushed(self, mock_datetime):
+    def test_minimal_not_pushed(self, mocker):
         """Ensure correct output when minimal is True and not yet pushed."""
+        mocker.patch.dict(
+            client_test_data.EXAMPLE_UPDATE_MUNCH,
+            {'date_pushed': '', 'pushed': False, 'status': 'pending'}
+        )
+        mock_datetime = mocker.patch("bodhi.client.bindings.datetime.datetime")
         client = bindings.BodhiClient()
         mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 5, 23, 0, 0))
         mock_datetime.strptime = datetime.strptime
@@ -1158,12 +945,13 @@ class TestBodhiClient_update_str:
                            '2016-10-05 (0)')
         assert text == expected_output
 
-    @mock.patch.dict(
-        client_test_data.EXAMPLE_UPDATE_MUNCH,
-        {'type': 'security'})
-    @mock.patch('bodhi.client.bindings.datetime.datetime')
-    def test_minimal_type_security(self, mock_datetime):
+    def test_minimal_type_security(self, mocker):
         """Ensure correct output when minimal is True and type security"""
+        mocker.patch.dict(
+            client_test_data.EXAMPLE_UPDATE_MUNCH,
+            {'type': 'security'}
+        )
+        mock_datetime = mocker.patch("bodhi.client.bindings.datetime.datetime")
         client = bindings.BodhiClient()
         mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
         mock_datetime.strptime = datetime.strptime
@@ -1174,16 +962,19 @@ class TestBodhiClient_update_str:
                            '2016-10-21 (2)')
         assert text == expected_output
 
-    @mock.patch.dict(
-        client_test_data.EXAMPLE_UPDATE_MUNCH,
-        {'builds': [{'epoch': 0, 'nvr': 'bodhi-2.2.4-1.el7', 'signed': True},
-                    {'epoch': 0, 'nvr': 'bodhi-pants-2.2.4-1.el7', 'signed': True}]})
-    @mock.patch('bodhi.client.bindings.datetime.datetime')
-    def test_minimal_with_multiple_builds(self, mock_datetime):
+    def test_minimal_with_multiple_builds(self, mocker):
         """Ensure correct output when minimal is True, and multiple builds"""
-        client = bindings.BodhiClient()
+        mocker.patch.dict(
+            client_test_data.EXAMPLE_UPDATE_MUNCH,
+            {'builds': [
+                {'epoch': 0, 'nvr': 'bodhi-2.2.4-1.el7', 'signed': True},
+                {'epoch': 0, 'nvr': 'bodhi-pants-2.2.4-1.el7', 'signed': True}
+            ]}
+        )
+        mock_datetime = mocker.patch("bodhi.client.bindings.datetime.datetime")
         mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
         mock_datetime.strptime = datetime.strptime
+        client = bindings.BodhiClient()
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
 
@@ -1191,12 +982,13 @@ class TestBodhiClient_update_str:
                            '2016-10-21 (2)\n  bodhi-pants-2.2.4-1.el7')
         assert text == expected_output
 
-    @mock.patch.dict(
-        client_test_data.EXAMPLE_UPDATE_MUNCH,
-        {'builds': [], 'title': 'update-title'})
-    @mock.patch('bodhi.client.bindings.datetime.datetime')
-    def test_minimal_no_builds(self, mock_datetime):
+    def test_minimal_no_builds(self, mocker):
         """Ensure correct output when minimal is True, and there are no builds"""
+        mocker.patch.dict(
+            client_test_data.EXAMPLE_UPDATE_MUNCH,
+            {'builds': [], 'title': 'update-title'}
+        )
+        mock_datetime = mocker.patch("bodhi.client.bindings.datetime.datetime")
         client = bindings.BodhiClient()
         mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
         mock_datetime.strptime = datetime.strptime
@@ -1207,13 +999,16 @@ class TestBodhiClient_update_str:
                            '2016-10-21 (2)')
         assert text == expected_output
 
-    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'title': None, 'builds': []})
-    @mock.patch('bodhi.client.bindings.datetime.datetime')
-    def test_minimal_no_title(self, mock_datetime):
+    def test_minimal_no_title(self, mocker):
         """Ensure correct output when minimal is True, and there are neither a title nor builds"""
-        client = bindings.BodhiClient()
+        mocker.patch.dict(
+            client_test_data.EXAMPLE_UPDATE_MUNCH,
+            {'title': None, 'builds': []}
+        )
+        mock_datetime = mocker.patch("bodhi.client.bindings.datetime.datetime")
         mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
         mock_datetime.strptime = datetime.strptime
+        client = bindings.BodhiClient()
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
 
@@ -1222,13 +1017,16 @@ class TestBodhiClient_update_str:
                            '2016-10-21 (2)')
         assert text == expected_output
 
-    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'content_type': None})
-    @mock.patch('bodhi.client.bindings.datetime.datetime')
-    def test_minimal_no_content_type(self, mock_datetime):
+    def test_minimal_no_content_type(self, mocker):
         """Ensure correct output when minimal is True, and and there is no content-type"""
-        client = bindings.BodhiClient()
+        mocker.patch.dict(
+            client_test_data.EXAMPLE_UPDATE_MUNCH,
+            {'content_type': None}
+        )
+        mock_datetime = mocker.patch("bodhi.client.bindings.datetime.datetime")
         mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
         mock_datetime.strptime = datetime.strptime
+        client = bindings.BodhiClient()
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
 
@@ -1237,11 +1035,15 @@ class TestBodhiClient_update_str:
                            '2016-10-21 (2)')
         assert text == expected_output
 
-    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'request': 'stable'})
-    def test_request_stable(self):
+    def test_request_stable(self, mocker):
         """Ensure correct output when the update is request stable."""
+        mocker.patch.dict(
+            client_test_data.EXAMPLE_UPDATE_MUNCH,
+            {'request': 'stable'}
+        )
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        mocker.patch.object(client, "send_request")
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
         print("This is", text)
@@ -1251,32 +1053,35 @@ class TestBodhiClient_update_str:
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
                 'Autotime: True', 'Autotime: True\n     Request: stable'))
 
-    def test_severity(self):
+    def test_severity(self, mocker):
         """Test that severity is rendered."""
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        mocker.patch.object(client, "send_request")
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
         assert 'Severity: unspecified' in text
 
-    def test_with_autokarma_set(self):
+    def test_with_autokarma_set(self, mocker):
         """
         Ensure correct operation when autokarma is True..
         """
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t')
+        client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        mocker.patch.object(client, "send_request")
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
         assert compare_output(text, client_test_data.EXPECTED_UPDATE_OUTPUT)
 
-    def test_with_autokarma_unset(self):
+    def test_with_autokarma_unset(self, mocker):
         """
         Ensure correct operation when autokarma is False.
         """
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t')
+        client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        mocker.patch.object(client, "send_request")
         update = copy.deepcopy(client_test_data.EXAMPLE_UPDATE_MUNCH)
         # Set the update's autokarma and to False.
         update.autokarma = False
@@ -1287,23 +1092,25 @@ class TestBodhiClient_update_str:
             'Autokarma: True  [-3, 3]', 'Autokarma: False  [-3, 3]')
         assert compare_output(text, expected_output)
 
-    def test_autotime_set(self):
+    def test_autotime_set(self, mocker):
         """
         Ensure correct operation when autotime is True.
         """
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t')
+        client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        mocker.patch.object(client, "send_request")
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
         assert compare_output(text, client_test_data.EXPECTED_UPDATE_OUTPUT)
 
-    def test_autotime_unset(self):
+    def test_autotime_unset(self, mocker):
         """
         Ensure correct operation when autotime is False.
         """
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t')
+        client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        mocker.patch.object(client, "send_request")
         update = copy.deepcopy(client_test_data.EXAMPLE_UPDATE_MUNCH)
         # Set the update's autotime and to False.
         update.autotime = False
@@ -1323,39 +1130,43 @@ class TestBodhiClient_update_str:
 
         assert text == "this is a string"
 
-    @mock.patch.dict(
-        client_test_data.EXAMPLE_UPDATE_MUNCH.comments[0],
-        {'text': 'This comment contains a unicode char ☺. '})
-    def test_update_with_unicode_comment(self):
+    def test_update_with_unicode_comment(self, mocker):
         """Ensure unicode content in update comments is correctly handled"""
+        mocker.patch.dict(
+            client_test_data.EXAMPLE_UPDATE_MUNCH.comments[0],
+            {'text': 'This comment contains a unicode char ☺. '}
+        )
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        mocker.patch.object(client, "send_request")
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
         assert compare_output(
             text,
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-                'Comments: This update has been submitted for testing by bowlofeggs. ',
-                'Comments: This comment contains a unicode char ☺. '))
+                'This update has been submitted for testing by bowlofeggs.',
+                'This comment contains a unicode char ☺.'))
 
-    @mock.patch.dict(
-        client_test_data.EXAMPLE_UPDATE_MUNCH,
-        {'notes': 'This note contains a unicode char ☺'})
-    def test_update_with_unicode_note(self):
+    def test_update_with_unicode_note(self, mocker):
         """Ensure unicode content in update notes is correctly handled"""
+        mocker.patch.dict(
+            client_test_data.EXAMPLE_UPDATE_MUNCH,
+            {'notes': 'This note contains a unicode char ☺'}
+        )
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        mocker.patch.object(client, "send_request")
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
         assert 'Notes: This note contains a unicode char ☺' in text
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
-    def test_ci_status_errors(self, get_test_status):
+    def test_ci_status_errors(self, mocker):
         """Ensure that ci error is displayed"""
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        get_test_status = mocker.patch.object(client, "get_test_status")
         get_test_status.return_value = munch.Munch(
             {'errors': [munch.Munch({'description': 'bar'})]})
 
@@ -1363,11 +1174,22 @@ class TestBodhiClient_update_str:
 
         assert 'CI Status: bar\n' in text
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
-    def test_ci_status(self, get_test_status):
+    def test_ci_status_failure(self, mocker):
+        """Ensure that ci is not displayed when it fails"""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        get_test_status = mocker.patch.object(client, "get_test_status")
+        get_test_status.side_effect = HTTPError("testing error")
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        assert 'CI Status' not in text
+
+    def test_ci_status(self, mocker):
         """Ensure that ci information is displayed"""
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        get_test_status = mocker.patch.object(client, "get_test_status")
         get_test_status.return_value = munch.Munch(
             {'decision': munch.Munch({'summary': 'no tests required', 'waivers': []})}
         )
@@ -1376,11 +1198,11 @@ class TestBodhiClient_update_str:
 
         assert 'CI Status: no tests required\n' in text
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
-    def test_waived_tests(self, get_test_status):
+    def test_waived_tests(self, mocker):
         """Ensure that information about waived tests is rendered"""
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        get_test_status = mocker.patch.object(client, "get_test_status")
         get_test_status.return_value = munch.Munch(
             {'decision': munch.Munch({
                 'summary': 'no tests required',
@@ -1402,11 +1224,11 @@ class TestBodhiClient_update_str:
             in text
         )
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
-    def test_ci_status_new_format(self, get_test_status):
+    def test_ci_status_new_format(self, mocker):
         """Ensure that ci information is displayed with Greenwave's new format"""
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        get_test_status = mocker.patch.object(client, "get_test_status")
         get_test_status.return_value = munch.Munch(
             {'decisions': [munch.Munch({'summary': 'no tests required', 'waivers': []})]}
         )
@@ -1415,13 +1237,16 @@ class TestBodhiClient_update_str:
 
         assert 'CI Status: no tests required\n' in text
 
-    @mock.patch.dict(
-        client_test_data.EXAMPLE_UPDATE_MUNCH,
-        {'notes': 'This note contains:\n* multiline formatting\n* bullet points\n\n'})
-    def test_notes_multiline(self):
+    def test_notes_multiline(self, mocker):
         """Ensure that multiline notes are rendered"""
+        mocker.patch.dict(
+            client_test_data.EXAMPLE_UPDATE_MUNCH,
+            {'notes': 'This note contains:\n* multiline formatting\n* bullet points\n\n'}
+        )
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
+        mocker.patch.object(client, "send_request")
+
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
         assert 'Notes: This note contains:\n' in text
@@ -1429,10 +1254,7 @@ class TestBodhiClient_update_str:
         assert '     : * bullet points\n' in text
 
 
-class TestErrorhandled:
-    """
-    This class tests the errorhandled decorator.
-    """
+class TestErrorHandled:
     def test_failure_with_given_errors(self):
         """
         Test the failure case for when errors were given in the response.
@@ -1450,67 +1272,7 @@ class TestErrorhandled:
 
         assert str(exc.value) == 'insert\ncoin(s)'
 
-    def test_retry_on_auth_failure_failure(self):
-        """
-        Test the decorator when the wrapped method raises an AuthError the second time it is run.
-
-        This test ensures that the decorator will give up after one retry if the wrapped method
-        raises a fedora.client.AuthError, raising the AuthError in question.
-
-        This test was written to assert the fix for
-        https://github.com/fedora-infra/bodhi/issues/1474
-        """
-        a_fake_self = mock.MagicMock()
-        a_fake_self.csrf_token = 'some_token'
-        a_fake_self.call_count = 0
-
-        @bindings.errorhandled
-        def wrong_password_lol(a_fake_self):
-            a_fake_self.call_count = a_fake_self.call_count + 1
-            raise fedora.client.AuthError('wrong password lol')
-
-        with pytest.raises(fedora.client.AuthError) as exc:
-            # Wrong password always fails, so the second call should allow the Exception to be
-            # raised.
-            wrong_password_lol(a_fake_self)
-
-        assert str(exc.value) == 'wrong password lol'
-        a_fake_self._session.cookies.clear.assert_called_once_with()
-        assert a_fake_self.csrf_token is None
-        assert a_fake_self.call_count == 2
-
-    def test_retry_on_auth_failure_success(self):
-        """
-        Test the decorator when the wrapped method raises an AuthError the first time it is run.
-
-        This test ensures that the decorator will retry the wrapped method if it raises a
-        fedora.client.AuthError, after clearing cookies and the csrf token.
-
-        This test was written to assert the fix for
-        https://github.com/fedora-infra/bodhi/issues/1474
-        """
-        a_fake_self = mock.MagicMock()
-        a_fake_self.csrf_token = 'some_token'
-        a_fake_self.call_count = 0
-
-        @bindings.errorhandled
-        def wrong_password_lol(a_fake_self):
-            a_fake_self.call_count = a_fake_self.call_count + 1
-
-            # Fail on the first call with an AuthError to simulate bad session cookies.
-            if a_fake_self.call_count == 1:
-                raise fedora.client.AuthError('wrong password lol')
-
-            return 'here you go'
-
-        # No Exception should be raised.
-        wrong_password_lol(a_fake_self)
-
-        a_fake_self._session.cookies.clear.assert_called_once_with()
-        assert a_fake_self.csrf_token is None
-        assert a_fake_self.call_count == 2
-
-    def test_retry_on_captcha_key_failure(self):
+    def test_retry_on_captcha_key_failure(self, mocker):
         """
         Test the decorator when the wrapped method returns a captch_key error.
 
@@ -1520,7 +1282,7 @@ class TestErrorhandled:
         This test was written to assert the fix for
         https://github.com/fedora-infra/bodhi/issues/1787
         """
-        a_fake_self = mock.MagicMock()
+        a_fake_self = mocker.MagicMock()
         a_fake_self.csrf_token = 'some_token'
         a_fake_self.call_count = 0
 
@@ -1538,8 +1300,7 @@ class TestErrorhandled:
         # No Exception should be raised.
         captcha_plz(a_fake_self)
 
-        a_fake_self._session.cookies.clear.assert_called_once_with()
-        assert a_fake_self.csrf_token is None
+        a_fake_self.clear_auth.assert_called_once_with()
         assert a_fake_self.call_count == 2
 
     def test_success(self):
@@ -1575,10 +1336,7 @@ class TestErrorhandled:
 
 
 class TestUpdateNotFound:
-    """
-    This class tests the UpdateNotFound class.
-    """
-    def test___init__(self):
+    def test_updatenotfound(self):
         """
         Assert that __init__() works properly.
         """
@@ -1587,7 +1345,7 @@ class TestUpdateNotFound:
         assert exc.update == 'bodhi-2.2.4-1.el7'
         assert type(exc.update) == str
 
-    def test___str__(self):
+    def test_updatenotfound_str(self):
         """
         Assert that __str__() works properly.
         """
@@ -1598,25 +1356,27 @@ class TestUpdateNotFound:
         assert str(exc) == 'Update not found: bodhi-2.2.4-1.el7'
 
 
-class TestBodhiClient_candidates:
-    """
-    Test the BodhiClient.candidates() method.
-    """
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
-    @mock.patch('bodhi.client.bindings.BodhiClient.get_koji_session')
-    @mock.patch('bodhi.client.bindings.log.exception')
-    def test_failure(self, exception, get_koji_session):
+class TestCandidates(BodhiClientTestCase):
+    def test_candidates_failure(self, mocker, caplog):
         """Ensure correct handling when talking to Koji raises an Exception."""
+        client = bindings.BodhiClient()
+        client.oidc.username = 'bowlofeggs'
+        get_koji_session = mocker.patch.object(client, "get_koji_session")
         get_koji_session.return_value.listTagged.side_effect = [
-            [{'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc25', 'nvr': 'bodhi-2.9.0-1.fc25',
-              'owner_name': 'bowlofeggs'},
-             {'name': 'ipsilon', 'version': '2.0.2', 'release': '1.fc25',
-              'nvr': 'ipsilon-2.0.2-1.fc25', 'owner_name': 'puiterwijk'}],
-            IOError("Bet you didn't expect this.")]
-        client = bindings.BodhiClient(username='bowlofeggs')
-        client.send_request = mock.MagicMock(
-            return_value={'releases': [{'candidate_tag': 'f25-updates-testing'},
-                                       {'candidate_tag': 'f26-updates-testing'}]})
+            [
+                {'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc25',
+                 'nvr': 'bodhi-2.9.0-1.fc25', 'owner_name': 'bowlofeggs'},
+                {'name': 'ipsilon', 'version': '2.0.2', 'release': '1.fc25',
+                 'nvr': 'ipsilon-2.0.2-1.fc25', 'owner_name': 'puiterwijk'}
+            ],
+            IOError("Bet you didn't expect this.")
+        ]
+        mocker.patch.object(client, "send_request", return_value={
+            'releases': [
+                {'candidate_tag': 'f25-updates-testing'},
+                {'candidate_tag': 'f26-updates-testing'}
+            ]
+        })
 
         results = client.candidates()
 
@@ -1631,13 +1391,16 @@ class TestBodhiClient_candidates:
             == [mock.call('f25-updates-testing', latest=True),
                 mock.call('f26-updates-testing', latest=True)])
         client.send_request.assert_called_once_with('releases/', params={}, verb='GET')
-        exception.assert_called_once_with(
-            "Unable to query candidate builds for %s", {'candidate_tag': 'f26-updates-testing'})
+        expected_error = (
+            "Unable to query candidate builds for {'candidate_tag': 'f26-updates-testing'}"
+        )
+        assert expected_error in caplog.messages
 
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
-    @mock.patch('bodhi.client.bindings.BodhiClient.get_koji_session')
-    def test_success(self, get_koji_session):
+    def test_candidates_success(self, mocker):
         """Ensure correct behavior when there are no errors talking to Koji."""
+        client = bindings.BodhiClient()
+        client.oidc.username = 'bowlofeggs'
+        get_koji_session = mocker.patch.object(client, "get_koji_session")
         get_koji_session.return_value.listTagged.side_effect = [
             [{'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc25', 'nvr': 'bodhi-2.9.0-1.fc25',
               'owner_name': 'bowlofeggs'},
@@ -1645,24 +1408,31 @@ class TestBodhiClient_candidates:
               'nvr': 'ipsilon-2.0.2-1.fc25', 'owner_name': 'puiterwijk'}],
             [{'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc26', 'nvr': 'bodhi-2.9.0-1.fc26',
               'owner_name': 'bowlofeggs'}]]
-        client = bindings.BodhiClient(username='bowlofeggs')
-        client.send_request = mock.MagicMock(
-            return_value={'releases': [{'candidate_tag': 'f25-updates-testing'},
-                                       {'candidate_tag': 'f26-updates-testing'}]})
+        mocker.patch.object(client, "send_request", return_value={
+            'releases': [
+                {'candidate_tag': 'f25-updates-testing'},
+                {'candidate_tag': 'f26-updates-testing'}
+            ]
+        })
 
         results = client.candidates()
 
-        assert results == [{'release': '1.fc25',
-                            'version': '2.9.0',
-                            'name': 'bodhi',
-                            'owner_name': 'bowlofeggs',
-                            'nvr': 'bodhi-2.9.0-1.fc25'},
-                           {'release': '1.fc26',
-                            'version': '2.9.0',
-                            'name': 'bodhi',
-                            'owner_name': 'bowlofeggs',
-                            'nvr': 'bodhi-2.9.0-1.fc26'}
-                           ]
+        assert results == [
+            {
+                'release': '1.fc25',
+                'version': '2.9.0',
+                'name': 'bodhi',
+                'owner_name': 'bowlofeggs',
+                'nvr': 'bodhi-2.9.0-1.fc25'
+            },
+            {
+                'release': '1.fc26',
+                'version': '2.9.0',
+                'name': 'bodhi',
+                'owner_name': 'bowlofeggs',
+                'nvr': 'bodhi-2.9.0-1.fc26'
+            }
+        ]
         get_koji_session.assert_called_once_with()
         assert (
             get_koji_session.return_value.listTagged.mock_calls
@@ -1671,52 +1441,50 @@ class TestBodhiClient_candidates:
         client.send_request.assert_called_once_with('releases/', params={}, verb='GET')
 
 
-class TestBodhiClient_get_releases:
-    """
-    Test the BodhiClient.get_releases() method.
-    """
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
-    def test_get_releases(self):
+class TestGetReleases(BodhiClientTestCase):
+    def test_get_releases(self, mocker):
         """Assert correct behavior from the get_releases() method."""
         client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(
+        client.send_request = mocker.MagicMock(
             return_value={'releases': [{'candidate_tag': 'f25-updates-testing'},
                                        {'candidate_tag': 'f26-updates-testing'}]})
 
         results = client.get_releases(some_param='some_value')
 
-        assert results == {'releases': [{'candidate_tag': 'f25-updates-testing'},
-                                        {'candidate_tag': 'f26-updates-testing'}]
-                           }
+        assert results == {
+            'releases': [
+                {'candidate_tag': 'f25-updates-testing'},
+                {'candidate_tag': 'f26-updates-testing'}
+            ]
+        }
         client.send_request.assert_called_once_with(
             'releases/', params={'some_param': 'some_value'}, verb='GET')
 
 
-class TestBodhiClient_parse_file:
-    """
-    Test the BodhiClient.parse_file() method.
-    """
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.configparser.SafeConfigParser.read')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_parsing_invalid_file(self, exists, read, _load_cookies):
+class TestParseFile(BodhiClientTestCase):
+    def test_parsing_invalid_file(self, tmpdir, mocker):
         """
         Test parsing an invalid update template file.
         """
-        exists.return_value = True
+        filepath = tmpdir.join("f.ini")
+        open(filepath, "w").close()
+        cp_read = mocker.patch("bodhi.client.bindings.configparser.ConfigParser.read")
         # This happens when we don't have permission to read the file.
-        read.return_value = []
+        # We can't just remove the permissions because the unit tests run as root in bodhi-ci.
+        cp_read.return_value = []
         client = bindings.BodhiClient()
 
         with pytest.raises(ValueError) as exc:
-            client.parse_file("sad")
+            try:
+                result = client.parse_file(filepath)
+            except Exception as e:
+                print(e)
+                raise
+            print(result)
 
-        assert str(exc.value) == 'Invalid input file: sad'
+        assert str(exc.value) == f'Invalid input file: {filepath}'
 
-    @mock.patch('builtins.open', new_callable=mock.mock_open)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.os.path.exists')
-    def test_parsing_valid_file(self, exists, _load_cookies, mock_open):
+    def test_parsing_valid_file(self, tmpdir):
         """
         Test parsing a valid update template file
         """
@@ -1748,13 +1516,12 @@ class TestBodhiClient_parse_file:
             "# Suggest that users restart after update\n",
             "suggest_reboot=False\n",
             ""]
-        exists.return_value = True
-        mock_open.return_value.readline.side_effect = s
-        # Workaround for Python bug https://bugs.python.org/issue21258
-        mock_open.return_value.__iter__ = lambda self: iter(self.readline, '')
 
+        filepath = tmpdir.join("f.ini")
+        with open(filepath, "w") as f:
+            f.writelines(s)
         client = bindings.BodhiClient()
-        updates = client.parse_file("sad")
+        updates = client.parse_file(filepath)
 
         assert len(updates) == 1
         assert len(updates[0]) == 13
@@ -1784,27 +1551,26 @@ class TestBodhiClient_parse_file:
         assert str(exc.value) == 'No such file or directory: /tmp/bodhi-test-parsefile2'
 
 
-class TestBodhiClient_testable:
-    """
-    Test the BodhiClient.testable() method.
-    """
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
-    @mock.patch('bodhi.client.bindings.BodhiClient.get_koji_session')
-    @mock.patch('bodhi.client.bindings.dnf')
-    def test_testable(self, dnf, get_koji_session, mock_open):
+class TestTestable(BodhiClientTestCase):
+    def test_testable(self, mocker):
         """Assert correct behavior from the testable() method."""
+        dnf = mocker.patch("bodhi.client.bindings.dnf")
         fill_sack = mock.MagicMock()
         dnf.Base.return_value.fill_sack = fill_sack
-        get_koji_session.return_value.listTagged.return_value = [
-            {'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc26', 'nvr': 'bodhi-2.9.0-1.fc26'}]
         fill_sack.return_value.query.return_value.installed.return_value.filter.\
             return_value.run.return_value = ['bodhi-2.8.1-1.fc26']
-        mock_open.return_value.__enter__.return_value.readlines.return_value = [
-            'Fedora release 26 (Twenty Six)']
+
         client = bindings.BodhiClient()
+        get_koji_session = mocker.patch.object(client, "get_koji_session")
+        get_koji_session.return_value.listTagged.return_value = [
+            {'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc26', 'nvr': 'bodhi-2.9.0-1.fc26'}]
+
         client.send_request = mock.MagicMock(
             return_value={'updates': [{'nvr': 'bodhi-2.9.0-1.fc26'}]})
+
+        mock_open = mocker.patch('builtins.open', create=True)
+        mock_open.return_value.__enter__.return_value.readlines.return_value = [
+            'Fedora release 26 (Twenty Six)']
 
         updates = client.testable()
 
@@ -1821,9 +1587,10 @@ class TestBodhiClient_testable:
         client.send_request.assert_called_once_with(
             'updates/', params={'builds': 'bodhi-2.9.0-1.fc26'}, verb='GET')
 
-    @mock.patch('bodhi.client.bindings.dnf', None)
-    def test_testable_no_dnf(self):
+    def test_testable_no_dnf(self, mocker):
         """Ensure that testable raises a RuntimeError if dnf is None."""
+        mocker.patch("bodhi.client.bindings.dnf", None)
+
         client = bindings.BodhiClient()
 
         with pytest.raises(RuntimeError) as exc:
@@ -1832,66 +1599,51 @@ class TestBodhiClient_testable:
         assert str(exc.value) == 'dnf is required by this method and is not installed.'
 
 
-class TestGetKojiSession:
-    """
-    This class tests the get_koji_session method.
-    """
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.configparser.ConfigParser.readfp')
-    @mock.patch("os.path.exists")
-    @mock.patch("os.path.expanduser", return_value="/home/dudemcpants/")
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.koji.ClientSession')
-    @mock.patch('bodhi.client.bindings.configparser.ConfigParser.get')
-    def test_koji_conf_in_home_directory(self, get, koji, cookies,
-                                         expanduser, exists, readfp, mock_open):
+class TestKojiSession(BodhiClientTestCase):
+    def test_koji_conf_in_home_directory(self, mocker, tmpdir):
         """Test that if ~/.koji/config exists, we read the config from there first"""
+        koji = mocker.patch("bodhi.client.bindings.koji.ClientSession")
+        mocker.patch("os.path.expanduser", return_value=tmpdir)
+        os.mkdir(tmpdir.join(".koji"))
+        with open(tmpdir.join(".koji", "config"), "w") as f:
+            f.write("[koji]\nserver = foobar\n")
+        client = bindings.BodhiClient()
+        client.get_koji_session()
+        koji.assert_called_with("foobar")
+
+    def test_koji_conf_not_in_home_directory(self, mocker, tmpdir):
+        """Test that if ~/.koji/config doesn't exist, we read config from /etc/koji.conf"""
+        koji = mocker.patch("bodhi.client.bindings.koji.ClientSession")
+        with open(tmpdir.join("etckojiconf"), "w") as f:
+            f.write("[koji]\nserver = foobar\n")
 
         client = bindings.BodhiClient()
-        exists.return_value = True
-        client.get_koji_session()
-
-        exists.assert_called_once_with("/home/dudemcpants/.koji/config")
-        mock_open.assert_called_once_with("/home/dudemcpants/.koji/config")
-
-    @mock.patch('builtins.open', create=True)
-    @mock.patch('bodhi.client.bindings.configparser.ConfigParser.readfp')
-    @mock.patch("os.path.exists")
-    @mock.patch("os.path.expanduser", return_value="/home/dudemcpants/")
-    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
-    @mock.patch('bodhi.client.bindings.koji.ClientSession')
-    @mock.patch('bodhi.client.bindings.configparser.ConfigParser.get')
-    def test_koji_conf_not_in_home_directory(self, get, koji, cookies,
-                                             expanduser, exists, readfp, mock_open):
-        """Test that if ~/.koji.config doesn't exist, we read config from /etc/koji.conf"""
-
-        client = bindings.BodhiClient()
-        exists.return_value = False
-        client.get_koji_session()
-
-        exists.assert_called_once_with("/home/dudemcpants/.koji/config")
-        mock_open.assert_called_once_with("/etc/koji.conf")
+        with open(tmpdir.join("etckojiconf")) as f:
+            mock_open = mocker.patch('builtins.open', create=True)
+            mock_open.return_value = f
+            # readfp = mocker.patch('bodhi.client.bindings.configparser.ConfigParser.readfp')
+            client.get_koji_session()
+            mock_open.assert_called_once_with("/etc/koji.conf")
+        koji.assert_called_with("foobar")
 
 
-class TestBodhiClient_waive:
-    """
-    This class contains tests for BodhiClient.waive().
-    """
-
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                side_effect=fedora.client.ServerError(
-                    url='http://example.com/tests/updates/bodhi-2.2.4-99.el7/waive-test-results',
-                    status=404, msg='update not found'))
-    def test_404_error(self, send_request, __init__):
+class TestWaive(BodhiClientTestCase):
+    def test_waive_404_error(self, mocker):
         """
         Test for the case when the server returns a 404 error code.
         """
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        client.csrf_token = 'a_csrf_token'
+        send_request = mocker.patch.object(client, "send_request")
+        server_error = HTTPError(
+            response=build_response(
+                404,
+                "http://example.com/tests/updates/bodhi-2.2.4-99.el7/waive-test-results",
+                "update not found",
+            )
+        )
+        send_request.side_effect = server_error
 
         with pytest.raises(bindings.UpdateNotFound) as exc:
             client.waive('bodhi-2.2.4-1.el7', comment='Expected failure', tests=None)
@@ -1902,20 +1654,16 @@ class TestBodhiClient_waive:
             'updates/bodhi-2.2.4-1.el7/waive-test-results', verb='POST', auth=True,
             data={'comment': 'Expected failure', 'csrf_token': 'a_csrf_token',
                   'tests': None, 'update': 'bodhi-2.2.4-1.el7'})
-        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH)
-    def test_successful_waive_some(self, send_request, __init__):
+    def test_successful_waive_some(self, mocker):
         """
         Test with a successful request.
         """
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        client.csrf_token = 'a_csrf_token'
+        send_request = mocker.patch.object(client, "send_request")
+        send_request.return_value = client_test_data.EXAMPLE_UPDATE_MUNCH
 
         response = client.waive(
             'bodhi-2.2.4-1.el7', comment='Expected failure',
@@ -1927,20 +1675,16 @@ class TestBodhiClient_waive:
             'updates/bodhi-2.2.4-1.el7/waive-test-results', verb='POST', auth=True,
             data={'comment': 'Expected failure', 'csrf_token': 'a_csrf_token',
                   'tests': ('dist.rpmdeplint', 'fedora-atomic-ci'), 'update': 'bodhi-2.2.4-1.el7'})
-        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH)
-    def test_successful_waive_all(self, send_request, __init__):
+    def test_successful_waive_all(self, mocker):
         """
         Test with a successful request.
         """
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        client.csrf_token = 'a_csrf_token'
+        send_request = mocker.patch.object(client, "send_request")
+        send_request.return_value = client_test_data.EXAMPLE_UPDATE_MUNCH
 
         response = client.waive('bodhi-2.2.4-1.el7', comment='Expected failure', tests=None)
 
@@ -1949,25 +1693,25 @@ class TestBodhiClient_waive:
             'updates/bodhi-2.2.4-1.el7/waive-test-results', verb='POST', auth=True,
             data={'comment': 'Expected failure', 'csrf_token': 'a_csrf_token',
                   'tests': None, 'update': 'bodhi-2.2.4-1.el7'})
-        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request')
-    def test_other_ServerError(self, send_request, __init__):
+    def test_waive_other_http_error(self, mocker):
         """
-        Test for the case when a non-404 ServerError is raised.
+        Test for the case when a non-404 http error is raised.
         """
-        server_error = fedora.client.ServerError(
-            url='http://example.com/tests/updates/bodhi-2.2.4-99.el7/waive-test-results',
-            status=500, msg='Internal server error')
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        client.csrf_token = 'a_csrf_token'
+        send_request = mocker.patch.object(client, "send_request")
+        server_error = HTTPError(
+            response=build_response(
+                500,
+                "http://example.com/tests/updates/bodhi-2.2.4-99.el7/waive-test-results",
+                "Internal server error",
+            )
+        )
         send_request.side_effect = server_error
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
 
-        with pytest.raises(fedora.client.ServerError) as exc:
+        with pytest.raises(HTTPError) as exc:
             client.waive('bodhi-2.2.4-1.el7', comment='Expected failure', tests=None)
 
         assert exc.value is server_error
@@ -1976,28 +1720,25 @@ class TestBodhiClient_waive:
             'updates/bodhi-2.2.4-1.el7/waive-test-results', verb='POST', auth=True,
             data={'comment': 'Expected failure', 'csrf_token': 'a_csrf_token',
                   'tests': None, 'update': 'bodhi-2.2.4-1.el7'})
-        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
 
-class TestBodhiClient_trigger_tests:
-    """
-    This class contains tests for BodhiClient.trigger_tests().
-    """
-
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                side_effect=fedora.client.ServerError(
-                    url='http://example.com/tests/updates/bodhi-2.2.4-99.el7/waive-test-results',
-                    status=404, msg='update not found'))
-    def test_404_error(self, send_request, __init__):
+class TestTriggerTests(BodhiClientTestCase):
+    def test_trigger_tests_404_error(self, mocker):
         """
         Test for the case when the server returns a 404 error code.
         """
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        client.csrf_token = 'a_csrf_token'
+        send_request = mocker.patch.object(client, "send_request")
+        server_error = HTTPError(
+            response=build_response(
+                404,
+                "http://example.com/tests/updates/bodhi-2.2.4-99.el7/trigger-tests",
+                "update not found",
+            )
+        )
+        send_request.side_effect = server_error
 
         with pytest.raises(bindings.UpdateNotFound) as exc:
             client.trigger_tests('bodhi-2.2.4-1.el7')
@@ -2008,20 +1749,16 @@ class TestBodhiClient_trigger_tests:
             'updates/bodhi-2.2.4-1.el7/trigger-tests', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token',
                   'update': 'bodhi-2.2.4-1.el7'})
-        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH)
-    def test_successful_trigger(self, send_request, __init__):
+    def test_successful_trigger(self, mocker):
         """
         Test with a successful request.
         """
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        client.csrf_token = 'a_csrf_token'
+        send_request = mocker.patch.object(client, "send_request")
+        send_request.return_value = client_test_data.EXAMPLE_UPDATE_MUNCH
 
         response = client.trigger_tests(
             'bodhi-2.2.4-1.el7')
@@ -2031,25 +1768,25 @@ class TestBodhiClient_trigger_tests:
             'updates/bodhi-2.2.4-1.el7/trigger-tests', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token',
                   'update': 'bodhi-2.2.4-1.el7'})
-        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
-    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
-                       create=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request')
-    def test_other_ServerError(self, send_request, __init__):
+    def test_trigger_tests_other_http_error(self, mocker):
         """
-        Test for the case when a non-404 ServerError is raised.
+        Test for the case when a non-404 http error is raised.
         """
-        server_error = fedora.client.ServerError(
-            url='http://example.com/tests/updates/bodhi-2.2.4-99.el7/trigger-tests',
-            status=500, msg='Internal server error')
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        client.csrf_token = 'a_csrf_token'
+        send_request = mocker.patch.object(client, "send_request")
+        server_error = HTTPError(
+            response=build_response(
+                500,
+                "http://example.com/tests/updates/bodhi-2.2.4-99.el7/trigger-tests",
+                "Internal server error",
+            )
+        )
         send_request.side_effect = server_error
-        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
 
-        with pytest.raises(fedora.client.ServerError) as exc:
+        with pytest.raises(HTTPError) as exc:
             client.trigger_tests('bodhi-2.2.4-1.el7')
 
         assert exc.value is server_error
@@ -2058,4 +1795,3 @@ class TestBodhiClient_trigger_tests:
             'updates/bodhi-2.2.4-1.el7/trigger-tests', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token',
                   'update': 'bodhi-2.2.4-1.el7'})
-        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
