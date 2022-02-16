@@ -17,12 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test the bodhi async tasks."""
 import json
+import time
 
+from conu import ConuException
 import psycopg2
 import pytest
-from conu import ConuException
 
-from .utils import read_file, get_task_results
+from .utils import get_task_results, read_file
 
 
 def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
@@ -157,8 +158,11 @@ def test_update_edit(
         with read_file(bodhi_container, "/httpdir/errorlog") as log:
             print(log.read())
         raise e
-    results = get_task_results(bodhi_container)
-    assert len(results) > 0
-    result = results[-1]
+    result = {"status": "RETRY"}
+    while result["status"] == "RETRY":
+        results = get_task_results(bodhi_container)
+        assert len(results) > 0
+        result = results[-1]
+        time.sleep(1)
     assert result["status"] == "SUCCESS", result["result"]["exc_message"]
     assert result["traceback"] is None

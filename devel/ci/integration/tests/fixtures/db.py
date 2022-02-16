@@ -18,8 +18,9 @@
 
 import os
 
-import docker.errors
 import pytest
+
+from .utils import stop_and_delete
 
 
 @pytest.fixture(scope="session")
@@ -40,6 +41,7 @@ def db_container(docker_backend, docker_network):
         tag="latest"
     )
     run_opts = [
+        "--rm",
         "-e", "POSTGRES_HOST_AUTH_METHOD=trust",
         "--name", "database",
         "--network", docker_network.get_id(),
@@ -54,10 +56,4 @@ def db_container(docker_backend, docker_network):
         ["/usr/bin/pg_isready", "-q", "-t", "64"]
     )
     yield container
-    try:
-        container.kill()
-    except docker.errors.APIError:
-        # If the container isn't running, this will get raised. It's fine, we wanted the container
-        # stopped and it is, so pass.
-        pass
-    container.delete()
+    stop_and_delete(container)
