@@ -148,10 +148,10 @@ def run_cli(bodhi_container, args, **kwargs):
     if "environment" not in kwargs["exec_create_kwargs"]:
         kwargs["exec_create_kwargs"]["environment"] = {}
     kwargs["exec_create_kwargs"]["environment"]["PYTHONWARNINGS"] = "ignore"
-    with_auth = kwargs.pop("with_auth", False)
-    cmd = ["bodhi"] + args + ["--url", "http://localhost:8080"]
-    if with_auth:
-        cmd.extend(["--id-provider", "https://id.dev.fedoraproject.org/openidc"])
+    cmd = ["bodhi"] + args + [
+        "--url", "http://localhost:8080",
+        "--id-provider", "https://id.dev.fedoraproject.org/openidc",
+    ]
     try:
         output = bodhi_container.execute(cmd, **kwargs)
     except ConuException as e:
