@@ -15,8 +15,8 @@ BuildArch:      noarch
 BuildRequires:  python3-devel
 BuildRequires:  python3-sphinx
 BuildRequires:  python3dist(click)
+BuildRequires:  python3dist(authlib)
 BuildRequires:  python3dist(koji)
-BuildRequires:  python3dist(python-fedora) >= 0.9
 BuildRequires:  python3dist(setuptools)
 
 Requires: /usr/bin/koji

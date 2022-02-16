@@ -36,7 +36,6 @@
       - python3-createrepo_c
       - python3-diff-cover
       - python3-dogpile-cache
-      - python3-fedora
       - python3-flake8
       - python3-flake8-import-order
       - python3-ipdb
