@@ -20,7 +20,7 @@ import os
 
 import pytest
 
-from ..utils import make_db_and_user
+from .utils import make_db_and_user, stop_and_delete
 
 
 @pytest.fixture(scope="session")
@@ -52,6 +52,7 @@ def bodhi_container(
         os.environ.get("BODHI_INTEGRATION_IMAGE", "bodhi-ci-integration-bodhi")
     )
     run_opts = [
+        "--rm",
         "--name", "bodhi",
         "--network", docker_network.get_id(),
         "--network-alias", "bodhi",
@@ -64,5 +65,4 @@ def bodhi_container(
     # we need to wait for the webserver to start serving
     container.wait_for_port(8080, timeout=30)
     yield container
-    container.kill()
-    container.delete()
+    stop_and_delete(container)

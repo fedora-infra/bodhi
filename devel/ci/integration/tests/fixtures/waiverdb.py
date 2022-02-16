@@ -18,7 +18,7 @@
 
 import pytest
 
-from ..utils import make_db_and_user
+from .utils import make_db_and_user, stop_and_delete
 
 
 @pytest.fixture(scope="session")
@@ -41,6 +41,7 @@ def waiverdb_container(docker_backend, docker_network, db_container, rabbitmq_co
     image_name = "bodhi-ci-integration-waiverdb"
     image = docker_backend.ImageClass(image_name)
     run_opts = [
+        "--rm",
         "--name", "waiverdb",
         "--network", docker_network.get_id(),
         "--network-alias", "waiverdb",
@@ -53,5 +54,4 @@ def waiverdb_container(docker_backend, docker_network, db_container, rabbitmq_co
     # we need to wait for the webserver to start serving
     container.wait_for_port(8080, timeout=30)
     yield container
-    container.kill()
-    container.delete()
+    stop_and_delete(container)
