@@ -1,0 +1,1189 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "BODHI" "1" "Feb 17, 2022" "" "bodhi"
+.SH NAME
+bodhi \- manage Fedora updates
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH SYNOPSIS
+.sp
+\fBbodhi\fP COMMAND SUBCOMMAND [OPTIONS] [ARGS]...
+.SH DESCRIPTION
+.sp
+\fBbodhi\fP is the command line interface to bodhi, Fedora\(aqs update release management system. It can
+be used to create or modify updates and overrides.
+.SH OPTIONS
+.sp
+Most of the commands will accept these options:
+.sp
+\fB\-\-debug\fP
+.INDENT 0.0
+.INDENT 3.5
+Some commands accept this flag to show extra debug information.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-help\fP
+.INDENT 0.0
+.INDENT 3.5
+Show help text and exit.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-password <text>\fP
+.INDENT 0.0
+.INDENT 3.5
+A password to authenticate as the user given by \fB\-\-user\fP\&.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-staging\fP
+.INDENT 0.0
+.INDENT 3.5
+Use the staging bodhi instance instead of the production instance.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-url <url>\fP
+.INDENT 0.0
+.INDENT 3.5
+Use the Bodhi server at the given URL instead of the default server. This can also be set with
+the \fBBODHI_URL\fP environment variable. This is ignored if the \fB\-\-staging\fP flag is set.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-user <username>\fP
+.INDENT 0.0
+.INDENT 3.5
+Many commands accept this flag to specify a Fedora username to authenticate with. Note that some
+read operations such as querying updates and overrides use this same flag, but as a search
+parameter instead of authentication (as authentication is not required for these operations).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-version\fP
+.INDENT 0.0
+.INDENT 3.5
+Show version and exit. Not accepted by subcommands.
+.UNINDENT
+.UNINDENT
+.SH COMMANDS
+.sp
+There are four commands, \fBcomposes\fP, \fBoverrides\fP, \fBupdates\fP and \fBreleases\fP\&. They are described
+in more detail in their own sections below.
+.sp
+\fBbodhi composes <subcommand> [options] [args]\fP
+.INDENT 0.0
+.INDENT 3.5
+Provides an interface to view composes. Supports subcommands \fBlist\fP and \fBinfo\fP, described below.
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi overrides <subcommand> [options] [args]\fP
+.INDENT 0.0
+.INDENT 3.5
+Provides commands to aid in management of build overrides. Supports subcommands \fBquery\fP and
+\fBsave\fP, described below.
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi updates <subcommand> [options] [args]\fP
+.INDENT 0.0
+.INDENT 3.5
+Provides an interface to manage updates. Supports subcommands \fBcomment\fP, \fBdownload\fP,
+\fBnew\fP, \fBquery\fP, and \fBrequest\fP, described below.
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi releases <subcommand> [options] [args]\fP
+.INDENT 0.0
+.INDENT 3.5
+Provides an interface to manage releases. Supports subcommands \fBcreate\fP, \fBedit\fP, \fBinfo\fP and
+\fBlist\fP, described below.
+.UNINDENT
+.UNINDENT
+.SH COMPOSES
+.sp
+The \fBcomposes\fP command allows users to view composes.
+.sp
+\fBbodhi composes list [options]\fP
+.INDENT 0.0
+.INDENT 3.5
+The \fBlist\fP subcommand allows you to see the current composes on the Bodhi server. It supports
+the following options:
+.sp
+\fB\-v, \-\-verbose\fP
+.INDENT 0.0
+.INDENT 3.5
+Print more detail about the composes.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi composes info [options] RELEASE REQUEST\fP
+.INDENT 0.0
+.INDENT 3.5
+The \fBinfo\fP subcommand allows you to see the compose for release with the given request.
+.UNINDENT
+.UNINDENT
+.SH OVERRIDES
+.sp
+The \fBoverrides\fP command allows users to manage build overrides.
+.sp
+\fBbodhi overrides query [options]\fP
+.INDENT 0.0
+.INDENT 3.5
+The \fBquery\fP subcommand provides an interface for users to query the bodhi server for existing
+overrides.  The \fBquery\fP subcommand supports the following options:
+.sp
+\fB\-\-mine\fP
+.INDENT 0.0
+.INDENT 3.5
+Show only your overrides.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-active\fP
+.INDENT 0.0
+.INDENT 3.5
+Filter for only active overrides
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-expired\fP
+.INDENT 0.0
+.INDENT 3.5
+Filter for only expired overrides
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-packages <packagename>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for overrides related to the given packages, given as a comma\-separated list.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-releases <releases>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for overrides related to a list of releases, given as a comma\-separated list.
+<releases> is the release shortname, for example: F26 or F26,F25, or a macro filter
+(\fI__current__\fP, \fI__pending__\fP, \fI__archived__\fP) to include all releases in a
+certain status.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-builds <builds>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for overrides for a list of builds, given as a comma\-separated list.
+<builds> is the build NVR, for example: corebird\-1.3\-0.fc24
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-user <username>\fP
+.INDENT 0.0
+.INDENT 3.5
+Filter for overrides by a list of usernames, given as a comma\-separated list.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-rows <integer>\fP
+.INDENT 0.0
+.INDENT 3.5
+Limits number of results shown per page.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-page <integer>\fP
+.INDENT 0.0
+.INDENT 3.5
+Go to page number.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi overrides save [options] <nvr>\fP
+.INDENT 0.0
+.INDENT 3.5
+Save the build root given by \fB<nvr>\fP as a buildroot override. The \fBsave\fP subcommand supports
+the following options:
+.sp
+\fB\-\-duration <days>\fP
+.INDENT 0.0
+.INDENT 3.5
+The number of days the override should exist, given as an integer.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-notes <text>\fP
+.INDENT 0.0
+.INDENT 3.5
+Notes on why this override is in place.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi overrides edit [options] <nvr>\fP
+.INDENT 0.0
+.INDENT 3.5
+Edit the build root given by \fB<nvr>\fP as a buildroot override. The \fBedit\fP subcommand supports
+the same options than the \fBsave\fP command and also the following option:
+.INDENT 0.0
+.TP
+.B \fB\-\-expire\fP
+Force an override to the expired state.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SH UPDATES
+.sp
+The \fBupdates\fP command allows users to interact with bodhi updates.
+.sp
+\fBbodhi updates comment [options] <update> <text>\fP
+.INDENT 0.0
+.INDENT 3.5
+Leave the given text as a comment on a bodhi update. The \fBcomment\fP subcommand
+supports the following options:
+.sp
+\fB\-\-karma [+1 | 0 | \-1]\fP
+.INDENT 0.0
+.INDENT 3.5
+The karma value you wish to contribute to the update.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi updates download [options]\fP
+.INDENT 0.0
+.INDENT 3.5
+Download update(s) given by ID(s) or NVR(s). One of \fB\-\-updateid\fP or
+\fBbuilds\fP is required. The download subcommand supports the following options:
+.sp
+\fB\-\-debuginfo\fP
+.INDENT 0.0
+.INDENT 3.5
+Include debuginfo packages when downloading.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-updateid <ids>\fP
+.INDENT 0.0
+.INDENT 3.5
+A comma\-separated list of update IDs you would like to download.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-builds <nvrs>\fP
+.INDENT 0.0
+.INDENT 3.5
+A comma\-separated list of NVRs that identify updates you would like to download.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-arch <arch>\fP
+.INDENT 0.0
+.INDENT 3.5
+You can specify an architecture of packages to download. "all" will download packages for all architectures.
+Omitting this option will download packages for the architecture you are currently running.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi updates new [options] <builds_or_tag>\fP
+.INDENT 0.0
+.INDENT 3.5
+Create a new bodhi update containing the builds, given as a comma separated list of NVRs. The
+\fBnew\fP subcommand supports the following options:
+.sp
+\fB\-\-type [security | bugfix | enhancement | newpackage]\fP
+.INDENT 0.0
+.INDENT 3.5
+The type of the new update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-notes <text>\fP
+.INDENT 0.0
+.INDENT 3.5
+The description of the update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-notes\-file <path>\fP
+.INDENT 0.0
+.INDENT 3.5
+A path to a file containing a description of the update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-bugs <bugs>\fP
+.INDENT 0.0
+.INDENT 3.5
+A comma separated list of bugs to associate with this update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-close\-bugs\fP
+.INDENT 0.0
+.INDENT 3.5
+If given, this flag will cause bodhi to close the referenced bugs automatically when the
+update reaches stable.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-request [testing | stable | upush]\fP
+.INDENT 0.0
+.INDENT 3.5
+The repository requested for this update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-autokarma\fP
+.INDENT 0.0
+.INDENT 3.5
+Enable autokarma for this update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-autotime\fP
+.INDENT 0.0
+.INDENT 3.5
+Enable autotime for this update. Automatically push the update to stable based on the
+time spent in testing.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-stable\-karma <integer>\fP
+.INDENT 0.0
+.INDENT 3.5
+Configure the stable karma threshold for the given value.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-unstable\-karma <integer>\fP
+.INDENT 0.0
+.INDENT 3.5
+Configure the unstable karma threshold for the given value.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-stable\-days <integer>\fP
+.INDENT 0.0
+.INDENT 3.5
+Configure the number of days an update has to spend in testing before
+being automatically pushed to stable.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-suggest [logout | reboot]\fP
+.INDENT 0.0
+.INDENT 3.5
+Suggest that the user logout or reboot upon applying the update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-file <path>\fP
+.INDENT 0.0
+.INDENT 3.5
+A path to a file containing all the update details.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-requirements <Taskotron tasks>\fP
+.INDENT 0.0
+.INDENT 3.5
+A comma or space\-separated list of required Taskotron tasks that must pass for this update
+to reach stable.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-display\-name <text>\fP
+.INDENT 0.0
+.INDENT 3.5
+The name of the update
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-from\-tag\fP
+.INDENT 0.0
+.INDENT 3.5
+If this flag is provided, \fB<builds_or_tag>\fP will be interpreted as a Koji tag and expand
+to all latest builds in it. Only a single tag can be provided.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi updates edit [options] <update>\fP
+.INDENT 0.0
+.INDENT 3.5
+Edit an existing bodhi update, given an update id or an update title. The
+\fBedit\fP subcommand supports the following options:
+.sp
+\fB\-\-addbuilds <builds>\fP
+.INDENT 0.0
+.INDENT 3.5
+Add a comma separated list of build nvr to this update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-removebuilds <builds>\fP
+.INDENT 0.0
+.INDENT 3.5
+Remove a comma separated list of build nvr from this update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-type [security | bugfix | enhancement | newpackage]\fP
+.INDENT 0.0
+.INDENT 3.5
+The type of the new update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-notes <text>\fP
+.INDENT 0.0
+.INDENT 3.5
+The description of the update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-notes\-file <path>\fP
+.INDENT 0.0
+.INDENT 3.5
+A path to a file containing a description of the update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-bugs <bugs>\fP
+.INDENT 0.0
+.INDENT 3.5
+A comma separated list of bugs to associate with this update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-close\-bugs\fP
+.INDENT 0.0
+.INDENT 3.5
+If given, this flag will cause bodhi to close the referenced bugs automatically when the
+update reaches stable.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-request [testing | stable | upush]\fP
+.INDENT 0.0
+.INDENT 3.5
+The repository requested for this update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-autokarma\fP
+.INDENT 0.0
+.INDENT 3.5
+Enable autokarma for this update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-stable\-karma <integer>\fP
+.INDENT 0.0
+.INDENT 3.5
+Configure the stable karma threshold for the given value.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-unstable\-karma <integer>\fP
+.INDENT 0.0
+.INDENT 3.5
+Configure the unstable karma threshold for the given value.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-suggest [logout | reboot]\fP
+.INDENT 0.0
+.INDENT 3.5
+Suggest that the user logout or reboot upon applying the update.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-requirements <Taskotron tasks>\fP
+.INDENT 0.0
+.INDENT 3.5
+A comma or space\-separated list of required Taskotron tasks that must pass for this update
+to reach stable.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-display\-name <text>\fP
+.INDENT 0.0
+.INDENT 3.5
+The name of the update
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-from\-tag\fP
+.INDENT 0.0
+.INDENT 3.5
+If given, for updates that were created from a Koji tag, this will update
+the builds to the latest ones in the tag.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi updates query [options]\fP
+.INDENT 0.0
+.INDENT 3.5
+Query the bodhi server for updates.
+.sp
+If the query returns only one update, a detailed view of the update will be displayed.
+.sp
+If more than one update is returned, the command will display a list showing the packages
+contained in the update, the update content\-type (rpm / module / ...), the current status
+of the update (pushed / testing / ...) and the date of the last status change with
+the number of days passed since. A leading \fB*\fP marks security updates.
+.sp
+The \fBquery\fP subcommand supports the following options:
+.sp
+\fB\-\-updateid <id>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for the update given by id.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-title <title>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for the update given by title.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-alias <alias>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for the update given by alias.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-approved\-since <timestamp>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates approved after the given timestamp.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-approved\-before <timestamp>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates approved before the given timestamp.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-modified\-since <timestamp>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates modified after the given timestamp.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-modified\-before <timestamp>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates modified before the given timestamp.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-builds <builds>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates containing the given builds, given as a comma\-separated list.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-bugs <bugs>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates related to the given bugs, given as a comma\-separated list.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-content\-type <content_type>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates of a given content type: either rpm, module, or (in the future) container.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-critpath\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates submitted for the critical path.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-from\-side\-tag\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates created from a side\-tag.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-not\-from\-side\-tag\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates not created from a side\-tag.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-gating [passed | failed | ignored | waiting | running | queued | greenwave_failed]\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates based on test gating status.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-mine\fP
+.INDENT 0.0
+.INDENT 3.5
+Show only your updates.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-packages <packages>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates related to the given packages, given as a comma\-separated list.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-pushed\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates that have been pushed.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-pushed\-since <timestamp>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates that have been pushed after the given timestamp.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-pushed\-before <timestamp>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates that have been pushed before the given timestamp.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-releases <releases>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates related to a list of releases, given as a comma\-separated list.
+It is possible to use the macro filters \fI__current__\fP, \fI__pending__\fP and \fI__archived__\fP
+to include all releases in a certain status.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-locked\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates that are currently locked.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-request [testing | stable | unpush]\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates marked with the given request type.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-severity [unspecified, urgent, high, medium, low]\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates with a specific severity.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-submitted\-since <timestamp>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates that were submitted since the given timestamp.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-submitted\-before <timestamp>\fP
+.INDENT 0.0
+.INDENT 3.5
+Query for updates that were submitted before the given timestamp.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-status [pending | testing | stable | obsolete | unpushed]\fP
+.INDENT 0.0
+.INDENT 3.5
+Filter by status.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-suggest [logout | reboot]\fP
+.INDENT 0.0
+.INDENT 3.5
+Filter for updates that suggest logout or reboot to the user.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-type [newpackage | security | bugfix | enhancement]\fP
+.INDENT 0.0
+.INDENT 3.5
+Filter by update type.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-user <username>\fP
+.INDENT 0.0
+.INDENT 3.5
+Filter for updates by a list of usernames, given as a comma\-separated list.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-rows <integer>\fP
+.INDENT 0.0
+.INDENT 3.5
+Limits number of results shown per page.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-page <integer>\fP
+.INDENT 0.0
+.INDENT 3.5
+Go to page number.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi updates request [options] <update> <state>\fP
+.INDENT 0.0
+.INDENT 3.5
+Request that the given update be changed to the given state. \fBupdate\fP should be given by
+update id, and \fBstate\fP should be one of testing, stable, unpush, obsolete, or revoke.
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi updates waive [options] <update> <comment>\fP
+.INDENT 0.0
+.INDENT 3.5
+Show or waive unsatisfied test requirements on an update.
+.sp
+The following options are supported:
+.sp
+\fB\-\-show\fP
+.INDENT 0.0
+.INDENT 3.5
+List the unsatisfied test requirements.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-test TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+Waive the test specified by name in TEXT. all can be used to waive all unsatisfied tests.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-debug\fP
+.INDENT 0.0
+.INDENT 3.5
+Display debugging information.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi updates trigger\-tests [options] <update>\fP
+.INDENT 0.0
+.INDENT 3.5
+Trigger tests for an update. This update must be in testing state.
+.UNINDENT
+.UNINDENT
+.SH RELEASES
+.sp
+The \fBreleases\fP command allows users to manage update releases.
+.sp
+\fBbodhi releases create [options]\fP
+.INDENT 0.0
+.INDENT 3.5
+The \fBcreate\fP command allows administrators to create new releases in Bodhi:
+.sp
+\fB\-\-branch TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The git branch that corresponds to this release (e.g., f29).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-candidate\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use to search for update candidates (e.g., f29\-updates\-candidate).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-composed\-by\-bodhi, \-\-not\-composed\-by\-bodhi\fP
+.INDENT 0.0
+.INDENT 3.5
+The flag that indicates whether the release is composed by Bodhi or not.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-dist\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji dist tag for this release (e.g., f29).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-id\-prefix TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The release\(aqs prefix (e.g., FEDORA).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-long\-name TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The long name of the release (e.g., Fedora 29).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-name TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The name of the release (e.g., F29).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-override\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use for buildroot overrides (e.g., f29\-override).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-package\-manager [unspecified|dnf|yum]\fP
+.INDENT 0.0
+.INDENT 3.5
+The package manager used by this release. If not specified it defaults to \(aqunspecified\(aq.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-password TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The password to use when authenticating to Bodhi.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-pending\-stable\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use on updates that are marked stable (e.g., f29\-updates\-pending).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-pending\-testing\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use on updates that are pending testing (e.g., f29\-updates\-pending\-testing).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-stable\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use for stable updates (e.g., f29\-updates).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-state [disabled|pending|frozen|current|archived]\fP
+.INDENT 0.0
+.INDENT 3.5
+The state of the release.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-testing\-repository TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The name of the testing repository used to test updates. Not required.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-testing\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use for testing updates (e.g., f29\-updates\-testing).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-username TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The username to use when authenticating to Bodhi.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-version TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The version of the release (e.g., 29).
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi releases edit [options]\fP
+.INDENT 0.0
+.INDENT 3.5
+The \fBedit\fP command allows administrators to edit existing releases:
+.sp
+\fB\-\-branch TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The git branch that corresponds to this release (e.g., f29).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-candidate\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use to search for update candidates (e.g., f29\-updates\-candidate).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-composed\-by\-bodhi, \-\-not\-composed\-by\-bodhi\fP
+.INDENT 0.0
+.INDENT 3.5
+The flag that indicates whether the release is composed by Bodhi or not.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-dist\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji dist tag for this release (e.g., f29).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-id\-prefix TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The release\(aqs prefix (e.g., FEDORA).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-long\-name TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The long name of the release (e.g., Fedora 29).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-name TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The name of the release (e.g., F29).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-new\-name\fP
+.INDENT 0.0
+.INDENT 3.5
+Change the release\(aqs name to a new value (e.g., F29).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-override\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use for buildroot overrides (e.g., f29\-override).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-package\-manager [unspecified|dnf|yum]\fP
+.INDENT 0.0
+.INDENT 3.5
+The package manager used by this release. If not specified it defaults to \(aqunspecified\(aq.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-password TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The password to use when authenticating to Bodhi.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-pending\-stable\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use on updates that are marked stable (e.g., f29\-updates\-pending).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-pending\-testing\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use on updates that are pending testing (e.g., f29\-updates\-testing\-pending).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-stable\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use for stable updates (e.g., f29\-updates).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-state [disabled|pending|frozen|current|archived]\fP
+.INDENT 0.0
+.INDENT 3.5
+The state of the release.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-testing\-repository TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The name of the testing repository used to test updates. Not required.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-testing\-tag TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The Koji tag to use for testing updates (e.g., f29\-updates\-testing).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-username TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The username to use when authenticating to Bodhi.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-version TEXT\fP
+.INDENT 0.0
+.INDENT 3.5
+The version of the release (e.g., 29).
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi releases info RELEASE_NAME\fP
+.INDENT 0.0
+.INDENT 3.5
+The \fBinfo\fP command prints information about the given release.
+.UNINDENT
+.UNINDENT
+.sp
+\fBbodhi releases list [options]\fP
+.INDENT 0.0
+.INDENT 3.5
+The \fBlist\fP command prints list of releases.
+.sp
+\fB\-\-display\-archived\fP
+.INDENT 0.0
+.INDENT 3.5
+Display full list, including archived releases.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-rows <integer>\fP
+.INDENT 0.0
+.INDENT 3.5
+Limits number of results shown per page.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\-\-page <integer>\fP
+.INDENT 0.0
+.INDENT 3.5
+Go to page number.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SH EXAMPLES
+.sp
+Create a new update with multiple builds:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ bodhi updates new \-\-user bowlofeggs \-\-type bugfix \-\-notes "Fix permission issues during startup." \-\-bugs 1393587 \-\-close\-bugs \-\-request testing \-\-autokarma \-\-stable\-karma 3 \-\-unstable\-karma \-3 ejabberd\-16.09\-2.fc25,erlang\-esip\-1.0.8\-1.fc25,erlang\-fast_tls\-1.0.7\-1.fc25,erlang\-fast_yaml\-1.0.6\-1.fc25,erlang\-fast_xml\-1.1.15\-1.fc25,erlang\-iconv\-1.0.2\-1.fc25,erlang\-stringprep\-1.0.6\-1.fc25,erlang\-stun\-1.0.7\-1.fc25
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH HELP
+.sp
+If you find bugs in bodhi (or in the man page), please feel free to file a bug report or a pull
+request:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+https://github.com/fedora\-infra/bodhi
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Bodhi\(aqs documentation is available online: \fI\%https://bodhi.fedoraproject.org/docs\fP
+.SH AUTHOR
+Randy Barlow, Luke Macken
+.SH COPYRIGHT
+2007-2022, Red Hat, Inc.
+.\" Generated by docutils manpage writer.
+.

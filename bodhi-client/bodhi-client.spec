@@ -13,6 +13,7 @@ Source0:        %{pypi_name}-%{pypi_version}.tar.gz
 BuildArch:      noarch
 
 BuildRequires:  python3-devel
+BuildRequires:  python3-sphinx
 BuildRequires:  python3dist(click)
 BuildRequires:  python3dist(koji)
 BuildRequires:  python3dist(python-fedora) >= 0.9
@@ -30,15 +31,19 @@ rm -rf %{pypi_name}.egg-info
 
 %build
 %py3_build
+make %{?_smp_mflags} -C docs man
 
 %install
 %py3_install
+install -d %{buildroot}%{_mandir}/man1
+install -pm0644 docs/_build/bodhi.1 %{buildroot}%{_mandir}/man1/
 
 %files -n %{pypi_name}
 %{_bindir}/bodhi
 %{python3_sitelib}/bodhi
 %{python3_sitelib}/bodhi_client-%{pypi_version}-py%{python3_version}-*.pth
 %{python3_sitelib}/bodhi_client-%{pypi_version}-py%{python3_version}.egg-info
+%{_mandir}/man1/bodhi.1*
 
 %changelog
 * Mon Jan 24 2022 Lenka Segura <lsegura@redhat.com> - 5.7.4-2
