@@ -44,6 +44,8 @@ class UnitJob(Job):
         pytest_flags = '--junit-xml=nosetests.xml -v tests'
         if self.options["failfast"]:
             pytest_flags += ' -x'
+        if self.options["only_tests"]:
+            pytest_flags += f' -k {self.options["only_tests"]}'
 
         modules = " ".join(self.options["modules"])
 

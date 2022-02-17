@@ -4,6 +4,7 @@ import multiprocessing
 import os
 import uuid
 
+
 CONTAINER_NAME = 'bodhi-ci'
 # We label the containers we run so it's easy to find them when we run _stop_all_jobs() at the end.
 # UUID is used so that one bodhi-ci process does not stop jobs started by a different one.
@@ -16,6 +17,7 @@ DEFAULT_OPTIONS = dict(
     concurrency=multiprocessing.cpu_count(),
     container_runtime='docker',
     failfast=False,
+    only_tests=None,
     init=True,
     # If True, we will try to skip running any builds if suitable builds already exist.
     no_build=False,
