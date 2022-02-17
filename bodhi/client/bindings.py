@@ -35,7 +35,7 @@ import re
 import textwrap
 import typing
 
-from fedora.client import AuthError, OpenIdBaseClient, FedoraClientError, ServerError
+from fedora.client import AuthError, FedoraClientError, OpenIdBaseClient, ServerError
 try:
     import dnf
 except ImportError:  # pragma: no cover
@@ -44,6 +44,7 @@ except ImportError:  # pragma: no cover
 import fedora.client.openidproxyclient
 import koji
 import requests.exceptions
+
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     import munch  # noqa: 401
@@ -203,8 +204,9 @@ class BodhiClient(OpenIdBaseClient):
         if base_url[-1] != '/':
             base_url = base_url + '/'
 
-        super(BodhiClient, self).__init__(base_url, login_url=base_url + 'login', username=username,
-                                          **kwargs)
+        super(BodhiClient, self).__init__(
+            base_url, login_url=base_url + 'login?method=openid', username=username, **kwargs
+        )
 
         self._password = password
         self.csrf_token = ''
