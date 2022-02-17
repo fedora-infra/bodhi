@@ -50,7 +50,7 @@ class TestBodhiClient___init__:
             staging=False, timeout=60, openid_api='https://example.com/api/v1/')
 
         assert client.base_url == 'http://example.com/bodhi/'
-        assert client.login_url == 'http://example.com/bodhi/login'
+        assert client.login_url == 'http://example.com/bodhi/login?method=openid'
         assert client.username == 'some_user'
         assert client.timeout == 60
         assert client._password == 's3kr3t'
@@ -65,7 +65,7 @@ class TestBodhiClient___init__:
                                       password='s3kr3t', staging=False, timeout=60)
 
         assert client.base_url == 'http://example.com/bodhi/'
-        assert client.login_url == 'http://example.com/bodhi/login'
+        assert client.login_url == 'http://example.com/bodhi/login?method=openid'
         assert client.username == 'some_user'
         assert client.timeout == 60
         assert client._password == 's3kr3t'
@@ -81,7 +81,7 @@ class TestBodhiClient___init__:
             staging=True, retries=5, openid_api='ignored')
 
         assert client.base_url == bindings.STG_BASE_URL
-        assert client.login_url == bindings.STG_BASE_URL + 'login'
+        assert client.login_url == bindings.STG_BASE_URL + 'login?method=openid'
         assert client.username == 'some_user'
         assert client.timeout is None
         assert client.retries == 5
