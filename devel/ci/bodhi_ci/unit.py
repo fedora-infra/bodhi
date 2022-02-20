@@ -44,6 +44,8 @@ class UnitJob(Job):
         pytest_flags = '--junit-xml=nosetests.xml -v tests'
         if self.options["failfast"]:
             pytest_flags += ' -x'
+        if self.options["only_tests"]:
+            pytest_flags += f' -k {self.options["only_tests"]}'
 
         modules = " ".join(self.options["modules"])
 
@@ -55,9 +57,10 @@ class UnitJob(Job):
             f'for submodule in {modules}; do '
             '  mkdir -p /results/$submodule; '
             '  cd $submodule; '
-            f' /usr/bin/python3 -m pytest {pytest_flags} && '
-            '    cp *.xml /results/$submodule/ || '
-            '    (cp *.xml /results/$submodule/ && exit 1); '
+            f' /usr/bin/python3 -m pytest {pytest_flags}; '
+            '  exitcode=$?; '
+            '  cp *.xml /results/$submodule/; '
+            '  test $exitcode -gt 0 && exit 1; '
             '  cd ..; '
             'done'
         )

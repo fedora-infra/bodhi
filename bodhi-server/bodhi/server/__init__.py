@@ -368,5 +368,5 @@ def main(global_config, testing=None, session=None, **settings):
 
     log.info('Bodhi ready and at your service!')
     app = config.make_wsgi_app()
-    app = WhiteNoise(app, root="/usr/share/doc/bodhi-docs/html/", prefix="/docs", index_file=True)
+    app = WhiteNoise(app, root=bodhi_config["docs_path"], prefix="/docs", index_file=True)
     return app

@@ -19,6 +19,8 @@
 import conu
 import pytest
 
+from .utils import stop_and_delete
+
 
 @pytest.fixture(scope="session")
 def ipsilon_container(
@@ -38,6 +40,8 @@ def ipsilon_container(
     image_name = "bodhi-ci-integration-ipsilon"
     image = docker_backend.ImageClass(image_name)
     run_opts = [
+        "--rm",
+        "--name", "ipsilon",
         "--network", docker_network.get_id(),
         "--network-alias", "ipsilon",
         "--network-alias", "ipsilon.ci",
@@ -48,5 +52,4 @@ def ipsilon_container(
     # we need to wait for the broker to start listening
     container.wait_for_port(80, timeout=30)
     yield container
-    container.kill()
-    container.delete()
+    stop_and_delete(container)

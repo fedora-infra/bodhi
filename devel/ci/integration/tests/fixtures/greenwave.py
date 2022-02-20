@@ -17,8 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import conu.utils.probes
-import docker.errors
 import pytest
+
+from .utils import stop_and_delete
 
 
 @pytest.fixture(scope="session")
@@ -38,6 +39,8 @@ def greenwave_container(docker_backend, docker_network, rabbitmq_container):
     image_name = "bodhi-ci-integration-greenwave"
     image = docker_backend.ImageClass(image_name)
     run_opts = [
+        "--rm",
+        "--name", "greenwave",
         "--network", docker_network.get_id(),
         "--network-alias", "greenwave",
         "--network-alias", "greenwave.ci",
@@ -54,10 +57,4 @@ def greenwave_container(docker_backend, docker_network, rabbitmq_container):
             print(log)
         raise
     yield container
-    try:
-        container.kill()
-    except docker.errors.APIError:
-        # Sometimes the container is not running, so this will raise an Exception. Since our goal
-        # is that the container is not running, this is OK.
-        pass
-    container.delete()
+    stop_and_delete(container)

@@ -84,6 +84,10 @@ container_runtime_option = click.option(
 failfast_option = click.option(
     '--failfast', '-x', is_flag=True, callback=_set_context, expose_value=False,
     help='Exit immediately upon error.')
+onlytests_option = click.option(
+    '--only-tests', '-k', metavar="EXPRESSION", callback=_set_context, expose_value=False,
+    help='only run tests which match the given substring expression. '
+         'See the pytest documentation for the -k option for details.')
 no_build_option = click.option(
     '--no-build', is_flag=True, callback=_set_context, expose_value=False,
     help='Do not run docker build if the image already exists.')
@@ -187,6 +191,7 @@ def pre_commit(ctx, releases):
 @concurrency_option
 @container_runtime_option
 @failfast_option
+@onlytests_option
 @no_build_option
 @releases_option
 @modules_option
@@ -232,6 +237,7 @@ def integration_build(ctx, releases):
 @concurrency_option
 @container_runtime_option
 @failfast_option
+@onlytests_option
 @no_build_option
 @releases_option
 @archive_path_option
@@ -240,6 +246,22 @@ def integration_build(ctx, releases):
 def integration(ctx, releases):
     """Run the integration tests."""
     Runner(options=ctx.obj).run_jobs(["integration"], releases=releases)
+
+
+@cli.command()
+@concurrency_option
+@container_runtime_option
+@failfast_option
+@no_build_option
+@releases_option
+@tty_option
+@archive_option
+@archive_path_option
+@modules_option
+@click.pass_context
+def rpm(ctx, releases):
+    """Build the rpms."""
+    Runner(options=ctx.obj).run_jobs(["rpm"], releases=releases)
 
 
 if __name__ == "__main__":

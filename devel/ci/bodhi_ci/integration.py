@@ -191,6 +191,8 @@ class IntegrationJob(Job):
         self._popen_kwargs["env"]["CONTAINER_RUNTIME"] = self.options["container_runtime"]
         if self.options["failfast"]:
             self._command.append('-x')
+        if self.options["only_tests"]:
+            self._command.extend(['-k', self.options["only_tests"]])
         if self.options["archive"]:
             self._command.append(
                 f'--junit-xml={self.options["archive_path"]}/'

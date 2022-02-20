@@ -25,6 +25,7 @@ from .integration import (IntegrationBuildJob, IntegrationCleanJob,
                           IntegrationJob)
 from .job import BuildJob, CleanJob, Job
 from .linting import PreCommitJob
+from .rpm import RPMJob
 from .unit import DiffCoverJob, UnitJob
 
 AVAILABLE_JOBS: typing.Dict[str, typing.Type['Job']] = {
@@ -37,6 +38,7 @@ AVAILABLE_JOBS: typing.Dict[str, typing.Type['Job']] = {
     "integration-build": IntegrationBuildJob,
     "clean": CleanJob,
     "integration-clean": IntegrationCleanJob,
+    "rpm": RPMJob,
 }
 
 

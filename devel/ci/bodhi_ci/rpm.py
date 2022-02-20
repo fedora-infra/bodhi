@@ -16,35 +16,24 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-"""Documentation build job."""
+"""RPM build job."""
 
-from .constants import MODULES
 from .job import BuildJob, Job
 
 
-class DocsJob(Job):
+class RPMJob(Job):
     """
-    Define a Job for building docs.
+    Define a Job for building the RPMs.
 
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _command = [
-        '/usr/bin/bash', '-c',
-        (
-            'for submodule in ' + ' '.join(MODULES) + '; do '
-            'cd $submodule && /usr/bin/python3 setup.py develop && cd ..; done && '
-            'make -C docs clean && '
-            'make -C docs html PYTHON=/usr/bin/python3 && '
-            'make -C docs man PYTHON=/usr/bin/python3 && '
-            'cp -rv docs/_build/* /results/'
-        )]
-    _label = 'docs'
+    _label = 'rpm'
     _dependencies = [BuildJob]
 
     def __init__(self, *args, **kwargs):
         """
-        Initialize the DocsJob.
+        Initialize the RPMJob.
 
         See the superclass's docblock for details about accepted parameters.
 
@@ -56,4 +45,10 @@ class DocsJob(Job):
         """
         super().__init__(*args, **kwargs)
 
-        self._convert_command_for_container()
+        self._command = [
+            '/usr/bin/bash',
+            '-c',
+            ('./devel/ci/build-rpms.sh ' + ' '.join(self.options["modules"]))
+        ]
+
+        self._convert_command_for_container(include_git=True)
