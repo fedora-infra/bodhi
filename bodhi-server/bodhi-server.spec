@@ -47,9 +47,54 @@ BuildRequires:  python3dist(sqlalchemy)
 BuildRequires:  python3dist(waitress)
 BuildRequires:  python3dist(whitenoise)
 
+Requires: bodhi-client == %{version}-%{release}
+Requires: python3-bodhi-messages == %{version}-%{release}
+Requires: fedora-messaging
+Requires: git
+Requires: httpd
+Requires: intltool
+Requires: python3-koji
+Requires: python3-librepo
+Requires: python3-mod_wsgi
+
+Provides:  bundled(aajohan-comfortaa-fonts)
+Provides:  bundled(abattis-cantarell-fonts)
+Provides:  bundled(bootstrap) = 3.0.1
+Provides:  bundled(bootstrap) = 3.0.2
+Provides:  bundled(bootstrap) = 3.1.1
+Provides:  bundled(chrissimpkins-hack-fonts)
+Provides:  bundled(fedora-bootstrap) = 1.0.1
+Provides:  bundled(fontawesome-fonts-web) = 4.4.0
+Provides:  bundled(js-chart)
+Provides:  bundled(js-excanvas)
+Provides:  bundled(js-jquery) = 1.10.2
+Provides:  bundled(js-jquery) = 2.0.3
+Provides:  bundled(js-messenger)
+Provides:  bundled(js-moment)
+Provides:  bundled(js-typeahead.js) = 1.1.1
+Provides:  bundled(nodejs-flot)
+Provides:  bundled(open-sans-fonts)
+Provides:  bundled(xstatic-bootstrap-datepicker-common)
+
 %py_provides python3-bodhi-server
 
 %description
+Bodhi is a modular framework that facilitates the process of publishing
+updates for a software distribution.
+
+
+%package -n bodhi-composer
+Summary: Bodhi composer backend
+
+Requires: %{py3_dist jinja2}
+Requires: bodhi-server == %{version}-%{release}
+Requires: pungi >= 4.1.20
+Requires: python3-createrepo_c
+Requires: skopeo
+
+%description -n bodhi-composer
+The Bodhi composer is the component that publishes Bodhi artifacts to
+repositories.
 
 
 %prep
@@ -83,6 +128,20 @@ install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 %{python3_sitelib}/bodhi_server-%{pypi_version}-py%{python3_version}.egg-info
 %{_mandir}/man1/bodhi-*.1*
 %{_mandir}/man1/initialize_bodhi_db.1*
+# These excluded files are in the bodhi-composer package so don't include them here.
+%exclude %{python3_sitelib}/bodhi/server/tasks/composer.py
+%exclude %{python3_sitelib}/bodhi/server/tasks/__pycache__/composer.*
+%exclude %{python3_sitelib}/bodhi/server/metadata.py
+%exclude %{python3_sitelib}/bodhi/server/__pycache__/metadata.*
+
+%files -n bodhi-composer
+%license COPYING
+%doc README.rst
+%{python3_sitelib}/bodhi/server/tasks/composer.py
+# The __pycache__ folder itself is owned by bodhi-server.
+%{python3_sitelib}/bodhi/server/tasks/__pycache__/composer.*
+%{python3_sitelib}/bodhi/server/metadata.py
+%{python3_sitelib}/bodhi/server/__pycache__/metadata.*
 
 %changelog
 * Wed Feb 23 2022 Ryan Lerch <rlerch@redhat.com> - 5.7.5-0
