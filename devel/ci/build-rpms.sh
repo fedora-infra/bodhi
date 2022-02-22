@@ -19,7 +19,7 @@ for submodule in ${MODULES}; do
     sed -i "s/^Version:.*/Version:%{pypi_version}^$(date -u +%Y%m%d%H%M)git$githash/g" ~/rpmbuild/SPECS/$submodule.spec
     rpmdev-bumpspec ~/rpmbuild/SPECS/$submodule.spec
     rpmbuild -ba ~/rpmbuild/SPECS/$submodule.spec
-    cp ~/rpmbuild/SRPMS/*$submodule*.src.rpm /results/
-    cp ~/rpmbuild/RPMS/noarch/*$submodule*.rpm /results/
     cd ..
 done
+cp --verbose ~/rpmbuild/SRPMS/*.src.rpm /results/
+cp --verbose ~/rpmbuild/RPMS/noarch/*.rpm /results/

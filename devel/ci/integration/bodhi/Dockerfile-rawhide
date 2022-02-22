@@ -33,7 +33,8 @@ RUN \
         rpmbuild -ba ~/rpmbuild/SPECS/$pkg.spec && \
         dnf install -y $(ls ~/rpmbuild/RPMS/noarch/*$pkg*.rpm) && \
         cd ..; \
-    done
+    done; \
+    dnf install -y $(ls ~/rpmbuild/RPMS/noarch/*bodhi-composer*.rpm)
 
 # Configuration
 RUN mkdir -p /etc/bodhi
