@@ -107,14 +107,11 @@ jobs:
       - name: Upload built rpms
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.release }} ${{ matrix.module }} RPM
-          path: test_results/${{ matrix.release }}-rpm/*.noarch.rpm
+          name: ${{ matrix.release }} RPMs
+          path: | 
+            test_results/${{ matrix.release }}-rpm/*.noarch.rpm
+            test_results/${{ matrix.release }}-rpm/*.src.rpm
 
-      - name: Upload source rpms
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.release }} ${{ matrix.module }} SRPM
-          path: test_results/${{ matrix.release }}-rpm/*.src.rpm
     strategy:
       fail-fast: false
       matrix:
