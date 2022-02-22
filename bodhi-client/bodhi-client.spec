@@ -19,6 +19,10 @@ BuildRequires:  python3dist(koji)
 BuildRequires:  python3dist(python-fedora) >= 0.9
 BuildRequires:  python3dist(setuptools)
 
+Requires: /usr/bin/koji
+Requires: python3-dnf
+Requires: python3-koji
+
 %py_provides python3-bodhi-client
 
 %description
