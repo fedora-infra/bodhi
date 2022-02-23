@@ -1,6 +1,6 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-messages
-%global pypi_version 5.7.4
+%global pypi_version 5.7.5
 
 Name:           python-%{pypi_name}
 Version:        %{pypi_version}
@@ -43,6 +43,9 @@ rm -rf %{pypi_name}.egg-info
 %{python3_sitelib}/bodhi_messages-%{pypi_version}-py%{python3_version}.egg-info
 
 %changelog
+* Wed Feb 23 2022 Ryan Lerch <rlerch@redhat.com> - 5.7.5-0
+- Prepare the Bodhi client to be compatible with an OIDC-enabled server. PR#4391.
+
 * Mon Jan 24 2022 Lenka Segura <lsegura@redhat.com> - 5.7.4-2
 - rebuilt
 
