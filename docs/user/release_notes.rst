@@ -4,6 +4,24 @@ Release notes
 
 .. towncrier release notes start
 
+v5.7.5
+======
+This is a feature release.
+
+Features
+^^^^^^^^
+
+* Prepare the Bodhi client to be compatible with an OIDC-enabled server.
+  (:pr:`4391`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Aurélien Bompard
+
+
 v5.7.4
 ======
 This is a bugfix release that should help with several more problems after 7.5.3 release.
