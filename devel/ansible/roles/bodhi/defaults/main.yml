@@ -1,1 +1,5 @@
 rabbitmq_cluster_file_limit: 500000
+ipa_admin_user: admin
+ipa_admin_password: password
+krb_master_password: password
+krb_realm: TINYSTAGE.TEST
