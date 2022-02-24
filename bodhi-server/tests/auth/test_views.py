@@ -1,5 +1,6 @@
 from unittest import mock
 from urllib.parse import urlparse
+import time
 
 from authlib.common.urls import url_decode
 from pyramid import testing
@@ -10,9 +11,11 @@ from bodhi.server.auth.views import authorize_oidc, login_with_token
 
 from .. import base
 from ..utils import get_bearer_token, mock_send_value
+from .utils import set_session_data
 
 
 def fake_send(responses=None):
+    now = int(time.time())
     default_responses = {
         "UserInfo": {
             "sub": "SUB",
@@ -34,8 +37,8 @@ def fake_send(responses=None):
             "sub": "SUB",
             "aud": "https://protected.example.net/resource",
             "iss": "https://server.example.com/",
-            "exp": 1419356238,
-            "iat": 1419350238
+            "exp": now + 3600,
+            "iat": now
         },
     }
     _responses = default_responses.copy()
@@ -95,9 +98,8 @@ class TestOIDCLoginViews(base.BasePyTestCase):
 
     def test_authorize(self):
         """Test a user logging in."""
-        remote_app = self.registry.oidc.fedora
         request = testing.DummyRequest(path="/oidc/authorize", params={"state": "STATE"})
-        remote_app.framework.set_session_data(request, "state", "STATE")
+        set_session_data(request.session, "STATE", "state", "STATE", app_name="fedora")
         request.registry = self.registry
         request.db = self.db
 
@@ -118,9 +120,8 @@ class TestOIDCLoginViews(base.BasePyTestCase):
         user.groups = [models.Group(name="testgroup1"), models.Group(name="testgroup2")]
         self.db.commit()
 
-        remote_app = self.registry.oidc.fedora
         request = testing.DummyRequest(path="/oidc/authorize", params={"state": "STATE"})
-        remote_app.framework.set_session_data(request, "state", "STATE")
+        set_session_data(request.session, "STATE", "state", "STATE", app_name="fedora")
         request.registry = self.registry
         request.db = self.db
 

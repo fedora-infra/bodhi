@@ -102,7 +102,7 @@ def login_with_token(request: 'pyramid.request.Request'):
     resource_protector = ResourceProtector()
     validator = IntrospectTokenValidator(request.registry.oidc.fedora)
     resource_protector.register_token_validator(validator)
-    token = resource_protector.validate_request(SCOPES, request)
+    token = resource_protector.validate_request([SCOPES], request)
     response = HTTPAccepted()
     get_and_store_user(request, token["access_token"], response)
     return response

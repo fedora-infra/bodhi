@@ -1,13 +1,18 @@
 from unittest import mock
+import time
 
 from authlib import __version__ as authlib_version
 from authlib.oauth2.rfc6750 import InsufficientScopeError, InvalidTokenError
+from packaging.version import parse as parse_version
 from pyramid import testing
-import pkg_resources
 import pytest
 
-from bodhi.server.auth.fedora import FedoraRemoteApp, IntrospectTokenValidator
-from bodhi.server.auth.oauth import OAuth
+from bodhi.server.auth import OAuth
+from bodhi.server.auth.fedora import (
+    FedoraApp,
+    IntrospectionToken,
+    IntrospectTokenValidator,
+)
 
 from .. import base
 from ..utils import mock_send_value
@@ -24,8 +29,8 @@ INTROSPECTION_RESULT = {
     "sub": "Z5O3upPC88QrAjx00dis",
     "aud": "https://protected.example.net/resource",
     "iss": "https://server.example.com/",
-    "exp": 1419356238,
-    "iat": 1419350238
+    "exp": int(time.time()) + 3600,
+    "iat": int(time.time()),
 }
 
 
@@ -58,7 +63,7 @@ class TestFedoraAuth(base.BasePyTestCase):
                 'scope': "openid email profile",
                 'token_endpoint_auth_method': 'client_secret_post',
             },
-            client_cls=FedoraRemoteApp,
+            client_cls=FedoraApp,
         )
 
     def test_introspect_token(self):
@@ -77,7 +82,7 @@ class TestFedoraAuth(base.BasePyTestCase):
     def test_introspect_token_validator(self):
         validator = IntrospectTokenValidator(self.client)
         with mock.patch('requests.sessions.Session.send', make_fake_send()):
-            token = validator("TOKEN", scopes=["read", "write"], request=testing.DummyRequest())
+            token = validator("TOKEN", scopes=["read write"], request=testing.DummyRequest())
         assert token.pop("access_token") == "TOKEN"
         assert token == INTROSPECTION_RESULT
 
@@ -88,13 +93,30 @@ class TestFedoraAuth(base.BasePyTestCase):
         }
         with mock.patch('requests.sessions.Session.send', make_fake_send(answer)):
             with pytest.raises(InvalidTokenError):
-                validator("TOKEN", scopes=["read", "write"], request=testing.DummyRequest())
+                validator("TOKEN", scopes=["read write"], request=testing.DummyRequest())
+
+    def test_introspect_token_validator_no_token(self):
+        validator = IntrospectTokenValidator(self.client)
+        with mock.patch.object(self.client, "introspect_token", return_value=None):
+            with pytest.raises(InvalidTokenError):
+                validator("TOKEN", scopes=[], request=testing.DummyRequest())
 
     def test_introspect_token_insufficient_scopes(self):
         validator = IntrospectTokenValidator(self.client)
         with mock.patch('requests.sessions.Session.send', make_fake_send({"scope": "read"})):
             with pytest.raises(InsufficientScopeError) as exc:
-                validator("TOKEN", scopes=["read", "write"], request=testing.DummyRequest())
-            if pkg_resources.safe_version(authlib_version) >= pkg_resources.safe_version("0.15.5"):
+                result = validator("TOKEN", scopes=["read write"], request=testing.DummyRequest())
+                print(result)
+            if parse_version(authlib_version) == parse_version("0.15.5"):
                 assert exc.value.token_scope == "read"
                 assert exc.value.required_scope == "read write"
+
+    def test_introspection_token_inactive(self):
+        token = IntrospectionToken({"active": False})
+        assert token.is_active() is False
+        assert token.is_revoked() is True
+        assert token.is_expired() is True
+
+    def test_introspection_token_no_expiration(self):
+        token = IntrospectionToken({"active": True})
+        assert token.is_expired() is None
