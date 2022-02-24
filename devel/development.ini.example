@@ -1,7 +1,7 @@
 # See production.ini for documentation on the settings that can be used in this file.
 [app:main]
 use = egg:bodhi-server
-base_address = http://localhost:6543/
+base_address = https://bodhi-dev.example.com/
 fedora_announce_list = package-announce@lists.fedoraproject.org
 fedora_test_announce_list = test@lists.fedoraproject.org
 fedora_epel_announce_list = epel-package-announce@lists.fedoraproject.org
@@ -16,8 +16,8 @@ f7.post_beta.critpath.num_admin_approvals = 0
 f7.post_beta.critpath.min_karma = 2
 f7.post_beta.critpath.stable_after_days_without_negative_karma = 3
 cors_origins_ro = *
-cors_origins_rw = http://0.0.0.0:6543
-cors_connect_src = http://0.0.0.0:6543 http://localhost:6543 https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/
+cors_origins_rw = http://0.0.0.0:6543 http://bodhi-dev.example.com/ https://bodhi-dev.example.com/
+cors_connect_src = http://0.0.0.0:6543 http://bodhi-dev.example.com/ https://bodhi-dev.example.com/ http://localhost:6543 https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/
 pyramid.reload_templates = true
 pyramid.debug_authorization = true
 pyramid.debug_notfound = true
@@ -87,6 +87,10 @@ docs_path = %(here)s/../docs/_build/html/
 use = egg:waitress#main
 host = 0.0.0.0
 port = 6543
+trusted_proxy = 127.0.0.1
+trusted_proxy_count = 1
+trusted_proxy_headers = x-forwarded-for x-forwarded-host x-forwarded-proto x-forwarded-port
+clear_untrusted_proxy_headers = yes
 
 [pshell]
 m = bodhi.server.models
