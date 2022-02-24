@@ -26,6 +26,7 @@ from bodhi import server
 from bodhi.server import models
 from bodhi.server.config import config
 from bodhi.server.views import generic
+
 from . import base
 
 
@@ -105,11 +106,9 @@ class TestGetReleases(base.BasePyTestCase):
 
 class TestGetUser(base.BasePyTestCase):
     """Test get_user()."""
-    def test_authenticated(self):
-        """Assert that a munch gets returned for an authenticated user."""
-        db_user = models.User.query.filter_by(name='guest').one()
 
-        class Request(object):
+    def _make_request(self, userid):
+        class Request:
             """
             Fake a Request.
 
@@ -120,9 +119,14 @@ class TestGetUser(base.BasePyTestCase):
             cache = mock.MagicMock()
             db = self.db
             registry = mock.MagicMock()
-            unauthenticated_userid = db_user.name
+        request = Request()
+        request.unauthenticated_userid = userid
+        return request
 
-        user = server.get_user(Request())
+    def test_authenticated(self):
+        """Assert that a munch gets returned for an authenticated user."""
+        db_user = models.User.query.filter_by(name='guest').one()
+        user = server.get_user(self._make_request(db_user.name))
 
         assert user['groups'] == [{'name': 'packager'}]
         assert user['name'] == 'guest'
@@ -130,21 +134,12 @@ class TestGetUser(base.BasePyTestCase):
 
     def test_unauthenticated(self):
         """Assert that None gets returned for an unauthenticated user."""
-        class Request(object):
-            """
-            Fake a Request.
+        user = server.get_user(self._make_request(None))
+        assert user is None
 
-            We don't use the DummyRequest because it doesn't allow us to set the
-            unauthenticated_user attribute. We don't use mock because it causes serialization
-            problems with the call to user.__json__().
-            """
-            cache = mock.MagicMock()
-            db = self.db
-            registry = mock.MagicMock()
-            unauthenticated_userid = None
-
-        user = server.get_user(Request())
-
+    def test_unknown_user(self):
+        """Assert that None gets returned for an unknown user."""
+        user = server.get_user(self._make_request("unknown"))
         assert user is None
 
 
