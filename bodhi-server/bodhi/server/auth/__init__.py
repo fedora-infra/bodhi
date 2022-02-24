@@ -1,8 +1,16 @@
 """This module sets up OpenID Connect authentication for Bodhi."""
 
+from authlib import __version__ as authlib_version
+from packaging.version import parse as parse_version
+
 from .constants import SCOPES
-from .fedora import FedoraRemoteApp
-from .oauth import OAuth
+from .fedora import FedoraApp
+
+
+if parse_version(authlib_version) >= parse_version("1.0.0rc1"):
+    from .oauth_1 import OAuth
+else:
+    from .oauth_015 import OAuth
 
 
 def includeme(config):
@@ -23,7 +31,7 @@ def includeme(config):
             'scope': SCOPES,
             'token_endpoint_auth_method': 'client_secret_post',
         },
-        client_cls=FedoraRemoteApp,
+        client_cls=FedoraApp,
     )
     config.registry.oidc = oauth
 
