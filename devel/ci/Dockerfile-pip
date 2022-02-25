@@ -29,6 +29,9 @@ RUN pip-3 install \
     pyasn1 \
     celery
 
+# Force authlib 1.0rc1 even if it's a RC
+RUN pip-3 install authlib==1.0rc1
+
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji
 VOLUME ["/results"]
