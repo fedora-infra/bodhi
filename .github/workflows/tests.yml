@@ -28,18 +28,25 @@ jobs:
   diff_cover:
     name: Diff-cover check
     runs-on: ubuntu-latest
+    needs: unit_tests
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - name: Install deps
-        run: pip install click
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
 
-      # we only really need to run the diff cover checks for one release,
-      # so we just do it for pip
+      - name: Edit the path in the coverage files
+        run: sed -i -e "s,<source>/bodhi,<source>$PWD," Coverage*/coverage.xml
+        shell: bash
+
+      - name: Install deps
+        run: pip install diff-cover
+
       - name: Run the diff-cover check
-        run: sudo devel/ci/bodhi-ci diff-cover -r pip
+        shell: bash
+        run: diff-cover --compare-branch=origin/develop --fail-under=100 Coverage*/coverage.xml
 
   integration_tests:
     name: Integration Tests
@@ -69,6 +76,12 @@ jobs:
 
       - name: Run the unit tests
         run: devel/ci/bodhi-ci unit -r ${{ matrix.release }} -m ${{matrix.module}}
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: Coverage for ${{ matrix.module }} on ${{ matrix.release }}
+          path: test_results/${{ matrix.release }}-unit/${{ matrix.module }}/coverage.xml
 
     strategy:
       fail-fast: false
