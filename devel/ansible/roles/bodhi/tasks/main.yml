@@ -53,9 +53,11 @@
       - python3-pyramid-fas-openid
       - python3-pytest
       - python3-pytest-cov
+      - python3-pytest-mock
       - python3-responses
       - python3-rpdb
       - python3-simplemediawiki
+      - python3-sphinx
       - python3-sqlalchemy
       - python3-sqlalchemy_schemadisplay
       - python3-webtest
