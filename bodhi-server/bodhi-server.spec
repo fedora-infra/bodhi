@@ -13,6 +13,7 @@ Source0:        %{pypi_name}-%{pypi_version}.tar.gz
 BuildArch:      noarch
 
 BuildRequires:  python3-devel
+BuildRequires:  python3-sphinx
 BuildRequires:  python3dist(alembic)
 BuildRequires:  python3dist(arrow)
 BuildRequires:  python3dist(backoff)
@@ -46,6 +47,8 @@ BuildRequires:  python3dist(sqlalchemy)
 BuildRequires:  python3dist(waitress)
 BuildRequires:  python3dist(whitenoise)
 
+%py_provides python3-bodhi-server
+
 %description
 
 
@@ -56,10 +59,12 @@ rm -rf %{pypi_name}.egg-info
 
 %build
 %py3_build
+make %{?_smp_mflags} -C docs man
 
 %install
 %py3_install
-
+install -d %{buildroot}%{_mandir}/man1
+install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 
 %files -n %{pypi_name}
 %doc README.rst bodhi/server/migrations/README.rst bodhi/server/static/vendor/fedora-bootstrap/README.rst
@@ -76,6 +81,8 @@ rm -rf %{pypi_name}.egg-info
 %{python3_sitelib}/bodhi
 %{python3_sitelib}/bodhi_server-%{pypi_version}-py%{python3_version}-*.pth
 %{python3_sitelib}/bodhi_server-%{pypi_version}-py%{python3_version}.egg-info
+%{_mandir}/man1/bodhi-*.1*
+%{_mandir}/man1/initialize_bodhi_db.1*
 
 %changelog
 * Mon Jan 24 2022 Lenka Segura <lsegura@redhat.com> - 5.7.4-2

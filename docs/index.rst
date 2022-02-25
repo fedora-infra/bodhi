@@ -36,7 +36,6 @@ User Guide
    user/buildroot_overrides
    user/automatic_updates
    user/fedora-flavored-markdown
-   user/man_pages/index
 
 .. toctree::
    :maxdepth: 1
@@ -93,4 +92,3 @@ on both production and staging.
 .. _production instance: https://bodhi.fedoraproject.org/
 .. _staging instance: https://bodhi.stg.fedoraproject.org/
 .. _Online documentation: https://bodhi.fedoraproject.org/docs/
-

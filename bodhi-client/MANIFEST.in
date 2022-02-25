@@ -1,2 +1,3 @@
 include *.sh
 recursive-include tests *.py
+graft docs

@@ -9,7 +9,7 @@ used to build another package. This is where Bodhi's buildroot override function
 play.
 
 Developers can create a buildroot override in Bodhi's create menu in the upper right hand corner, or
-they can use the :doc:`man_pages/bodhi` command line interface to do it.
+they can use the bodhi command line interface to do it.
 
 Once a buildroot override is created, Bodhi will present a hint to the developer describing how to
 use the ``koji`` CLI to wait for the override to appear in the buildroot. Once ``koji`` confirms the

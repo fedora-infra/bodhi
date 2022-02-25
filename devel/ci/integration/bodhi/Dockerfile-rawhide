@@ -31,7 +31,7 @@ RUN \
         cp dist/* ~/rpmbuild/SOURCES/ && \
         cp $pkg.spec ~/rpmbuild/SPECS/ && \
         rpmbuild -ba ~/rpmbuild/SPECS/$pkg.spec && \
-        dnf install -y $(ls ~/rpmbuild/RPMS/noarch/$pkg*.rpm) && \
+        dnf install -y $(ls ~/rpmbuild/RPMS/noarch/*$pkg*.rpm) && \
         cd ..; \
     done
 
@@ -46,7 +46,7 @@ COPY devel/ci/integration/bodhi/httpd.conf /etc/bodhi/httpd.conf
 COPY bodhi-server/apache/bodhi.wsgi /etc/bodhi/bodhi.wsgi
 RUN sed -i -e 's,/var/www,/httpdir,g' /etc/bodhi/bodhi.wsgi
 COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/config.toml
-# workaround for https://github.com/moby/moby/issues/37965 
+# workaround for https://github.com/moby/moby/issues/37965
 RUN true
 # Composes
 COPY devel/ci/integration/bodhi/pungi-call-dump.sh /etc/bodhi/pungi-call-dump.sh

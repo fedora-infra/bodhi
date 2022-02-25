@@ -2,7 +2,7 @@
 %global pypi_name bodhi-messages
 %global pypi_version 5.7.4
 
-Name:           %{pypi_name}
+Name:           python-%{pypi_name}
 Version:        %{pypi_version}
 Release:        0%{?dist}
 Summary:        JSON schema for messages sent by Bodhi
@@ -20,6 +20,10 @@ BuildRequires:  python3dist(setuptools)
 Bodhi Messages This package contains the schema for messages published by
 Bodhi.
 
+%package -n     python3-%{pypi_name}               
+Summary:        %{summary}                                                                                                                  
+%{?python_provide:%python_provide python3-%{pypi_name}}
+%description -n python3-%{pypi_name}
 
 %prep
 %autosetup -n %{pypi_name}-%{pypi_version}
@@ -32,7 +36,7 @@ rm -rf %{pypi_name}.egg-info
 %install
 %py3_install
 
-%files -n %{pypi_name}
+%files -n python3-%{pypi_name}
 %doc README.rst
 %{python3_sitelib}/bodhi
 %{python3_sitelib}/bodhi_messages-%{pypi_version}-py%{python3_version}-*.pth

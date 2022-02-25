@@ -22,37 +22,9 @@ import shutil
 import tempfile
 from contextlib import contextmanager
 
+from conu import ConuException
 from fedora_messaging import message
-
-
-def make_db_and_user(db_container, name, use_dump=False):
-    """Create a database and a user in PostgreSQL.
-
-    Args:
-        db_container (conu.DockerContainer): The PostgreSQL container.
-        name (str): the database and use names to create.
-        dump_url (str): the URL of the database dump to preload the new
-            database with.
-    """
-    # Prepare the database
-    db_container.execute(
-        ["/usr/bin/psql", "-q", "-U", "postgres", "-c", "CREATE USER {} CREATEDB;".format(name)]
-    )
-    db_container.execute(
-        [
-            "/usr/bin/psql", "-q", "-U", "postgres", "-c",
-            (
-                "CREATE DATABASE {} WITH TEMPLATE = template0 ENCODING = 'UTF8' "
-                "LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';"
-            ).format(name),
-        ]
-    )
-    if use_dump:
-        db_dump = os.path.join("devel", "ci", "integration", "dumps", "{}.dump".format(name))
-        assert os.path.exists(db_dump)
-        db_container.copy_to(db_dump, "/tmp/database.dump")
-        db_container.execute(["/usr/bin/psql", "-q", "-U", name, "-f", "/tmp/database.dump"])
-        db_container.execute(["rm", "/tmp/database.dump"])
+from munch import Munch
 
 
 @contextmanager
@@ -157,3 +129,31 @@ def get_task_results(container):
                     result = json.load(fh)
                 results.append(result)
     return results
+
+
+def run_cli(bodhi_container, args, **kwargs):
+    """Run the Bodhi CLI in the Bodhi container
+
+    Args:
+        bodhi_container (conu.DockerContainer): The Bodhi container to use.
+        args (list): The CLI arguments
+        kwargs (dict): The kwargs to use for the ``DockerContainer.execute()``
+            method.
+    Returns:
+        Munch: Execution result as an object with an ``exit_code`` property
+            (``int``) and an ``output`` property (``str``).
+    """
+    if "exec_create_kwargs" not in kwargs:
+        kwargs["exec_create_kwargs"] = {}
+    if "environment" not in kwargs["exec_create_kwargs"]:
+        kwargs["exec_create_kwargs"]["environment"] = {}
+    kwargs["exec_create_kwargs"]["environment"]["PYTHONWARNINGS"] = "ignore"
+    with_auth = kwargs.pop("with_auth", False)
+    cmd = ["bodhi"] + args + ["--url", "http://localhost:8080"]
+    if with_auth:
+        cmd.extend(["--id-provider", "https://id.dev.fedoraproject.org/openidc"])
+    try:
+        output = bodhi_container.execute(cmd, **kwargs)
+    except ConuException as e:
+        return Munch(exit_code=1, output=str(e))
+    return Munch(exit_code=0, output="".join(line.decode("utf-8") for line in output))

@@ -6,3 +6,4 @@ recursive-include tests *.py
 graft apache
 include bodhi/server/locale/.placeholder
 include COPYING
+graft docs

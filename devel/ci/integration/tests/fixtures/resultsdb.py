@@ -18,7 +18,7 @@
 
 import pytest
 
-from ..utils import make_db_and_user
+from .utils import make_db_and_user, stop_and_delete
 
 
 @pytest.fixture(scope="session")
@@ -41,6 +41,7 @@ def resultsdb_container(docker_backend, docker_network, db_container, rabbitmq_c
     image_name = "bodhi-ci-integration-resultsdb"
     image = docker_backend.ImageClass(image_name)
     run_opts = [
+        "--rm",
         "--name", "resultsdb",
         "--network", docker_network.get_id(),
         "--network-alias", "resultsdb",
@@ -53,5 +54,4 @@ def resultsdb_container(docker_backend, docker_network, db_container, rabbitmq_c
     # we need to wait for the webserver to start serving
     container.wait_for_port(80, timeout=30)
     yield container
-    container.kill()
-    container.delete()
+    stop_and_delete(container)
