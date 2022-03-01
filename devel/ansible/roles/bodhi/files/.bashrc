@@ -33,7 +33,14 @@ function bresetdb {
 
 function btest {
     find /home/vagrant/bodhi -name "*.pyc" -delete;
-    blint && bdocs && py.test-3 $@ /home/vagrant/bodhi/bodhi/tests && diff-cover /home/vagrant/bodhi/coverage.xml --compare-branch=develop --fail-under=100
+    blint || return $?
+    bdocs || return $?
+    for module in bodhi-messages bodhi-client bodhi-server; do
+        pushd $module
+        python -m pytest $@ tests || return $?
+        popd
+    done
+    diff-cover bodhi-*/coverage.xml --compare-branch=develop --fail-under=100
 }
 
 

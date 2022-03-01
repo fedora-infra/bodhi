@@ -4119,6 +4119,7 @@ class Update(Base):
         return {
             "contact": contact,
             "artifact": artifact,
+            "update": self,
             "generated_at": datetime.utcnow().isoformat() + 'Z',
             "version": "0.2.2",
             'agent': agent,
@@ -4150,7 +4151,7 @@ class Update(Base):
         if target.content_type != ContentType.rpm:
             return
 
-        message = update_schemas.UpdateReadyForTestingV1.from_dict(
+        message = update_schemas.UpdateReadyForTestingV2.from_dict(
             message=target._build_group_test_message()
         )
         notifications.publish(message)

@@ -1,6 +1,6 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-client
-%global pypi_version 5.7.4
+%global pypi_version 5.7.5
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
@@ -50,6 +50,9 @@ install -pm0644 docs/_build/bodhi.1 %{buildroot}%{_mandir}/man1/
 %{_mandir}/man1/bodhi.1*
 
 %changelog
+* Wed Feb 23 2022 Ryan Lerch <rlerch@redhat.com> - 5.7.5-0
+- Prepare the Bodhi client to be compatible with an OIDC-enabled server. PR#4391.
+
 * Mon Jan 24 2022 Lenka Segura <lsegura@redhat.com> - 5.7.4-2
 - rebuilt
 
