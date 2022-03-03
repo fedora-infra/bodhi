@@ -58,62 +58,62 @@ jobs:
         # integration tests are broken on pip atm, so not included in this list.
         release: [f34,f35,rawhide]
 
-  unit_tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+  # unit_tests:
+  #   name: Unit Tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Install deps
-        run: pip install click
+  #     - name: Install deps
+  #       run: pip install click
 
-      - name: Run the unit tests
-        run: devel/ci/bodhi-ci unit -r ${{ matrix.release }} -m ${{matrix.module}}
+  #     - name: Run the unit tests
+  #       run: devel/ci/bodhi-ci unit -r ${{ matrix.release }} -m ${{matrix.module}}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        release: [f34,f35,pip,rawhide]
-        module: [bodhi-client, bodhi-messages, bodhi-server]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       release: [f34,f35,pip,rawhide]
+  #       module: [bodhi-client, bodhi-messages, bodhi-server]
 
-  docs:
-    name: Build Documentation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+  # docs:
+  #   name: Build Documentation
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Install deps
-        run: pip install click -r docs/requirements.txt
+  #     - name: Install deps
+  #       run: pip install click -r docs/requirements.txt
 
-      - name: Build the docs
-        run: devel/ci/bodhi-ci docs -r ${{ matrix.release }}
-    strategy:
-      fail-fast: false
-      matrix:
-        release: [f34,f35,pip,rawhide]
+  #     - name: Build the docs
+  #       run: devel/ci/bodhi-ci docs -r ${{ matrix.release }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       release: [f34,f35,pip,rawhide]
 
-  rpms:
-    name: Build the RPMS
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+  # rpms:
+  #   name: Build the RPMS
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Install deps
-        run: pip install click
+  #     - name: Install deps
+  #       run: pip install click
 
-      - name: Build the rpms
-        run: devel/ci/bodhi-ci rpm -r ${{ matrix.release }} -m ${{ matrix.module }}
+  #     - name: Build the rpms
+  #       run: devel/ci/bodhi-ci rpm -r ${{ matrix.release }} -m ${{ matrix.module }}
 
-      - name: Upload built rpms
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.release }} RPMs
-          path: | 
-            test_results/${{ matrix.release }}-rpm/*.noarch.rpm
-            test_results/${{ matrix.release }}-rpm/*.src.rpm
+  #     - name: Upload built rpms
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: ${{ matrix.release }} RPMs
+  #         path: | 
+  #           test_results/${{ matrix.release }}-rpm/*.noarch.rpm
+  #           test_results/${{ matrix.release }}-rpm/*.src.rpm
 
-    strategy:
-      fail-fast: false
-      matrix:
-        release: [f34,f35,rawhide]
-        module: [bodhi-client, bodhi-messages, bodhi-server]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       release: [f34,f35,rawhide]
+  #       module: [bodhi-client, bodhi-messages, bodhi-server]

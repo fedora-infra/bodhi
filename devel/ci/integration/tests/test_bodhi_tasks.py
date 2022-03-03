@@ -153,7 +153,7 @@ def test_update_edit(
         assert False, str(e)
     try:
         bodhi_container.execute(["wait-for-file", "-d", "/srv/celery-results"])
-    except ConuException as e:
+    except Exception as e:
         print(f"Waiting for celery results failed, relevant update: {update_alias}")
         with read_file(bodhi_container, "/httpdir/errorlog") as log:
             print(log.read())
