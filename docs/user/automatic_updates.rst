@@ -36,17 +36,19 @@ the RPM changelog like this::
     - Fixes rhbz#123456
     - Resolves: epel#777777
 
-Just be sure to use the appropriate format for every bug you want to add. For example, this will
-**NOT** work::
+Fedora Linux specific regex
+---------------------------
 
-   %changelog
+Fedora (and EPEL) may use a different regex to catch bug IDs from changelog.
+
+The current regex configuration is set to just::
+
+    (fedora|epel|rh|rhbz)#BUG_ID
+
+which means that every occurrence of a bug ID with the appropriate prefix will match, without the need of a particular keyword. So, the former example may be shrinked to::
+
+    %changelog
     * Sat Apr 04 2020 Mattia Verga  <mattia@fedoraproject.org> - 0.78-1
-    - Update to 0.78
-    - Fix rhbz#123456, rhbz#987654
+    - Update to 0.78 (rhbz#123456, epel#777777)
 
-Use this instead::
-
-   %changelog
-    * Sat Apr 04 2020 Mattia Verga  <mattia@fedoraproject.org> - 0.78-1
-    - Update to 0.78
-    - Fix rhbz#123456, fix rhbz#987654
+If you want to avoid closing a bug, you can put a whitespace between the prefix and the bug ID, like `rhbz #123456`.
