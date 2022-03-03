@@ -144,8 +144,12 @@
 
     <div class="footer py-5">
       <div class="container">
+        <%
+        from datetime import datetime
+        current_year=datetime.now().year
+        %>
         <p class="text-light text-center">
-          Copyright &copy; 2007-2019 Red Hat, Inc. and
+          Copyright &copy; 2007-${current_year} Red Hat, Inc. and
           <a href="https://github.com/fedora-infra/bodhi/graphs/contributors" class="text-white-50">
           others</a>.
         </p>
