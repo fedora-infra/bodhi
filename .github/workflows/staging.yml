@@ -1,0 +1,57 @@
+on:
+  push:
+    branches:
+      - staging
+
+name: Build in koji
+
+jobs:
+
+  build:
+    name: Build in koji
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: staging
+
+      - name: install Deps with apt
+        run: sudo apt-get install krb5-k5tls krb5-user krb5-config libkrb5-dev
+
+      - name: Install Deps with PIP
+        run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging koji
+
+      - name: Get Fedora Project IPA CA
+        run: sudo curl https://pagure.io/fedora-packager/raw/main/f/ipa_ca/fedoraproject_ipa_ca.crt -o /usr/local/share/ca-certificates/fedoraproject_ipa_ca.crt
+
+      - name: Update CA Certificates
+        run:  sudo update-ca-certificates
+
+      - name: Copy krb5.conf
+        run: sudo cp .github/workflows/krb5.conf /etc/krb5.conf
+
+      - name: Copy koji.conf
+        run: sudo cp .github/workflows/koji.conf /etc/koji.conf
+
+      # the keytab in the secret was generated with:
+      # $ ktutil
+      # ktutil:   addent -password -p bodhidev-bot@FEDORAPROJECT.ORG -k 1 -e rc4-hmac
+      # ktutil:   wkt bodhidev-bot.keytab
+      #
+      # then encoded in base64 and added to github actions secrets with
+      # $ base64 bodhidev-bot.keytab > bodhidev-bot.keytab.base64
+      - name: get and decode keytab
+        env:
+          KEYTAB: ${{ secrets.KEYTAB }}
+        run: echo $KEYTAB | base64 --decode > bodhidev-bot.keytab
+
+      - name: Build the rpms with bodhi-ci (just to get the SRPMS)
+        run: devel/ci/bodhi-ci rpm -r ${{ matrix.release }} -m ${{ matrix.module }}
+
+      - name: Build on Koji
+        run: koji --keytab=bodhidev-bot.keytab --principal=bodhidev-bot@FEDORAPROJECT.ORG build --wait ${{ matrix.release }}-infra test_results/${{ matrix.release }}-rpm/*${{ matrix.module }}*.src.rpm
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [f34]
+        module: [bodhi-client, bodhi-messages, bodhi-server]
