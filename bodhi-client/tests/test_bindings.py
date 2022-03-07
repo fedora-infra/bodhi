@@ -1621,7 +1621,7 @@ class TestKojiSession(BodhiClientTestCase):
         with open(tmpdir.join("etckojiconf")) as f:
             mock_open = mocker.patch('builtins.open', create=True)
             mock_open.return_value = f
-            # readfp = mocker.patch('bodhi.client.bindings.configparser.ConfigParser.readfp')
+            # read_file = mocker.patch('bodhi.client.bindings.configparser.ConfigParser.read_file')
             client.get_koji_session()
             mock_open.assert_called_once_with("/etc/koji.conf")
         koji.assert_called_with("foobar")

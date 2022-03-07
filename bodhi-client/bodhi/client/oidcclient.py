@@ -159,6 +159,9 @@ class OIDCClient:
         try:
             server_thread.join()
         except KeyboardInterrupt:
+            stop_thread = threading.Thread(target=httpd.shutdown, daemon=True)
+            stop_thread.start()
+            stop_thread.join()
             raise click.ClickException("Cancelled.")
 
     def auth_callback(self, response):
@@ -260,7 +263,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write(RESULT_SUCCESS.encode("utf-8"))
-        threading.Thread(target=self.server.shutdown).start()
+        threading.Thread(target=self.server.shutdown, daemon=True).start()
 
 
 class JSONStorage:
