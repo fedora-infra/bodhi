@@ -139,7 +139,7 @@ def test_oidcclient_login_no_oob_interrupted(mocker, client):
     }
     oauth2client.create_authorization_url.return_value = ("auth-url", "state")
     mocker.patch.object(threading.Thread, "start")
-    mocker.patch.object(threading.Thread, "join", side_effect=KeyboardInterrupt)
+    mocker.patch.object(threading.Thread, "join", side_effect=[KeyboardInterrupt, None])
     with pytest.raises(ClickException) as exc:
         client.login()
     assert str(exc.value) == "Cancelled."
