@@ -458,7 +458,10 @@ def test_updates_download(bodhi_container, db_container):
     for update in updates:
         assert "Downloading packages from {}".format(update['alias']) in result.output
     for build_id in builds:
-        assert re.search(f"TESTING CALL .*koji download-build.*{build_id}", result.output)
+        assert re.search(
+            f"TESTING CALL .*koji download-build.*{re.escape(build_id)}",
+            result.output
+        )
 
 
 def test_updates_request(bodhi_container, ipsilon_container, db_container):
