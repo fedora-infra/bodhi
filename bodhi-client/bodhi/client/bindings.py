@@ -956,9 +956,9 @@ class BodhiClient:
         """
         config = configparser.ConfigParser()
         if os.path.exists(os.path.join(os.path.expanduser('~'), '.koji', 'config')):
-            config.readfp(open(os.path.join(os.path.expanduser('~'), '.koji', 'config')))
+            config.read_file(open(os.path.join(os.path.expanduser('~'), '.koji', 'config')))
         else:
-            config.readfp(open('/etc/koji.conf'))
+            config.read_file(open('/etc/koji.conf'))
         session = koji.ClientSession(config.get('koji', 'server'))
         return session
 
