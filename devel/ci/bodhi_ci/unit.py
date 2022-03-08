@@ -51,14 +51,20 @@ class UnitJob(Job):
 
         test_command = (
             # Run poetry install in all 3 modules
-            f'virtualenv --system-site-packages /srv/venv;'
             f'for submodule in {" ".join(MODULES)}; do '
-            'cd $submodule; poetry install; cd ..; done; '
+            '  pushd $submodule; '
+            '  VERSION=( $(poetry version) ); '
+            '  poetry build -f sdist; '
+            '  tar -xzvf "dist/${VERSION[0]}-${VERSION[1]}.tar.gz" -C /tmp/; '
+            '  pushd "/tmp/${VERSION[0]}-${VERSION[1]}"; '
+            '  python setup.py develop; '
+            '  popd; '
+            'done; '
             # Run the tests in each submodule
             f'for submodule in {modules}; do '
             '  mkdir -p /results/$submodule; '
             '  cd $submodule; '
-            f' poetry run pytest {pytest_flags}; '
+            f'/usr/bin/python3 -m pytest {pytest_flags}; '
             '  exitcode=$?; '
             '  cp *.xml /results/$submodule/; '
             '  test $exitcode -gt 0 && exit 1; '
@@ -67,7 +73,7 @@ class UnitJob(Job):
         )
         self._command = ['/usr/bin/bash', '-c', test_command]
 
-        self._convert_command_for_container(network='bridge')
+        self._convert_command_for_container()
 
     async def run(self):
         """

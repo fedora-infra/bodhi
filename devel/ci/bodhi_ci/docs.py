@@ -31,12 +31,14 @@ class DocsJob(Job):
     _command = [
         '/usr/bin/bash', '-cx',
         (
-            'virtualenv --system-site-packages "$VIRTUAL_ENV";'
-            'rpm -qa | grep poetry;'
             'for submodule in ' + ' '.join(MODULES) + '; do '
-            '  pushd "$submodule";'
-            '  poetry install;'
-            '  popd;'
+            '  pushd $submodule; '
+            '  VERSION=( $(poetry version) ); '
+            '  poetry build -f sdist; '
+            '  tar -xzvf "dist/${VERSION[0]}-${VERSION[1]}.tar.gz" -C /tmp/; '
+            '  pushd "/tmp/${VERSION[0]}-${VERSION[1]}"; '
+            '  python setup.py develop; '
+            '  popd; '
             'done;'
             'make -C docs clean && '
             'make -C docs html PYTHON=/usr/bin/python3 && '
@@ -60,4 +62,4 @@ class DocsJob(Job):
         """
         super().__init__(*args, **kwargs)
 
-        self._convert_command_for_container(network='bridge')
+        self._convert_command_for_container()
