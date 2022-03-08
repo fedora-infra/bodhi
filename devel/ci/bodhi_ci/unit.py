@@ -51,14 +51,14 @@ class UnitJob(Job):
 
         test_command = (
             # Run poetry install in all 3 modules
-            f'virtualenv --system-site-packages {os.getenv("VIRTUAL_ENV")};'
+            f'virtualenv --system-site-packages /srv/venv;'
             f'for submodule in {" ".join(MODULES)}; do '
             'cd $submodule; poetry install; cd ..; done; '
             # Run the tests in each submodule
             f'for submodule in {modules}; do '
             '  mkdir -p /results/$submodule; '
             '  cd $submodule; '
-            f' /srv/venv/bin/python3 -m pytest {pytest_flags}; '
+            f' poetry run pytest {pytest_flags}; '
             '  exitcode=$?; '
             '  cp *.xml /results/$submodule/; '
             '  test $exitcode -gt 0 && exit 1; '
