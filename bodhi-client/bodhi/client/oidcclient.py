@@ -163,6 +163,8 @@ class OIDCClient:
             stop_thread.start()
             stop_thread.join()
             raise click.ClickException("Cancelled.")
+        finally:
+            httpd.server_close()
 
     def auth_callback(self, response):
         """Handle OIDC callback (post-login).
