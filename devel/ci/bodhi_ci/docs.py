@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 """Documentation build job."""
-import os
-
 from .constants import MODULES
 from .job import BuildJob, Job
 
@@ -33,7 +31,7 @@ class DocsJob(Job):
     _command = [
         '/usr/bin/bash', '-cx',
         (
-            f'virtualenv --system-site-packages {os.getenv("VIRTUAL_ENV")};'
+            f'virtualenv --system-site-packages /srv/venv;'
             'rpm -qa | grep poetry;'
             'for submodule in ' + ' '.join(MODULES) + '; do '
             '  pushd "$submodule";'
@@ -62,4 +60,4 @@ class DocsJob(Job):
         """
         super().__init__(*args, **kwargs)
 
-        self._convert_command_for_container()
+        self._convert_command_for_container(network='bridge')
