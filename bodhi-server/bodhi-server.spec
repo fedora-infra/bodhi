@@ -109,6 +109,19 @@ make %{?_smp_mflags} -C docs man
 
 %install
 %py3_install
+
+%{__mkdir_p} %{buildroot}/var/lib/bodhi
+%{__mkdir_p} %{buildroot}/var/cache/bodhi
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/httpd/conf.d
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/bodhi
+%{__mkdir_p} %{buildroot}%{_datadir}/bodhi
+%{__mkdir_p} -m 0755 %{buildroot}/%{_localstatedir}/log/bodhi
+
+install -m 644 apache/bodhi.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/bodhi.conf
+sed -i -s 's/BODHI_VERSION/%{version}/g' %{buildroot}%{_sysconfdir}/httpd/conf.d/bodhi.conf
+install -m 640 production.ini %{buildroot}%{_sysconfdir}/bodhi/production.ini
+install -m 640 alembic.ini %{buildroot}%{_sysconfdir}/bodhi/alembic.ini
+install apache/bodhi.wsgi %{buildroot}%{_datadir}/bodhi/bodhi.wsgi
 install -d %{buildroot}%{_mandir}/man1
 install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 
@@ -124,11 +137,17 @@ install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 %{_bindir}/bodhi-skopeo-lite
 %{_bindir}/bodhi-untag-branched
 %{_bindir}/initialize_bodhi_db
+%config(noreplace) %{_sysconfdir}/bodhi/alembic.ini
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/bodhi.conf
+%dir %{_sysconfdir}/bodhi/
 %{python3_sitelib}/bodhi
 %{python3_sitelib}/bodhi_server-%{pypi_version}-py%{python3_version}-*.pth
 %{python3_sitelib}/bodhi_server-%{pypi_version}-py%{python3_version}.egg-info
 %{_mandir}/man1/bodhi-*.1*
 %{_mandir}/man1/initialize_bodhi_db.1*
+%attr(-,bodhi,root) %{_datadir}/bodhi
+%attr(-,bodhi,bodhi) %config(noreplace) %{_sysconfdir}/bodhi/*
+%attr(0775,bodhi,bodhi) %{_localstatedir}/cache/bodhi
 # These excluded files are in the bodhi-composer package so don't include them here.
 %exclude %{python3_sitelib}/bodhi/server/tasks/composer.py
 %exclude %{python3_sitelib}/bodhi/server/tasks/__pycache__/composer.*
