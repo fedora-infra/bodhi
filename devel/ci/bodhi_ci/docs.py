@@ -31,7 +31,7 @@ class DocsJob(Job):
     _command = [
         '/usr/bin/bash', '-cx',
         (
-            f'virtualenv --system-site-packages /srv/venv;'
+            'virtualenv --system-site-packages "$VIRTUAL_ENV";'
             'rpm -qa | grep poetry;'
             'for submodule in ' + ' '.join(MODULES) + '; do '
             '  pushd "$submodule";'

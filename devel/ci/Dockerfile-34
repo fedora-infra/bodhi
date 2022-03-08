@@ -6,6 +6,7 @@ RUN dnf install -y \
     fedora-messaging \
     findutils \
     git \
+    krb5-devel \
     make \
     pip \
     poetry \
