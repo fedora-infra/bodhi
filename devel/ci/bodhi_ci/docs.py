@@ -39,6 +39,7 @@ class DocsJob(Job):
             '  pushd "/tmp/${VERSION[0]}-${VERSION[1]}"; '
             '  python setup.py develop; '
             '  popd; '
+            '  popd; '
             'done;'
             'make -C docs clean && '
             'make -C docs html PYTHON=/usr/bin/python3 && '

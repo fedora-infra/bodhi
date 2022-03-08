@@ -36,7 +36,6 @@ VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
 COPY . /bodhi
-ENV VIRTUAL_ENV=/srv/venv
 RUN pip-3 install \
     -r bodhi-messages/test-requirements.txt \
     -r bodhi-client/test-requirements.txt \

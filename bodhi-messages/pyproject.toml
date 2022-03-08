@@ -34,7 +34,7 @@ include = ["*.txt", "tests/*.py", "COPYING"]
 #zip_safe = False
 
 [tool.poetry.dependencies]
-"zope.interface" = "^5.4.0"
+"zope.interface" = "^5.2.0"
 fedora-messaging = "^3.0.0"
 python = "^3.9"
 
