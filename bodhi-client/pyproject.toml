@@ -36,11 +36,11 @@ include = ["*.sh", "tests/*.py"]
 
 
 [tool.poetry.dev-dependencies]
-Sphinx = "^4.4.0"
+Sphinx = "^3.4.3"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-click = "^8.0.3"
+click = ">=7.1.2"
 koji = "^1.27.1"
 
 [build-system]
