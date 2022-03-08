@@ -24,6 +24,8 @@ Requires: /usr/bin/koji
 Requires: python3-dnf
 Requires: python3-koji
 
+Obsoletes: python3-bodhi-client <= 5.7.5
+
 %py_provides python3-bodhi-client
 
 %description
