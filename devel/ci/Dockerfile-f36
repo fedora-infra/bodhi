@@ -9,8 +9,11 @@ RUN dnf install -y \
     fedora-messaging \
     findutils \
     git \
+    krb5-devel \
     make \
     pip \
+    poetry \
+    python-unversioned-command \
     python3-alembic \
     python3-arrow \
     python3-authlib \
@@ -65,3 +68,4 @@ CMD ["bash"]
 COPY . /bodhi
 RUN cp devel/development.ini.example bodhi-server/development.ini
 RUN sed -i '/pyramid_debugtoolbar/d' bodhi-server/development.ini
+RUN poetry config virtualenvs.create false
