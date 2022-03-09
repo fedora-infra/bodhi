@@ -33,12 +33,20 @@ RUN \
         rpmbuild -ba ~/rpmbuild/SPECS/$pkg.spec && \
         dnf install -y $(ls ~/rpmbuild/RPMS/noarch/*$pkg*.rpm) && \
         cd ..; \
-    done
+    done; \
+    dnf install -y $(ls ~/rpmbuild/RPMS/noarch/*bodhi-composer*.rpm)
+
+# Because we use self-signed certificates in integration tests
+RUN dnf install -y python3-certifi
 
 # Configuration
 RUN mkdir -p /etc/bodhi
 COPY devel/ci/integration/bodhi/production.ini /etc/bodhi/production.ini
 COPY devel/ci/integration/bodhi/celeryconfig.py /etc/bodhi/celeryconfig.py
+# Client authentication
+RUN mkdir -p /home/bodhi/.config/bodhi/
+COPY devel/ci/integration/bodhi/client.json /home/bodhi/.config/bodhi/
+RUN chown bodhi:bodhi -R /home/bodhi/.config/
 
 COPY devel/ci/integration/bodhi/start.sh /etc/bodhi/start.sh
 COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/config.toml

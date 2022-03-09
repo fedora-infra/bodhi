@@ -34,10 +34,17 @@ RUN \
         cd -; \
     done
 
+# Because we use self-signed certificates in integration tests
+RUN pip3 install certifi
+
 # Configuration
 RUN mkdir -p /etc/bodhi
 COPY devel/ci/integration/bodhi/production.ini /etc/bodhi/production.ini
 COPY devel/ci/integration/bodhi/celeryconfig.py /etc/bodhi/celeryconfig.py
+# Client authentication
+RUN mkdir -p /home/bodhi/.config/bodhi/
+COPY devel/ci/integration/bodhi/client.json /home/bodhi/.config/bodhi/
+RUN chown bodhi:bodhi -R /home/bodhi/.config/
 
 COPY devel/ci/integration/bodhi/start.sh /etc/bodhi/start.sh
 COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/config.toml

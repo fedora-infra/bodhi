@@ -28,22 +28,30 @@ jobs:
   diff_cover:
     name: Diff-cover check
     runs-on: ubuntu-latest
+    needs: unit_tests
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - name: Install deps
-        run: pip install click
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
 
-      # we only really need to run the diff cover checks for one release,
-      # so we just do it for pip
+      - name: Edit the path in the coverage files
+        run: sed -i -e "s,<source>/bodhi,<source>$PWD," Coverage*/coverage.xml
+        shell: bash
+
+      - name: Install deps
+        run: pip install diff-cover
+
       - name: Run the diff-cover check
-        run: sudo devel/ci/bodhi-ci diff-cover -r pip
+        shell: bash
+        run: diff-cover --compare-branch=origin/develop --fail-under=100 Coverage*/coverage.xml
 
   integration_tests:
     name: Integration Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
 
@@ -56,11 +64,12 @@ jobs:
       fail-fast: false
       matrix:
         # integration tests are broken on pip atm, so not included in this list.
-        release: [f34,f35,rawhide]
+        release: [f34,f35,f36,rawhide]
 
   unit_tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
 
@@ -70,10 +79,16 @@ jobs:
       - name: Run the unit tests
         run: devel/ci/bodhi-ci unit -r ${{ matrix.release }} -m ${{matrix.module}}
 
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: Coverage for ${{ matrix.module }} on ${{ matrix.release }}
+          path: test_results/${{ matrix.release }}-unit/${{ matrix.module }}/coverage.xml
+
     strategy:
       fail-fast: false
       matrix:
-        release: [f34,f35,pip,rawhide]
+        release: [f34,f35,f36,pip,rawhide]
         module: [bodhi-client, bodhi-messages, bodhi-server]
 
   docs:
@@ -90,7 +105,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f34,f35,pip,rawhide]
+        release: [f34,f35,f36,pip,rawhide]
 
   rpms:
     name: Build the RPMS
@@ -102,21 +117,17 @@ jobs:
         run: pip install click
 
       - name: Build the rpms
-        run: devel/ci/bodhi-ci rpm -r ${{ matrix.release }} -m ${{ matrix.module }}
+        run: devel/ci/bodhi-ci rpm -r ${{ matrix.release }}
 
       - name: Upload built rpms
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.release }} ${{ matrix.module }} RPM
-          path: test_results/${{ matrix.release }}-rpm/*.noarch.rpm
+          name: ${{ matrix.release }} RPMs
+          path: |
+            test_results/${{ matrix.release }}-rpm/*.noarch.rpm
+            test_results/${{ matrix.release }}-rpm/*.src.rpm
 
-      - name: Upload source rpms
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.release }} ${{ matrix.module }} SRPM
-          path: test_results/${{ matrix.release }}-rpm/*.src.rpm
     strategy:
       fail-fast: false
       matrix:
-        release: [f34,f35,rawhide]
-        module: [bodhi-client, bodhi-messages, bodhi-server]
+        release: [f34,f35,f36,rawhide]

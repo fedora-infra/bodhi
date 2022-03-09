@@ -85,11 +85,6 @@ You can read more detail about the ```RateLimiter``` below:
 Components
 ==========
 
-CLI tools
----------
-
-See the :doc:`user/man_pages/index` documentation for a list of CLI tools that come with Bodhi.
-
 
 Web Server
 ----------

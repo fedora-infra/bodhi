@@ -142,7 +142,7 @@ class AutomaticUpdateHandler:
                 log.debug(f"Creating bodhi user for '{owner_name}'.")
                 # Leave email, groups blank, these will be filled
                 # in or updated when they log into Bodhi next time, see
-                # bodhi.server.security:remember_me().
+                # bodhi.server.auth.utils:remember_me().
                 user = User(name=owner_name)
                 dbsession.add(user)
 

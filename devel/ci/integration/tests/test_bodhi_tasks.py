@@ -23,7 +23,7 @@ from conu import ConuException
 import psycopg2
 import pytest
 
-from .utils import get_task_results, read_file
+from .utils import get_task_results, read_file, run_cli
 
 
 def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
@@ -126,31 +126,23 @@ def test_update_edit(
     bug_id = find_bug()
     # Remove previous task results
     # bodhi_container.execute(["find", "/srv/celery-results", "-type", "f", "-delete"])
-    cmd = [
-        "bodhi",
-        "updates",
-        "edit",
-        "--debug",
-        "--url",
-        "http://localhost:8080",
-        "--openid-api",
-        "http://id.dev.fedoraproject.org/api/v1/",
-        "--user",
-        "guest",
-        "--password",
-        "ipsilon",
-        "--bugs",
-        bug_id,
-        "--stable-karma",
-        "1",
-        update_alias,
-    ]
-    try:
-        bodhi_container.execute(cmd)
-    except ConuException as e:
+    result = run_cli(
+        bodhi_container,
+        [
+            "updates",
+            "edit",
+            "--debug",
+            "--bugs",
+            bug_id,
+            "--stable-karma",
+            "1",
+            update_alias,
+        ]
+    )
+    if result.exit_code != 0:
         with read_file(bodhi_container, "/httpdir/errorlog") as log:
             print(log.read())
-        assert False, str(e)
+        assert False, result.output
     try:
         bodhi_container.execute(["wait-for-file", "-d", "/srv/celery-results"])
     except ConuException as e:
@@ -164,5 +156,5 @@ def test_update_edit(
         assert len(results) > 0
         result = results[-1]
         time.sleep(1)
-    assert result["status"] == "SUCCESS", result["result"]["exc_message"]
+    assert result["status"] == "SUCCESS", result
     assert result["traceback"] is None

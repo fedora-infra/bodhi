@@ -1,0 +1,5 @@
+Support authentication with OpenID Connect, in addition to OpenID.
+The old OpenID authentication can be accessed by using ``/login?method=openid`` as the login URL.
+The bodhi client is switched to OIDC entirely, plain OpenID support has been dropped.
+Depending on the OIDC provider's capabilities, users may have to run the bodhi client on a host that has a browser.
+Hopefully Fedora's OIDC provider (Ipsilon) will soon be updated to enable the OOB feature, that lets user just copy and paste the authentication code from their login browser window to the bodhi client, wherever it runs.

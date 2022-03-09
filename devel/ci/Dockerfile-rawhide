@@ -13,6 +13,7 @@ RUN dnf install -y \
     pip \
     python3-alembic \
     python3-arrow \
+    python3-authlib \
     python3-backoff \
     python3-bleach \
     python3-bugzilla \
@@ -25,7 +26,6 @@ RUN dnf install -y \
     python3-diff-cover \
     python3-dnf \
     python3-dogpile-cache \
-    python3-fedora \
     python3-feedgen \
     python3-gssapi \
     python3-jinja2 \
@@ -43,6 +43,7 @@ RUN dnf install -y \
     python3-pyramid-mako \
     python3-pytest \
     python3-pytest-cov \
+    python3-pytest-mock \
     python3-responses \
     python3-simplemediawiki \
     python3-sphinx \

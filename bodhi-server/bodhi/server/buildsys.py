@@ -17,15 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define tools for interacting with the build system and a fake build system for development."""
 
-import logging
-import time
-import typing
-import os
 from functools import wraps
 from threading import Lock
+import logging
+import os
+import time
+import typing
 
 import backoff
 import koji
+
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from bodhi.server.config import BodhiConfig  # noqa: 401
@@ -369,7 +370,7 @@ class DevBuildsys:
                 {'arches': 'x86_64', 'id': 17, 'locked': True,
                  'name': 'f27M'},
             ]
-        elif 'container' in build:
+        elif build.endswith("container"):
             result = [
                 {'arches': 'x86_64', 'id': 15, 'locked': True,
                  'name': 'f28C-updates-candidate'},

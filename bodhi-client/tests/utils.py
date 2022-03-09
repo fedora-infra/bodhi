@@ -17,8 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains useful functions that helps with testing."""
 
-import re
+from io import BytesIO
 import difflib
+import re
+
+from requests import Response
 
 
 def prepare_text_for_comparison(text):
@@ -42,3 +45,22 @@ def compare_output(output, expected, debug_output=False):
                                   expected.splitlines(True))
             print(''.join(list(diff)))
         return False
+
+
+def build_response(status_code, url, content):
+    """Build a response with the provided parameters.
+
+    Args:
+        status_code (int): The HTTP status code.
+        url (str): The URL that was requested.
+        content (str): The response content.
+
+    Returns:
+        requests.Response: A Response object compatible with ``requests``.
+    """
+    response = Response()
+    response.status_code = status_code
+    response.url = url
+    response.encoding = "utf-8"
+    response.raw = BytesIO(content.encode("utf-8"))
+    return response

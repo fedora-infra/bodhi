@@ -36,7 +36,7 @@ from bodhi.server import bugs, buildsys
 from bodhi.server.config import config as bodhi_config
 
 
-__version__ = "5.7.4"
+__version__ = "5.7.5"
 
 # This is a regular expression used to match username mentions in comments.
 MENTION_RE = r'(?<!\S)(@\w+)'
@@ -77,10 +77,13 @@ def get_user(request):
     """
     from bodhi.server.models import User
     userid = request.unauthenticated_userid
-    if userid is not None:
-        user = request.db.query(User).filter_by(name=str(userid)).first()
-        # Why munch?  https://github.com/fedora-infra/bodhi/issues/473
-        return munchify(user.__json__(request=request))
+    if userid is None:
+        return None
+    user = request.db.query(User).filter_by(name=str(userid)).first()
+    if user is None:
+        return None
+    # Why munch?  https://github.com/fedora-infra/bodhi/issues/473
+    return munchify(user.__json__(request=request))
 
 
 def groupfinder(userid, request):
@@ -321,13 +324,8 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_route('get_sidetags', '/get_sidetags')
     config.add_route('latest_builds_in_tag', '/latest_builds_in_tag')
 
-    # pyramid.openid
-    config.add_route('login', '/login')
-    config.add_view('bodhi.server.security.login', route_name='login')
-    config.add_route('logout', '/logout')
-    config.add_view('bodhi.server.security.logout', route_name='logout')
-    config.add_route('verify_openid', pattern='/dologin.html')
-    config.add_view('pyramid_fas_openid.verify_openid', route_name='verify_openid')
+    # Include the auth system (after loading the models)
+    config.include("bodhi.server.auth")
 
     config.add_route('api_version', '/api_version')
     config.add_route('liveness', '/healthz/live')

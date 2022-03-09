@@ -1,6 +1,6 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-server
-%global pypi_version 5.7.4
+%global pypi_version 5.7.5
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
@@ -12,9 +12,12 @@ URL:            https://github.com/fedora-infra/bodhi
 Source0:        %{pypi_name}-%{pypi_version}.tar.gz
 BuildArch:      noarch
 
+BuildRequires:  make
 BuildRequires:  python3-devel
+BuildRequires:  python3-sphinx
 BuildRequires:  python3dist(alembic)
 BuildRequires:  python3dist(arrow)
+BuildRequires:  python3dist(authlib)
 BuildRequires:  python3dist(backoff)
 BuildRequires:  python3dist(bleach)
 BuildRequires:  python3dist(celery) >= 4.2
@@ -36,7 +39,6 @@ BuildRequires:  python3dist(pyramid) >= 1.7
 BuildRequires:  python3dist(pyramid-fas-openid)
 BuildRequires:  python3dist(pyramid-mako)
 BuildRequires:  python3dist(python-bugzilla)
-BuildRequires:  python3dist(python-fedora)
 BuildRequires:  python3dist(pyyaml)
 BuildRequires:  python3dist(requests)
 BuildRequires:  python3dist(responses)
@@ -46,9 +48,54 @@ BuildRequires:  python3dist(sqlalchemy)
 BuildRequires:  python3dist(waitress)
 BuildRequires:  python3dist(whitenoise)
 
+Requires: bodhi-client == %{version}-%{release}
+Requires: python3-bodhi-messages == %{version}-%{release}
+Requires: fedora-messaging
+Requires: git
+Requires: httpd
+Requires: intltool
+Requires: python3-koji
+Requires: python3-librepo
+Requires: python3-mod_wsgi
+
+Provides:  bundled(aajohan-comfortaa-fonts)
+Provides:  bundled(abattis-cantarell-fonts)
+Provides:  bundled(bootstrap) = 3.0.1
+Provides:  bundled(bootstrap) = 3.0.2
+Provides:  bundled(bootstrap) = 3.1.1
+Provides:  bundled(chrissimpkins-hack-fonts)
+Provides:  bundled(fedora-bootstrap) = 1.0.1
+Provides:  bundled(fontawesome-fonts-web) = 4.4.0
+Provides:  bundled(js-chart)
+Provides:  bundled(js-excanvas)
+Provides:  bundled(js-jquery) = 1.10.2
+Provides:  bundled(js-jquery) = 2.0.3
+Provides:  bundled(js-messenger)
+Provides:  bundled(js-moment)
+Provides:  bundled(js-typeahead.js) = 1.1.1
+Provides:  bundled(nodejs-flot)
+Provides:  bundled(open-sans-fonts)
+Provides:  bundled(xstatic-bootstrap-datepicker-common)
+
 %py_provides python3-bodhi-server
 
 %description
+Bodhi is a modular framework that facilitates the process of publishing
+updates for a software distribution.
+
+
+%package -n bodhi-composer
+Summary: Bodhi composer backend
+
+Requires: %{py3_dist jinja2}
+Requires: bodhi-server == %{version}-%{release}
+Requires: pungi >= 4.1.20
+Requires: python3-createrepo_c
+Requires: skopeo
+
+%description -n bodhi-composer
+The Bodhi composer is the component that publishes Bodhi artifacts to
+repositories.
 
 
 %prep
@@ -58,10 +105,25 @@ rm -rf %{pypi_name}.egg-info
 
 %build
 %py3_build
+make %{?_smp_mflags} -C docs man
 
 %install
 %py3_install
 
+%{__mkdir_p} %{buildroot}/var/lib/bodhi
+%{__mkdir_p} %{buildroot}/var/cache/bodhi
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/httpd/conf.d
+%{__mkdir_p} %{buildroot}%{_sysconfdir}/bodhi
+%{__mkdir_p} %{buildroot}%{_datadir}/bodhi
+%{__mkdir_p} -m 0755 %{buildroot}/%{_localstatedir}/log/bodhi
+
+install -m 644 apache/bodhi.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/bodhi.conf
+sed -i -s 's/BODHI_VERSION/%{version}/g' %{buildroot}%{_sysconfdir}/httpd/conf.d/bodhi.conf
+install -m 640 production.ini %{buildroot}%{_sysconfdir}/bodhi/production.ini
+install -m 640 alembic.ini %{buildroot}%{_sysconfdir}/bodhi/alembic.ini
+install apache/bodhi.wsgi %{buildroot}%{_datadir}/bodhi/bodhi.wsgi
+install -d %{buildroot}%{_mandir}/man1
+install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 
 %files -n %{pypi_name}
 %doc README.rst bodhi/server/migrations/README.rst bodhi/server/static/vendor/fedora-bootstrap/README.rst
@@ -75,11 +137,36 @@ rm -rf %{pypi_name}.egg-info
 %{_bindir}/bodhi-skopeo-lite
 %{_bindir}/bodhi-untag-branched
 %{_bindir}/initialize_bodhi_db
+%config(noreplace) %{_sysconfdir}/bodhi/alembic.ini
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/bodhi.conf
+%dir %{_sysconfdir}/bodhi/
 %{python3_sitelib}/bodhi
 %{python3_sitelib}/bodhi_server-%{pypi_version}-py%{python3_version}-*.pth
 %{python3_sitelib}/bodhi_server-%{pypi_version}-py%{python3_version}.egg-info
+%{_mandir}/man1/bodhi-*.1*
+%{_mandir}/man1/initialize_bodhi_db.1*
+%attr(-,bodhi,root) %{_datadir}/bodhi
+%attr(-,bodhi,bodhi) %config(noreplace) %{_sysconfdir}/bodhi/*
+%attr(0775,bodhi,bodhi) %{_localstatedir}/cache/bodhi
+# These excluded files are in the bodhi-composer package so don't include them here.
+%exclude %{python3_sitelib}/bodhi/server/tasks/composer.py
+%exclude %{python3_sitelib}/bodhi/server/tasks/__pycache__/composer.*
+%exclude %{python3_sitelib}/bodhi/server/metadata.py
+%exclude %{python3_sitelib}/bodhi/server/__pycache__/metadata.*
+
+%files -n bodhi-composer
+%license COPYING
+%doc README.rst
+%{python3_sitelib}/bodhi/server/tasks/composer.py
+# The __pycache__ folder itself is owned by bodhi-server.
+%{python3_sitelib}/bodhi/server/tasks/__pycache__/composer.*
+%{python3_sitelib}/bodhi/server/metadata.py
+%{python3_sitelib}/bodhi/server/__pycache__/metadata.*
 
 %changelog
+* Wed Feb 23 2022 Ryan Lerch <rlerch@redhat.com> - 5.7.5-0
+- Prepare the Bodhi client to be compatible with an OIDC-enabled server. PR#4391.
+
 * Mon Jan 24 2022 Lenka Segura <lsegura@redhat.com> - 5.7.4-2
 - rebuilt
 

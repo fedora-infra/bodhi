@@ -19,17 +19,12 @@
 import typing
 
 from cornice.errors import Errors
-from pyramid.security import (Allow, ALL_PERMISSIONS, DENY_ALL)
-from pyramid.security import remember, forget
-from pyramid.httpexceptions import HTTPFound
+from pyramid.security import ALL_PERMISSIONS, Allow, DENY_ALL
 from pyramid.threadlocal import get_current_registry
 
-from . import log
-from .models import User, Group
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     import pyramid.request.Request  # noqa: 401
-    import mako.runtime.Context  # noqa: 401
 
 
 #
@@ -80,125 +75,6 @@ class PackagerACLFactory(ACLFactory):
         return [
             (Allow, 'group:' + group, ALL_PERMISSIONS) for group in groups
         ] + [DENY_ALL]
-
-
-#
-# OpenID views
-#
-
-def login(request: 'pyramid.request.Request') -> HTTPFound:
-    """
-    Redirect the user to the OpenID provider to perform a login.
-
-    Args:
-        request: The current request.
-    Returns:
-        A 302 redirect to the OpenID provider.
-    """
-    login_url = request.route_url('login')
-    referrer = request.url
-    if referrer == login_url:
-        referrer = request.route_url('home')
-    came_from = request.params.get('came_from', referrer)
-    request.session['came_from'] = came_from
-    oid_url = request.registry.settings['openid.url']
-    return HTTPFound(location=request.route_url('verify_openid',
-                                                _query=dict(openid=oid_url)))
-
-
-def logout(request: 'pyramid.request.Request') -> HTTPFound:
-    """
-    Log out the user.
-
-    Args:
-        request: The current request, which is used to remove the user's
-            authentication cookies.
-    Returns:
-        A 302 redirect to the home page.
-    """
-    headers = forget(request)
-    return HTTPFound(location=request.route_url('home'), headers=headers)
-
-
-def remember_me(context: 'mako.runtime.Context', request: 'pyramid.request.Request',
-                info: dict, *args, **kw) -> HTTPFound:
-    """
-    Remember information about a newly logged in user given by the OpenID provider.
-
-    This is configured via the openid.success_callback configuration, and is called upon successful
-    login.
-
-    Args:
-        context: The current template rendering context. Unused.
-        request: The current request.
-        info: The information passed to Bodhi from the OpenID provider about the
-            authenticated user. This includes things like the user's username, e-mail address and
-            groups.
-        args: A list of additional positional parameters. Unused.
-        kw: A dictionary of additional keyword parameters. Unused.
-    Returns:
-        A 302 redirect to the URL the user was visiting before
-            they clicked login, or home if they have not used a valid OpenID provider.
-    """
-    log.debug('remember_me(%s)' % locals())
-    log.debug('remember_me: request.params = %r' % request.params)
-    endpoint = request.params['openid.op_endpoint']
-    if endpoint != request.registry.settings['openid.provider']:
-        log.warning('Invalid OpenID provider: %s' % endpoint)
-        request.session.flash('Invalid OpenID provider. You can only use: %s' %
-                              request.registry.settings['openid.provider'])
-        return HTTPFound(location=request.route_url('home'))
-
-    username = info['sreg']['nickname']
-    email = info['sreg']['email']
-    log.debug('remember_me: groups = %s' % info['groups'])
-    log.info('%s successfully logged in' % username)
-
-    # Find the user in our database. Create it if it doesn't exist.
-    db = request.db
-    user = db.query(User).filter_by(name=username).first()
-    if not user:
-        user = User(name=username, email=email)
-        db.add(user)
-        db.flush()
-    else:
-        # Update email address if the address changed
-        if user.email != email:
-            user.email = email
-            db.flush()
-
-    # Keep track of what groups the user is a member of
-    for group_name in info['groups']:
-        # Drop empty group names https://github.com/fedora-infra/bodhi/issues/306
-        if not group_name.strip():
-            continue
-
-        group = db.query(Group).filter_by(name=group_name).first()
-        if not group:
-            group = Group(name=group_name)
-            db.add(group)
-            db.flush()
-        if group not in user.groups:
-            log.info('Adding %s to %s group', user.name, group.name)
-            user.groups.append(group)
-
-    # See if the user was removed from any groups
-    for group in user.groups:
-        if group.name not in info['groups']:
-            log.info('Removing %s from %s group', user.name, group.name)
-            user.groups.remove(group)
-
-    headers = remember(request, username)
-    came_from = request.session['came_from']
-    del(request.session['came_from'])
-
-    # Mitigate "Covert Redirect"
-    if not came_from.startswith(request.host_url):
-        came_from = '/'
-
-    response = HTTPFound(location=came_from)
-    response.headerlist.extend(headers)
-    return response
 
 
 class CorsOrigins(object):

@@ -19,13 +19,13 @@
 from unittest import mock
 import copy
 
-import pytest
 from pyramid.testing import DummyRequest
+import pytest
 import webtest
 
 from bodhi.server import main, util
-from bodhi.server.models import Release, ReleaseState
-from bodhi.server.models import Update, UpdateStatus
+from bodhi.server.models import Release, ReleaseState, Update, UpdateStatus
+
 from .. import base
 
 
@@ -216,7 +216,7 @@ class TestGenericViews(base.BasePyTestCase):
     def test_markdown_with_update_link(self):
         """Update link should be converted to alias."""
         res = self.app.get('/markdown', {
-            'text': 'See http://localhost:6543/updates/FEDORA-2019-1a2b3c4d5e.',
+            'text': 'See https://bodhi-dev.example.com/updates/FEDORA-2019-1a2b3c4d5e.',
         }, status=200)
         assert res.json_body['html'] == \
             ('<div class="markdown"><p>See '

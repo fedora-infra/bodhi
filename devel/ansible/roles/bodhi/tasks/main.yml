@@ -26,6 +26,7 @@
       - postgresql-server
       - python3-alembic
       - python3-arrow
+      - python3-authlib
       - python3-backoff
       - python3-bleach
       - python3-celery
@@ -36,7 +37,6 @@
       - python3-createrepo_c
       - python3-diff-cover
       - python3-dogpile-cache
-      - python3-fedora
       - python3-flake8
       - python3-flake8-import-order
       - python3-ipdb
@@ -53,9 +53,11 @@
       - python3-pyramid-fas-openid
       - python3-pytest
       - python3-pytest-cov
+      - python3-pytest-mock
       - python3-responses
       - python3-rpdb
       - python3-simplemediawiki
+      - python3-sphinx
       - python3-sqlalchemy
       - python3-sqlalchemy_schemadisplay
       - python3-webtest
@@ -67,6 +69,10 @@
       - tree
       - vim-enhanced
       - zlib-devel
+      # Auth
+      - httpd
+      - mod_ssl
+      - ipa-client
     state: present
 
 - name: Initialize PostgreSQL
@@ -219,6 +225,81 @@
     dest: /etc/bash_completion.d/bodhi-complete.sh
     state: link
 
+# Auth
+
+- name: Enroll system as IPA client
+  shell:
+    cmd: ipa-client-install --hostname {{ ansible_fqdn }} --domain tinystage.test --realm {{ krb_realm }} --server ipa.tinystage.test -p {{ ipa_admin_user }} -w {{ ipa_admin_password }} -U -N --force-join
+    creates: /etc/ipa/default.conf
+
+- name: pip install oidc-register
+  pip:
+      name: oidc-register
+      executable: pip3
+
+- name: Get the content of the CA cert
+  slurp:
+    src: /etc/ipa/ca.crt
+  register: ca_crt
+
+- name: Put tinystage root CA in the list of CA's
+  blockinfile:
+    block: "{{ ca_crt.content | b64decode }}"
+    path: /etc/pki/tls/certs/ca-bundle.crt
+
+- name: Put the root CA in the list of CA's for httplib2
+  blockinfile:
+    block: "{{ ca_crt.content | b64decode }}"
+    path: /usr/local/lib/python{{ python3_version.stdout }}/site-packages/httplib2/cacerts.txt
+
+- name: Register with Ipsilon
+  command: python3 /home/vagrant/bodhi/devel/register-with-ipsilon.py
+  register: _ipsilon_registration
+
+- name: Generate and get SSL cert
+  shell:
+    cmd: ipa-getcert request -f /etc/pki/tls/certs/server.pem -k /etc/pki/tls/private/server.key -K HTTP/{{ ansible_fqdn }} -N {{ ansible_fqdn }}
+    creates: /etc/pki/tls/certs/server.pem
+
+- name: Check the cert is there
+  wait_for:
+    path: /etc/pki/tls/certs/server.pem
+    state: present
+
+- name: Check the key is there
+  wait_for:
+    path: /etc/pki/tls/private/server.key
+    state: present
+
+- name: Setup mod_ssl
+  lineinfile:
+    path: /etc/httpd/conf.d/ssl.conf
+    regexp: "^SSLCertificateFile "
+    line: SSLCertificateFile /etc/pki/tls/certs/server.pem
+- name: Setup mod_ssl
+  lineinfile:
+    path: /etc/httpd/conf.d/ssl.conf
+    regexp: "^SSLCertificateKeyFile "
+    line: SSLCertificateKeyFile /etc/pki/tls/private/server.key
+- name: Setup mod_ssl
+  lineinfile:
+    path: /etc/httpd/conf.d/ssl.conf
+    insertbefore: "</VirtualHost>"
+    regexp: "^RequestHeader set X-Forwarded-Proto https$"
+    line: RequestHeader set X-Forwarded-Proto https
+
+- name: Setup httpd
+  copy:
+    src: bodhi.httpd.conf
+    dest: /etc/httpd/conf.d/bodhi.conf
+
+- name: Allow apache to reverse proxy
+  seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+
+
 - name: Start and enable the bodhi-related services
   service:
       name: "{{ item }}"
@@ -230,3 +311,9 @@
       - celery
       - fm-consumer@config
       - print-messages
+
+- name: Start enable httpd
+  service:
+      name: httpd
+      state: restarted
+      enabled: yes
