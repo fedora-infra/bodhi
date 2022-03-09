@@ -27,7 +27,7 @@ RUN mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 RUN \
     for pkg in bodhi-client bodhi-messages bodhi-server; do \
         cd $pkg && \
-        python3 setup.py sdist && \
+        poetry build -f sdist && \
         cp dist/* ~/rpmbuild/SOURCES/ && \
         cp $pkg.spec ~/rpmbuild/SPECS/ && \
         rpmbuild -ba --nocheck ~/rpmbuild/SPECS/$pkg.spec && \
