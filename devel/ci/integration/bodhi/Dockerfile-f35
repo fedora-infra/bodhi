@@ -13,7 +13,6 @@ RUN dnf install -y \
     intltool \
     python3-mod_wsgi \
     python3-pip \
-    python3-rpm \
     skopeo \
     rpm-build \
     /usr/bin/koji
@@ -27,7 +26,7 @@ RUN mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 RUN \
     for pkg in bodhi-client bodhi-messages bodhi-server; do \
         cd $pkg && \
-        poetry build && \
+        poetry build -f sdist && \
         cp dist/* ~/rpmbuild/SOURCES/ && \
         cp $pkg.spec ~/rpmbuild/SPECS/ && \
         rpmbuild -ba --nocheck ~/rpmbuild/SPECS/$pkg.spec && \
