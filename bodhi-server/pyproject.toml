@@ -36,8 +36,8 @@ include = ["*.txt", "*.ini", "*.cfg", "*.rst", "celeryconfig.py",
     "bodhi/*.mako", "bodhi/*.js", "bodhi/*.html", "bodhi/*.xml", "bodhi/*.ttf",
     "bodhi/*.woff", "bodhi/*.woff2", "bodhi/*.eot", "bodhi/*.otf", "bodhi/*.svg",
     "bodhi/*.tpl", "bodhi/*.rst",
-    "apache/*"]
-exclude = ["development.ini"]
+    "apache/*", "docs"]
+exclude = ["development.ini", "docs/_build"]
 
 #paster_plugins = pyramid
 #message_extractors = 

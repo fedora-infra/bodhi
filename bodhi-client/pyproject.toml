@@ -25,7 +25,8 @@ classifiers = [
 packages = [
     { include = "bodhi" },
 ]
-include = ["*.sh", "tests/*.py"]
+include = ["*.sh", "tests/*.py", "docs"]
+exclude = ["docs/_build"]
 # tests should be recursive include
 
 #zip_safe = False
