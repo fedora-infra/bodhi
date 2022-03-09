@@ -829,7 +829,7 @@ ${parent.javascript()}
                 // we don't want to generate result rows for both the
                 // critpath and non-critpath decision contexts, as both
                 // queries return the same set of test results
-                if (!(request.decision_context.endsWith("critpath")) {
+                if (!(request.decision_context.endsWith("critpath"))) {
                     handle_results(data.results, request.subject);
                 }
                 after_success();
