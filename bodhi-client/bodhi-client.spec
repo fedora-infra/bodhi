@@ -14,15 +14,10 @@ BuildArch:      noarch
 
 BuildRequires:  make
 BuildRequires:  python3-devel
-BuildRequires:  python3-sphinx
-BuildRequires:  python3dist(click)
-BuildRequires:  python3dist(authlib)
-BuildRequires:  python3dist(koji)
-BuildRequires:  python3dist(setuptools)
+BuildRequires:  pyproject-rpm-macros
 
-Requires: /usr/bin/koji
-Requires: python3-dnf
-Requires: python3-koji
+%generate_buildrequires
+%pyproject_buildrequires
 
 Obsoletes: python3-bodhi-client <= 5.7.5
 
@@ -37,18 +32,18 @@ Obsoletes: python3-bodhi-client <= 5.7.5
 rm -rf %{pypi_name}.egg-info
 
 %build
-%py3_build
+%pyproject_wheel
 make %{?_smp_mflags} -C docs man
 
 %install
-%py3_install
+%pyproject_install
+%pyproject_save_files bodhi
+
 install -d %{buildroot}%{_mandir}/man1
 install -pm0644 docs/_build/bodhi.1 %{buildroot}%{_mandir}/man1/
 
-%files -n %{pypi_name}
+%files -n %{pypi_name} -f %{pyproject_files}
 %{_bindir}/bodhi
-%{python3_sitelib}/bodhi
-%{python3_sitelib}/bodhi_client-%{pypi_version}-py%{python3_version}.egg-info
 %{_mandir}/man1/bodhi.1*
 
 %changelog
