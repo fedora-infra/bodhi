@@ -20,6 +20,11 @@ Options
 
 Most of the commands will accept these options:
 
+``--client-id <string>``
+
+    Use the provided OpenID Connect ``client_id`` instead of the default one.
+    This is ignored if the ``--staging`` flag is set.
+
 ``--debug``
 
     Some commands accept this flag to show extra debug information.
@@ -28,9 +33,11 @@ Most of the commands will accept these options:
 
     Show help text and exit.
 
-``--password <text>``
+``--id-provider <url>``
 
-    A password to authenticate as the user given by ``--user``.
+    Use the OpenID Connect provider at the given URL instead of the default server. This can also be
+    set with the ``BODHI_OPENID_PROVIDER`` environment variable.
+    This is ignored if the ``--staging`` flag is set.
 
 ``--staging``
 
@@ -40,12 +47,6 @@ Most of the commands will accept these options:
 
     Use the Bodhi server at the given URL instead of the default server. This can also be set with
     the ``BODHI_URL`` environment variable. This is ignored if the ``--staging`` flag is set.
-
-``--user <username>``
-
-    Many commands accept this flag to specify a Fedora username to authenticate with. Note that some
-    read operations such as querying updates and overrides use this same flag, but as a search
-    parameter instead of authentication (as authentication is not required for these operations).
 
 ``--version``
 
@@ -350,14 +351,14 @@ The ``updates`` command allows users to interact with bodhi updates.
 ``bodhi updates query [options]``
 
     Query the bodhi server for updates.
-    
+
     If the query returns only one update, a detailed view of the update will be displayed.
-    
+
     If more than one update is returned, the command will display a list showing the packages
     contained in the update, the update content-type (rpm / module / ...), the current status
     of the update (pushed / testing / ...) and the date of the last status change with
     the number of days passed since. A leading ``*`` marks security updates.
-    
+
     The ``query`` subcommand supports the following options:
 
     ``--updateid <id>``
@@ -558,10 +559,6 @@ The ``releases`` command allows users to manage update releases.
 
         The package manager used by this release. If not specified it defaults to 'unspecified'.
 
-    ``--password TEXT``
-
-        The password to use when authenticating to Bodhi.
-
     ``--pending-stable-tag TEXT``
 
         The Koji tag to use on updates that are marked stable (e.g., f29-updates-pending).
@@ -585,10 +582,6 @@ The ``releases`` command allows users to manage update releases.
     ``--testing-tag TEXT``
 
         The Koji tag to use for testing updates (e.g., f29-updates-testing).
-
-    ``--username TEXT``
-
-        The username to use when authenticating to Bodhi.
 
     ``--version TEXT``
 
@@ -638,10 +631,6 @@ The ``releases`` command allows users to manage update releases.
 
         The package manager used by this release. If not specified it defaults to 'unspecified'.
 
-    ``--password TEXT``
-
-        The password to use when authenticating to Bodhi.
-
     ``--pending-stable-tag TEXT``
 
         The Koji tag to use on updates that are marked stable (e.g., f29-updates-pending).
@@ -665,10 +654,6 @@ The ``releases`` command allows users to manage update releases.
     ``--testing-tag TEXT``
 
         The Koji tag to use for testing updates (e.g., f29-updates-testing).
-
-    ``--username TEXT``
-
-        The username to use when authenticating to Bodhi.
 
     ``--version TEXT``
 
