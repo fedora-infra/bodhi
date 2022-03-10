@@ -51,16 +51,21 @@ def _warn_staging_overrides(
     Returns:
         The value of the option being handled.
     """
-    if ctx.params.get('staging', False) and (param.name in ['url', 'id_provider']) and \
-            value is not None:
-        click.echo(f'\nWarning: {param.name} and staging flags are '
-                   f'both set. {param.name} will be ignored.\n',
-                   err=True)
+    if ctx.params.get('staging', False):
+        if (
+            param.name == 'url' and value != constants.BASE_URL
+            or param.name == 'id_provider' and value != constants.IDP
+        ):
+            click.echo(
+                f'\nWarning: {param.name} and staging flags are '
+                f'both set. {param.name} will be ignored.\n',
+                err=True
+            )
     if param.name == 'staging' and value:
-        if ctx.params.get('url', False):
+        if ctx.params.get('url', constants.BASE_URL) != constants.BASE_URL:
             click.echo('\nWarning: url and staging flags are both set. url will be ignored.\n',
                        err=True)
-        if ctx.params.get('id_provider', False):
+        if ctx.params.get('id_provider', constants.IDP) != constants.IDP:
             click.echo('\nWarning: id_provider and staging flags '
                        'are both set. id_provider will be ignored.\n',
                        err=True)

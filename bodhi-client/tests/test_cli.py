@@ -1482,6 +1482,38 @@ class TestWarnIfUrlOrOpenidAndStagingSet:
         assert result == 'http://localhost:6543'
         assert echo.call_count == 0
 
+    def test_staging_and_default_url(self, mocker):
+        """
+        Nothing should be printed when staging is True and the URL is the default.
+        """
+        echo = mocker.patch('bodhi.client.cli.click.echo')
+        ctx = mock.MagicMock()
+        ctx.params = {'staging': True}
+        param = mock.MagicMock()
+        param.name = 'url'
+
+        result = cli._warn_staging_overrides(
+            ctx, param, constants.BASE_URL)
+
+        assert result == constants.BASE_URL
+        assert echo.call_count == 0
+
+    def test_staging_and_default_idp(self, mocker):
+        """
+        Nothing should be printed when staging is True and the id_provider is the default.
+        """
+        echo = mocker.patch('bodhi.client.cli.click.echo')
+        ctx = mock.MagicMock()
+        ctx.params = {'staging': True}
+        param = mock.MagicMock()
+        param.name = 'id_provider'
+
+        result = cli._warn_staging_overrides(
+            ctx, param, constants.IDP)
+
+        assert result == constants.IDP
+        assert echo.call_count == 0
+
     def test_staging_true(self, mocker):
         """
         A warning should be printed to stderr when staging is True and url/openid provided.
