@@ -25,8 +25,12 @@ classifiers = [
 
 packages = [
     { include = "bodhi" },
+    { include = "tests", format = "sdist" }
 ]
-include = ["*.txt", "tests/*.py", "COPYING"]
+include = [
+    { path = "*.txt", format = "sdist" },
+    { path = "COPYING", format = "sdist" }
+]
 
 #[options.packages.find]
 #exclude =
@@ -37,6 +41,9 @@ include = ["*.txt", "tests/*.py", "COPYING"]
 "zope.interface" = "^5.2.0"
 fedora-messaging = "^3.0.0"
 python = "^3.9"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.1"
 
 [tool.poetry.plugins."fedora.messages"]
 "bodhi.buildroot_override.tag.v1" = "bodhi.messages.schemas.buildroot_override:BuildrootOverrideTagV1"

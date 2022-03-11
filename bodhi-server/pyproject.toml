@@ -28,15 +28,39 @@ classifiers = [
 ]
 packages = [
     { include = "bodhi" },
+    { include = "tests", format = "sdist"}
 ]
-include = ["*.txt", "*.ini", "*.cfg", "*.rst", "celeryconfig.py",
-    "tests/*.py", "COPYING",
-    "bodhi/server/locale/.placeholder", "bodhi/*.ico", "bodhi/*.png", "bodhi/*.css",
-    "bodhi/*.gif", "bodhi/*.jpg", "bodhi/*.pt", "bodhi/*.txt", "bodhi/*.mak",
-    "bodhi/*.mako", "bodhi/*.js", "bodhi/*.html", "bodhi/*.xml", "bodhi/*.ttf",
-    "bodhi/*.woff", "bodhi/*.woff2", "bodhi/*.eot", "bodhi/*.otf", "bodhi/*.svg",
-    "bodhi/*.tpl", "bodhi/*.rst",
-    "apache/*", "docs"]
+include = [
+    { path = "*.txt", format = "sdist" },
+    { path = "*.ini", format = "sdist" },
+    { path = "*.cfg", format = "sdist" },
+    { path = "*.rst", format = "sdist" },
+    { path = "celeryconfig.py", format = "sdist" },
+    { path = "COPYING", format = "sdist"},
+    { path = "bodhi/server/locale/.placeholder", format = "sdist" },
+    { path = "bodhi/*.ico", format = "sdist" },
+    { path = "bodhi/*.png", format = "sdist" },
+    { path = "bodhi/*.css", format = "sdist" },
+    { path = "bodhi/*.gif", format = "sdist" },
+    { path = "bodhi/*.jpg", format = "sdist" },
+    { path = "bodhi/*.pt", format = "sdist" },
+    { path = "bodhi/*.txt", format = "sdist" },
+    { path = "bodhi/*.mak", format = "sdist" },
+    { path = "bodhi/*.mako", format = "sdist" },
+    { path = "bodhi/*.js", format = "sdist" },
+    { path = "bodhi/*.html", format = "sdist" },
+    { path = "bodhi/*.xml", format = "sdist" },
+    { path = "bodhi/*.ttf", format = "sdist" },
+    { path = "bodhi/*.woff", format = "sdist" },
+    { path = "bodhi/*.woff2", format = "sdist" },
+    { path = "bodhi/*.eot", format = "sdist" },
+    { path = "bodhi/*.otf", format = "sdist" },
+    { path = "bodhi/*.svg", format = "sdist" },
+    { path = "bodhi/*.tpl", format = "sdist" },
+    { path = "bodhi/*.rst", format = "sdist" },
+    { path ="apache/*", format = "sdist" },
+    { path = "docs", format = "sdist" },
+        ]
 exclude = ["development.ini", "docs/_build"]
 
 #paster_plugins = pyramid
@@ -46,8 +70,10 @@ exclude = ["development.ini", "docs/_build"]
 
 [tool.poetry.dev-dependencies]
 bodhi-messages = {path = "../bodhi-messages"}
+pytest = "^6.2.1"
 
 [tool.poetry.dependencies]
+authlib = ">=0.15.3"
 Jinja2 = ">=2.11.3"
 Markdown = "^3.3.6"
 PyYAML = ">=5.4.1"
