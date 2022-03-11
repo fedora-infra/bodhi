@@ -13,11 +13,8 @@ Source0:        %{pypi_name}-%{pypi_version}.tar.gz
 BuildArch:      noarch
 
 BuildRequires:  make
-BuildRequires:  python3-devel
 BuildRequires:  pyproject-rpm-macros
-
-%generate_buildrequires
-%pyproject_buildrequires
+BuildRequires:  python3-devel
 
 Obsoletes: python3-bodhi-client <= 5.7.5
 
@@ -25,11 +22,14 @@ Obsoletes: python3-bodhi-client <= 5.7.5
 
 %description
 
-
 %prep
 %autosetup -n %{pypi_name}-%{pypi_version}
 # Remove bundled egg-info
 rm -rf %{pypi_name}.egg-info
+
+%generate_buildrequires
+%pyproject_buildrequires
+
 
 %build
 %pyproject_wheel
@@ -41,10 +41,17 @@ make %{?_smp_mflags} -C docs man
 
 install -d %{buildroot}%{_mandir}/man1
 install -pm0644 docs/_build/bodhi.1 %{buildroot}%{_mandir}/man1/
+install -d %{buildroot}%{_sysconfdir}/bash_completion.d
+install -pm0644 bodhi-complete.sh %{buildroot}%{_sysconfdir}/bash_completion.d/bodhi-complete.sh
+
+%check
+%pyproject_check_import
+%{pytest} -v
 
 %files -n %{pypi_name} -f %{pyproject_files}
 %{_bindir}/bodhi
 %{_mandir}/man1/bodhi.1*
+%config(noreplace) %{_sysconfdir}/bash_completion.d/bodhi-complete.sh
 
 %changelog
 * Wed Feb 23 2022 Ryan Lerch <rlerch@redhat.com> - 5.7.5-0

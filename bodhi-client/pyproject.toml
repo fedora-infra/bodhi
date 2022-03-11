@@ -24,20 +24,17 @@ classifiers = [
 ]
 packages = [
     { include = "bodhi" },
+    { include = "tests", format = "sdist" },
 ]
-include = ["*.sh", "tests/*.py", "docs"]
+include = [
+    { path = "docs", format = "sdist" },
+    { path = "bodhi-complete.sh", format = "sdist" },
+]
 exclude = ["docs/_build"]
-# tests should be recursive include
-
-#zip_safe = False
-#include_package_data = False
-#[options.packages.find]
-#exclude =
-#    tests
-
 
 [tool.poetry.dev-dependencies]
 Sphinx = "^3.4.3"
+pytest = "^6.2.1"
 
 [tool.poetry.dependencies]
 python = "^3.9"
