@@ -20,21 +20,23 @@ from datetime import datetime, timedelta
 from unittest import mock
 import copy
 
-from fedora_messaging import api, testing as fml_testing
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
 import webtest
 
 from bodhi.messages.schemas import buildroot_override as override_schemas
+from bodhi.server import main
 from bodhi.server.models import (
     BuildrootOverride,
     PackageManager,
+    Release,
     RpmBuild,
     RpmPackage,
-    Release,
-    User,
-    Update,
     TestGatingStatus,
+    Update,
+    User,
 )
-from bodhi.server import main
+
 from .. import base
 
 
@@ -754,7 +756,7 @@ class TestOverridesWebViews(base.BasePyTestCase):
         resp = app.get('/overrides/new',
                        status=403, headers={'Accept': 'text/html'})
         assert '<h1>403 <small>Forbidden</small></h1>' in resp
-        assert '<p class="lead">Access was denied to this resource.</p>' in resp
+        assert '<p class="lead">You must be logged in.</p>' in resp
 
     def test_override_new_loggedin(self):
         """
