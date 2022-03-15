@@ -1,0 +1,34 @@
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - docs/**
+
+name: Build Docs and push to gh-pages
+
+jobs:
+  docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: develop
+
+      - name: Install deps
+        run: pip install click -r docs/requirements.txt
+
+      - name: Build the docs
+        run: devel/ci/bodhi-ci docs -r ${{ matrix.release }}
+      
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4.2.5
+        with:
+          branch: docs # The branch the action should deploy to.
+          folder: test_results/${{ matrix.release }}-docs/html # The folder the action should deploy.
+          target-folder: .
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [pip]
