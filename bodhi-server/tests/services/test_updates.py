@@ -25,21 +25,40 @@ import re
 import textwrap
 import time
 
-from fedora_messaging import api, testing as fml_testing
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
+from webtest import TestApp
 import koji
 import pytest
 import requests
-from webtest import TestApp
 
-from bodhi.messages.schemas import base as base_schemas, update as update_schemas
+from bodhi.messages.schemas import base as base_schemas
+from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import main
 from bodhi.server.config import config
-from bodhi.server.models import (
-    Build, BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
-    ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
-    UpdateSeverity, UpdateSuggestion, User, TestGatingStatus, PackageManager)
-from bodhi.server.util import call_api
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
+from bodhi.server.models import (
+    Build,
+    BuildrootOverride,
+    Compose,
+    Group,
+    ModulePackage,
+    PackageManager,
+    Release,
+    ReleaseState,
+    RpmBuild,
+    RpmPackage,
+    TestGatingStatus,
+    Update,
+    UpdateRequest,
+    UpdateSeverity,
+    UpdateStatus,
+    UpdateSuggestion,
+    UpdateType,
+    User,
+)
+from bodhi.server.util import call_api
+
 from ..base import BasePyTestCase
 from ..utils import assert_multiline_equal
 
@@ -1220,7 +1239,10 @@ class TestEditUpdateForm(BasePyTestCase):
         resp = app.get('/updates/FEDORA-2017-a3bbe1a8f2/edit', status=403,
                        headers={'accept': 'text/html'})
         assert '<h1>403 <small>Forbidden</small></h1>' in resp
-        assert '<p class="lead">Access was denied to this resource.</p>' in resp
+        assert (
+            '<p class="lead">Unauthorized: get_update_for_editing__GET failed permission check</p>'
+            in resp
+        )
 
     def test_disabled_unspecified_severity_for_security_update(self):
         alias = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update.alias
