@@ -16,15 +16,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+from urllib.parse import urlencode
 import hashlib
 import math
 import xml.etree.ElementTree as ET
-from urllib.parse import urlencode
 
 import psycopg2
 import pytest
 
 from .utils import read_file
+
 
 content_type_mapping = {
     'base': 'Base',
@@ -179,7 +180,7 @@ def test_get_notfound_view(bodhi_container):
         assert not http_response.ok
         assert http_response.status_code == 404
         assert "Not Found" in http_response.text
-        assert "The resource could not be found" in http_response.text
+        assert '<p class="lead">/inexisting_path</p>' in http_response.text
     except AssertionError:
         print(http_response)
         print(http_response.text)

@@ -4,6 +4,8 @@ import time
 
 from authlib.common.urls import url_decode
 from pyramid import testing
+from pyramid.httpexceptions import HTTPUnauthorized
+import pytest
 
 from bodhi.server import models
 from bodhi.server.auth.constants import SCOPES
@@ -141,6 +143,25 @@ class TestOIDCLoginViews(base.BasePyTestCase):
         user = models.User.get('testuser')
         assert user.email == "newaddress@example.com"
         assert [g.name for g in user.groups] == ["testgroup1", "testgroup3"]
+
+    def test_authorize_error(self):
+        """Test login failure handling."""
+        request = testing.DummyRequest(
+            path="/oidc/authorize",
+            params={
+                "state": "STATE",
+                "error": "test_error",
+                "error_description": "This is a test error"
+            }
+        )
+        set_session_data(request.session, "STATE", "state", "STATE", app_name="fedora")
+        request.registry = self.registry
+
+        with mock.patch('requests.sessions.Session.send', side_effect=fake_send()):
+            with pytest.raises(HTTPUnauthorized) as exc:
+                authorize_oidc(request)
+        assert exc.value.status_code == 401
+        assert str(exc.value) == "Authentication failed: This is a test error"
 
     def test_login_with_token(self):
         """Test a user logging in with a token."""
