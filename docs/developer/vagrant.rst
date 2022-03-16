@@ -4,7 +4,7 @@ Vagrant
 
 `Vagrant`_ allows contributors to get quickly up and running with a Bodhi development environment by
 automatically configuring a virtual machine. Before you get started, ensure that your host machine
-has virtualization extensions enabled in its BIOS so the guest doesn't go slower than molasses. To
+has virtualization extensions enabled in its BIOS so the guest is not slow. To
 get started, simply use these commands::
 
     $ sudo dnf install ansible libvirt vagrant-libvirt vagrant-sshfs
