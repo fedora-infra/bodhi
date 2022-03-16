@@ -7,6 +7,9 @@ on:
 
 name: Build Docs and push to gh-pages
 
+permissions:
+  contents: write
+
 jobs:
   docs:
     name: Build Documentation
