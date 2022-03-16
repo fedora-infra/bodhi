@@ -50,7 +50,7 @@ How to make a release
 Preparation
 -----------
 
-If you are making a new major or minor release:
+If you are making a new major or new minor release:
 
 #. Prepare the ``.mergify.yml`` file for the new ``major.minor`` branch as described above.
 #. Raise the version to the appropriate value in ``bodhi/__init__.py`` and ``setup.py``.
