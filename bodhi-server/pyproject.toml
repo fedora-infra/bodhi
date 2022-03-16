@@ -70,7 +70,7 @@ exclude = ["development.ini", "docs/_build"]
 
 [tool.poetry.dev-dependencies]
 bodhi-messages = {path = "../bodhi-messages"}
-pytest = "^6.2.1"
+pytest = ">=6.2.2"
 
 [tool.poetry.dependencies]
 authlib = ">=0.15.3"
@@ -91,7 +91,8 @@ cornice = "^5.0.3"
 fedora-messaging = "^3.0.0"
 feedgen= "^0.9.0"
 koji = "^1.27.1"
-libcomps ="^0.1.18"
+#libcomps ="^0.1.18"
+libcomps ="*"
 prometheus-client = "^0.13.1"
 psycopg2 = "^2.8.6"
 py3dns = "^3.2.1" # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
