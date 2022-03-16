@@ -57,6 +57,7 @@ class OIDCClient:
         """
         self.client_id = client_id
         self.scope = scope
+        self.id_provider = id_provider
         self.storage = storage
         self._tokens = None
         self._username = None
@@ -191,13 +192,15 @@ class OIDCClient:
             dict: The authentication tokens.
         """
         if self._tokens is None:
-            self._tokens = self.storage.load("tokens")
+            self._tokens = self.storage.load("tokens", {}).get(self.id_provider)
         return self._tokens
 
     @tokens.setter
     def tokens(self, value):
         self._tokens = value
-        self.storage.save("tokens", self._tokens)
+        stored_tokens = self.storage.load("tokens", {})
+        stored_tokens[self.id_provider] = value
+        self.storage.save("tokens", stored_tokens)
 
     def _update_token(self, token, refresh_token=None, access_token=None):
         self.tokens = token
