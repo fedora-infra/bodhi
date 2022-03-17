@@ -3,10 +3,11 @@ on:
   push:
     branches:
       - develop
+      - '5.7'
     paths:
       - docs/**
 
-name: Build Docs and push results to docs branch
+name: Build Docs and push results to gh-pages branch
 
 permissions:
   contents: write
@@ -29,8 +30,8 @@ jobs:
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.2.5
         with:
-          branch: docs # The branch the action should deploy to.
-          folder: test_results/${{ matrix.release }}-docs/html # The folder the action should deploy.
+          branch: gh-pages
+          folder: test_results/${{ matrix.release }}-docs/html
           target-folder: ${{ matrix.branch }}
     strategy:
       fail-fast: false
