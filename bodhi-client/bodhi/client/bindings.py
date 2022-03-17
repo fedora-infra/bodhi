@@ -494,8 +494,14 @@ class BodhiClient:
             data={'update': update, 'text': comment, 'karma': karma, 'csrf_token': self.csrf()})
 
     @errorhandled
-    def save_override(self, nvr: str, duration: int, notes: str, edit: bool = False,
-                      expired: bool = False) -> 'munch.Munch':
+    def save_override(
+        self, nvr: str,
+        notes: str,
+        duration: typing.Optional[int] = None,
+        expiration_date: typing.Optional[datetime.datetime] = None,
+        edit: bool = False,
+        expired: bool = False
+    ) -> 'munch.Munch':
         """
         Save a buildroot override.
 
@@ -504,15 +510,24 @@ class BodhiClient:
 
         Args:
             nvr: The nvr of a koji build.
-            duration: Number of days from now that this override should expire.
             notes: Notes about why this override is in place.
+            duration: Number of days from now that this override should expire.
+            expiration_date: Date when this override should expire. This argument or the
+                ``duration`` argument must be provided.
             edit: True if we are editing an existing override, False otherwise. Defaults to False.
             expired: Set to True to expire an override. Defaults to False.
         Returns:
             A dictionary-like representation of the saved override.
         """
-        expiration_date = datetime.datetime.utcnow() + \
-            datetime.timedelta(days=duration)
+        if duration is None and expiration_date is None:
+            raise TypeError("The duration or the expiration_date must be provided.")
+        if duration is not None and expiration_date is not None:
+            raise TypeError(
+                "The duration and the expiration_date cannot be provided at the same time."
+            )
+        if duration:
+            expiration_date = datetime.datetime.utcnow() + \
+                datetime.timedelta(days=duration)
         data = {'nvr': nvr,
                 'expiration_date': expiration_date,
                 'notes': notes,
