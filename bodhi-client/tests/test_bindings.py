@@ -772,6 +772,54 @@ class TestSaveOverride(BodhiClientTestCase):
         expected_expiration = now + timedelta(days=2)
         assert (actual_expiration - expected_expiration) < timedelta(minutes=5)
 
+    def test_save_override_expiration_date(self, mocker):
+        """
+        Test the save_override() method with an explicit expiration date.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mocker.MagicMock(return_value='return_value')
+        client.csrf_token = 'a token'
+        now = datetime.utcnow()
+        response = client.save_override(nvr='python-pyramid-1.5.6-3.el7',
+                                        expiration_date=now,
+                                        notes='This is needed to build bodhi-2.4.0.')
+
+        assert response == 'return_value'
+        client.send_request.assert_called_once_with(
+            'overrides/', verb='POST', auth=True,
+            data={'nvr': 'python-pyramid-1.5.6-3.el7',
+                  'expiration_date': now,
+                  'csrf_token': 'a token', 'notes': 'This is needed to build bodhi-2.4.0.'})
+
+    def test_save_override_no_expiration(self, mocker):
+        """
+        Test the save_override() method without duration or expiration date.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mocker.MagicMock(return_value='return_value')
+        client.csrf_token = 'a token'
+        with pytest.raises(TypeError):
+            client.save_override(
+                nvr='python-pyramid-1.5.6-3.el7',
+                notes='This is needed to build bodhi-2.4.0.'
+            )
+
+    def test_save_override_both_expirations(self, mocker):
+        """
+        Test the save_override() method with duration and expiration date.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mocker.MagicMock(return_value='return_value')
+        client.csrf_token = 'a token'
+        now = datetime.utcnow()
+        with pytest.raises(TypeError):
+            client.save_override(
+                nvr='python-pyramid-1.5.6-3.el7',
+                notes='This is needed to build bodhi-2.4.0.',
+                duration=1,
+                expiration_date=now,
+            )
+
     def test_save_override_edit(self, mocker):
         """
         Test the save_override() method with the edit argument.
