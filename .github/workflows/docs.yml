@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{branch}}
+          ref: ${{ matrix.branch }}
 
       - name: Install deps
         run: pip install click -r docs/requirements.txt
@@ -31,7 +31,7 @@ jobs:
         with:
           branch: docs # The branch the action should deploy to.
           folder: test_results/${{ matrix.release }}-docs/html # The folder the action should deploy.
-          target-folder: ${{branch}}
+          target-folder: ${{ matrix.branch }}
     strategy:
       fail-fast: false
       matrix:
