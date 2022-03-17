@@ -1,11 +1,12 @@
 on:
+  workflow_dispatch:
   push:
     branches:
       - develop
     paths:
       - docs/**
 
-name: Build Docs and push to gh-pages
+name: Build Docs and push results to docs branch
 
 permissions:
   contents: write
@@ -17,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: develop
+          ref: ${{branch}}
 
       - name: Install deps
         run: pip install click -r docs/requirements.txt
@@ -30,8 +31,9 @@ jobs:
         with:
           branch: docs # The branch the action should deploy to.
           folder: test_results/${{ matrix.release }}-docs/html # The folder the action should deploy.
-          target-folder: .
+          target-folder: ${{branch}}
     strategy:
       fail-fast: false
       matrix:
         release: [pip]
+        branch: ['develop', '5.6', '5.7']
