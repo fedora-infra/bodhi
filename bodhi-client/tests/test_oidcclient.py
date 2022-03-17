@@ -13,7 +13,9 @@ from .utils import build_response
 
 @pytest.fixture
 def storage(mocker):
-    return mocker.Mock(name="storage")
+    obj = mocker.Mock(name="storage")
+    obj.load.return_value = {}
+    return obj
 
 
 @pytest.fixture
@@ -187,7 +189,7 @@ def test_oidcclient_login_retry(mocker, client):
     oauth2client = mocker.Mock()
     client.client = oauth2client
     client._tokens = None
-    client.storage.load.return_value = None
+    client.storage.load.side_effect = lambda k, d: d
     prompt = mocker.patch("bodhi.client.oidcclient.click.prompt")
     prompt.return_value = "result-code"
     secho = mocker.patch("bodhi.client.oidcclient.click.secho")
@@ -220,7 +222,7 @@ def test_oidcclient_login_retry(mocker, client):
 def test_oidcclient_reuse_token(mocker, client, storage):
     # Reset the tokens cache
     client._tokens = None
-    client.storage.load.return_value = {"foo": "bar"}
+    client.storage.load.return_value = {"http://id.example.com": {"foo": "bar"}}
     assert client.tokens == {"foo": "bar"}
     login = mocker.patch.object(client, "login")
     client.ensure_auth()
