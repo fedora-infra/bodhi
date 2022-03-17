@@ -36,4 +36,4 @@ jobs:
       fail-fast: false
       matrix:
         release: [pip]
-        branch: ['develop', '5.6', '5.7']
+        branch: ['develop', '5.7']
