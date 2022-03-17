@@ -53,8 +53,8 @@ commits that we don’t want to release with, you should branch from the most re
 branch, and then cherry pick the desired commits from <code class="docutils literal notranslate"><span class="pre">develop</span></code>.</p>
 <p>Of course, if you want to make a new major release, simply create a <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch from the
 desired commit on <code class="docutils literal notranslate"><span class="pre">develop</span></code>.</p>
-<section id="cherry-picking">
-<h3>Cherry picking<a class="headerlink" href="#cherry-picking" title="Permalink to this headline">¶</a></h3>
+<section id="backporting-patches-with-mergify">
+<h3>Backporting Patches with Mergify<a class="headerlink" href="#backporting-patches-with-mergify" title="Permalink to this headline">¶</a></h3>
 <p>To simplify the release process, almost all patches are sent to the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch. Once they
 are reviewed and merged, they can be cherry picked to a <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch if desired. To aid in
 this process, we use <a class="reference external" href="https://mergify.com">Mergify</a>’s <a class="reference external" href="https://docs.mergify.com/actions/backport">patch backporting feature</a>. For each actively maintained
@@ -68,6 +68,64 @@ request.</p>
 <p>The backporting feature is configured in <code class="docutils literal notranslate"><span class="pre">.mergify.yml</span></code>.</p>
 </div>
 </section>
+</section>
+<section id="deploying-a-development-snapshot-to-staging">
+<h2>Deploying a development snapshot to Staging<a class="headerlink" href="#deploying-a-development-snapshot-to-staging" title="Permalink to this headline">¶</a></h2>
+<p>On the Fedora Infrastructure, the <a class="reference external" href="https://bodhi.stg.fedoraproject.org">Bodhi Staging instance</a> is
+used to test out Bodhi in an enviroment as close to production as possible.</p>
+<p>To run this procedure, you will need the ability to run playbooks on batcave, and your Fedora Account
+on needs to be a member the <cite>sysadmin-bodhi</cite> group on both <a class="reference external" href="https://accounts.stg.fedoraproject.org/group/sysadmin-bodhi/">accounts staging</a>
+and <a class="reference external" href="https://accounts.fedoraproject.org/group/sysadmin-bodhi/">accounts production</a></p>
+<p>To deploy to staging:</p>
+<ol class="arabic">
+<li><p>Merge the changes into the <cite>staging</cite> branch.</p></li>
+<li><p>After the changes are pushed,the
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/actions/workflows/staging.yml">Build Staging snapshot in Koji</a>
+github action generates SRPMs, and submits them to build in koji. Once successfully built, The
+packages (bodhi-server, bodhi-client, and bodhi messages) are then automatically tagged into the
+f34-infra-stg koji tag.</p>
+<p>Note that each snapshot package will have the following version format appended to the current version:
+<cite>^&lt;YYYYMMDDHHMM&gt;git&lt;githash&gt;</cite>. For example:</p>
+<ul class="simple">
+<li><p>bodhi-client-5.7.5^202203102341gite878e73-1.fc34</p></li>
+<li><p>bodhi-server-5.7.5^202203102341gite878e73-1.fc34</p></li>
+<li><p>bodhi-messages-5.7.5^202203102341gite878e73-1.fc34</p></li>
+</ul>
+</li>
+<li><p>Sometimes it takes a couple of minutes for the builds to appear in the f34-infra koji repo, so check
+that the newly built packages are available to the bodhi-backend01 machine with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>ssh bodhi-backend01.stg.iad2.fedoraproject.org
+[bodhi-backend01 ~][STG]$ dnf list bodhi-server bodhi-client --refresh --all
+Installed Packages
+bodhi-client.noarch                 5.7.5^202202010001gitabcdefg-1.fc34                  @infrastructure-tags-stg
+bodhi-server.noarch                 5.7.5^202202010001gitabcdefg-1.fc34                  @infrastructure-tags-stg
+Available Packages
+bodhi-client.noarch                 5.7.5^202203102341gite878e73-1.fc34                 @infrastructure-tags-stg
+bodhi-server.noarch                 5.7.5^202203102341gite878e73-1.fc34                 @infrastructure-tags-stg
+</pre></div>
+</div>
+<p>The packages listed in <code class="docutils literal notranslate"><span class="pre">available</span> <span class="pre">packages</span></code> should be the ones just built in koji after pushing to the staging branch</p>
+</li>
+<li><p>With the packages available, run the following four playbooks on batcave01:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Run the bodhi-backend playbook to ensure everything is up to date
+$ sudo rbac-playbook -l staging groups/bodhi-backend.yml
+
+# Synchronize the database from production to staging
+$ sudo rbac-playbook manual/staging-sync/bodhi.yml -l staging
+
+# Upgrade the Bodhi backend on staging
+$ sudo rbac-playbook manual/upgrade/bodhi.yml -l staging
+
+# Upgrade the Bodhi frontend on staging
+$ sudo rbac-playbook openshift-apps/bodhi.yml -l staging
+</pre></div>
+</div>
+</li>
+<li><p>The final playbook in that run will cause the openshift images for bodhi to rebuild and redeploy.
+In a few minutes the new version of bodhi will appear on <a class="reference external" href="https://bodhi.stg.fedoraproject.org">https://bodhi.stg.fedoraproject.org</a>.</p>
+<p>You can check the status of the openshift image builds and deployment on <a class="reference external" href="https://os.stg.fedoraproject.org">https://os.stg.fedoraproject.org</a></p>
+</li>
+</ol>
 </section>
 <section id="how-to-make-a-release">
 <h2>How to make a release<a class="headerlink" href="#how-to-make-a-release" title="Permalink to this headline">¶</a></h2>
@@ -475,6 +533,7 @@ infrastructure mailing list.</p>
 <li class="toctree-l1"><a class="reference internal" href="index.html">Developer documentation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Release process</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#branches">Branches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deploying-a-development-snapshot-to-staging">Deploying a development snapshot to Staging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#how-to-make-a-release">How to make a release</a></li>
 </ul>
 </li>
