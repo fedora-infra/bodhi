@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Builds &#8212; bodhi 5.7.5 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Comments" href="comments.html" />
+    <link rel="prev" title="Update" href="../messages/update.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="builds">
+<h1>Builds<a class="headerlink" href="#builds" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="service-0">
+<h2>Build service at /builds/{nvr}<a class="headerlink" href="#service-0" title="Permalink to this headline">¶</a></h2>
+<p>Koji builds</p>
+<div class="section" id="service-0-GET">
+<h3>GET<a class="headerlink" href="#service-0-GET" title="Permalink to this headline">¶</a></h3>
+<p><p>Retrieve a Build by name-version-release, specified via an “nvr” query string parameter.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current web request.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>bodhi.server.models.Build or None: The Build matching the search, or None if there is no</dt><dd><p>Build with the given NVR.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</p>
+<p><strong>Response: json</strong></p>
+</div>
+</div>
+<div class="section" id="service-1">
+<h2>Builds service at /builds/<a class="headerlink" href="#service-1" title="Permalink to this headline">¶</a></h2>
+<p>Koji builds</p>
+<div class="section" id="service-1-GET">
+<h3>GET<a class="headerlink" href="#service-1-GET" title="Permalink to this headline">¶</a></h3>
+<span><span>values in the querystring</span><ul>
+<li><strong>chrome</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>page</strong><span> (Integer)</span><span> - </span><span>(default: 1) </span></li>
+<li><strong>rows_per_page</strong><span> (Integer)</span><span> - </span><span>(default: 20) </span></li>
+<li><strong>nvr</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>packages</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>releases</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>updates</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+</ul>
+</span><p><p>Search for Builds by given criteria.</p>
+<dl class="simple">
+<dt>The following criteria can be provided via query string parameters to search for Builds:</dt><dd><p>nvr: The dash-separated name-version-release of a Build.
+updates: A space or comma separated list of updates to limit the search by.
+packages: A space or comma separated list of packages to search for builds by.
+releases: A space or comma separated list of release ids to limit builds by.
+page: Which page of search results are desired.
+rows_per_pags: How many results per page are desired.</p>
+</dd>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>request (pyramid.request): The current request, containing the search criteria documented</dt><dd><p>above.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict: A dictionary with the following key value mappings:</dt><dd><p>builds: An iterable of builds that match the search criteria, ordered by nvr.
+page: The current page.
+pages: The total number of pages.
+rows_per_page: The number of rows per page.
+total: The number of builds that match the search criteria.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Validate the location against the schema defined on the service.</p>
+<p>The content of the location is deserialized, validated and stored in
+the <code class="docutils literal notranslate"><span class="pre">request.validated</span></code> attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If no schema is defined, this validator does nothing.
+Schema should be of type <code class="xref py py-class docutils literal notranslate"><span class="pre">MappingSchema</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Param request</dt>
+<dd class="field-odd"><p>Current request</p>
+</dd>
+<dt class="field-even">Type request</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></p>
+</dd>
+<dt class="field-odd">Param schema</dt>
+<dd class="field-odd"><p>The Colander schema</p>
+</dd>
+<dt class="field-even">Param deserializer</dt>
+<dd class="field-even"><p>Optional deserializer, defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">cornice.validators.extract_cstruct()</span></code></p>
+</dd>
+</dl>
+<p>Make sure referenced releases exist.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure referenced updates exist.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure referenced packages exist.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: json</strong></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/man_pages/index.html">Man pages</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../user/release_notes.html">Release notes</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Bodhi Server APIs</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../index.html#message-api">Message API</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#rest-api">REST API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#graphql-api">GRAPHQL API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Bodhi Server APIs</a><ul>
+      <li>Previous: <a href="../messages/update.html" title="previous chapter">Update</a></li>
+      <li>Next: <a href="comments.html" title="next chapter">Comments</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2022, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/server_api/rest/builds.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

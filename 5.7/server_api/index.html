@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bodhi Server APIs &#8212; bodhi 5.7.5 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Base" href="messages/base.html" />
+    <link rel="prev" title="2.x release notes" href="../user/2.x_release_notes.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="bodhi-server-apis">
+<h1>Bodhi Server APIs<a class="headerlink" href="#bodhi-server-apis" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="message-api">
+<h2>Message API<a class="headerlink" href="#message-api" title="Permalink to this headline">¶</a></h2>
+<p>Bodhi sends a number of AMQP messages. Each message has a formally defined schema. Bodhi provides a
+convenient <code class="docutils literal notranslate"><span class="pre">bodhi.messages</span></code> Python package that allows you to interact with messages
+via handy Python classes. If you are unable to use Python 3.6+, Bodhi also publishes its message
+schemas via <a class="reference external" href="https://json-schema.org/">JSON Schema</a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Bodhi’s messages do contain fields that are not documented in its JSON schemas. Bodhi
+does not make any guarantees about data that is not documented in its schema, and thus it is
+subject to change. Please work with the Bodhi project if you need data that is not part of
+Bodhi’s schemas.</p>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="messages/base.html">Base</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="messages/base.html#python-objects">Python objects</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="messages/buildroot_override.html">Buildroot overrides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="messages/buildroot_override.html#module-bodhi.messages.schemas.buildroot_override">Python objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messages/buildroot_override.html#json-schemas">JSON schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="messages/compose.html">Compose</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="messages/compose.html#module-bodhi.messages.schemas.compose">Python objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messages/compose.html#json-schemas">JSON schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="messages/errata.html">Errata</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="messages/errata.html#module-bodhi.messages.schemas.errata">Python objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messages/errata.html#json-schemas">JSON schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="messages/update.html">Update</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="messages/update.html#module-bodhi.messages.schemas.update">Python objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messages/update.html#json-schemas">JSON schemas</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="rest-api">
+<h2>REST API<a class="headerlink" href="#rest-api" title="Permalink to this headline">¶</a></h2>
+<p>This section of the documentation describes Bodhi’s REST API. You can read about the various
+sections of the API by following the links below:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="rest/builds.html">Builds</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rest/builds.html#service-0">Build service at /builds/{nvr}</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/builds.html#service-1">Builds service at /builds/</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rest/comments.html">Comments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rest/comments.html#service-0">Comment service at /comments/{id}</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/comments.html#service-1">Comments service at /comments/</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/comments.html#service-2">Comments_Rss service at /rss/comments/</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rest/composes.html">Composes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rest/csrf.html">CSRF</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rest/csrf.html#service-0">Csrf service at /csrf</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rest/markdown.html">Markdown</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rest/markdown.html#service-0">Markdowner service at /markdown</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rest/overrides.html">Overrides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rest/overrides.html#service-0">Override service at /overrides/{nvr}</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/overrides.html#service-1">Overrides service at /overrides/</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/overrides.html#service-2">Overrides_Rss service at /rss/overrides/</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rest/packages.html">Packages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rest/packages.html#service-0">Packages service at /packages/</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rest/releases.html">Releases</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rest/releases.html#service-0">Release service at /releases/{name}</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/releases.html#service-1">Releases service at /releases/</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rest/schemas.html">Message schemas</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rest/updates.html">Updates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rest/updates.html#service-0">Update service at /updates/{id}</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/updates.html#service-1">Update_Edit service at /updates/{id}/edit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/updates.html#service-2">Updates service at /updates/</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/updates.html#service-3">Updates_Rss service at /rss/updates/</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/updates.html#service-4">Update_Request service at /updates/{id}/request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/updates.html#service-5">Update_Waive_Test_Results service at /updates/{id}/waive-test-results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/updates.html#service-6">Update_Get_Test_Results service at /updates/{id}/get-test-results</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rest/users.html">Users</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rest/users.html#service-0">User service at /users/{name:\S+}</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/users.html#service-1">Users service at /users/</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest/users.html#service-2">Users_Rss service at /rss/users/</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="graphql-api">
+<h2>GRAPHQL API<a class="headerlink" href="#graphql-api" title="Permalink to this headline">¶</a></h2>
+<p>This section of the documentation describes Bodhi’s GraphQL API. You can read about the various
+sections of the API by following the links below:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="graphql/documentation.html">Using the GraphQL API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="graphql/documentation.html#the-basics">The Basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graphql/documentation.html#available-queries">Available Queries</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/man_pages/index.html">Man pages</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/release_notes.html">Release notes</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Bodhi Server APIs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#message-api">Message API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rest-api">REST API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphql-api">GRAPHQL API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../user/2.x_release_notes.html" title="previous chapter">2.x release notes</a></li>
+      <li>Next: <a href="messages/base.html" title="next chapter">Base</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2022, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/server_api/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

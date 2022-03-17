@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bodhi.server.services.schemas &#8212; bodhi 5.7.5 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for bodhi.server.services.schemas</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright © 2019 Red Hat, Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># This file is part of Bodhi.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU General Public License</span>
+<span class="c1"># as published by the Free Software Foundation; either version 2</span>
+<span class="c1"># of the License, or (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program; if not, write to the Free Software</span>
+<span class="c1"># Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+<span class="sd">&quot;&quot;&quot;Defines service endpoints for our message schemas.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+
+<span class="kn">from</span> <span class="nn">cornice.resource</span> <span class="kn">import</span> <span class="n">resource</span><span class="p">,</span> <span class="n">view</span>
+<span class="kn">from</span> <span class="nn">pyramid</span> <span class="kn">import</span> <span class="n">httpexceptions</span>
+<span class="kn">from</span> <span class="nn">pyramid.security</span> <span class="kn">import</span> <span class="n">Allow</span><span class="p">,</span> <span class="n">Everyone</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+
+<span class="kn">from</span> <span class="nn">bodhi.server</span> <span class="kn">import</span> <span class="n">security</span>
+<span class="kn">from</span> <span class="nn">bodhi.server.services</span> <span class="kn">import</span> <span class="n">errors</span>
+
+<span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+    <span class="kn">import</span> <span class="nn">pyramid.request.Request</span>  <span class="c1"># noqa: 401</span>
+
+
+<span class="n">READ_ACL</span> <span class="o">=</span> <span class="s1">&#39;view_schemas&#39;</span>
+
+
+<div class="viewcode-block" id="MessageSchemasV1"><a class="viewcode-back" href="../../../../server_api/rest/schemas.html#bodhi.server.services.schemas.MessageSchemasV1">[docs]</a><span class="nd">@resource</span><span class="p">(</span><span class="n">collection_path</span><span class="o">=</span><span class="s1">&#39;/message-schemas/v1/&#39;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;/message-schemas/v1/</span><span class="si">{topic}</span><span class="s1">&#39;</span><span class="p">,</span>
+          <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Message schemas&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MessageSchemasV1</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Defines resources for serving Bodhi&#39;s message schemas.</span>
+
+<span class="sd">    Operations acting on the collection are served at ``/message-schemas/v1/`` and operations acting</span>
+<span class="sd">    on a single schema are served at ``/message-schemas/v1/&lt;topic&gt;``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MessageSchemasV1.__init__"><a class="viewcode-back" href="../../../../server_api/rest/schemas.html#bodhi.server.services.schemas.MessageSchemasV1.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="s1">&#39;pyramid.request.Request&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the MessageSchemas resource.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            request: The current web request.</span>
+<span class="sd">            context: Unused.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">request</span></div>
+
+<div class="viewcode-block" id="MessageSchemasV1.__acl__"><a class="viewcode-back" href="../../../../server_api/rest/schemas.html#bodhi.server.services.schemas.MessageSchemasV1.__acl__">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__acl__</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Define ACLs for the MessageSchemas resource.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of ACLs for this Resource.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">Allow</span><span class="p">,</span> <span class="n">Everyone</span><span class="p">,</span> <span class="n">READ_ACL</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="MessageSchemasV1.collection_get"><a class="viewcode-back" href="../../../../server_api/rest/schemas.html#bodhi.server.services.schemas.MessageSchemasV1.collection_get">[docs]</a>    <span class="nd">@view</span><span class="p">(</span>
+        <span class="n">accept</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;application/json&#39;</span><span class="p">,</span> <span class="s1">&#39;text/json&#39;</span><span class="p">),</span> <span class="n">renderer</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span>
+        <span class="n">cors_origins</span><span class="o">=</span><span class="n">security</span><span class="o">.</span><span class="n">cors_origins_ro</span><span class="p">,</span> <span class="n">error_handler</span><span class="o">=</span><span class="n">errors</span><span class="o">.</span><span class="n">json_handler</span><span class="p">,</span>
+        <span class="n">permission</span><span class="o">=</span><span class="n">READ_ACL</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">collection_get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        List schemas.</span>
+
+<span class="sd">        This method responds to the ``/message-schemas/v1/`` endpoint.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of message topics that Bodhi supports.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">load</span><span class="p">()</span><span class="o">.</span><span class="n">topic</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">iter_entry_points</span><span class="p">(</span><span class="s1">&#39;fedora.messages&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">module_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;bodhi.&#39;</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="MessageSchemasV1.get"><a class="viewcode-back" href="../../../../server_api/rest/schemas.html#bodhi.server.services.schemas.MessageSchemasV1.get">[docs]</a>    <span class="nd">@view</span><span class="p">(</span><span class="n">accept</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;application/json&#39;</span><span class="p">,</span> <span class="s1">&#39;text/json&#39;</span><span class="p">),</span> <span class="n">renderer</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span>
+          <span class="n">cors_origins</span><span class="o">=</span><span class="n">security</span><span class="o">.</span><span class="n">cors_origins_ro</span><span class="p">,</span> <span class="n">error_handler</span><span class="o">=</span><span class="n">errors</span><span class="o">.</span><span class="n">json_handler</span><span class="p">,</span>
+          <span class="n">permission</span><span class="o">=</span><span class="n">READ_ACL</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve and render a single message schema.</span>
+
+<span class="sd">        This API responses to the ``/message_schemas/v1/&lt;topic&gt;`` endpoint.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The requested message schema.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">load_entry_point</span><span class="p">(</span>
+                <span class="s1">&#39;bodhi-messages&#39;</span><span class="p">,</span> <span class="s1">&#39;fedora.messages&#39;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">matchdict</span><span class="p">[</span><span class="s1">&#39;topic&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.v1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">body_schema</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="c1"># The user has requested a topic that does not exist</span>
+            <span class="k">raise</span> <span class="n">httpexceptions</span><span class="o">.</span><span class="n">HTTPNotFound</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../../index.html">
+    <img class="logo" src="../../../../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/man_pages/index.html">Man pages</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user/release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2022, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

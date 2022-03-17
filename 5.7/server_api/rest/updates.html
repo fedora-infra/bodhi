@@ -1,0 +1,1176 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Updates &#8212; bodhi 5.7.5 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Users" href="users.html" />
+    <link rel="prev" title="Message schemas" href="schemas.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="updates">
+<h1>Updates<a class="headerlink" href="#updates" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="service-0">
+<h2>Update service at /updates/{id}<a class="headerlink" href="#service-0" title="Permalink to this headline">¶</a></h2>
+<p>Update submission service</p>
+<div class="section" id="service-0-GET">
+<h3>GET<a class="headerlink" href="#service-0-GET" title="Permalink to this headline">¶</a></h3>
+<strong>Accepted content types:<ul>
+<li><span>text/html</span></li>
+</ul>
+</strong><p><p>Return a single update from an id or alias.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict: A dictionary with the following key mappings:</dt><dd><p>update: The update that was requested.
+can_edit: A boolean indicating whether the update can be edited.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Ensure that a given update id exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: update.html</strong></p>
+</div>
+<div class="section" id="service-0-GET">
+<h3>GET<a class="headerlink" href="#service-0-GET" title="Permalink to this headline">¶</a></h3>
+<strong>Accepted content types:<ul>
+<li><span>application/javascript</span></li>
+</ul>
+</strong><p><p>Return a single update from an id or alias.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict: A dictionary with the following key mappings:</dt><dd><p>update: The update that was requested.
+can_edit: A boolean indicating whether the update can be edited.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Ensure that a given update id exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: jsonp</strong></p>
+</div>
+<div class="section" id="service-0-GET">
+<h3>GET<a class="headerlink" href="#service-0-GET" title="Permalink to this headline">¶</a></h3>
+<strong>Accepted content types:<ul>
+<li><span>application/json</span></li>
+<li><span>text/json</span></li>
+</ul>
+</strong><p><p>Return a single update from an id or alias.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict: A dictionary with the following key mappings:</dt><dd><p>update: The update that was requested.
+can_edit: A boolean indicating whether the update can be edited.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Ensure that a given update id exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: json</strong></p>
+</div>
+</div>
+<div class="section" id="service-1">
+<h2>Update_Edit service at /updates/{id}/edit<a class="headerlink" href="#service-1" title="Permalink to this headline">¶</a></h2>
+<p>Update submission service</p>
+<div class="section" id="service-1-GET">
+<h3>GET<a class="headerlink" href="#service-1-GET" title="Permalink to this headline">¶</a></h3>
+<strong>Accepted content types:<ul>
+<li><span>text/html</span></li>
+</ul>
+</strong><p><p>Return a single update from an id or alias for the edit form.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict: A dictionary with the following key mappings:</dt><dd><p>update: The update to be edited.
+types: The possible values for update types.
+severities: The possible values for update severity.
+suggestions: The possible values for update suggestion.
+sidetags: a list of sidetags for the user, always empty
+in the edit form case.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Ensure that a given update id exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure the user has privs to create or edit an update.</p>
+<p>There are two different code-paths that could pass through this validator:
+one of them is for submitting something new with a list of builds or a
+side-tag (a new update, or editing an update by changing the list of builds).
+The other is for changing the request on an existing update – where an update
+alias has been passed to us. The latter is also used to check if a user has
+enough privs to display the edit form page in webUI.</p>
+<p>We need to validate that the user has commit rights on all the build
+(either the explicitly listed ones or on the ones associated with the
+pre-existing update). If a provenpackager added a build for which the
+former update submitter doesn’t have commit rights, the original submitter
+will lose their privs to edit the update.</p>
+<p>In case of a side-tag update, we don’t validate against the builds,
+but we require the submitter to be whom created the side-tag.
+The ‘sidetag_owner’ field is set by <cite>validate_from_tag()</cite>.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: new_update.html</strong></p>
+</div>
+</div>
+<div class="section" id="service-2">
+<h2>Updates service at /updates/<a class="headerlink" href="#service-2" title="Permalink to this headline">¶</a></h2>
+<p>Update submission service</p>
+<div class="section" id="service-2-GET">
+<h3>GET<a class="headerlink" href="#service-2-GET" title="Permalink to this headline">¶</a></h3>
+<span><span>values in the querystring</span><ul>
+<li><strong>display_user</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>like</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>search</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>chrome</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>page</strong><span> (Integer)</span><span> - </span><span>(default: 1) </span></li>
+<li><strong>rows_per_page</strong><span> (Integer)</span><span> - </span><span>(default: 20) </span></li>
+<li><strong>alias</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>approved_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>approved_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>bugs</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>builds</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>critpath</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>from_side_tag</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>locked</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>modified_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>modified_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>packages</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>releases</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>release</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>request</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>severity</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>status</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>submitted_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>submitted_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>suggest</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>type</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>content_type</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>user</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>updateid</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>gating</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+</ul>
+</span><strong>Accepted content types:<ul>
+<li><span>text/html</span></li>
+</ul>
+</strong><p><p>Search updates by given criteria.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict: A dictionary with at least the following key mappings:</dt><dd><p>updates: An iterable of the updates that match the query.
+page: The current page.
+pages: The total number of pages.
+rows_per_page: How many results on on the page.
+total: The total number of updates matching the query.
+package: The package corresponding to the first update found in the search.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Validate the location against the schema defined on the service.</p>
+<p>The content of the location is deserialized, validated and stored in
+the <code class="docutils literal notranslate"><span class="pre">request.validated</span></code> attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If no schema is defined, this validator does nothing.
+Schema should be of type <code class="xref py py-class docutils literal notranslate"><span class="pre">MappingSchema</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Param request</dt>
+<dd class="field-odd"><p>Current request</p>
+</dd>
+<dt class="field-even">Type request</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></p>
+</dd>
+<dt class="field-odd">Param schema</dt>
+<dd class="field-odd"><p>The Colander schema</p>
+</dd>
+<dt class="field-even">Param deserializer</dt>
+<dd class="field-even"><p>Optional deserializer, defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">cornice.validators.extract_cstruct()</span></code></p>
+</dd>
+</dl>
+<p>Make sure the referenced release exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure referenced releases exist.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Convert from strings to our enumerated types.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure the referenced user exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that the list of bugs are all valid integers.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: updates.html</strong></p>
+</div>
+<div class="section" id="service-2-GET">
+<h3>GET<a class="headerlink" href="#service-2-GET" title="Permalink to this headline">¶</a></h3>
+<span><span>values in the querystring</span><ul>
+<li><strong>display_user</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>like</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>search</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>chrome</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>page</strong><span> (Integer)</span><span> - </span><span>(default: 1) </span></li>
+<li><strong>rows_per_page</strong><span> (Integer)</span><span> - </span><span>(default: 20) </span></li>
+<li><strong>alias</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>approved_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>approved_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>bugs</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>builds</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>critpath</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>from_side_tag</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>locked</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>modified_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>modified_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>packages</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>releases</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>release</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>request</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>severity</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>status</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>submitted_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>submitted_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>suggest</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>type</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>content_type</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>user</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>updateid</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>gating</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+</ul>
+</span><strong>Accepted content types:<ul>
+<li><span>application/javascript</span></li>
+</ul>
+</strong><p><p>Search updates by given criteria.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict: A dictionary with at least the following key mappings:</dt><dd><p>updates: An iterable of the updates that match the query.
+page: The current page.
+pages: The total number of pages.
+rows_per_page: How many results on on the page.
+total: The total number of updates matching the query.
+package: The package corresponding to the first update found in the search.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Validate the location against the schema defined on the service.</p>
+<p>The content of the location is deserialized, validated and stored in
+the <code class="docutils literal notranslate"><span class="pre">request.validated</span></code> attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If no schema is defined, this validator does nothing.
+Schema should be of type <code class="xref py py-class docutils literal notranslate"><span class="pre">MappingSchema</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Param request</dt>
+<dd class="field-odd"><p>Current request</p>
+</dd>
+<dt class="field-even">Type request</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></p>
+</dd>
+<dt class="field-odd">Param schema</dt>
+<dd class="field-odd"><p>The Colander schema</p>
+</dd>
+<dt class="field-even">Param deserializer</dt>
+<dd class="field-even"><p>Optional deserializer, defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">cornice.validators.extract_cstruct()</span></code></p>
+</dd>
+</dl>
+<p>Make sure the referenced release exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure referenced releases exist.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Convert from strings to our enumerated types.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure the referenced user exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that the list of bugs are all valid integers.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: jsonp</strong></p>
+</div>
+<div class="section" id="service-2-GET">
+<h3>GET<a class="headerlink" href="#service-2-GET" title="Permalink to this headline">¶</a></h3>
+<span><span>values in the querystring</span><ul>
+<li><strong>display_user</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>like</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>search</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>chrome</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>page</strong><span> (Integer)</span><span> - </span><span>(default: 1) </span></li>
+<li><strong>rows_per_page</strong><span> (Integer)</span><span> - </span><span>(default: 20) </span></li>
+<li><strong>alias</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>approved_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>approved_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>bugs</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>builds</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>critpath</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>from_side_tag</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>locked</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>modified_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>modified_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>packages</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>releases</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>release</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>request</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>severity</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>status</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>submitted_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>submitted_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>suggest</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>type</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>content_type</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>user</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>updateid</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>gating</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+</ul>
+</span><strong>Accepted content types:<ul>
+<li><span>application/json</span></li>
+<li><span>text/json</span></li>
+</ul>
+</strong><p><p>Search updates by given criteria.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict: A dictionary with at least the following key mappings:</dt><dd><p>updates: An iterable of the updates that match the query.
+page: The current page.
+pages: The total number of pages.
+rows_per_page: How many results on on the page.
+total: The total number of updates matching the query.
+package: The package corresponding to the first update found in the search.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Validate the location against the schema defined on the service.</p>
+<p>The content of the location is deserialized, validated and stored in
+the <code class="docutils literal notranslate"><span class="pre">request.validated</span></code> attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If no schema is defined, this validator does nothing.
+Schema should be of type <code class="xref py py-class docutils literal notranslate"><span class="pre">MappingSchema</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Param request</dt>
+<dd class="field-odd"><p>Current request</p>
+</dd>
+<dt class="field-even">Type request</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></p>
+</dd>
+<dt class="field-odd">Param schema</dt>
+<dd class="field-odd"><p>The Colander schema</p>
+</dd>
+<dt class="field-even">Param deserializer</dt>
+<dd class="field-even"><p>Optional deserializer, defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">cornice.validators.extract_cstruct()</span></code></p>
+</dd>
+</dl>
+<p>Make sure the referenced release exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure referenced releases exist.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Convert from strings to our enumerated types.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure the referenced user exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that the list of bugs are all valid integers.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: json</strong></p>
+</div>
+<div class="section" id="service-2-GET">
+<h3>GET<a class="headerlink" href="#service-2-GET" title="Permalink to this headline">¶</a></h3>
+<span><span>values in the querystring</span><ul>
+<li><strong>display_user</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>like</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>search</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>chrome</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>page</strong><span> (Integer)</span><span> - </span><span>(default: 1) </span></li>
+<li><strong>rows_per_page</strong><span> (Integer)</span><span> - </span><span>(default: 20) </span></li>
+<li><strong>alias</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>approved_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>approved_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>bugs</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>builds</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>critpath</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>from_side_tag</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>locked</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>modified_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>modified_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>packages</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>releases</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>release</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>request</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>severity</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>status</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>submitted_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>submitted_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>suggest</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>type</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>content_type</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>user</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>updateid</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>gating</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+</ul>
+</span><strong>Accepted content types:<ul>
+<li><span>application/atom+xml</span></li>
+</ul>
+</strong><p><p>Search updates by given criteria.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict: A dictionary with at least the following key mappings:</dt><dd><p>updates: An iterable of the updates that match the query.
+page: The current page.
+pages: The total number of pages.
+rows_per_page: How many results on on the page.
+total: The total number of updates matching the query.
+package: The package corresponding to the first update found in the search.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Validate the location against the schema defined on the service.</p>
+<p>The content of the location is deserialized, validated and stored in
+the <code class="docutils literal notranslate"><span class="pre">request.validated</span></code> attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If no schema is defined, this validator does nothing.
+Schema should be of type <code class="xref py py-class docutils literal notranslate"><span class="pre">MappingSchema</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Param request</dt>
+<dd class="field-odd"><p>Current request</p>
+</dd>
+<dt class="field-even">Type request</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></p>
+</dd>
+<dt class="field-odd">Param schema</dt>
+<dd class="field-odd"><p>The Colander schema</p>
+</dd>
+<dt class="field-even">Param deserializer</dt>
+<dd class="field-even"><p>Optional deserializer, defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">cornice.validators.extract_cstruct()</span></code></p>
+</dd>
+</dl>
+<p>Make sure the referenced release exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure referenced releases exist.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Convert from strings to our enumerated types.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure the referenced user exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that the list of bugs are all valid integers.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: rss</strong></p>
+</div>
+<div class="section" id="service-2-POST">
+<h3>POST<a class="headerlink" href="#service-2-POST" title="Permalink to this headline">¶</a></h3>
+<span><span>values in the body</span><ul>
+<li><strong>csrf_token</strong><span> (String)</span></li>
+<li><strong>builds</strong><span> (Sequence)</span></li>
+<li><strong>from_tag</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>bugs</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>display_name</strong><span> (String)</span><span> - </span><span>(default: “”) </span></li>
+<li><strong>close_bugs</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>type</strong><span> (String)</span></li>
+<li><strong>severity</strong><span> (String)</span><span> - </span><span>(default: “unspecified”) </span></li>
+<li><strong>notes</strong><span> (String)</span></li>
+<li><strong>autokarma</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>stable_karma</strong><span> (Integer)</span><span> - </span><span>(default: 3) </span></li>
+<li><strong>unstable_karma</strong><span> (Integer)</span><span> - </span><span>(default: -3) </span></li>
+<li><strong>suggest</strong><span> (String)</span><span> - </span><span>(default: “unspecified”) </span></li>
+<li><strong>edited</strong><span> (String)</span><span> - </span><span>(default: “”) </span></li>
+<li><strong>requirements</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>require_bugs</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>require_testcases</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>autotime</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>stable_days</strong><span> (Integer)</span><span> - </span><span>(default: 0) </span></li>
+</ul>
+</span><p><p>Save an update.</p>
+<p>This entails either creating a new update, or editing an existing one. To
+edit an existing update, the update’s alias must be specified in
+the <code class="docutils literal notranslate"><span class="pre">edited</span></code> parameter.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">from_tag</span></code> parameter is specified and <code class="docutils literal notranslate"><span class="pre">builds</span></code> is missing or
+empty, the list of builds will be filled with the latest builds in this
+Koji tag. This is done by validate_from_tag() because the list of builds
+needs to be available in validate_acls().</p>
+<p>If the release is composed by Bodhi (i.e. a branched or stable release
+after the Bodhi activation point), ensure that related tags
+<code class="docutils literal notranslate"><span class="pre">from_tag</span></code>-pending-signing and <code class="docutils literal notranslate"><span class="pre">from_tag</span></code>-testing exists and if not
+create them in Koji. If the state of the release is not <cite>pending</cite>, add its
+pending-signing tag and remove it if it’s a side tag.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+</dl>
+<p>Validate the location against the schema defined on the service.</p>
+<p>The content of the location is deserialized, validated and stored in
+the <code class="docutils literal notranslate"><span class="pre">request.validated</span></code> attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If no schema is defined, this validator does nothing.
+Schema should be of type <code class="xref py py-class docutils literal notranslate"><span class="pre">MappingSchema</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Param request</dt>
+<dd class="field-odd"><p>Current request</p>
+</dd>
+<dt class="field-even">Type request</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></p>
+</dd>
+<dt class="field-odd">Param schema</dt>
+<dd class="field-odd"><p>The Colander schema</p>
+</dd>
+<dt class="field-even">Param deserializer</dt>
+<dd class="field-even"><p>Optional deserializer, defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">cornice.validators.extract_cstruct()</span></code></p>
+</dd>
+</dl>
+<p>Check that an existing from_tag is valid and set <cite>builds</cite>.</p>
+<p>Ensure that <cite>from_tag</cite> is a valid Koji tag and set <cite>builds</cite> to latest
+builds from this tag if unset.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request: The current request.
+kwargs: The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that the given builds reference valid Build objects.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that the builds parameter is valid for the request.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that all of the referenced builds are tagged as candidates.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Check for multiple builds from the same package and same release.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that at least one of the builds or from_tag parameters exist in the request.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure the user has privs to create or edit an update.</p>
+<p>There are two different code-paths that could pass through this validator:
+one of them is for submitting something new with a list of builds or a
+side-tag (a new update, or editing an update by changing the list of builds).
+The other is for changing the request on an existing update – where an update
+alias has been passed to us. The latter is also used to check if a user has
+enough privs to display the edit form page in webUI.</p>
+<p>We need to validate that the user has commit rights on all the build
+(either the explicitly listed ones or on the ones associated with the
+pre-existing update). If a provenpackager added a build for which the
+former update submitter doesn’t have commit rights, the original submitter
+will lose their privs to edit the update.</p>
+<p>In case of a side-tag update, we don’t validate against the builds,
+but we require the submitter to be whom created the side-tag.
+The ‘sidetag_owner’ field is set by <cite>validate_from_tag()</cite>.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Convert from strings to our enumerated types.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Validate the requirements parameter for the stack.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that the list of bugs are all valid integers.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that severity is specified for a ‘security’ update.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: json</strong></p>
+</div>
+</div>
+<div class="section" id="service-3">
+<h2>Updates_Rss service at /rss/updates/<a class="headerlink" href="#service-3" title="Permalink to this headline">¶</a></h2>
+<p>Update submission service RSS feed</p>
+<div class="section" id="service-3-GET">
+<h3>GET<a class="headerlink" href="#service-3-GET" title="Permalink to this headline">¶</a></h3>
+<span><span>values in the querystring</span><ul>
+<li><strong>display_user</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>like</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>search</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>chrome</strong><span> (Boolean)</span><span> - </span><span>(default: true) </span></li>
+<li><strong>page</strong><span> (Integer)</span><span> - </span><span>(default: 1) </span></li>
+<li><strong>rows_per_page</strong><span> (Integer)</span><span> - </span><span>(default: 20) </span></li>
+<li><strong>alias</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>approved_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>approved_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>bugs</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>builds</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>critpath</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>from_side_tag</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>locked</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>modified_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>modified_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>packages</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed</strong><span> (Boolean)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>pushed_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>releases</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>release</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>request</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>severity</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>status</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>submitted_since</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>submitted_before</strong><span> (DateTime)</span><span> - </span><span>(optional) </span></li>
+<li><strong>suggest</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>type</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>content_type</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>user</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>updateid</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+<li><strong>gating</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+</ul>
+</span><p><p>Search updates by given criteria.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict: A dictionary with at least the following key mappings:</dt><dd><p>updates: An iterable of the updates that match the query.
+page: The current page.
+pages: The total number of pages.
+rows_per_page: How many results on on the page.
+total: The total number of updates matching the query.
+package: The package corresponding to the first update found in the search.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Validate the location against the schema defined on the service.</p>
+<p>The content of the location is deserialized, validated and stored in
+the <code class="docutils literal notranslate"><span class="pre">request.validated</span></code> attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If no schema is defined, this validator does nothing.
+Schema should be of type <code class="xref py py-class docutils literal notranslate"><span class="pre">MappingSchema</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Param request</dt>
+<dd class="field-odd"><p>Current request</p>
+</dd>
+<dt class="field-even">Type request</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></p>
+</dd>
+<dt class="field-odd">Param schema</dt>
+<dd class="field-odd"><p>The Colander schema</p>
+</dd>
+<dt class="field-even">Param deserializer</dt>
+<dd class="field-even"><p>Optional deserializer, defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">cornice.validators.extract_cstruct()</span></code></p>
+</dd>
+</dl>
+<p>Make sure the referenced release exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure referenced releases exist.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Convert from strings to our enumerated types.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Make sure the referenced user exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that the list of bugs are all valid integers.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: rss</strong></p>
+</div>
+</div>
+<div class="section" id="service-4">
+<h2>Update_Request service at /updates/{id}/request<a class="headerlink" href="#service-4" title="Permalink to this headline">¶</a></h2>
+<p>Update request service</p>
+<div class="section" id="service-4-POST">
+<h3>POST<a class="headerlink" href="#service-4-POST" title="Permalink to this headline">¶</a></h3>
+<span><span>values in the body</span><ul>
+<li><strong>csrf_token</strong><span> (String)</span></li>
+<li><strong>request</strong><span> (String)</span></li>
+</ul>
+</span><p><p>Set a specific <a class="reference internal" href="../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.UpdateRequest" title="bodhi.server.models.UpdateRequest"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.server.models.UpdateRequest</span></code></a> on a given update.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><p>dict: A dictionary mapping the key “update” to the update that was modified.</p>
+</dd>
+</dl>
+<p>Validate the location against the schema defined on the service.</p>
+<p>The content of the location is deserialized, validated and stored in
+the <code class="docutils literal notranslate"><span class="pre">request.validated</span></code> attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If no schema is defined, this validator does nothing.
+Schema should be of type <code class="xref py py-class docutils literal notranslate"><span class="pre">MappingSchema</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Param request</dt>
+<dd class="field-odd"><p>Current request</p>
+</dd>
+<dt class="field-even">Type request</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></p>
+</dd>
+<dt class="field-odd">Param schema</dt>
+<dd class="field-odd"><p>The Colander schema</p>
+</dd>
+<dt class="field-even">Param deserializer</dt>
+<dd class="field-even"><p>Optional deserializer, defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">cornice.validators.extract_cstruct()</span></code></p>
+</dd>
+</dl>
+<p>Convert from strings to our enumerated types.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that a given update id exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that all of the referenced builds are tagged as candidates.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure the user has privs to create or edit an update.</p>
+<p>There are two different code-paths that could pass through this validator:
+one of them is for submitting something new with a list of builds or a
+side-tag (a new update, or editing an update by changing the list of builds).
+The other is for changing the request on an existing update – where an update
+alias has been passed to us. The latter is also used to check if a user has
+enough privs to display the edit form page in webUI.</p>
+<p>We need to validate that the user has commit rights on all the build
+(either the explicitly listed ones or on the ones associated with the
+pre-existing update). If a provenpackager added a build for which the
+former update submitter doesn’t have commit rights, the original submitter
+will lose their privs to edit the update.</p>
+<p>In case of a side-tag update, we don’t validate against the builds,
+but we require the submitter to be whom created the side-tag.
+The ‘sidetag_owner’ field is set by <cite>validate_from_tag()</cite>.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure that this update is newer than whatever is in the requested state.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: json</strong></p>
+</div>
+</div>
+<div class="section" id="service-5">
+<h2>Update_Waive_Test_Results service at /updates/{id}/waive-test-results<a class="headerlink" href="#service-5" title="Permalink to this headline">¶</a></h2>
+<p>Waive test results that block transitioning the update to next state</p>
+<div class="section" id="service-5-POST">
+<h3>POST<a class="headerlink" href="#service-5-POST" title="Permalink to this headline">¶</a></h3>
+<span><span>values in the body</span><ul>
+<li><strong>csrf_token</strong><span> (String)</span></li>
+<li><strong>comment</strong><span> (String)</span><span> - </span><span>(optional) </span></li>
+<li><strong>tests</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+</ul>
+</span><p><p>Waive all blocking test results on a given update when gating is on.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><p>dict: A dictionary mapping the key “update” to the update.</p>
+</dd>
+</dl>
+<p>Validate the location against the schema defined on the service.</p>
+<p>The content of the location is deserialized, validated and stored in
+the <code class="docutils literal notranslate"><span class="pre">request.validated</span></code> attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If no schema is defined, this validator does nothing.
+Schema should be of type <code class="xref py py-class docutils literal notranslate"><span class="pre">MappingSchema</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Param request</dt>
+<dd class="field-odd"><p>Current request</p>
+</dd>
+<dt class="field-even">Type request</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Request</span></code></p>
+</dd>
+<dt class="field-odd">Param schema</dt>
+<dd class="field-odd"><p>The Colander schema</p>
+</dd>
+<dt class="field-even">Param deserializer</dt>
+<dd class="field-even"><p>Optional deserializer, defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">cornice.validators.extract_cstruct()</span></code></p>
+</dd>
+</dl>
+<p>Ensure that a given update id exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+<p>Ensure the user has privs to create or edit an update.</p>
+<p>There are two different code-paths that could pass through this validator:
+one of them is for submitting something new with a list of builds or a
+side-tag (a new update, or editing an update by changing the list of builds).
+The other is for changing the request on an existing update – where an update
+alias has been passed to us. The latter is also used to check if a user has
+enough privs to display the edit form page in webUI.</p>
+<p>We need to validate that the user has commit rights on all the build
+(either the explicitly listed ones or on the ones associated with the
+pre-existing update). If a provenpackager added a build for which the
+former update submitter doesn’t have commit rights, the original submitter
+will lose their privs to edit the update.</p>
+<p>In case of a side-tag update, we don’t validate against the builds,
+but we require the submitter to be whom created the side-tag.
+The ‘sidetag_owner’ field is set by <cite>validate_from_tag()</cite>.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: json</strong></p>
+</div>
+</div>
+<div class="section" id="service-6">
+<h2>Update_Get_Test_Results service at /updates/{id}/get-test-results<a class="headerlink" href="#service-6" title="Permalink to this headline">¶</a></h2>
+<p>Get test results for a specified update</p>
+<div class="section" id="service-6-GET">
+<h3>GET<a class="headerlink" href="#service-6-GET" title="Permalink to this headline">¶</a></h3>
+<span><span>values in the body</span><ul>
+<li><strong>csrf_token</strong><span> (String)</span></li>
+<li><strong>alias</strong><span> (Sequence)</span><span> - </span><span>(optional) </span></li>
+</ul>
+</span><p><p>Get the test results on a given update when gating is on.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request): The current request.</p>
+</dd>
+<dt>Returns:</dt><dd><p>dict: A dictionary mapping the key ‘decisions’ to a list of result dictionaries.</p>
+</dd>
+</dl>
+<p>Ensure that a given update id exists.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request (pyramid.request.Request): The current request.
+kwargs (dict): The kwargs of the related service definition. Unused.</p>
+</dd>
+</dl>
+</p>
+<p><strong>Response: json</strong></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/man_pages/index.html">Man pages</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../user/release_notes.html">Release notes</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Bodhi Server APIs</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../index.html#message-api">Message API</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#rest-api">REST API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#graphql-api">GRAPHQL API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Bodhi Server APIs</a><ul>
+      <li>Previous: <a href="schemas.html" title="previous chapter">Message schemas</a></li>
+      <li>Next: <a href="users.html" title="next chapter">Users</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2022, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/server_api/rest/updates.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
