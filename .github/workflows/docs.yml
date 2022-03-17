@@ -21,7 +21,7 @@ jobs:
           ref: ${{ matrix.branch }}
 
       - name: Install deps
-        run: pip install click -r docs/requirements.txt
+        run: pip install click sphinx sqlalchemy_schemadisplay
 
       - name: Build the docs
         run: devel/ci/bodhi-ci docs -r ${{ matrix.release }}
