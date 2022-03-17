@@ -19,11 +19,12 @@
 
 import datetime
 
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, REGISTRY
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest, REGISTRY
+from pyramid.exceptions import HTTPBadRequest, HTTPForbidden
+from pyramid.httpexceptions import HTTPUnauthorized
 from pyramid.response import Response
 from pyramid.settings import asbool
-from pyramid.view import view_config, notfound_view_config
-from pyramid.exceptions import HTTPForbidden, HTTPBadRequest
+from pyramid.view import notfound_view_config, view_config
 import cornice.errors
 import sqlalchemy as sa
 
@@ -541,6 +542,7 @@ def notfound_view(context, request):
 
 
 @view_config(context=HTTPForbidden, accept='text/html')
+@view_config(context=HTTPUnauthorized, accept='text/html')
 @view_config(context=Exception, accept='text/html')
 def exception_html_view(exc, request):
     """
@@ -561,16 +563,14 @@ def exception_html_view(exc, request):
     errors = getattr(request, 'errors', [])
     status = getattr(exc, 'status_code', 500)
 
-    if status not in (404, 403):
+    if status not in (404, 403, 401):
         log.exception("Error caught.  Handling HTML response.")
     else:
         log.warning(str(exc))
 
     if not len(errors):
-        description = getattr(exc, 'explanation', None) or str(exc)
-
         errors = cornice.errors.Errors(status=status)
-        errors.add('body', description=description)
+        errors.add('body', description=str(exc))
         request.errors = errors
 
     return bodhi.server.services.errors.html_handler(request)
@@ -603,10 +603,8 @@ def exception_json_view(exc, request):
         log.warning(str(exc))
 
     if not len(errors):
-        description = getattr(exc, 'explanation', None) or str(exc)
-
         errors = cornice.errors.Errors(status=status)
-        errors.add('body', description=description, name=exc.__class__.__name__)
+        errors.add('body', description=str(exc), name=exc.__class__.__name__)
         request.errors = errors
 
     return bodhi.server.services.errors.json_handler(request)

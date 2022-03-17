@@ -493,7 +493,7 @@ class TestGenericViews(base.BasePyTestCase):
         app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
         res = app.get('/updates/new', status=403, headers=headers)
         assert '<h1>403 <small>Forbidden</small></h1>' in res
-        assert '<p class="lead">Access was denied to this resource.</p>' in res
+        assert '<p class="lead">You must be logged in.</p>' in res
 
     def test_api_version(self):
         """Test the API Version JSON call"""
@@ -508,4 +508,4 @@ class TestNotfoundView(base.BasePyTestCase):
         res = self.app.get('/makemerich', status=404)
 
         assert '404 <small>Not Found</small>' in res
-        assert 'The resource could not be found.' in res
+        assert '<p class="lead">/makemerich</p>' in res

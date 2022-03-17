@@ -1,5 +1,5 @@
 from pyramid import testing
-from zope.interface import interfaces
+from pyramid.httpexceptions import HTTPUnauthorized
 import pytest
 
 from bodhi.server import models
@@ -32,9 +32,12 @@ class TestRememberMe(base.BasePyTestCase):
         """Test the post-login hook with a bad openid endpoint"""
         req, info = self._generate_req_info('bad_endpoint')
 
-        with pytest.raises(interfaces.ComponentLookupError):
+        with pytest.raises(HTTPUnauthorized) as exc:
             remember_me(None, req, info)
 
+        assert str(exc.value) == (
+            "Invalid OpenID provider. You can only use: https://id.stg.fedoraproject.org/openid/"
+        )
         # The user should not exist
         assert models.User.get('lmacken') is None
 

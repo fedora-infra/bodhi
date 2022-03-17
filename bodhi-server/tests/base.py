@@ -148,7 +148,9 @@ class BaseTestCaseMixin:
         'cors_origins_ro': 'http://0.0.0.0:6543',
         'cors_origins_rw': 'http://0.0.0.0:6543',
         'sqlalchemy.url': DEFAULT_DB,
-        'warm_cache_on_start': False
+        'warm_cache_on_start': False,
+        'pyramid.debug_notfound': False,
+        'pyramid.debug_authorization': False,
     }
 
     def _setup_method(self):

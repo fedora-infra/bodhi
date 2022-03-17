@@ -2,7 +2,7 @@
 
 import typing
 
-from pyramid.httpexceptions import HTTPFound
+from pyramid.httpexceptions import HTTPFound, HTTPUnauthorized
 from pyramid.security import remember
 
 from bodhi.server import log
@@ -76,9 +76,10 @@ def remember_me(context: 'mako.runtime.Context', request: 'pyramid.request.Reque
     endpoint = request.params['openid.op_endpoint']
     if endpoint != request.registry.settings['openid.provider']:
         log.warning('Invalid OpenID provider: %s' % endpoint)
-        request.session.flash('Invalid OpenID provider. You can only use: %s' %
-                              request.registry.settings['openid.provider'])
-        return HTTPFound(location=request.route_url('home'))
+        raise HTTPUnauthorized(
+            'Invalid OpenID provider. You can only use: %s' %
+            request.registry.settings['openid.provider']
+        )
 
     username = info['sreg']['nickname']
     email = info['sreg']['email']
