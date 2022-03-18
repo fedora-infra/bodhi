@@ -955,10 +955,11 @@ class BodhiClient:
             An initialized authenticated koji client.
         """
         config = configparser.ConfigParser()
-        if os.path.exists(os.path.join(os.path.expanduser('~'), '.koji', 'config')):
-            config.read_file(open(os.path.join(os.path.expanduser('~'), '.koji', 'config')))
-        else:
-            config.read_file(open('/etc/koji.conf'))
+        koji_conf = os.path.join(os.path.expanduser('~'), '.koji', 'config')
+        if not os.path.exists(koji_conf):
+            koji_conf = '/etc/koji.conf'
+        with open(koji_conf) as fh:
+            config.read_file(fh)
         session = koji.ClientSession(config.get('koji', 'server'))
         return session
 
