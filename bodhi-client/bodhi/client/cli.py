@@ -128,7 +128,7 @@ new_edit_options = [
     click.option('--bugs', help='Comma-separated list of bug numbers', default=''),
     click.option('--close-bugs', is_flag=True, help='Automatically close bugs'),
     click.option('--request', help='Requested repository',
-                 type=click.Choice(['testing', 'stable', 'unpush'])),
+                 type=click.Choice(constants.REQUEST_TYPES)),
     click.option('--autotime', is_flag=True, help='Enable stable push base on time in testing'),
     click.option('--stable-days', type=click.INT,
                  help='Days in testing required to push to stable'),
@@ -408,7 +408,7 @@ def require_severity_for_security_update(type: str, severity: str):
 
 @updates.command()
 @click.option('--type', default='bugfix', help='Update type', required=True,
-              type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
+              type=click.Choice(constants.UPDATE_TYPES))
 @add_options(new_edit_options)
 @click.argument('builds_or_tag')
 @click.option('--file', help='A text file containing all the update details')
@@ -498,7 +498,7 @@ def _validate_edit_update(
 
 @updates.command()
 @click.option('--type', help='Update type',
-              type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
+              type=click.Choice(constants.UPDATE_TYPES))
 @click.option('--addbuilds', help='Add Comma-separated list of build nvr')
 @click.option('--removebuilds', help='Remove Comma-separated list of build nvr')
 @add_options(new_edit_options)
@@ -616,7 +616,7 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
 @click.option('--releases', help='Updates for specific releases')
 @click.option('--locked', help='Updates that are in a locked state')
 @click.option('--request', help='Updates with a specific request',
-              type=click.Choice(['testing', 'stable', 'unpush']))
+              type=click.Choice(constants.REQUEST_TYPES))
 @click.option('--severity', help='Updates with a specific severity',
               type=click.Choice(['unspecified', 'urgent', 'high', 'medium', 'low']))
 @click.option('--submitted-since',
@@ -629,7 +629,7 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
 @click.option('--suggest', help='Filter by post-update user suggestion',
               type=click.Choice(['logout', 'reboot']))
 @click.option('--type', default=None, help='Filter by update type',
-              type=click.Choice(['newpackage', 'security', 'bugfix', 'enhancement']))
+              type=click.Choice(constants.UPDATE_TYPES))
 @click.option('--user', help='Updates submitted by a specific user')
 @click.option('--mine', is_flag=True, help='Show only your updates')
 @add_options(openid_options)
