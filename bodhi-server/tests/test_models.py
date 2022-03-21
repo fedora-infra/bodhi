@@ -2298,7 +2298,7 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.release.testing_repository = 'updates-testing'
 
         assert update.install_command == (
-            f'sudo dnf upgrade --enablerepo=updates-testing --advisory={update.alias}')
+            f'sudo dnf upgrade --enablerepo=updates-testing --refresh --advisory={update.alias}')
 
     def test_upgrade_in_stable(self):
         """Update is an enhancement, a security or a bugfix and is in stable."""
@@ -2308,7 +2308,7 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        assert update.install_command == f'sudo dnf upgrade --advisory={update.alias}'
+        assert update.install_command == f'sudo dnf upgrade --refresh --advisory={update.alias}'
 
     def test_newpackage_in_testing(self):
         """Update is a newpackage and is in testing."""
@@ -2319,7 +2319,8 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.release.testing_repository = 'updates-testing'
 
         assert update.install_command == (
-            r'sudo dnf install --enablerepo=updates-testing --advisory={} \*'.format(update.alias))
+            r'sudo dnf install --enablerepo=updates-testing --refresh '
+            r'--advisory={} \*'.format(update.alias))
 
     def test_newpackage_in_stable(self):
         """Update is a newpackage and is in stable."""
@@ -2329,7 +2330,8 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        assert update.install_command == r'sudo dnf install --advisory={} \*'.format(update.alias)
+        assert update.install_command == r'sudo dnf install --refresh ' \
+                                         r'--advisory={} \*'.format(update.alias)
 
     def test_cannot_install(self):
         """Update is out of stable or testing repositories."""

@@ -2335,11 +2335,12 @@ class Update(Base):
                 or self.release.testing_repository is None:
             return ''
 
-        command = 'sudo {} {}{} --advisory={}{}'.format(
+        command = 'sudo {} {}{}{} --advisory={}{}'.format(
             self.release.package_manager.value,
             'install' if self.type == UpdateType.newpackage else 'upgrade',
             (' --enablerepo=' + self.release.testing_repository)
             if self.status == UpdateStatus.testing else '',
+            ' --refresh' if self.release.package_manager.value == 'dnf' else '',
             self.alias,
             r' \*' if self.type == UpdateType.newpackage else '')
         return command
