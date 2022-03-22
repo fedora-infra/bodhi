@@ -6,7 +6,7 @@ import sys
 from oidc_register import discovery, registration
 
 
-REDIRECT_URIS = [f"{proto}://bodhi-dev.example.com/oidc/authorize" for proto in ("https", "http")]
+REDIRECT_URI = "https://bodhi-dev.example.com/oidc/authorize"
 PROVIDER_URL = "https://ipsilon.tinystage.test/idp/openidc/"
 CONFIG_FILE = "/home/vagrant/bodhi/bodhi-server/development.ini"
 PLACEHOLDERS = {
@@ -24,7 +24,7 @@ def main():
             print(config["app:main"][f"oidc.fedora.{confkey}"], PLACEHOLDERS[confkey])
             sys.exit(0)
 
-    registration.check_redirect_uris(REDIRECT_URIS)
+    registration.check_redirect_uris([REDIRECT_URI])
     try:
         OP = discovery.discover_OP_information(PROVIDER_URL)
     except Exception as ex:
@@ -38,7 +38,7 @@ def main():
         sys.exit(1)
 
     try:
-        reg_info = registration.register_client(OP, REDIRECT_URIS)
+        reg_info = registration.register_client(OP, [REDIRECT_URI])
     except Exception as ex:
         print('Error registering client')
         print(ex)
