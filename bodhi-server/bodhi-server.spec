@@ -80,10 +80,6 @@ make %{?_smp_mflags} -C docs man
 
 %install
 %pyproject_install
-%pyproject_save_files bodhi
-
-%check
-%{pytest} -v
 
 %{__mkdir_p} %{buildroot}/var/lib/bodhi
 %{__mkdir_p} %{buildroot}/var/cache/bodhi
@@ -100,7 +96,10 @@ install apache/bodhi.wsgi %{buildroot}%{_datadir}/bodhi/bodhi.wsgi
 install -d %{buildroot}%{_mandir}/man1
 install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 
-%files -n %{pypi_name} -f %{pyproject_files}
+%check
+%{pytest} -v
+
+%files -n %{pypi_name}
 %doc README.rst bodhi/server/migrations/README.rst bodhi/server/static/vendor/fedora-bootstrap/README.rst
 %{_bindir}/bodhi-approve-testing
 %{_bindir}/bodhi-check-policies
@@ -115,6 +114,8 @@ install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 %config(noreplace) %{_sysconfdir}/bodhi/alembic.ini
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/bodhi.conf
 %dir %{_sysconfdir}/bodhi/
+%{python3_sitelib}/bodhi
+%{python3_sitelib}/bodhi_server-%{pypi_version}.dist-info
 %{_mandir}/man1/bodhi-*.1*
 %{_mandir}/man1/initialize_bodhi_db.1*
 %attr(-,bodhi,root) %{_datadir}/bodhi
@@ -129,6 +130,8 @@ install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 %files -n bodhi-composer
 %license COPYING
 %doc README.rst
+%pycached %{python3_sitelib}/bodhi/server/tasks/composer.py
+%pycached %{python3_sitelib}/bodhi/server/metadata.py
 
 %changelog
 * Wed Feb 23 2022 Ryan Lerch <rlerch@redhat.com> - 5.7.5-0
