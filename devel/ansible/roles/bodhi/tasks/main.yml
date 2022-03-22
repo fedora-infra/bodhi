@@ -128,6 +128,10 @@
     dest: /usr/bin/pungi-koji
     state: link
 
+- name: Get Python 3 version
+  command: python3 -c "import sys; print('%s.%s' % sys.version_info[0:2])"
+  register: python3_version
+
 - name: Create a directory for the virtualenv
   file:
     name: /srv/venv
@@ -140,6 +144,7 @@
   shell: virtualenv --system-site-packages /srv/venv/
   become: yes
   become_user: vagrant
+  creates: /srv/venv/bin/python
 
 - name: Install bodhi with poetry
   shell: VIRTUAL_ENV=/srv/venv poetry install
