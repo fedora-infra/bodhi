@@ -527,8 +527,14 @@
             <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;update&#39;</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">comment</span><span class="p">,</span> <span class="s1">&#39;karma&#39;</span><span class="p">:</span> <span class="n">karma</span><span class="p">,</span> <span class="s1">&#39;csrf_token&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()})</span></div>
 
 <div class="viewcode-block" id="BodhiClient.save_override"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.save_override">[docs]</a>    <span class="nd">@errorhandled</span>
-    <span class="k">def</span> <span class="nf">save_override</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nvr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">notes</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">edit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                      <span class="n">expired</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">save_override</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">nvr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">notes</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">duration</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">expiration_date</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">edit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">expired</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save a buildroot override.</span>
 
@@ -537,15 +543,24 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            nvr: The nvr of a koji build.</span>
-<span class="sd">            duration: Number of days from now that this override should expire.</span>
 <span class="sd">            notes: Notes about why this override is in place.</span>
+<span class="sd">            duration: Number of days from now that this override should expire.</span>
+<span class="sd">            expiration_date: Date when this override should expire. This argument or the</span>
+<span class="sd">                ``duration`` argument must be provided.</span>
 <span class="sd">            edit: True if we are editing an existing override, False otherwise. Defaults to False.</span>
 <span class="sd">            expired: Set to True to expire an override. Defaults to False.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            A dictionary-like representation of the saved override.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">expiration_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">+</span> \
-            <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">duration</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">expiration_date</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The duration or the expiration_date must be provided.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">expiration_date</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;The duration and the expiration_date cannot be provided at the same time.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">duration</span><span class="p">:</span>
+            <span class="n">expiration_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">+</span> \
+                <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;nvr&#39;</span><span class="p">:</span> <span class="n">nvr</span><span class="p">,</span>
                 <span class="s1">&#39;expiration_date&#39;</span><span class="p">:</span> <span class="n">expiration_date</span><span class="p">,</span>
                 <span class="s1">&#39;notes&#39;</span><span class="p">:</span> <span class="n">notes</span><span class="p">,</span>
