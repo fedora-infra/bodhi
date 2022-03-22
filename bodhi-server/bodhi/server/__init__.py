@@ -26,6 +26,7 @@ from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
+from pyramid.session import JSONSerializer, SignedCookieSessionFactory
 from pyramid.tweens import EXCVIEW
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -244,8 +245,10 @@ def main(global_config, testing=None, session=None, **settings):
     setup_buildsys()
 
     # Sessions & Caching
-    from pyramid.session import SignedCookieSessionFactory
-    session_factory = SignedCookieSessionFactory(bodhi_config['session.secret'])
+    session_factory = SignedCookieSessionFactory(
+        bodhi_config['session.secret'],
+        serializer=JSONSerializer(),
+    )
 
     # Construct a list of all groups we're interested in
     default = []
