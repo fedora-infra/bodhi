@@ -21,11 +21,18 @@ from unittest import mock
 
 from cornice import errors
 from pyramid import testing
-from pyramid.security import ALL_PERMISSIONS, Allow, DENY_ALL
 
 from bodhi.server import security
 
 from . import base
+
+
+try:
+    # Pyramid >= 2.0
+    from pyramid.authorization import ALL_PERMISSIONS, Allow, DENY_ALL
+except ImportError:
+    # Pyramid < 2.0
+    from pyramid.security import ALL_PERMISSIONS, Allow, DENY_ALL
 
 
 class TestACLFactory:
