@@ -264,13 +264,12 @@ def main(global_config, testing=None, session=None, **settings):
     config.include('pyramid_mako')
     config.include('cornice')
 
-    # Initialize the database scoped session
-    initialize_db(bodhi_config)
-
     # Lazy-loaded memoized request properties
     if session:
         config.registry.sessionmaker = lambda: session
     else:
+        # Initialize the database scoped session
+        initialize_db(bodhi_config)
         config.registry.sessionmaker = Session
 
     config.add_request_method(lambda x: Session, 'db', reify=True)
