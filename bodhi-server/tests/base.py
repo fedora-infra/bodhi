@@ -151,6 +151,7 @@ class BaseTestCaseMixin:
         'warm_cache_on_start': False,
         'pyramid.debug_notfound': False,
         'pyramid.debug_authorization': False,
+        'docs_path': os.path.join(PROJECT_PATH, "..", "docs"),
     }
 
     def _setup_method(self):
