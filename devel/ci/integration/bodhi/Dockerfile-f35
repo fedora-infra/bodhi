@@ -30,7 +30,7 @@ RUN \
         python3 setup.py sdist && \
         cp dist/* ~/rpmbuild/SOURCES/ && \
         cp $pkg.spec ~/rpmbuild/SPECS/ && \
-        rpmbuild -ba ~/rpmbuild/SPECS/$pkg.spec && \
+        rpmbuild -ba --no-check ~/rpmbuild/SPECS/$pkg.spec && \
         dnf install -y $(ls ~/rpmbuild/RPMS/noarch/*$pkg*.rpm) && \
         cd ..; \
     done; \
