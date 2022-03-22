@@ -57,13 +57,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
  # This allows developers to view message queues at http://localhost:15672/
  config.vm.network "forwarded_port", guest: 15672, host: 15672
 
- # This is an optional plugin that, if installed, updates the host's /etc/hosts
+ # This is a plugin that updates the host's /etc/hosts
  # file with the hostname of the guest VM. In Fedora it is packaged as
  # ``vagrant-hostmanager``
- if Vagrant.has_plugin?("vagrant-hostmanager")
-     config.hostmanager.enabled = true
-     config.hostmanager.manage_host = true
- end
+ config.hostmanager.enabled = true
+ config.hostmanager.manage_host = true
+ 
 
  # Vagrant can share the source directory using rsync, NFS, or SSHFS (with the vagrant-sshfs
  # plugin). Consult the Vagrant documentation if you do not want to use SSHFS.
