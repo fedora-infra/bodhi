@@ -39,30 +39,37 @@
 automatically configuring a virtual machine. Before you get started, ensure that your host machine
 has virtualization extensions enabled in its BIOS so the guest is not slow. To
 get started, simply use these commands:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo dnf install ansible libvirt vagrant-libvirt vagrant-sshfs
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo dnf install ansible libvirt vagrant-libvirt vagrant-sshfs vagrant-hostmanager
 $ sudo systemctl enable libvirtd
 $ sudo systemctl start libvirtd
 </pre></div>
 </div>
-<dl class="simple">
-<dt>If you’re on Ubuntu, use this in place of the first command::</dt><dd><p>$ sudo apt install ansible libvirt-dev vagrant-libvirt vagrant-sshfs</p>
-</dd>
-</dl>
-<p>Check out the code and run <code class="docutils literal notranslate"><span class="pre">vagrant</span> <span class="pre">up</span></code>:</p>
+<p>As of 2022, bodhi now uses OpenID Connect (OIDC) for authentication. For the vagrant development environment,
+this requires a running FreeIPA and Ipsilon instance. Running tinystage
+(<a class="reference external" href="https://github.com/fedora-infra/tiny-stage">https://github.com/fedora-infra/tiny-stage</a>) will set these up. Ensure that tinystage is running before trying
+to provision bodhi with vagrant. To set up tinystage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/fedora-infra/tiny-stage
+$ pushd tiny-stage/
+    $ vagrant up
+    $ popd
+</pre></div>
+</div>
+<p>Next, check out the bodhi code and run <code class="docutils literal notranslate"><span class="pre">vagrant</span> <span class="pre">up</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/fedora-infra/bodhi
 $ cd bodhi
 $ vagrant up
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">Vagrantfile</span></code> sets up a port forward from the host machine’s port 6543 into the Vagrant
-guest’s port 6543, so you can now visit <a class="reference external" href="http://localhost:6543">http://localhost:6543</a> with your browser to see your Bodhi
-development instance if your browser is on the same host as the Vagrant host. If not, you will need
-to connect to port 6543 on your Vagrant host, which is an exercise left for the reader.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">Vagrantfile</span></code> also sets up a port forward from the host machine’s port
-15672 to the Vagrant guest’s port 15672. The Vagrant guest runs an AMQP message
-broker (RabbitMQ) which has a web interface for monitoring and administration
-at <a class="reference external" href="http://localhost:15672">http://localhost:15672</a>. The default username is “guest” and the password is
-“guest”.</p>
+<p>Your newly provisioned bodhi development instance is now available at <a class="reference external" href="https://bodhi-dev.example.com/">https://bodhi-dev.example.com/</a></p>
+<p>The Vagrant guest runs an AMQP message broker (RabbitMQ) which has a web interface for monitoring and
+administration of the Fedora Messaging queue at <a class="reference external" href="http://bodhi-dev.example.com:15672/">http://bodhi-dev.example.com:15672/</a>. The default username
+is <code class="docutils literal notranslate"><span class="pre">guest</span></code> and the password is <code class="docutils literal notranslate"><span class="pre">guest</span></code>.</p>
+<section id="authentication">
+<h2>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h2>
+<p>The Vagrant environment will configure Bodhi server and Bodhi’s CLI to use the tiny-stage Ipsilon (<a class="reference external" href="https://ipsilon.tinystage.test">https://ipsilon.tinystage.test</a>)
+for authentication. The users are defined in the tiny-stage FreeIPA instance (<a class="reference external" href="https://ipa.tinystage.test">https://ipa.tinystage.test</a>). There are many test users
+defined by default in the tinystage FreeIPA instance, and the admin user is <code class="docutils literal notranslate"><span class="pre">admin</span></code> with a password <code class="docutils literal notranslate"><span class="pre">password</span></code></p>
+</section>
 <section id="quick-tips-about-the-bodhi-vagrant-environment">
 <h2>Quick tips about the Bodhi Vagrant environment<a class="headerlink" href="#quick-tips-about-the-bodhi-vagrant-environment" title="Permalink to this headline">¶</a></h2>
 <p>You can ssh into your running Vagrant box like this:</p>
@@ -143,14 +150,6 @@ the host:</p>
 <p>If you wish to use a custom <code class="docutils literal notranslate"><span class="pre">Vagrantfile</span></code>, you can set the environment variable
 <code class="docutils literal notranslate"><span class="pre">VAGRANT_VAGRANTFILE</span></code> as a path to a script.</p>
 </section>
-<section id="authentication">
-<h2>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h2>
-<p>The Vagrant environment will configure Bodhi server and Bodhi’s CLI to use Fedora’s staging Ipsilon
-server for authentication. This means you will need to ensure you have an account on Fedora’s
-staging account system. If you need to make an account, you can do so
-<a class="reference external" href="https://admin.stg.fedoraproject.org/accounts/">here</a>. This is done to prevent accidental changes
-to Fedora’s production instance during development.</p>
-</section>
 </section>
 
 
@@ -202,8 +201,8 @@ to Fedora’s production instance during development.</p>
 <li class="toctree-l1"><a class="reference internal" href="index.html">Developer documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="releases.html">Release process</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Vagrant</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#quick-tips-about-the-bodhi-vagrant-environment">Quick tips about the Bodhi Vagrant environment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#authentication">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-tips-about-the-bodhi-vagrant-environment">Quick tips about the Bodhi Vagrant environment</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
