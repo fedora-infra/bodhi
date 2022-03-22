@@ -29,7 +29,9 @@ import time
 import typing
 import uuid
 
+from packaging.version import parse as parse_version
 from simplemediawiki import MediaWiki
+from sqlalchemy import __version__ as sqlalchemy_version
 from sqlalchemy import (
     and_,
     Boolean,
@@ -1822,6 +1824,12 @@ class RpmBuild(Build):
         return str
 
 
+if parse_version(sqlalchemy_version) >= parse_version("1.4.0"):
+    overlaps_kw = {"overlaps": "release"}
+else:
+    overlaps_kw = {}
+
+
 class Update(Base):
     """
     This model represents an update.
@@ -1962,7 +1970,9 @@ class Update(Base):
         primaryjoin=("and_(Update.release_id==Compose.release_id, Update.request==Compose.request, "
                      "Update.locked==True)"),
         foreign_keys=(release_id, request),
-        backref=backref('updates', passive_deletes=True, order_by='Update.date_submitted'))
+        backref=backref('updates', passive_deletes=True, order_by='Update.date_submitted',
+                        **overlaps_kw),
+        **overlaps_kw)
 
     # One-to-many relationships
     comments = relationship('Comment', backref='update', cascade="all,delete,delete-orphan",
