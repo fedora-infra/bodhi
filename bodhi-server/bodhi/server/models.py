@@ -18,8 +18,9 @@
 
 from collections import defaultdict
 from copy import copy
-from datetime import datetime, timedelta, date
+from datetime import date, datetime, timedelta
 from textwrap import wrap
+from urllib.error import URLError
 import hashlib
 import json
 import os
@@ -27,33 +28,62 @@ import re
 import time
 import typing
 import uuid
-from urllib.error import URLError
 
 from simplemediawiki import MediaWiki
-from sqlalchemy import (and_, Boolean, Column, Date, DateTime, event, func, ForeignKey,
-                        Integer, or_, Table, Unicode, UnicodeText, UniqueConstraint)
+from sqlalchemy import (
+    and_,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    event,
+    ForeignKey,
+    func,
+    Integer,
+    or_,
+    Table,
+    Unicode,
+    UnicodeText,
+    UniqueConstraint,
+)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import class_mapper, relationship, backref, validates
+from sqlalchemy.orm import backref, class_mapper, relationship, validates
 from sqlalchemy.orm.base import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.properties import RelationshipProperty
-from sqlalchemy.types import SchemaType, TypeDecorator, Enum
+from sqlalchemy.types import Enum, SchemaType, TypeDecorator
 import requests.exceptions
 import rpm
 
-from bodhi.messages.schemas import (buildroot_override as override_schemas,
-                                    errata as errata_schemas, update as update_schemas)
+from bodhi.messages.schemas import buildroot_override as override_schemas
+from bodhi.messages.schemas import errata as errata_schemas
+from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
-from bodhi.server.exceptions import BodhiException, ExternalCallException, LockedUpdateException
-from bodhi.server.tasks import fetch_test_cases_task, tag_update_builds_task, work_on_bugs_task
+from bodhi.server.exceptions import (
+    BodhiException,
+    ExternalCallException,
+    LockedUpdateException,
+)
+from bodhi.server.tasks import (
+    fetch_test_cases_task,
+    tag_update_builds_task,
+    work_on_bugs_task,
+)
+from bodhi.server.util import avatar as get_avatar
 from bodhi.server.util import (
-    avatar as get_avatar, build_evr, get_critpath_components,
-    get_rpm_header, header, tokenize, pagure_api_get)
+    build_evr,
+    get_critpath_components,
+    get_rpm_header,
+    header,
+    pagure_api_get,
+    tokenize,
+)
+
 
 if typing.TYPE_CHECKING:  # pragma: no cover
+    import bugzilla  # noqa: 401
     import pyramid  # noqa: 401
-    import bugzilla # noqa: 401
 
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
@@ -212,6 +242,8 @@ class DeclEnum(metaclass=EnumMeta):
 
 class DeclEnumType(SchemaType, TypeDecorator):
     """A database column type for an enum."""
+
+    cache_ok = True
 
     def __init__(self, enum):
         """
