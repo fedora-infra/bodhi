@@ -39,7 +39,6 @@ rm -rf %{pypi_name}.egg-info
 %files -n python3-%{pypi_name}
 %doc README.rst
 %{python3_sitelib}/bodhi
-%{python3_sitelib}/bodhi_messages-%{pypi_version}-py%{python3_version}-*.pth
 %{python3_sitelib}/bodhi_messages-%{pypi_version}-py%{python3_version}.egg-info
 
 %changelog

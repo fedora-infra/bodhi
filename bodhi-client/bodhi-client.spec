@@ -48,7 +48,6 @@ install -pm0644 docs/_build/bodhi.1 %{buildroot}%{_mandir}/man1/
 %files -n %{pypi_name}
 %{_bindir}/bodhi
 %{python3_sitelib}/bodhi
-%{python3_sitelib}/bodhi_client-%{pypi_version}-py%{python3_version}-*.pth
 %{python3_sitelib}/bodhi_client-%{pypi_version}-py%{python3_version}.egg-info
 %{_mandir}/man1/bodhi.1*
 
