@@ -147,9 +147,9 @@
   args:
       creates: /home/vagrant/.db-imported
 
-- command: cp /home/vagrant/bodhi/devel/development.ini.example /home/vagrant/bodhi/bodhi-server/development.ini
+- command: cp /home/vagrant/bodhi/devel/development.ini.example /home/vagrant/development.ini
   args:
-      creates: /home/vagrant/bodhi/bodhi-server/development.ini
+      creates: /home/vagrant/development.ini
 
 - name: Change development.ini to make bodhi use the staging infrastructure
   import_tasks: configure_stg.yml
@@ -303,7 +303,7 @@
 - name: Start and enable the bodhi-related services
   service:
       name: "{{ item }}"
-      state: started
+      state: restarted
       enabled: yes
   with_items:
       - bodhi
