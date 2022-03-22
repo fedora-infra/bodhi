@@ -8,7 +8,7 @@ from oidc_register import discovery, registration
 
 REDIRECT_URI = "https://bodhi-dev.example.com/oidc/authorize"
 PROVIDER_URL = "https://ipsilon.tinystage.test/idp/openidc/"
-CONFIG_FILE = "/home/vagrant/bodhi/bodhi-server/development.ini"
+CONFIG_FILE = "/home/vagrant/development.ini"
 PLACEHOLDERS = {
     "client_id": "oidc-client_id",
     "client_secret": "oidc-client_secret",

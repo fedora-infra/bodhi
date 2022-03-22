@@ -6,7 +6,7 @@ Wants=network-online.target
 [Service]
 Environment=PYTHONWARNINGS=once
 User=vagrant
-ExecStart=/usr/bin/pserve-3 /home/vagrant/bodhi/bodhi-server/development.ini --reload
+ExecStart=/usr/bin/pserve-3 /home/vagrant/development.ini --reload
 
 [Install]
 WantedBy=multi-user.target
