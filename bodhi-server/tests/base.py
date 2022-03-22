@@ -195,7 +195,7 @@ class BaseTestCaseMixin:
             # trigger the restart_savepoint() callback defined above which will remove the data
             # added by populate().
             with mock.patch('bodhi.server.Session.remove'):
-                _app = TestApp(main({}, testing='guest', **self.app_settings))
+                _app = TestApp(main({}, testing='guest', session=self.db, **self.app_settings))
         self.app = _app
         self.registry = self.app.app.application.registry
 

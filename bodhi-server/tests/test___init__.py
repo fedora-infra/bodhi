@@ -175,7 +175,7 @@ class TestMain(base.BasePyTestCase):
         with mock.patch.dict(
                 self.app_settings,
                 {'authtkt.timeout': '10', 'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
-            server.main({}, **self.app_settings)
+            server.main({}, session=self.db, **self.app_settings)
 
         policy = set_authentication_policy.mock_calls[0][1][0]
         assert isinstance(policy, authentication.AuthTktAuthenticationPolicy)
@@ -197,7 +197,7 @@ class TestMain(base.BasePyTestCase):
         """Ensure that main() uses a default if authtkt.timeout is undefined in settings."""
         with mock.patch.dict(
                 self.app_settings, {'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
-            server.main({}, **self.app_settings)
+            server.main({}, session=self.db, **self.app_settings)
 
         policy = set_authentication_policy.mock_calls[0][1][0]
         assert isinstance(policy, authentication.AuthTktAuthenticationPolicy)
@@ -216,7 +216,7 @@ class TestMain(base.BasePyTestCase):
     def test_calls_session_remove(self):
         """Let's assert that main() calls Session.remove()."""
         with mock.patch('bodhi.server.Session.remove') as remove:
-            server.main({}, **self.app_settings)
+            server.main({}, session=self.db, **self.app_settings)
 
         remove.assert_called_once_with()
 
@@ -272,3 +272,10 @@ class TestMain(base.BasePyTestCase):
 
         # The cache should have a release in it now - let's just spot check it
         assert models.Release._all_releases['current'][0]['name'] == 'F17'
+
+    def test_calls_initialize_db(self):
+        """main() should call initialize_db() when called without a session arg."""
+        with mock.patch('bodhi.server.initialize_db') as init_db:
+            server.main({}, **self.app_settings)
+
+        init_db.assert_called_once()
