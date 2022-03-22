@@ -18,11 +18,19 @@
 """This module contains tests for bodhi.server.services.schemas."""
 
 from pyramid import testing
-from pyramid import security
 
 from bodhi.messages.schemas.update import UpdateCommentV1
 from bodhi.server.services import schemas
+
 from .. import base
+
+
+try:
+    # Pyramid >= 2.0
+    from pyramid.authorization import Allow, Everyone
+except ImportError:
+    # Pyramid < 2.0
+    from pyramid.security import Allow, Everyone
 
 
 class TestMessageSchemasV1__init__(base.BasePyTestCase):
@@ -45,7 +53,7 @@ class TestMessageSchemasV1__acl__(base.BasePyTestCase):
 
         acls = schemas_resource.__acl__()
 
-        assert acls == [(security.Allow, security.Everyone, 'view_schemas')]
+        assert acls == [(Allow, Everyone, 'view_schemas')]
 
 
 class TestMessageSchemasV1CollectionGet(base.BasePyTestCase):

@@ -21,11 +21,12 @@ import typing
 
 from cornice.resource import resource, view
 from pyramid import httpexceptions
-from pyramid.security import Allow, Everyone
+from pyramid.authorization import Allow, Everyone
 import pkg_resources
 
 from bodhi.server import security
 from bodhi.server.services import errors
+
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     import pyramid.request.Request  # noqa: 401

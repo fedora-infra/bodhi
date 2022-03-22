@@ -18,11 +18,19 @@
 """This module contains tests for bodhi.server.services.composes."""
 
 from pyramid import testing
-from pyramid import security
 
 from bodhi.server import models
 from bodhi.server.services import composes
+
 from .. import base
+
+
+try:
+    # Pyramid >= 2.0
+    from pyramid.authorization import Allow, Everyone
+except ImportError:
+    # Pyramid < 2.0
+    from pyramid.security import Allow, Everyone
 
 
 class TestCompose__init__(base.BasePyTestCase):
@@ -45,7 +53,7 @@ class TestCompose__acl__(base.BasePyTestCase):
 
         acls = composes_resource.__acl__()
 
-        assert acls == [(security.Allow, security.Everyone, 'view_composes')]
+        assert acls == [(Allow, Everyone, 'view_composes')]
 
 
 class TestComposeCollectionGet(base.BasePyTestCase):

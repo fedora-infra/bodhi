@@ -19,8 +19,15 @@
 import typing
 
 from cornice.errors import Errors
-from pyramid.security import ALL_PERMISSIONS, Allow, DENY_ALL
 from pyramid.threadlocal import get_current_registry
+
+
+try:
+    # Pyramid >= 2.0
+    from pyramid.authorization import ALL_PERMISSIONS, Allow, DENY_ALL
+except ImportError:
+    # Pyramid < 2.0
+    from pyramid.security import ALL_PERMISSIONS, Allow, DENY_ALL
 
 
 if typing.TYPE_CHECKING:  # pragma: no cover
