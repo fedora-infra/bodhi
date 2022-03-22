@@ -141,7 +141,6 @@ install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/bodhi.conf
 %dir %{_sysconfdir}/bodhi/
 %{python3_sitelib}/bodhi
-%{python3_sitelib}/bodhi_server-%{pypi_version}-py%{python3_version}-*.pth
 %{python3_sitelib}/bodhi_server-%{pypi_version}-py%{python3_version}.egg-info
 %{_mandir}/man1/bodhi-*.1*
 %{_mandir}/man1/initialize_bodhi_db.1*
