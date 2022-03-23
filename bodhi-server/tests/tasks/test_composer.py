@@ -1980,8 +1980,8 @@ testmodule:master:20172:2
             assert up.status == UpdateStatus.stable
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
+    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo',
+                side_effect=[Exception, None])
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._generate_updateinfo')
@@ -1991,17 +1991,16 @@ testmodule:master:20172:2
     def test_resume_push(self, *args):
         self.expected_sems = 2
 
-        with mock.patch.object(ComposerThread, 'generate_testing_digest', mock_exc):
-            with self.db_factory() as session:
-                up = session.query(Update).one()
-                up.request = UpdateRequest.testing
-                up.status = UpdateStatus.pending
+        with self.db_factory() as session:
+            up = session.query(Update).one()
+            up.request = UpdateRequest.testing
+            up.status = UpdateStatus.pending
 
-            # Simulate a failed push
-            with mock_sends(*[base_schemas.BodhiMessage] * 3):
-                task = self._make_task()
-                api_version = task.pop("api_version")
-                self.handler.run(api_version, task)
+        # Simulate a failed push
+        with mock_sends(*[base_schemas.BodhiMessage] * 3):
+            task = self._make_task()
+            api_version = task.pop("api_version")
+            self.handler.run(api_version, task)
 
         # Ensure that the update hasn't changed state
         with self.db_factory() as session:
