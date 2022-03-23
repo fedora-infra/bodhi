@@ -19,14 +19,15 @@
 This module contains tests for the bodhi.server.scripts.sar module.
 """
 
-import os
 from datetime import datetime
 from unittest import mock
+import os
 
 from click import testing
 
 from bodhi.server import models
 from bodhi.server.scripts import sar
+
 from ..base import BasePyTestCase
 
 
@@ -82,6 +83,7 @@ EXPECTED_JSON_OUTPUT = (
 )
 
 
+@mock.patch("bodhi.server.scripts.sar.initialize_db", mock.Mock())
 class TestSar(BasePyTestCase):
     """This class contains tests for the get_user_data() function."""
 
