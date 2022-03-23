@@ -20,12 +20,12 @@
 from datetime import datetime
 from unittest import mock
 
-import click
 from click.testing import CliRunner
+import click
 import pytest
 
-from bodhi.server import push
-from bodhi.server import models
+from bodhi.server import models, push
+
 from . import base
 
 
@@ -372,6 +372,7 @@ TEST_BUILDS_AND_UPDATES_FLAG_EXPECTED_OUTPUT = """ERROR: Must specify only one o
 """
 
 
+@mock.patch("bodhi.server.push.initialize_db", mock.Mock())
 class TestPush(base.BasePyTestCase):
     """
     This class contains tests for the push() function.
