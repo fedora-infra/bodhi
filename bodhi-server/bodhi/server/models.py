@@ -2793,6 +2793,7 @@ class Update(Base):
                         'since it obsoletes another security update'
                     })
                     self.type = UpdateType.security
+                    self.severity = oldBuild.update.severity
 
                 if obsoletable:
                     log.info('%s is obsoletable' % oldBuild.nvr)

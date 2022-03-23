@@ -928,6 +928,7 @@ class TestNewUpdate(BasePyTestCase):
         # Assert that the type of the new update is security.
         up = self.db.query(Build).filter_by(nvr='bodhi-2.0.0-3.fc17').one().update
         assert up.type == UpdateType.security
+        assert up.severity == UpdateSeverity.high
 
     @mock.patch(**mock_valid_requirements)
     def test_obsoletion_security_update(self, *args):
