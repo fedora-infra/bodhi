@@ -92,6 +92,7 @@ def test_update_edit(
             # tags: ['el9-updates-candidate', 'el9', 'el9-updates-testing']
             "AND r.id_prefix = 'FEDORA' "
             "AND u.locked = FALSE AND u.status IN ('pending', 'testing') "
+            "AND u.type != 'security' "
             "AND us.name NOT LIKE '%packagerbot%' "
             "ORDER BY u.date_submitted DESC LIMIT 1"
         )
