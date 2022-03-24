@@ -28,8 +28,16 @@ import pytest
 from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.models import (
-    Build, Release, TestGatingStatus, Update, UpdateRequest, UpdateStatus, UpdateType, User
+    Build,
+    Release,
+    TestGatingStatus,
+    Update,
+    UpdateRequest,
+    UpdateStatus,
+    UpdateType,
+    User,
 )
+
 from .. import base
 
 
@@ -83,7 +91,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.handler(self.sample_message)
 
         # check if the update exists...
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
 
@@ -120,7 +128,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.handler(self.sample_message)
 
         # check if the update exists...
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
 
@@ -147,7 +155,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.handler(self.sample_message)
 
         # check if the update exists...
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
 
@@ -174,7 +182,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.handler(self.sample_message)
 
         # check if the update exists...
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
 
@@ -227,7 +235,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.handler(self.sample_message)
 
         # check if the update exists...
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
 
@@ -249,7 +257,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         caplog.set_level(logging.DEBUG)
 
         self.handler(self.sample_message)
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
         # Move it back to Pending as if the user has manually created it
@@ -272,7 +280,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         caplog.set_level(logging.DEBUG)
 
         self.handler(self.sample_message)
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
         assert update is not None
@@ -291,10 +299,10 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         msg.body['build_id'] = 442563
         self.handler(msg)
         nvr = self.sample_nvr.replace('1.3.4', '1.3.5')
-        old_update = self.db.query(Update).filter(
+        old_update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
-        new_update = self.db.query(Update).filter(
+        new_update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == nvr)
         ).first()
         assert new_update is not None
@@ -307,7 +315,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         caplog.set_level(logging.DEBUG)
 
         self.handler(self.sample_message)
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
         assert update is not None
@@ -331,10 +339,10 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         # The new update should have been created and the old one should be stuck in testing
         nvr = self.sample_nvr.replace('1.3.4', '1.3.5')
-        old_update = self.db.query(Update).filter(
+        old_update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
-        new_update = self.db.query(Update).filter(
+        new_update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == nvr)
         ).first()
         assert new_update is not None
