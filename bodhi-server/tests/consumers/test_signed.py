@@ -19,12 +19,20 @@
 
 from unittest import mock
 
-from fedora_messaging import api, testing as fml_testing
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
 
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.config import config
 from bodhi.server.consumers import signed
-from bodhi.server.models import Build, Update, UpdateRequest, UpdateStatus, TestGatingStatus
+from bodhi.server.models import (
+    Build,
+    TestGatingStatus,
+    Update,
+    UpdateRequest,
+    UpdateStatus,
+)
+
 from .. import base
 
 
@@ -228,7 +236,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         Update status is changed to testing and corresponding message is sent.
         """
         self.handler.db_factory = base.TransactionalSessionMaker(self.Session)
-        update = self.db.query(Update).filter(Build.nvr == 'bodhi-2.0-1.fc17').one()
+        update = self.db.query(Update).join(Build).filter(Build.nvr == 'bodhi-2.0-1.fc17').one()
         update.from_tag = "f30-side-tag"
         update.status = UpdateStatus.pending
         update.release.composed_by_bodhi = False
@@ -278,7 +286,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         will change the update status.
         """
         self.handler.db_factory = base.TransactionalSessionMaker(self.Session)
-        update = self.db.query(Update).filter(Build.nvr == 'bodhi-2.0-1.fc17').one()
+        update = self.db.query(Update).join(Build).filter(Build.nvr == 'bodhi-2.0-1.fc17').one()
         update.from_tag = "f30-side-tag"
         update.status = UpdateStatus.pending
         update.request = None
