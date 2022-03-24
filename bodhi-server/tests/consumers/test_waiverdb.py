@@ -23,6 +23,7 @@ from fedora_messaging.api import Message
 
 from bodhi.server import models
 from bodhi.server.consumers import waiverdb
+
 from ..base import BasePyTestCase, TransactionalSessionMaker
 
 
@@ -33,7 +34,7 @@ class TestWaiverdbHandler(BasePyTestCase):
         super(TestWaiverdbHandler, self).setup_method(method)
         self.handler = waiverdb.WaiverdbHandler()
         self.handler.db_factory = TransactionalSessionMaker(self.Session)
-        self.single_build_update = self.db.query(models.Update).filter(
+        self.single_build_update = self.db.query(models.Update).join(models.Build).filter(
             models.Build.nvr == 'bodhi-2.0-1.fc17').one()
 
     def get_sample_message(self, typ="bodhi_update"):
