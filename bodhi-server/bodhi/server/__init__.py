@@ -37,15 +37,9 @@ from bodhi.server import bugs, buildsys
 from bodhi.server.config import config as bodhi_config
 
 
-try:
-    import importlib.metadata
-    METADATA = importlib.metadata.metadata('bodhi-server')
-    __version__ = METADATA['version']
-except ImportError:
-    try:
-        __version__ = pkg_resources.get_distribution("bodhi-server").version
-    except pkg_resources.DistributionNotFound:
-        __version__ = None
+import importlib.metadata
+METADATA = importlib.metadata.metadata('bodhi-server')
+__version__ = METADATA['version']
 
 
 # This is a regular expression used to match username mentions in comments.

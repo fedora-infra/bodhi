@@ -16,17 +16,6 @@
 """This package defines Bodhi's messages."""
 
 
-try:
-    import importlib.metadata
-    METADATA = importlib.metadata.metadata('bodhi-messages')
-    __version__ = METADATA['version']
-except ImportError:
-    try:
-        import pkg_resources
-
-        try:
-            __version__ = pkg_resources.get_distribution("bodhi-messages").version
-        except pkg_resources.DistributionNotFound:
-            __version__ = None
-    except ImportError:
-        __version__ = None
+import importlib.metadata
+METADATA = importlib.metadata.metadata('bodhi-messages')
+__version__ = METADATA['version']
