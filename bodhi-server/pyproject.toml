@@ -5,7 +5,6 @@ description = "Bodhi server"
 readme = "README.rst"
 authors = ["Fedora Infrastructure Team"]
 maintainers = ["Fedora Infrastructure Team <infrastructure@lists.fedoraproject.org>"]
-#platforms = ["Fedora", "GNU/Linux"]
 repository = "https://github.com/fedora-infra/bodhi"
 homepage = "https://bodhi.fedoraproject.rog"
 keywords = ["web", "fedora", "pyramid"]
@@ -17,6 +16,7 @@ classifiers = [
     "Intended Audience :: System Administrators",
     "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Topic :: System :: Software Distribution",
@@ -60,16 +60,15 @@ include = [
     { path ="apache/*", format = "sdist" },
     { path = "docs", format = "sdist" },
         ]
-exclude = ["development.ini", "docs/_build"]
-
-#paster_plugins = pyramid
-#message_extractors = 
-#    . = []
-
+exclude = [
+    { path = "development.ini", format = "sdist" },
+    { path = "docs/_build", format = "sdist" }
+        ]
 
 [tool.poetry.dev-dependencies]
 bodhi-messages = {path = "../bodhi-messages"}
 pytest = ">=6.2.2"
+responses = ">=0.10.15"
 
 [tool.poetry.dependencies]
 authlib = ">=0.15.3"
@@ -82,7 +81,7 @@ arrow = ">=0.17.0"
 backoff = "^1.10.0"
 bleach = ">=3.2.3"
 bodhi-messages = "^5.7.4"
-celery = "^5.0.5"
+celery = ">=5.2.1"
 click = ">=7.1.2"
 colander = "^1.8.3"
 cornice = "^5.0.3"
@@ -100,10 +99,9 @@ pyasn1-modules = "^0.2.8" # Due to an unfortunate dash in its name, installs bre
 pyramid = "^1.10.5"
 pyramid-fas-openid = "^0.4.0"
 pyramid-mako = "^1.0.2"
-python = "^3.9"
+python = "^3.8"
 python-bugzilla = "^3.2.0"
 requests = "^2.25.1"
-responses = ">=0.10.15"
 simplemediawiki = {version = "^1.2.0b2", allow-prereleases = true}
 waitress = "^1.4.4"
 whitenoise = "^5.1.0"
@@ -112,15 +110,6 @@ whitenoise = "^5.1.0"
 addopts = "--cov-config .coveragerc --cov=bodhi --cov-report term --cov-report xml --cov-report html"
 verbosity = 1
 testpaths = ["tests"]
-
-
-#[options.packages.find]
-#exclude =
-#    tests*
-#
-#[options.exclude_package_data]
-#apache =
-#    *
 
 [tool.poetry.plugins."paste.app_factory"]
 main = "bodhi.server:main"
@@ -137,28 +126,6 @@ bodhi-expire-overrides = "bodhi.server.scripts.compat:expire_overrides"
 bodhi-approve-testing = "bodhi.server.scripts.compat:approve_testing"
 bodhi-check-policies = "bodhi.server.scripts.compat:check_policies"
 
-#[init_catalog]
-#domain = bodhi
-#input_file = bodhi/server/locale/bodhi.pot
-#output_dir = bodhi/server/locale
-
-#[compile_catalog]
-#directory = bodhi/server/locale
-#domain = bodhi
-#statistics = true
-
-#[extract_messages]
-#add_comments = TRANSLATORS:
-#output_file = bodhi/server/locale/bodhi.pot
-#width = 80
-
-#[update_catalog]
-#domain = bodhi
-#input_file = bodhi/server/locale/bodhi.pot
-#output_dir = bodhi/server/locale
-#previous = true
-
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-

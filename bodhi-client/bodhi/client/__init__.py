@@ -17,4 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """The bodhi CLI client."""
 
-__version__ = "5.7.5"
+import importlib.metadata
+METADATA = importlib.metadata.metadata('bodhi-client')
+__version__ = METADATA['version']

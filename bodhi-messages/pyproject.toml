@@ -5,7 +5,6 @@ description = "JSON schema for messages sent by Bodhi"
 readme = "README.rst"
 authors = ["Fedora Infrastructure Team"]
 maintainers = ["Fedora Infrastructure Team <infrastructure@lists.fedoraproject.org>"]
-#platforms = ["Fedora", "GNU/Linux"]
 repository = "https://github.com/fedora-infra/bodhi"
 homepage = "https://bodhi.fedoraproject.org"
 keywords = ["fedora", "fedora-messaging"]
@@ -18,6 +17,7 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Topic :: System :: Software Distribution"
@@ -32,15 +32,10 @@ include = [
     { path = "COPYING", format = "sdist" }
 ]
 
-#[options.packages.find]
-#exclude =
-#    tests
-#zip_safe = False
-
 [tool.poetry.dependencies]
 "zope.interface" = "^5.2.0"
 fedora-messaging = "^3.0.0"
-python = "^3.9"
+python = "^3.8"
 
 [tool.poetry.dev-dependencies]
 pytest = ">=6.0.0"
@@ -73,4 +68,3 @@ pytest = ">=6.0.0"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-

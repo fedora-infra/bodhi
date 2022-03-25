@@ -20,7 +20,6 @@ for submodule in ${MODULES}; do
     poetry build -f sdist
     cp dist/* ~/rpmbuild/SOURCES/
     cp $submodule.spec ~/rpmbuild/SPECS/
-    githash=$(git rev-parse --short HEAD)
     moduleversion=$(poetry version -s)
     sed -i "s/^%global pypi_version.*/%global pypi_version $moduleversion/g" ~/rpmbuild/SPECS/$submodule.spec
     sed -i "s/^Version:.*/Version:%{pypi_version}$versionsuffix/g" ~/rpmbuild/SPECS/$submodule.spec
