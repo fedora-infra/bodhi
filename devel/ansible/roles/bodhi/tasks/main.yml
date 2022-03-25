@@ -3,9 +3,11 @@
   dnf:
     name:
       - bash-completion
+      - cmake
       - createrepo_c
       - docker
       - docker-compose
+      - expat-devel
       - fedora-messaging
       - freetype-devel
       - gcc
@@ -16,6 +18,7 @@
       - libffi-devel
       - libjpeg-devel
       - libjpeg-turbo-devel
+      - libxml2-devel
       - make
       - nmap-ncat
       - openssl-devel
@@ -59,6 +62,7 @@
       - python3-pytest-mock
       - python3-responses
       - python3-rpdb
+      - python3-setuptools
       - python3-simplemediawiki
       - python3-sphinx
       - python3-sqlalchemy
@@ -145,6 +149,14 @@
   become: yes
   become_user: vagrant
   creates: /srv/venv/bin/python
+
+# Setuptools update to ensure the celery >=5.2.3 works well
+- name: Update python3-setuptools in the venv
+  command: poetry update setuptools
+  become: yes
+  become_user: vagrant
+  args:
+    chdir: /home/vagrant/bodhi/bodhi-server
 
 - name: Install bodhi with poetry
   shell: VIRTUAL_ENV=/srv/venv poetry install
@@ -250,8 +262,8 @@
 
 - name: Link the bodhi bash completion script
   file:
-     src: /home/vagrant/bodhi/bodhi-client/bodhi-complete.sh
-     dest: /etc/bash_completion.d/bodhi-complete.sh
+     src: /home/vagrant/bodhi/bodhi-client/bodhi-client.bash
+     dest: /etc/bash_completion.d/bodhi-client.bash
      state: link
 
 # Auth

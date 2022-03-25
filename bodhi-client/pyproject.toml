@@ -2,10 +2,8 @@
 name = "bodhi-client"
 version = "5.7.5"
 description = "Bodhi client"
-#readme = "README.rst"
 authors = ["Fedora Infrastructure team"]
 maintainers = ["Fedora Infrastructure Team <infrastructure@lists.fedoraproject.org>"]
-#platforms = "Fedora, GNU/Linux"
 homepage = "https://bodhi.fedoraproject.org/"
 repository = "https://github.com/fedora-infra/bodhi"
 keywords = ["fedora"]
@@ -18,6 +16,7 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Topic :: System :: Software Distribution"
@@ -28,7 +27,7 @@ packages = [
 ]
 include = [
     { path = "docs", format = "sdist" },
-    { path = "bodhi-complete.sh", format = "sdist" },
+    { path = "bodhi-client.bash", format = "sdist" },
 ]
 exclude = ["docs/_build"]
 
@@ -37,7 +36,7 @@ Sphinx = "^3.4.3"
 pytest = ">=6.0.0"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.8"
 click = ">=7.1.2"
 koji = "^1.27.1"
 
