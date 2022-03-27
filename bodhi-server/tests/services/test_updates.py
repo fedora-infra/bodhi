@@ -3883,9 +3883,14 @@ class TestUpdatesService(BasePyTestCase):
         assert up.status == UpdateStatus.obsolete
         assert up.request is None
 
+    @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     def test_obsoletion_unlocked_with_open_stable_request(self, *args):
-        """ Ensure that we don't obsolete updates that have a stable request """
+        """
+        Ensure that we don't obsolete updates that have a stable request
+        when we push a new update to testing, but we do when we submit
+        the newer update to stable.
+        """
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
 
@@ -3897,7 +3902,8 @@ class TestUpdatesService(BasePyTestCase):
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
 
-        args = self.get_update('bodhi-2.0.0-3.fc17')
+        nvr_new = 'bodhi-2.0.0-3.fc17'
+        args = self.get_update(nvr_new)
 
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             r = self.app.post_json('/updates/', args).json_body
@@ -3907,6 +3913,29 @@ class TestUpdatesService(BasePyTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         assert up.status == UpdateStatus.pending
         assert up.request == UpdateRequest.stable
+
+        new_up = self.db.query(Build).filter_by(nvr=nvr_new).one().update
+        new_up.status = UpdateStatus.testing
+        new_up.request = None
+        new_up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
+        new_up.date_testing = new_up.comments[-1].timestamp - timedelta(days=7)
+        assert len(new_up.builds) == 1
+        new_up.test_gating_status = TestGatingStatus.passed
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
+        assert new_up.days_in_testing == 7
+        assert new_up.meets_testing_requirements is True
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestStableV1):
+            r = self.app.post_json(
+                f'/updates/{new_up.alias}/request',
+                {'request': 'stable', 'csrf_token': self.get_csrf_token()}).json_body
+
+        assert r['update']['request'] == 'stable'
+
+        up = self.db.query(Build).filter_by(nvr=nvr).one().update
+        assert up.status == UpdateStatus.obsolete
+        assert up.request is None
 
     @mock.patch(**mock_valid_requirements)
     def test_push_to_stable_for_obsolete_update(self, *args):

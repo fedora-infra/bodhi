@@ -2749,10 +2749,14 @@ class Update(Base):
                      Build.package == build.package,
                      Update.locked == False,
                      Update.release == self.release,
-                     or_(Update.request == UpdateRequest.testing,
-                         Update.request == None),
-                     or_(Update.status == UpdateStatus.testing,
-                         Update.status == UpdateStatus.pending))
+                     or_(and_(or_(Update.status == UpdateStatus.testing,
+                                  Update.status == UpdateStatus.pending),
+                              or_(Update.request != UpdateRequest.stable,
+                                  Update.request == None)),
+                         and_(or_(Update.status == UpdateStatus.testing,
+                                  Update.status == UpdateStatus.pending),
+                              Update.request == UpdateRequest.stable,
+                              self.request == UpdateRequest.stable)))
             ).all():
                 obsoletable = False
                 nvr = build.get_n_v_r()
@@ -3131,14 +3135,16 @@ class Update(Base):
         notifications.publish(action_message_map[action].from_dict(
             dict(update=self, agent=username)))
 
-        # Commit the changes in the db before calling a celery task.
-        db.commit()
-
         if action == UpdateRequest.testing:
             if config['test_gating.required']:
                 log.info(f"Updating test gating status of {self.alias}")
                 self.update_test_gating_status()
-                db.commit()
+
+        if action == UpdateRequest.stable:
+            self.obsolete_older_updates(db)
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
 
     def waive_test_results(self, username, comment=None, tests=None):
         """
