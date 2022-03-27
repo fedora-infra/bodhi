@@ -1,0 +1,1 @@
+Exclude the `composes` property when serializing the Release object to avoid recursion
