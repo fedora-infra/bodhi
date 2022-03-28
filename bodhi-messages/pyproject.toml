@@ -39,6 +39,8 @@ python = "^3.8"
 
 [tool.poetry.dev-dependencies]
 pytest = ">=6.0.0"
+pytest-cov = ">=2.11.1"
+diff-cover = ">=4.2.1"
 
 [tool.poetry.plugins."fedora.messages"]
 "bodhi.buildroot_override.tag.v1" = "bodhi.messages.schemas.buildroot_override:BuildrootOverrideTagV1"

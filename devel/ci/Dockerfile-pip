@@ -37,9 +37,6 @@ WORKDIR /bodhi
 CMD ["bash"]
 COPY . /bodhi
 RUN pip-3 install \
-    -r bodhi-messages/test-requirements.txt \
-    -r bodhi-client/test-requirements.txt \
-    -r bodhi-server/test-requirements.txt \
     -r devel/ci/integration/requirements.txt \
     -r docs/requirements.txt
 RUN cp devel/development.ini.example bodhi-server/development.ini

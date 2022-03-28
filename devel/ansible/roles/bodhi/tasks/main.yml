@@ -28,6 +28,7 @@
       - poetry
       - postgresql-devel
       - postgresql-server
+      - python3-alembic
       - python3-arrow
       - python3-authlib
       - python3-backoff

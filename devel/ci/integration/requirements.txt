@@ -6,4 +6,6 @@ psycopg2
 docker
 munch
 fedora-messaging
+responses
 requests
+webtest
