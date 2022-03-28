@@ -69,6 +69,10 @@ exclude = [
 bodhi-messages = {path = "../bodhi-messages"}
 pytest = ">=6.2.2"
 responses = ">=0.10.15"
+pytest-cov = ">=2.11.1"
+pytest-mock = ">=3.5.1"
+diff-cover = ">=4.2.1"
+webtest = ">=2.0.35"
 
 [tool.poetry.dependencies]
 authlib = ">=0.15.3"
