@@ -145,10 +145,11 @@
     group: vagrant
 
 - name: Create the virtualenv
-  shell: virtualenv --system-site-packages /srv/venv/
+  command: virtualenv --system-site-packages /srv/venv/
   become: yes
   become_user: vagrant
-  creates: /srv/venv/bin/python
+  args:
+    creates: /srv/venv/bin/python
 
 # Setuptools update to ensure the celery >=5.2.3 works well
 - name: Update python3-setuptools in the venv
@@ -159,11 +160,13 @@
     chdir: /home/vagrant/bodhi/bodhi-server
 
 - name: Install bodhi with poetry
-  shell: VIRTUAL_ENV=/srv/venv poetry install
+  command: poetry install
   become: yes
   become_user: vagrant
   args:
       chdir: /home/vagrant/bodhi/{{ item }}
+  environment:
+    VIRTUAL_ENV: /srv/venv
   loop:
     - bodhi-messages
     - bodhi-client
@@ -206,9 +209,12 @@
 - name: Apply database migrations
   become: yes
   become_user: vagrant
-  shell: VIRTUAL_ENV=/srv/venv poetry run alembic -c alembic.ini upgrade head
+  command: poetry run alembic -c alembic.ini upgrade head
   args:
       chdir: /home/vagrant/bodhi/bodhi-server
+  environment:
+      VIRTUAL_ENV: /srv/venv
+
 
 - name: Install the systemd unit files
   copy:
