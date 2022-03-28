@@ -74,13 +74,14 @@ class BodhiClientException(RequestException):
 class UpdateNotFound(BodhiClientException):
     """Used to indicate that a referenced Update is not found on the server."""
 
-    def __init__(self, update: str):
+    def __init__(self, update: str, **kwargs):
         """
         Initialize the Exception.
 
         Args:
             update: The alias of the update that was not found.
         """
+        super().__init__(**kwargs)
         self.update = update
 
     def __str__(self) -> str:
@@ -96,7 +97,7 @@ class UpdateNotFound(BodhiClientException):
 class ComposeNotFound(BodhiClientException):
     """Used to indicate that a referenced Compose is not found on the server."""
 
-    def __init__(self, release: str, request: str):
+    def __init__(self, release: str, request: str, **kwargs):
         """
         Initialize the Exception.
 
@@ -104,6 +105,7 @@ class ComposeNotFound(BodhiClientException):
             release: The release component of the compose that was not found.
             request: The request component of the compose that was not found.
         """
+        super().__init__(**kwargs)
         self.release = release
         self.request = request
 
