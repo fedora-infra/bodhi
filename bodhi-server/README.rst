@@ -38,7 +38,7 @@ Fedora system and pointing your browser at
 If you are interested in contributing to Bodhi, you can read the
 `developer documentation`_.
 
-.. _developer documentation: https://fedora-infra.github.io/bodhi/developer/index.html
+.. _developer documentation: https://fedora-infra.github.io/bodhi/docs/developer/index.html
 
 
 IRC
