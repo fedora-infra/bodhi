@@ -76,4 +76,4 @@ request::
 
     https://github.com/fedora-infra/bodhi
 
-Bodhi's documentation is available online: https://bodhi.fedoraproject.org/docs
+Bodhi's documentation is available online: https://fedora-infra.github.io/bodhi
