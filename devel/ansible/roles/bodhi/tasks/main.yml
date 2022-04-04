@@ -45,6 +45,7 @@
       - python3-markdown
       - python3-munch
       - python3-openid
+      - python3-pip
       - python3-prometheus_client
       - python3-psycopg2
       - python3-pydocstyle
@@ -104,18 +105,15 @@
 - name: pip install debugtoolbar
   pip:
       name: pyramid_debugtoolbar
-      executable: pip3
 
 # The version packaged in Fedora never seems to work right, and we'd rather have a newer one anyway
 - name: pip install mypy
   pip:
       name: mypy
-      executable: pip3
 
 - name: pip install jinja2-cli
   pip:
       name: jinja2-cli
-      executable: pip3
 
 - name: Fake a pungi install
   file:
@@ -183,7 +181,6 @@
       mode: 0644
   with_items:
       - bodhi.service
-      - print-messages.service
       - celery.service
 
 - name: Install the .bashrc
@@ -218,9 +215,6 @@
       - composes
       - composes/final
       - composes/stage
-
-- name: Set up the RabbitMQ broker
-  import_tasks: rabbitmq.yml
 
 - name: Copy the fedora-messaging configuration file bodhi.toml
   copy:
@@ -320,8 +314,6 @@
       - bodhi
       - docker
       - celery
-      - fm-consumer@config
-      - print-messages
 
 - name: Start enable httpd
   service:
