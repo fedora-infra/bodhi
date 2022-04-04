@@ -1,0 +1,17 @@
+# https://bugzilla.redhat.com/show_bug.cgi?id=2020278#c6
+
+module local-rabbitmq 1.0;
+
+require {
+    type init_var_run_t;
+    type rabbitmq_t;
+    type tmpfs_t;
+    class file { execute map read write };
+    class process execmem;
+    class sock_file { getattr read };
+}
+
+#============= rabbitmq_t ==============
+allow rabbitmq_t init_var_run_t:sock_file { getattr read };
+allow rabbitmq_t self:process execmem;
+allow rabbitmq_t tmpfs_t:file { execute map read write };
