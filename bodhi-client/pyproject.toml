@@ -40,10 +40,7 @@ diff-cover = ">=4.2.1"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-click = [
-    {version = "<8.0.0, >=7.1.2", python ="3.9"},
-    {version = ">=7.1.2", python ="^3.10"}
-]
+click = ">=7.1.2"
 koji = "^1.27.1"
 
 [build-system]

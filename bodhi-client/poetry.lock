@@ -81,7 +81,7 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 name = "colorama"
 version = "0.4.4"
 description = "Cross-platform colored terminal text."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -183,7 +183,7 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "koji"
-version = "1.28.0"
+version = "1.28.1"
 description = "Koji is a system for building and tracking RPMS. The base package contains shared libraries and the command-line interface."
 category = "main"
 optional = false
@@ -494,7 +494,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "d9f74deceaaad5d4993cff9148a45fcb34fab93ff3a281d890ef22998a36cba0"
+content-hash = "76ee8086e0cfc31abce1e5a34ca63e2e3b2eca79f04c829a33bd5a12eef1fd02"
 
 [metadata.files]
 alabaster = [
@@ -626,9 +626,9 @@ jinja2 = [
     {file = "Jinja2-3.1.1.tar.gz", hash = "sha256:640bed4bb501cbd17194b3cace1dc2126f5b619cf068a726b98192a0fde74ae9"},
 ]
 koji = [
-    {file = "koji-1.28.0-py2-none-any.whl", hash = "sha256:ecea250efd07307a17ee933476a6eb9790ab49b38c8d4a2fca06119bbb6c1c27"},
-    {file = "koji-1.28.0-py3-none-any.whl", hash = "sha256:33adbd99cad9354f20e853414ddff482dbc1a5706439db81e123d64570f0abc3"},
-    {file = "koji-1.28.0.tar.gz", hash = "sha256:54196a71e7f246727779ea941871b9ac78d6903962e76cba6dae517da6f5cfae"},
+    {file = "koji-1.28.1-py2-none-any.whl", hash = "sha256:943ffe37f22faa5d9f16ea434309d71a1a8e4952f540072e62d00bead5a32ffa"},
+    {file = "koji-1.28.1-py3-none-any.whl", hash = "sha256:1e8bb3ada29772971ef526fac41d53c2723e81d9c4f0a8c850bcf6df3d4a1a5a"},
+    {file = "koji-1.28.1.tar.gz", hash = "sha256:7f02d416901b056b76eb0b03439ac49e3b850c7029601d3cad7893357c1b28b7"},
 ]
 markupsafe = [
     {file = "MarkupSafe-2.1.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:86b1f75c4e7c2ac2ccdaec2b9022845dbb81880ca318bb7a0a01fbf7813e3812"},
