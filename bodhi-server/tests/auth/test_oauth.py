@@ -98,8 +98,8 @@ class TestOAuth1(base.BasePyTestCase):
             assert token['oauth_token'] == 'a'
 
     @pytest.mark.skipif(
-        parse_version(authlib_version) < parse_version("1.0.0rc1"),
-        reason="Only on Authlib >= 1.0rc1"
+        parse_version(authlib_version) < parse_version("1.0.0"),
+        reason="Only on Authlib >= 1.0"
     )
     def test_oauth1_authorize_no_state(self):
         request = testing.DummyRequest(path="/login")
@@ -123,8 +123,8 @@ class TestOAuth1(base.BasePyTestCase):
         assert exc.value.description == 'Missing "oauth_token" parameter'
 
     @pytest.mark.skipif(
-        parse_version(authlib_version) < parse_version("1.0.0rc1"),
-        reason="Only on Authlib >= 1.0rc1"
+        parse_version(authlib_version) < parse_version("1.0.0"),
+        reason="Only on Authlib >= 1.0"
     )
     def test_oauth1_authorize_no_data(self):
         request = testing.DummyRequest(path="/login")
@@ -197,8 +197,8 @@ class TestOAuth2(base.BasePyTestCase):
                 client.authorize_access_token(request)
 
     @pytest.mark.skipif(
-        parse_version(authlib_version) < parse_version("1.0.0rc1"),
-        reason="Only on Authlib >= 1.0rc1"
+        parse_version(authlib_version) < parse_version("1.0.0"),
+        reason="Only on Authlib >= 1.0"
     )
     def test_oauth2_authorize_no_state(self):
         request = testing.DummyRequest(path="/login")
