@@ -151,6 +151,17 @@
   args:
       creates: /home/vagrant/development.ini
 
+- name: adjust the paths in the config
+  ini_file:
+    path: /home/vagrant/development.ini
+    section: app:main
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+  loop:
+    - {key: "celery_config", value: "%(here)s/bodhi/bodhi-server/celeryconfig.py"}
+    - {key: "pungi.basepath", value: "%(here)s/bodhi/devel/ci/integration/bodhi/"}
+    - {key: "docs_path", value: "%(here)s/bodhi/docs/_build/html/"}
+
 - name: Change development.ini to make bodhi use the staging infrastructure
   import_tasks: configure_stg.yml
   when: (staging_fas is defined) and use_staging_infra
