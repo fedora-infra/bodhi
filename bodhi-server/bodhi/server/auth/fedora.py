@@ -17,7 +17,7 @@ from packaging.version import parse as parse_version
 import requests
 
 
-if parse_version(authlib_version) >= parse_version("1.0.0rc1"):
+if parse_version(authlib_version) >= parse_version("1.0.0"):
     from .oauth_1 import PyramidOAuth2App as PyramidApp
 else:
     from .oauth_015 import PyramidRemoteApp as PyramidApp
@@ -107,7 +107,7 @@ class IntrospectTokenValidator(BearerTokenValidator):
         Returns:
             bool: Whether the token's scopes are sufficient.
         """
-        if parse_version(authlib_version) >= parse_version("1.0.0rc1"):
+        if parse_version(authlib_version) >= parse_version("1.0.0"):
             return BearerTokenValidator.scope_insufficient(token.get_scope(), required_scopes)
         return super().scope_insufficient(token, required_scopes)
 
@@ -152,12 +152,12 @@ class IntrospectTokenValidator(BearerTokenValidator):
             raise InvalidTokenError(realm=self.realm)
         if token.is_expired() or token.is_revoked():
             raise InvalidTokenError(realm=self.realm)
-        if parse_version(authlib_version) < parse_version("1.0.0rc1"):
+        if parse_version(authlib_version) < parse_version("1.0.0"):
             scopes = scopes[0]
         if self.scope_insufficient(token, scopes):
             if (
                 parse_version(authlib_version) >= parse_version("0.15.5")
-                and parse_version(authlib_version) < parse_version("1.0.0rc1")
+                and parse_version(authlib_version) < parse_version("1.0.0")
             ):
                 raise InsufficientScopeError(
                     token_scope=token["scope"], required_scope=scopes

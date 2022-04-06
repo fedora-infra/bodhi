@@ -7,7 +7,7 @@ from .constants import SCOPES
 from .fedora import FedoraApp
 
 
-if parse_version(authlib_version) >= parse_version("1.0.0rc1"):
+if parse_version(authlib_version) >= parse_version("1.0.0"):
     from .oauth_1 import OAuth
 else:
     from .oauth_015 import OAuth
