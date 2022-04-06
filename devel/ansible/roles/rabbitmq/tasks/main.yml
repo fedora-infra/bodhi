@@ -1,0 +1,80 @@
+- name: Install RabbitMQ packages
+  package:
+      name: "{{ item }}"
+      state: present
+  with_items:
+      - rabbitmq-server
+      - fedora-messaging
+
+# SELinux
+- name: compile policy module
+  command: checkmodule -o local-rabbitmq.mod -m -M /home/vagrant/bodhi/devel/ansible/roles/rabbitmq/files/local-rabbitmq.te
+  args:
+    creates: local-rabbitmq.mod
+
+- name: package policy module
+  command: semodule_package -o local-rabbitmq.pp -m local-rabbitmq.mod
+  args:
+    creates: local-rabbitmq.pp
+
+- name: install policy module
+  command: semodule -i local-rabbitmq.pp
+  args:
+    creates: /var/lib/selinux/targeted/active/modules/400/local-rabbitmq/
+
+- name: Create RabbitMQ systemd override directory
+  file:
+    path: /etc/systemd/system/rabbitmq-server.service.d/
+    state: directory
+
+- name: Override file limit on rabbitmq
+  copy:
+    content: "[Service]\nLimitNOFILE={{rabbitmq_cluster_file_limit}}\n"
+    dest: /etc/systemd/system/rabbitmq-server.service.d/override.conf
+  notify:
+    - reload rabbitmq
+
+- name: Start rabbitmq
+  service:
+    name: rabbitmq-server
+    state: started
+    enabled: yes
+
+- name: Enables the rabbitmq management and SSL authentication plugins
+  rabbitmq_plugin:
+    names: rabbitmq_management,rabbitmq_auth_mechanism_ssl
+  notify:
+    - reload rabbitmq
+
+- name: Ensure default vhost exists
+  rabbitmq_vhost:
+    name: /
+    state: present
+
+- name: Create a guest user in RabbitMQ
+  rabbitmq_user:
+    user: guest
+    password: guest
+    tags: administrator
+    vhost: /
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+    state: present
+
+- name: Install the systemd unit files
+  copy:
+      src: "{{ item }}"
+      dest: /etc/systemd/system/{{ item }}
+      mode: 0644
+  with_items:
+      - print-messages.service
+
+- name: Start and enable the rabbitmq-related services
+  service:
+      name: "{{ item }}"
+      state: restarted
+      enabled: yes
+  with_items:
+      - fm-consumer@config
+      - print-messages

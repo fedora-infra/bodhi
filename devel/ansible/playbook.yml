@@ -9,10 +9,11 @@
       shell: "ping -c 5 ipsilon.tinystage.test"
       ignore_errors: yes
       register: ping_response
-    
+
     - name: Give reason for failure
       fail:
         msg: Provisioning bodhi requires the base tinystage setup to be running.
       when: ping_response.rc != 0
   roles:
+    - rabbitmq
     - bodhi

@@ -32,6 +32,6 @@ DEFAULT_OPTIONS = dict(
     buffer_output=True,
 )
 
-RELEASES = ('f34', 'f35', 'f36', 'rawhide', 'pip')
+RELEASES = ('f35', 'f36', 'rawhide', 'pip')
 INTEGRATION_APPS = ("resultsdb", "waiverdb", "greenwave", "rabbitmq", "ipsilon")
 MODULES = ("bodhi-client", "bodhi-messages", "bodhi-server")
