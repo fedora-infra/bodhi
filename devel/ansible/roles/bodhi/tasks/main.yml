@@ -293,12 +293,11 @@
 - name: Put tinystage root CA in the list of CA's
   blockinfile:
     block: "{{ ca_crt.content | b64decode }}"
-    path: /etc/pki/tls/certs/ca-bundle.crt
-
-- name: Put the root CA in the list of CA's for httplib2
-  blockinfile:
-    block: "{{ ca_crt.content | b64decode }}"
-    path: /usr/local/lib/python{{ python3_version.stdout }}/site-packages/httplib2/cacerts.txt
+    path: "{{ item }}"
+  loop:
+    - /etc/pki/tls/certs/ca-bundle.crt
+    - /usr/local/lib/python{{ python3_version.stdout }}/site-packages/httplib2/cacerts.txt
+    - /srv/venv/lib/python{{ python3_version.stdout }}/site-packages/certifi/cacert.pem
 
 - name: Register with Ipsilon
   command: python3 /home/vagrant/bodhi/devel/register-with-ipsilon.py
