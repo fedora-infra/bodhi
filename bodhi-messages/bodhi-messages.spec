@@ -15,6 +15,7 @@ BuildArch:      noarch
 BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3-devel
 BuildRequires:  python3-pytest
+BuildRequires:  python3-pytest-cov
 BuildRequires:  python3dist(fedora-messaging)
 BuildRequires:  python3dist(setuptools)
 
