@@ -15,6 +15,7 @@ BuildArch:      noarch
 BuildRequires:  make
 BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3-devel
+BuildRequires:  python3-pytest
 
 Obsoletes: python3-bodhi-client <= 5.7.5
 
