@@ -16,6 +16,7 @@ BuildRequires:  make
 BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3-devel
 BuildRequires:  python3-pytest
+BuildRequires:  python3-sphinx
 
 Obsoletes: python3-bodhi-client <= 5.7.5
 
