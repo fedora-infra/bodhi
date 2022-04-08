@@ -30,8 +30,6 @@ RUN pip-3 install \
     pyasn1 \
     celery
 
-# Fake pungi being installed so we can avoid it and all its dependencies
-RUN ln -s /usr/bin/true /usr/bin/pungi-koji
 VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
