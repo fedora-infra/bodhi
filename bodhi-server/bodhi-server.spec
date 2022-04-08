@@ -16,6 +16,7 @@ BuildRequires:  make
 BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3-devel
 BuildRequires:  python3-pytest
+BuildRequires:  python3-pytest-cov
 BuildRequires:  python3-sphinx
 
 Requires: bodhi-client == %{version}-%{release}
