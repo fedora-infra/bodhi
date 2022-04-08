@@ -151,6 +151,7 @@ class BaseTestCaseMixin:
         'warm_cache_on_start': False,
         'pyramid.debug_notfound': False,
         'pyramid.debug_authorization': False,
+        'pungi.cmd': '/usr/bin/true',
         'docs_path': os.path.join(PROJECT_PATH, "..", "docs"),
     }
 

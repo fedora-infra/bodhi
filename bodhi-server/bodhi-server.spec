@@ -17,7 +17,14 @@ BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3-devel
 BuildRequires:  python3-pytest
 BuildRequires:  python3-pytest-cov
+BuildRequires:  python3-pytest-mock
 BuildRequires:  python3-sphinx
+BuildRequires:  python3-responses
+BuildRequires:  python3-webtest
+BuildRequires:  python3-librepo
+BuildRequires:  python3-createrepo_c
+BuildRequires:  createrepo_c
+BuildRequires:  skopeo
 
 Requires: bodhi-client == %{version}-%{release}
 Requires: python3-bodhi-messages == %{version}-%{release}
