@@ -21,14 +21,19 @@ queue_rules:
     - status-success=Build Documentation (f36)
     - status-success=Build Documentation (pip)
 
+
 pull_request_rules:
-- actions:
+
+- name: default
+  actions:
     queue:
       method: rebase
       name: default
   conditions:
   - label!=WIP
+  - -draft
   - approved-reviews-by=@fedora-infra/bodhi
+  - "#changes-requested-reviews-by=0"
   - status-success=DCO
   - status-success=Pre-commit checks
   - status-success=Diff-cover check
@@ -46,20 +51,52 @@ pull_request_rules:
   - status-success=Build Documentation (f35)
   - status-success=Build Documentation (f36)
   - status-success=Build Documentation (pip)
-  name: default
-- actions:
+
+- name: backport 5.6
+  actions:
     backport:
       branches:
       - '5.6'
   conditions:
   - label!=WIP
+  - -draft
   - label=5.6-backports
-  name: backport 5.6
-- actions:
+
+- name: backport 5.7
+  actions:
     backport:
       branches:
       - '5.7'
   conditions:
   - label!=WIP
+  - -draft
   - label=5.7-backports
-  name: backport 5.7
+
+- name: dependabot
+  actions:
+    queue:
+      method: rebase
+      name: default
+  conditions:
+  - label!=WIP
+  - -draft
+  - author=dependabot[bot]
+  - approved-reviews-by=github-actions[bot]
+  - "#changes-requested-reviews-by=0"
+  - status-success=DCO
+  - status-success=Pre-commit checks
+  - status-success=Diff-cover check
+  - status-success=Integration Tests (f35)
+  - status-success=Integration Tests (f36)
+  - status-success=Unit Tests (f35, bodhi-client)
+  - status-success=Unit Tests (f35, bodhi-messages)
+  - status-success=Unit Tests (f35, bodhi-server)
+  - status-success=Unit Tests (f36, bodhi-client)
+  - status-success=Unit Tests (f36, bodhi-messages)
+  - status-success=Unit Tests (f36, bodhi-server)
+  - status-success=Unit Tests (pip, bodhi-client)
+  - status-success=Unit Tests (pip, bodhi-messages)
+  - status-success=Unit Tests (pip, bodhi-server)
+  - status-success=Build Documentation (f35)
+  - status-success=Build Documentation (f36)
+  - status-success=Build Documentation (pip)
