@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhi-server"
-version = "5.7.5"
+version = "6.0.0"
 description = "Bodhi server"
 readme = "README.rst"
 authors = ["Fedora Infrastructure Team"]
@@ -84,7 +84,7 @@ alembic = "^1.5.5"
 arrow = ">=0.17.0"
 backoff = "^1.10.0"
 bleach = ">=3.2.3"
-bodhi-messages = "^5.7.4"
+bodhi-messages = "^6.0.0"
 celery = ">=5.2.1"
 click = ">=7.1.2"
 colander = "^1.8.3"

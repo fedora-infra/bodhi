@@ -1,6 +1,6 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-client
-%global pypi_version 5.7.5
+%global pypi_version 6.0.0
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
@@ -54,6 +54,9 @@ install -pm0644 bodhi-client.bash %{buildroot}%{_sysconfdir}/bash_completion.d/b
 %config(noreplace) %{_sysconfdir}/bash_completion.d/bodhi-client.bash
 
 %changelog
+* Fri Apr 08 2022 Aurelien Bompard <abompard@fedoraproject.org> - 6.0.0-1
+- Update to 6.0.0.
+
 * Wed Feb 23 2022 Ryan Lerch <rlerch@redhat.com> - 5.7.5-0
 - Prepare the Bodhi client to be compatible with an OIDC-enabled server. PR#4391.
 

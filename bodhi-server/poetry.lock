@@ -139,7 +139,7 @@ python-versions = "*"
 
 [[package]]
 name = "bodhi-messages"
-version = "5.7.5"
+version = "6.0.0"
 description = "JSON schema for messages sent by Bodhi"
 category = "main"
 optional = false
@@ -1465,7 +1465,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "b12d851421c436c11ff052b2535c33a5ebea926fc236beeb8fd3cc10dc3e761f"
+content-hash = "f263c0cdf021406801003b25b6781ba672bdf1f36e6b68057077c3d99165d899"
 
 [metadata.files]
 alembic = [
