@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-from xml.etree import ElementTree
 from unittest import mock
+from xml.etree import ElementTree
 import gzip
 import os
 import shutil
@@ -28,19 +28,20 @@ import bleach
 import pkg_resources
 import pytest
 
-from bodhi.server import util, models
+from bodhi.server import models, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
 from bodhi.server.models import TestGatingStatus, Update
+
 from . import base
 
 
 class TestAvatar:
     """Test the avatar() function."""
 
-    @mock.patch.dict(config, {'libravatar_enabled': False})
     def test_libravatar_disabled(self):
         """If libravatar_enabled is False, libravatar.org should be returned."""
+        config['libravatar_enabled'] = False
         context = {'request': mock.MagicMock()}
 
         def cache_on_arguments():
@@ -51,12 +52,14 @@ class TestAvatar:
 
         assert util.avatar(context, 'bowlofeggs', 50) == 'libravatar.org'
 
-    @mock.patch.dict(
-        config,
-        {'libravatar_enabled': True, 'libravatar_dns': True, 'libravatar_prefer_tls': False})
     @mock.patch('bodhi.server.util.libravatar.libravatar_url', return_value='cool url')
     def test_libravatar_dns_set_ssl_false(self, libravatar_url):
         """Test the correct return value when libravatar_dns is set in config."""
+        config.update({
+            'libravatar_enabled': True,
+            'libravatar_dns': True,
+            'libravatar_prefer_tls': False,
+        })
         context = {'request': mock.MagicMock()}
         context['request'].registry.settings = config
 
@@ -71,12 +74,14 @@ class TestAvatar:
         libravatar_url.assert_called_once_with(openid=f'http://{openid_user_host}/',
                                                https=False, size=50, default='retro')
 
-    @mock.patch.dict(
-        config,
-        {'libravatar_enabled': True, 'libravatar_dns': True, 'libravatar_prefer_tls': True})
     @mock.patch('bodhi.server.util.libravatar.libravatar_url', return_value='cool url')
     def test_libravatar_dns_set_ssl_true(self, libravatar_url):
         """Test the correct return value when libravatar_dns is set in config."""
+        config.update({
+            'libravatar_enabled': True,
+            'libravatar_dns': True,
+            'libravatar_prefer_tls': True,
+        })
         context = {'request': mock.MagicMock()}
         context['request'].registry.settings = config
 
@@ -306,55 +311,65 @@ class TestNoAutoflush:
 class TestCanWaiveTestResults(base.BasePyTestCase):
     """Test the can_waive_test_results() function."""
 
-    @mock.patch.dict('bodhi.server.util.config',
-                     {'test_gating.required': True, 'waiverdb.access_token': None})
     def test_access_token_undefined(self):
         """If Bodhi is not configured with an access token, the result should be False."""
+        config.update({
+            'test_gating.required': True,
+            'waiverdb.access_token': None
+        })
         u = Update.query.all()[0]
         u.test_gating_status = TestGatingStatus.failed
         u.status = models.UpdateStatus.testing
 
         assert not util.can_waive_test_results(None, u)
 
-    @mock.patch.dict('bodhi.server.util.config',
-                     {'test_gating.required': True, 'waiverdb.access_token': 'secret'})
     def test_can_waive_test_results(self):
+        config.update({
+            'test_gating.required': True,
+            'waiverdb.access_token': "secret"
+        })
         u = Update.query.all()[0]
         u.test_gating_status = TestGatingStatus.failed
         u.status = models.UpdateStatus.testing
         assert util.can_waive_test_results(None, u)
 
-    @mock.patch.dict('bodhi.server.util.config',
-                     {'test_gating.required': False, 'waiverdb.access_token': 'secret'})
     def test_gating_required_false(self):
         """
         Assert that it should return false if test_gating is not enabled, even if
         other conditions are met.
         """
+        config.update({
+            'test_gating.required': False,
+            'waiverdb.access_token': "secret"
+        })
         u = Update.query.all()[0]
         u.test_gating_status = TestGatingStatus.failed
         u.status = models.UpdateStatus.testing
         assert not util.can_waive_test_results(None, u)
 
-    @mock.patch.dict('bodhi.server.util.config',
-                     {'test_gating.required': True, 'waiverdb.access_token': 'secret'})
     def test_all_tests_passed(self):
         """
         Assert that it should return false if all tests passed, even if
         other conditions are met.
         """
+        config.update({
+            'test_gating.required': True,
+            'waiverdb.access_token': "secret"
+        })
         u = Update.query.all()[0]
         u.test_gating_status = TestGatingStatus.passed
         u.status = models.UpdateStatus.testing
         assert not util.can_waive_test_results(None, u)
 
-    @mock.patch.dict('bodhi.server.util.config',
-                     {'test_gating.required': True, 'waiverdb.access_token': 'secret'})
     def test_update_is_stable(self):
         """
         Assert that it should return false if the update is stable, even if
         other conditions are met.
         """
+        config.update({
+            'test_gating.required': True,
+            'waiverdb.access_token': "secret"
+        })
         u = Update.query.all()[0]
         u.test_gating_status = TestGatingStatus.failed
         u.status = models.UpdateStatus.stable
@@ -379,11 +394,13 @@ class TestPagesList:
 class TestSanityCheckRepodata(base.BasePyTestCase):
     """Test the sanity_check_repodata() function."""
 
-    def setup_method(self):
+    def setup_method(self, method):
+        super().setup_method(method)
         self.tempdir = tempfile.mkdtemp('bodhi')
 
-    def teardown_method(self):
+    def teardown_method(self, method):
         shutil.rmtree(self.tempdir)
+        super().teardown_method(method)
 
     def test_correct_yum_repo(self):
         """No Exception should be raised if the repo is normal."""
@@ -513,13 +530,14 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         util.sanity_check_repodata(self.tempdir, repo_type='source')
 
 
-class TestTestcaseLink:
+class TestTestcaseLink(base.BasePyTestCase):
     """Test the testcase_link() function."""
 
     base_url = 'http://example.com/'
     displayed_name = 'test case name'
 
     def setup_method(self, method):
+        super().setup_method(method)
         self.test = mock.Mock()
         self.test.name = 'QA:Testcase ' + self.displayed_name
 
@@ -530,10 +548,10 @@ class TestTestcaseLink:
     @pytest.mark.parametrize('short', (False, True))
     def test_fn(self, short):
         """Test the function."""
-        with mock.patch.dict('bodhi.server.util.config',
-                             values={'test_case_base_url': self.base_url},
-                             clear=True):
-            retval = util.testcase_link(None, self.test, short=short)
+        print(self.base_url)
+        config["test_case_base_url"] = self.base_url
+        print(config["test_case_base_url"])
+        retval = util.testcase_link(None, self.test, short=short)
 
         if short:
             assert not retval.startswith('Test Case ')
@@ -574,23 +592,26 @@ class TestType2Icon:
 
 class TestUtils(base.BasePyTestCase):
 
-    @mock.patch.dict(util.config, {'critpath.type': None, 'critpath_pkgs': ['kernel', 'glibc']})
     def test_get_critpath_components_dummy(self):
         """ Ensure that critpath packages can be found using the hardcoded
         list.
         """
+        config.update({
+            'critpath.type': None,
+            'critpath_pkgs': ['kernel', 'glibc']
+        })
         assert util.get_critpath_components() == ['kernel', 'glibc']
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
-    @mock.patch.dict(util.config, {
-        'critpath.type': 'pdc',
-        'pdc_url': 'http://domain.local'
-    })
     def test_get_critpath_components_pdc_error(self, sleep, session):
         """ Ensure an error is thrown in Bodhi if there is an error in PDC
         getting the critpath packages.
         """
+        config.update({
+            'critpath.type': 'pdc',
+            'pdc_url': 'http://domain.local'
+        })
         session.get.return_value.status_code = 500
         session.get.return_value.json.return_value = \
             {'error': 'some error'}
@@ -603,11 +624,14 @@ class TestUtils(base.BasePyTestCase):
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.log')
-    @mock.patch.dict(util.config, {'critpath.type': None, 'critpath_pkgs': ['kernel', 'glibc']})
     def test_get_critpath_components_not_pdc_not_rpm(self, mock_log):
         """ Ensure a warning is logged when the critpath system is not pdc
         and the type of components to search for is not rpm.
         """
+        config.update({
+            'critpath.type': None,
+            'critpath_pkgs': ['kernel', 'glibc']
+        })
         pkgs = util.get_critpath_components('f25', 'module')
         assert 'kernel' in pkgs
         warning = ('The critpath.type of "module" does not support searching '
@@ -615,9 +639,12 @@ class TestUtils(base.BasePyTestCase):
         mock_log.warning.assert_called_once_with(warning)
 
     @mock.patch('bodhi.server.util.http_session')
-    @mock.patch.dict(util.config, {'critpath.type': 'pdc', 'pdc_url': 'http://domain.local'})
     def test_get_critpath_components_pdc_paging_exception(self, session):
         """Ensure that an Exception is raised if components are used and the response is paged."""
+        config.update({
+            'critpath.type': 'pdc',
+            'pdc_url': 'http://domain.local'
+        })
         pdc_url = 'http://domain.local/rest_api/v1/component-branches/?page_size=1'
         pdc_next_url = '{0}&page=2'.format(pdc_url)
         session.get.return_value.status_code = 200
@@ -650,9 +677,12 @@ class TestUtils(base.BasePyTestCase):
              mock.call().json()]
 
     @mock.patch('bodhi.server.util.http_session')
-    @mock.patch.dict(util.config, {'critpath.type': 'pdc', 'pdc_url': 'http://domain.local'})
     def test_get_critpath_pdc_with_components(self, session):
         """Test the components argument to get_critpath_components()."""
+        config.update({
+            'critpath.type': 'pdc',
+            'pdc_url': 'http://domain.local'
+        })
         session.get.return_value.status_code = 200
         session.get.return_value.json.return_value = {
             'count': 1,
@@ -679,13 +709,13 @@ class TestUtils(base.BasePyTestCase):
              mock.call().json()]
 
     @mock.patch('bodhi.server.util.http_session')
-    @mock.patch.dict(util.config, {
-        'critpath.type': 'pdc',
-        'pdc_url': 'http://domain.local'
-    })
     def test_get_critpath_components_pdc_success(self, session):
         """ Ensure that critpath packages can be found using PDC.
         """
+        config.update({
+            'critpath.type': 'pdc',
+            'pdc_url': 'http://domain.local'
+        })
         pdc_url = \
             'http://domain.local/rest_api/v1/component-branches/?page_size=1'
         pdc_next_url = '{0}&page=2'.format(pdc_url)
@@ -1362,43 +1392,44 @@ class TestCMDFunctions:
 
 
 @mock.patch('bodhi.server.util.cmd', autospec=True)
-@mock.patch('bodhi.server.util.config', new_callable=lambda: {
-    'container.source_registry': 'src',
-    'container.destination_registry': 'dest',
-    'skopeo.cmd': 'skopeo',
-})
 @mock.patch('bodhi.server.util._container_image_url', new=lambda sr, r, st: f'{sr}:{r}:{st}')
 @mock.patch('bodhi.server.util._get_build_repository', new=lambda b: 'testrepo')
-class TestCopyContainer:
+class TestCopyContainer(base.BasePyTestCase):
     """Test the copy_container() function."""
 
     def setup_method(self, method):
+        super().setup_method(method)
         self.build = mock.Mock()
         self.build.nvr_version = '1'
         self.build.nvr_release = '1'
+        config.update({
+            'container.source_registry': 'src',
+            'container.destination_registry': 'dest',
+            'skopeo.cmd': 'skopeo',
+        })
 
-    def test_default(self, config, cmd):
+    def test_default(self, cmd):
         """Test the default code path."""
         util.copy_container(self.build)
 
         cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'dest:testrepo:1-1'],
                                     raise_on_error=True)
 
-    def test_with_destination_registry(self, config, cmd):
+    def test_with_destination_registry(self, cmd):
         """Test with specified destination_registry."""
         util.copy_container(self.build, destination_registry='boo')
 
         cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'boo:testrepo:1-1'],
                                     raise_on_error=True)
 
-    def test_with_destination_tag(self, config, cmd):
+    def test_with_destination_tag(self, cmd):
         """Test with specified destination_tag."""
         util.copy_container(self.build, destination_tag='2-2')
 
         cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'dest:testrepo:2-2'],
                                     raise_on_error=True)
 
-    def test_with_extra_copy_flags(self, config, cmd):
+    def test_with_extra_copy_flags(self, cmd):
         """Test with extra copy flags configured."""
         config['skopeo.extra_copy_flags'] = '--quiet,--remove-signatures'
         util.copy_container(self.build)
@@ -1481,11 +1512,13 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
 class TestPyfileToModule(base.BasePyTestCase):
     """Test the pyfile_to_module() function."""
 
-    def setup_method(self):
+    def setup_method(self, method):
+        super().setup_method(method)
         self.tempdir = tempfile.mkdtemp('bodhi')
 
-    def teardown_method(self):
+    def teardown_method(self, method):
         shutil.rmtree(self.tempdir)
+        super().teardown_method(method)
 
     def test_basic_call(self):
         filepath = os.path.join(self.tempdir, "testfile.py")

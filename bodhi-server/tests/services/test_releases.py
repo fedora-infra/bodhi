@@ -15,21 +15,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-from datetime import datetime, date
+from datetime import date, datetime
 from unittest import mock
 import os
 
-import webtest
 from fedora_messaging import testing as fml_testing
+import webtest
 
 from bodhi import server
 from bodhi.server.config import config
 from bodhi.server.models import (
-    Build, PackageManager, Release, ReleaseState, UpdateType,
-    User, Update, UpdateStatus, UpdateRequest)
+    Build,
+    PackageManager,
+    Release,
+    ReleaseState,
+    Update,
+    UpdateRequest,
+    UpdateStatus,
+    UpdateType,
+    User,
+)
 from bodhi.server.util import get_absolute_path
 from bodhi.server.views import generic
-from .. import base, create_update
+
+from .. import base
 
 
 class TestReleasesService(base.BasePyTestCase):
@@ -505,8 +514,8 @@ class TestReleasesService(base.BasePyTestCase):
 
     def test_get_single_release_html_two_same_updates_same_month(self):
         """Test the HTML view with two updates of the same type from the same month."""
-        create_update(self.db, ['bodhi-3.4.0-1.fc27'])
-        create_update(self.db, ['rust-chan-0.3.1-1.fc27'])
+        base.create_update(self.db, ['bodhi-3.4.0-1.fc27'])
+        base.create_update(self.db, ['rust-chan-0.3.1-1.fc27'])
         self.db.flush()
 
         res = self.app.get('/releases/f17', headers={'Accept': 'text/html'})
