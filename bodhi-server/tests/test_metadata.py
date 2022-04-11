@@ -18,7 +18,7 @@
 
 from datetime import datetime
 from hashlib import sha256
-from os.path import join, exists, basename
+from os.path import basename, exists, join
 from unittest import mock
 import glob
 import os
@@ -27,13 +27,13 @@ import tempfile
 
 import createrepo_c
 
-from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
-                                   DevBuildsys)
+from bodhi.server.buildsys import DevBuildsys, setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
-from bodhi.server.models import Release, Update, UpdateRequest, UpdateStatus
 from bodhi.server.metadata import UpdateInfoMetadata
+from bodhi.server.models import Release, Update, UpdateRequest, UpdateStatus
 import bodhi.server.metadata as bodhi_metadata
-from . import base, create_update
+
+from . import base
 
 
 class UpdateInfoMetadataTestCase(base.BasePyTestCase):
@@ -203,7 +203,7 @@ class TestFetchUpdates(UpdateInfoMetadataTestCase):
         """A warning should be logged if the Bodhi Build object is not associated with an Update."""
         update = self.db.query(Update).one()
         update.date_pushed = None
-        u = create_update(self.db, ['TurboGears-1.0.2.2-4.fc17'])
+        u = base.create_update(self.db, ['TurboGears-1.0.2.2-4.fc17'])
         u.builds[0].update = None
         self.db.flush()
 

@@ -58,10 +58,9 @@ RUN dnf install -y \
     python3-whitenoise \
     python3-yaml \
     rpm-build \
-    rpmdevtools
+    rpmdevtools \
+    skopeo
 
-# Fake pungi being installed so we can avoid it and all its dependencies
-RUN ln -s /usr/bin/true /usr/bin/pungi-koji
 VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]

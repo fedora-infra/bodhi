@@ -162,21 +162,6 @@ def _make_task(transactional_session_maker, extra_push_args=None):
     return compose.delay.call_args_list[0][1]
 
 
-# We don't need real pungi config files, we just need them to exist. Let's also mock all calls to
-# pungi.
-@mock.patch.dict(
-    config,
-    {
-        'pungi.basepath': os.path.join(
-            base.PROJECT_PATH, 'tests/consumers/pungi.basepath'
-        ),
-        'pungi.conf.rpm': 'pungi.rpm.conf',
-        'pungi.conf.module': 'pungi.module.conf',
-        'pungi.cmd': os.path.join(
-            base.PROJECT_PATH, 'tests', 'consumers', 'pungi.basepath', 'fake-pungi.sh'
-        )
-    }
-)
 class TestComposer(base.BasePyTestCase):
     """Test the Handler class."""
 
@@ -191,13 +176,20 @@ class TestComposer(base.BasePyTestCase):
         # anyway, so we don't bother with mock.
         ComposerThread.start = lambda self: self.run()
         ComposerThread.join = lambda self, timeout=None: None
-        test_config = base.original_config.copy()
-        test_config['compose_stage_dir'] = self._new_compose_stage_dir
-        test_config['compose_dir'] = os.path.join(self._new_compose_stage_dir, 'compose')
-
-        self.mock_config = mock.patch.dict(
-            'bodhi.server.tasks.composer.config', test_config)
-        self.mock_config.start()
+        config.update({
+            "compose_stage_dir": self._new_compose_stage_dir,
+            "compose_dir": os.path.join(self._new_compose_stage_dir, 'compose'),
+            # We don't need real pungi config files, we just need them to
+            # exist. Let's also mock all calls to pungi.
+            'pungi.basepath': os.path.join(
+                base.PROJECT_PATH, 'tests/consumers/pungi.basepath'
+            ),
+            'pungi.conf.rpm': 'pungi.rpm.conf',
+            'pungi.conf.module': 'pungi.module.conf',
+            'pungi.cmd': os.path.join(
+                base.PROJECT_PATH, 'tests', 'consumers', 'pungi.basepath', 'fake-pungi.sh'
+            ),
+        })
 
         os.makedirs(os.path.join(self._new_compose_stage_dir, 'compose'))
 
@@ -223,8 +215,6 @@ class TestComposer(base.BasePyTestCase):
 
         shutil.rmtree(self.tempdir)
         shutil.rmtree(self._new_compose_stage_dir)
-
-        self.mock_config.stop()
 
     def assert_sems(self, nr_expected):
         assert self.semmock.acquire.call_count == nr_expected
@@ -322,11 +312,6 @@ That was the actual one''' % compose_dir
         """
         return _make_task(self.db_factory, extra_push_args)
 
-    @mock.patch.dict('bodhi.server.config.config', {
-        'pungi.cmd': '/does/not/exist',
-        'compose_dir': '/does/not/exist',
-        'compose_stage_dir': '/does/not/exist',
-    })
     @mock.patch('os.path.exists')
     def test___init___missing_paths(self, mock_os_path_exists):
         """__init__() should raise a ValueError if configured paths do not exist."""
@@ -336,15 +321,21 @@ That was the actual one''' % compose_dir
             return True
         mock_os_path_exists.side_effect = os_path_exists_se
 
+        config.update({
+            'pungi.cmd': '/does/not/exist',
+            'compose_dir': '/does/not/exist',
+            'compose_stage_dir': '/does/not/exist',
+        })
+
         for s in ('pungi.cmd', 'compose_dir', 'compose_stage_dir'):
-            with mock.patch.dict('bodhi.server.config.config', {s: '/does/really/not/exist'}):
+            with mock.patch.dict(config, {s: '/does/really/not/exist'}):
                 with pytest.raises(ValueError) as exc:
                     ComposerHandler(db_factory=self.db_factory, compose_dir=self.tempdir)
 
-                assert (
-                    f"'/does/really/not/exist' does not exist. Check the {s} setting."
-                    in str(exc.value)
-                )
+            assert (
+                f"'/does/really/not/exist' does not exist. Check the {s} setting."
+                in str(exc.value)
+            )
 
     @mock.patch('bodhi.server.tasks.composer.transactional_session_maker')
     def test___init___without_db_factory(self, transactional_session_maker):
@@ -1198,10 +1189,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_sync')
-    @mock.patch.dict(
-        config,
-        {'pungi.cmd': '/usr/bin/false'})
     def test_compose_early_exit(self, *args):
+        config["pungi.cmd"] = "/usr/bin/false"
         self.expected_sems = 1
 
         # Set the request to stable right out the gate so we can test gating
@@ -1257,7 +1246,6 @@ That was the actual one'''
             assert compose.error_message == 'Pungi exited with status 1'
         assert t._checkpoints == {'determine_and_perform_tag_actions': True}
 
-    @mock.patch.dict('bodhi.server.tasks.composer.config', {'clean_old_composes': False})
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
@@ -1267,11 +1255,13 @@ That was the actual one'''
     def test_clean_old_composes_false(self, *args):
         """Test work() with clean_old_composes set to False."""
         self.expected_sems = 1
+        config["clean_old_composes"] = False
 
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request('bodhi-2.0-1.fc17')
         task = self._make_task()
         compose_dir = os.path.join(self.tempdir, 'cool_dir')
+        config["compose_dir"] = compose_dir
 
         # Set up some directories that look similar to what might be found in production, with
         # some directories that don't match the pattern of ending in -<timestamp>.
@@ -1309,11 +1299,10 @@ That was the actual one'''
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.tasks.composer.subprocess.Popen') as Popen:
-                with mock.patch.dict(config, {'compose_dir': compose_dir}):
-                    release = session.query(Release).filter_by(name='F17').one()
-                    Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
-                    with mock_sends(*expected_messages):
-                        t.run()
+                release = session.query(Release).filter_by(name='F17').one()
+                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
+                with mock_sends(*expected_messages):
+                    t.run()
 
         actual_dirs = set([
             d for d in os.listdir(compose_dir)
@@ -1347,7 +1336,6 @@ That was the actual one'''
              'status_comments': True}
         assert os.path.exists(compose_dir)
 
-    @mock.patch.dict('bodhi.server.tasks.composer.config', {'clean_old_composes': True})
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
@@ -1356,12 +1344,14 @@ That was the actual one'''
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     def test_clean_old_composes_true(self, *args):
         """Test work() with clean_old_composes set to True."""
+        config["clean_old_composes"] = True
         self.expected_sems = 1
 
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request('bodhi-2.0-1.fc17')
         task = self._make_task()
         compose_dir = os.path.join(self.tempdir, 'cool_dir')
+        config["compose_dir"] = compose_dir
 
         # Set up some directories that look similar to what might be found in production, with
         # some directories that don't match the pattern of ending in -<timestamp>.
@@ -1399,11 +1389,10 @@ That was the actual one'''
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.tasks.composer.subprocess.Popen') as Popen:
-                with mock.patch.dict(config, {'compose_dir': compose_dir}):
-                    release = session.query(Release).filter_by(name='F17').one()
-                    Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
-                    with mock_sends(*expected_messages):
-                        t.run()
+                release = session.query(Release).filter_by(name='F17').one()
+                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
+                with mock_sends(*expected_messages):
+                    t.run()
 
         # We expect these and only these directories to remain.
         expected_dirs = {
@@ -1462,6 +1451,7 @@ That was the actual one'''
         self.set_stable_request('bodhi-2.0-1.fc17')
         task = self._make_task()
         compose_dir = os.path.join(self.tempdir, 'cool_dir')
+        config["compose_dir"] = compose_dir
 
         t = RPMComposerThread(self.semmock, task['composes'][0],
                               'ralph', self.db_factory, compose_dir)
@@ -1476,11 +1466,10 @@ That was the actual one'''
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.tasks.composer.subprocess.Popen') as Popen:
-                with mock.patch.dict(config, {'compose_dir': compose_dir}):
-                    release = session.query(Release).filter_by(name='F17').one()
-                    Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
-                    with mock_sends(*expected_messages):
-                        t.run()
+                release = session.query(Release).filter_by(name='F17').one()
+                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
+                with mock_sends(*expected_messages):
+                    t.run()
 
         assert Popen.mock_calls == \
             [mock.call(
@@ -1680,7 +1669,6 @@ testmodule:master:20172:2
              'send_testing_digest': True,
              'status_comments': True}
 
-    @mock.patch.dict(config, {'test_gating.required': True})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1689,6 +1677,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.tasks.composer.time.sleep', return_value=None)
     def test_test_gating_status_failed(self, *args):
         """If the update's test_gating_status is failed it should be ejected."""
+        config["test_gating.required"] = True
         self.expected_sems = 1
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request('bodhi-2.0-1.fc17')
@@ -1724,7 +1713,6 @@ testmodule:master:20172:2
         assert u.request is None
         assert u.status == UpdateStatus.pending
 
-    @mock.patch.dict(config, {'test_gating.required': True})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1733,6 +1721,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.tasks.composer.time.sleep', return_value=None)
     def test_test_gating_status_passed(self, *args):
         """If the update's test_gating_status is passed it should not be ejected."""
+        config["test_gating.required"] = True
         self.expected_sems = 1
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request('bodhi-2.0-1.fc17')
@@ -2440,10 +2429,10 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         Popen.assert_called_once_with(skopeo_cmd, shell=False, stderr=-1, stdout=-1, cwd=None)
         assert f"{' '.join(skopeo_cmd)} returned a non-0 exit code: 1" in str(exc.value)
 
-    @mock.patch.dict(config, {'skopeo.extra_copy_flags': '--dest-tls-verify=false'})
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
     def test_skopeo_extra_copy_flags(self, Popen):
         """Test the skopeo.extra_copy_flags setting."""
+        config["skopeo.extra_copy_flags"] = "--dest-tls-verify=false"
         Popen.return_value.communicate.return_value = ('out', 'err')
         Popen.return_value.returncode = 0
         task = self._make_task(['--releases', 'F28C'])
@@ -2563,18 +2552,18 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
 
 class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase):
     """This class contains tests for the PungiComposerThread._get_master_repomd_url() method."""
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_17_primary_arches': 'armhfp x86_64',
-         'fedora_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
-         'fedora_testing_alt_master_repomd':
-         'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml'})
     def test_alternative_arch(self):
         """
         Assert that the *_alt_master_repomd settings are used when the release does define primary
         arches and the arch being looked up is not in the primary arch list.
         """
+        config.update({
+            'fedora_17_primary_arches': 'armhfp x86_64',
+            'fedora_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+            'fedora_testing_alt_master_repomd':
+                'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml',
+        })
         task = self._make_task()
         t = PungiComposerThread(self.semmock, task['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
@@ -2587,16 +2576,16 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
 
         self.assert_sems(0)
 
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_17_primary_arches': 'armhfp x86_64',
-         'fedora_testing_master_repomd': None,
-         'fedora_testing_alt_master_repomd': None})
     def test_master_repomd_undefined(self):
         """
         Assert that a ValueError is raised when the config is missing a master_repomd config for
         the release.
         """
+        config.update({
+            'fedora_17_primary_arches': 'armhfp x86_64',
+            'fedora_testing_master_repomd': None,
+            'fedora_testing_alt_master_repomd': None,
+        })
         task = self._make_task()
 
         t = PungiComposerThread(self.semmock, task['composes'][0],
@@ -2614,18 +2603,18 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
 
         self.assert_sems(0)
 
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_17_primary_arches': 'armhfp x86_64',
-         'fedora_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
-         'fedora_testing_alt_master_repomd':
-         'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml'})
     def test_primary_arch(self):
         """
         Assert that the *_master_repomd settings are used when the release does define primary
         arches and the arch being looked up is primary.
         """
+        config.update({
+            'fedora_17_primary_arches': 'armhfp x86_64',
+            'fedora_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+            'fedora_testing_alt_master_repomd':
+                'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml',
+        })
         task = self._make_task()
 
         t = PungiComposerThread(self.semmock, task['composes'][0],
@@ -2639,20 +2628,20 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
 
         self.assert_sems(0)
 
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_17_primary_arches': 'armhfp x86_64',
-         'fedora_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
-         'fedora_testing_alt_master_repomd':
-         'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml',
-         'fedora_17_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/Everything/'
-            '%s/repodata.repomd.xml'})
     def test_primary_arch_version_override(self):
         """
         Assert that if a release_version_request setting exists, that overrides release_request.
         """
+        config.update({
+            'fedora_17_primary_arches': 'armhfp x86_64',
+            'fedora_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+            'fedora_testing_alt_master_repomd':
+                'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml',
+            'fedora_17_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/Everything/'
+                '%s/repodata.repomd.xml',
+        })
         task = self._make_task()
 
         t = PungiComposerThread(self.semmock, task['composes'][0],
@@ -2667,17 +2656,17 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
 
         self.assert_sems(0)
 
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
-         'fedora_testing_alt_master_repomd':
-         'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml'})
     def test_primary_arches_undefined(self):
         """
         Assert that the *_master_repomd settings are used when the release does not have primary
         arches defined in the config file.
         """
+        config.update({
+            'fedora_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+            'fedora_testing_alt_master_repomd':
+                'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml',
+        })
         task = self._make_task()
         t = PungiComposerThread(self.semmock, task['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
@@ -2999,10 +2988,6 @@ class TestComposerThread_save_state(ComposerThreadBaseTestCase):
 
 class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     """This test class contains tests for the PungiComposerThread._wait_for_sync() method."""
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.tasks.composer.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
@@ -3011,6 +2996,10 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert correct operation when the repomd checksum matches immediately.
         """
+        config.update({
+            'fedora_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+        })
         urlopen.return_value.read.return_value = b'---\nyaml: rules'
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
@@ -3041,10 +3030,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         assert urlopen.mock_calls[0] in expected_calls
         save.assert_called_once_with(ComposeState.syncing_repo)
 
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.tasks.composer.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
@@ -3053,6 +3038,10 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert error when no checkarch is found.
         """
+        config.update({
+            'fedora_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+        })
         urlopen.return_value.read.return_value = b'---\nyaml: rules'
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
@@ -3071,10 +3060,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         assert "Not found an arch to _wait_for_sync with" in str(exc.value)
         save.assert_not_called()
 
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     @mock.patch('bodhi.server.tasks.composer.urlopen')
@@ -3082,6 +3067,10 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert correct operation when the repomd checksum matches on the third try.
         """
+        config.update({
+            'fedora_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+        })
         urlopen.return_value.read.side_effect = [b'wrong', b'nope', b'---\nyaml: rules']
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
@@ -3113,10 +3102,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         sleep.assert_has_calls([mock.call(200), mock.call(200)])
         save.assert_called_with(ComposeState.syncing_repo)
 
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     @mock.patch('bodhi.server.tasks.composer.urlopen')
@@ -3125,6 +3110,10 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert that an HTTPError is properly caught and logged, and that the algorithm continues.
         """
+        config.update({
+            'fedora_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'
+        })
         mocked_log.exception = mock.MagicMock()
         fake_url = mock.MagicMock()
         fake_url.read.return_value = b'---\nyaml: rules'
@@ -3159,10 +3148,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         sleep.assert_called_once_with(200)
         save.assert_called_once_with(ComposeState.syncing_repo)
 
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     @mock.patch('bodhi.server.tasks.composer.urlopen')
@@ -3172,6 +3157,10 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         Assert that an ConnectionResetError is properly caught and logged, and that the
         algorithm continues.
         """
+        config.update({
+            'fedora_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+        })
         mocked_log.exception = mock.MagicMock()
         fake_url = mock.MagicMock()
         fake_url.read.return_value = b'---\nyaml: rules'
@@ -3206,10 +3195,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         sleep.assert_called_once_with(200)
         save.assert_called_once_with(ComposeState.syncing_repo)
 
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     @mock.patch('bodhi.server.tasks.composer.urlopen')
@@ -3218,6 +3203,10 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert that an IncompleteRead is properly caught and logged, and that the code continues.
         """
+        config.update({
+            'fedora_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+        })
         mocked_log.exception = mock.MagicMock()
         urlopen.return_value.read.side_effect = [IncompleteRead('some_data'), b'---\nyaml: rules']
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
@@ -3252,9 +3241,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         sleep.assert_called_once_with(200)
         save.assert_called_once_with(ComposeState.syncing_repo)
 
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_testing_master_repomd': None})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.tasks.composer.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
@@ -3264,6 +3250,9 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert that a ValueError is raised when the needed *_master_repomd config is missing.
         """
+        config.update({
+            'fedora_testing_master_repomd': None,
+        })
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3314,10 +3303,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             'Cannot find local repomd: %s', os.path.join(repodata, 'repomd.xml'))
         save.assert_not_called()
 
-    @mock.patch.dict(
-        'bodhi.server.tasks.composer.config',
-        {'fedora_testing_master_repomd':
-            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     @mock.patch('bodhi.server.tasks.composer.urlopen')
@@ -3326,6 +3311,10 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert that a URLError is properly caught and logged, and that the algorithm continues.
         """
+        config.update({
+            'fedora_testing_master_repomd':
+                'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+        })
         mocked_log.exception = mock.MagicMock()
         fake_url = mock.MagicMock()
         fake_url.read.return_value = b'---\nyaml: rules'
@@ -3455,8 +3444,8 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         # Clear pending messages
         self.db.info['messages'] = []
 
-        with mock.patch.dict(config, {'smtp_server': 'smtp.example.com'}):
-            t.send_testing_digest()
+        config["smtp_server"] = "smtp.example.com"
+        t.send_testing_digest()
 
         SMTP.assert_called_once_with('smtp.example.com')
         sendmail = SMTP.return_value.sendmail
@@ -3487,8 +3476,8 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         # Clear pending messages
         self.db.info['messages'] = []
 
-        with mock.patch.dict(config, {'smtp_server': 'smtp.example.com'}):
-            t.send_testing_digest()
+        config["smtp_server"] = "smtp.example.com"
+        t.send_testing_digest()
 
         SMTP.assert_called_once_with('smtp.example.com')
         sendmail = SMTP.return_value.sendmail
@@ -3512,8 +3501,8 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         t._checkpoints = {}
         t.db = self.Session
 
-        with mock.patch.dict(config, {'fedora_test_announce_list': None}):
-            t.send_testing_digest()
+        config["fedora_test_announce_list"] = None
+        t.send_testing_digest()
 
         warning.assert_called_once_with(
             '%r undefined. Not sending updates-testing digest', 'fedora_test_announce_list')
@@ -3570,8 +3559,8 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
         link = os.path.join(stage_dir, t.id)
         os.symlink(t.path, link)
 
-        with mock.patch.dict(config, {'compose_stage_dir': stage_dir}):
-            t._stage_repo()
+        config["compose_stage_dir"] = stage_dir
+        t._stage_repo()
 
         assert os.path.islink(link)
         assert os.readlink(link) == t.path
@@ -3591,8 +3580,8 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
         os.makedirs(t.path)
         os.mkdir(stage_dir)
 
-        with mock.patch.dict(config, {'compose_stage_dir': stage_dir}):
-            t._stage_repo()
+        config["compose_stage_dir"] = stage_dir
+        t._stage_repo()
 
         link = os.path.join(stage_dir, t.id)
         assert os.path.islink(link)
@@ -3611,8 +3600,8 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
         stage_dir = os.path.join(self.tempdir, 'stage_dir')
         os.makedirs(t.path)
 
-        with mock.patch.dict(config, {'compose_stage_dir': stage_dir}):
-            t._stage_repo()
+        config["compose_stage_dir"] = stage_dir
+        t._stage_repo()
 
         link = os.path.join(stage_dir, t.id)
         assert os.path.islink(link)
@@ -3634,27 +3623,19 @@ class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCas
         t.id = 'f17-updates-testing'
         t.path = os.path.join(self.tempdir, 'latest-f17-updates-testing')
 
-        with mock.patch.dict(config, {'wait_for_repo_sig': False}):
-            with mock_sends(compose_schemas.RepoDoneV1.from_dict({
-                    'repo': t.id, 'path': t.path, 'agent': 'ralph'})):
-                t._wait_for_repo_signature()
+        config["wait_for_repo_sig"] = False
+        with mock_sends(compose_schemas.RepoDoneV1.from_dict({
+                'repo': t.id, 'path': t.path, 'agent': 'ralph'})):
+            t._wait_for_repo_signature()
 
         assert mocked_log.info.mock_calls == \
             [mock.call('Not waiting for a repo signature')]
 
-    @mock.patch('os.path.exists', side_effect=[
-        # First time, none of the signatures exist
-        False, False, False,
-        # Second time, we have two sets of signatures
-        True, False, True,
-        # Third time, we get all signatures and proceed
-        True, True, True
-    ])
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread.save_state')
     @mock.patch('time.sleep')
     @mock.patch('os.listdir', return_value=['x86_64', 'aarch64', 'source'])
     @mock.patch('bodhi.server.tasks.composer.log')
-    def test_wait_for_signatures(self, mocked_log, listdir, sleep, save, exists):
+    def test_wait_for_signatures(self, mocked_log, listdir, sleep, save):
         """Test that if wait_for_repo_sig is disabled, nothing happens."""
         mocked_log.info = mock.MagicMock()
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
@@ -3662,9 +3643,18 @@ class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCas
         t.id = 'f17-updates-testing'
         t.path = '/composepath'
 
-        with mock.patch.dict(config, {'wait_for_repo_sig': True}):
-            with mock_sends(compose_schemas.RepoDoneV1.from_dict({
-                    'repo': t.id, 'path': t.path, 'agent': 'ralph'})):
+        config["wait_for_repo_sig"] = True
+        with mock_sends(compose_schemas.RepoDoneV1.from_dict({
+            'repo': t.id, 'path': t.path, 'agent': 'ralph'})
+        ):
+            with mock.patch('os.path.exists', side_effect=[
+                # First time, none of the signatures exist
+                False, False, False,
+                # Second time, we have two sets of signatures
+                True, False, True,
+                # Third time, we get all signatures and proceed
+                True, True, True
+            ]) as exists:
                 t._wait_for_repo_signature()
 
         assert len(sleep.mock_calls) == 2
