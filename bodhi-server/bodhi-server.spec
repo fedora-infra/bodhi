@@ -25,6 +25,7 @@ BuildRequires:  python3-librepo
 BuildRequires:  python3-createrepo_c
 BuildRequires:  createrepo_c
 BuildRequires:  skopeo
+BuildRequires:  dnf
 
 Requires: bodhi-client == %{version}-%{release}
 Requires: python3-bodhi-messages == %{version}-%{release}
