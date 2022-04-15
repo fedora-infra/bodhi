@@ -3,13 +3,19 @@ from pyramid.httpexceptions import HTTPUnauthorized
 import pytest
 
 from bodhi.server import models
-from bodhi.server.auth.utils import remember_me
+from bodhi.server.auth.utils import get_final_redirect, remember_me
 
 from .. import base
 
 
 class TestRememberMe(base.BasePyTestCase):
     """Test the remember_me() function."""
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        # Declare the routes on the testing config, otherwise req.route_url() won't work.
+        self.config.add_route('home', '/')
+        self.config.include("bodhi.server.auth")
 
     def _generate_req_info(self, openid_endpoint):
         """Generate the request and info to be handed to remember_me() for these tests."""
@@ -93,3 +99,20 @@ class TestRememberMe(base.BasePyTestCase):
         user = models.User.get('lmacken')
         assert len(user.groups) == 0
         assert len(models.Group.get('releng').users) == 0
+
+
+class TestGetFinalRedirect(base.BasePyTestCase):
+    """Test the get_final_redirect() function."""
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        # Declare the routes on the testing config, otherwise req.route_url() won't work.
+        self.config.add_route('home', '/')
+        self.config.include("bodhi.server.auth")
+
+    def test_no_loop(self):
+        """Make sure we don't redirect to the login page in a loop."""
+        req = testing.DummyRequest()
+        req.session['came_from'] = "http://example.com/login?method=openid"
+        response = get_final_redirect(req)
+        assert response.location == "/"
