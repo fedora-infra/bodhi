@@ -138,7 +138,7 @@ new_edit_options = [
     click.option('--requirements',
                  help='Space or comma-separated list of required Taskotron tasks'),
     click.option('--suggest', help='Post-update user suggestion',
-                 type=click.Choice(['logout', 'reboot'])),
+                 type=click.Choice(constants.SUGGEST_TYPES)),
     click.option('--display-name',
                  help='The name of the update', default=None),
     click.option('--from-tag', help='Use builds from a Koji tag instead of specifying '
@@ -627,7 +627,7 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
               type=click.Choice(['pending', 'testing', 'stable', 'obsolete',
                                  'unpushed']))
 @click.option('--suggest', help='Filter by post-update user suggestion',
-              type=click.Choice(['logout', 'reboot']))
+              type=click.Choice(constants.SUGGEST_TYPES))
 @click.option('--type', default=None, help='Filter by update type',
               type=click.Choice(constants.UPDATE_TYPES))
 @click.option('--user', help='Updates submitted by a specific user')
