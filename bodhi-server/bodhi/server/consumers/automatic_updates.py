@@ -183,6 +183,10 @@ class AutomaticUpdateHandler:
                             closing_bugs.append(bug)
             else:
                 notes = f"Automatic update for {bnvr}."
+            if rel.composed_by_bodhi:
+                branch = rel.branch
+            else:
+                branch = 'rawhide'
             update = Update(
                 release=rel,
                 builds=[build],
@@ -194,7 +198,7 @@ class AutomaticUpdateHandler:
                 autokarma=False,
                 user=user,
                 status=UpdateStatus.pending,
-                critpath=Update.contains_critpath_component([build], rel.branch),
+                critpath=Update.contains_critpath_component([build], branch),
             )
 
             # Comment on the update that it was automatically created.

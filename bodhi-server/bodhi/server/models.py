@@ -2415,8 +2415,12 @@ class Update(Base):
         user = User.get(request.user.name)
         data['user'] = user
         caveats = []
+        if data['release'].composed_by_bodhi:
+            branch = data['release'].branch
+        else:
+            branch = 'rawhide'
         data['critpath'] = cls.contains_critpath_component(
-            data['builds'], data['release'].branch)
+            data['builds'], branch)
 
         # Be sure to not add an empty string as alternative title
         # and strip whitespaces from it
@@ -2582,8 +2586,11 @@ class Update(Base):
                     # an override
                     db.delete(b)
 
-        data['critpath'] = cls.contains_critpath_component(
-            up.builds, up.release.branch)
+        if up.release.composed_by_bodhi:
+            branch = up.release.branch
+        else:
+            branch = 'rawhide'
+        data['critpath'] = cls.contains_critpath_component(up.builds, branch)
 
         del(data['builds'])
 
