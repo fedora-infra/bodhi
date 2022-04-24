@@ -26,7 +26,7 @@ jobs:
       matrix:
         release: [f35]
 
-  build:
+  build_in_koji:
     name: Build ${{matrix.module}} on ${{matrix.release}} in Koji
     runs-on: ubuntu-latest
     needs: generate_srpms

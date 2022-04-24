@@ -16,10 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from unittest import mock
-
 from bodhi.server.config import config
 from bodhi.server.models import Update, User
+
 from .. import base
 
 
@@ -54,8 +53,8 @@ class TestUsersService(base.BasePyTestCase):
         url = 'https://apps.fedoraproject.org/img/icons/bodhi-24.png'
         assert res.json_body['user']['avatar'] == url
 
-    @mock.patch.dict(config, {'libravatar_enabled': True})
     def test_get_single_avatar(self):
+        config["libravatar_enabled"] = True
         res = self.app.get('/users/guest')
         assert res.json_body['user']['name'] == 'guest'
 

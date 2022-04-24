@@ -15,4 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Test the bodhi.server package."""
+"""Pytest configuration."""
+
+import os
+
+
+# Set BODHI_CONFIG to our testing ini file. This is done here before bodhi itself is imported.
+if "BODHI_CONFIG" not in os.environ:
+    os.environ["BODHI_CONFIG"] = os.path.join(os.path.dirname(__file__), "testing.ini")

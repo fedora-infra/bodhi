@@ -262,10 +262,10 @@ class TestMain(base.BasePyTestCase):
         generic._generate_home_page_stats.invalidate()
         assert generic._generate_home_page_stats() == 7
 
-    @mock.patch.dict('bodhi.server.config.config', {'warm_cache_on_start': True})
     def test_warms_up_releases_cache(self):
         """main() should warm up the _all_releases cache."""
         # Let's clear the release cache
+        config["warm_cache_on_start"] = True
         models.Release.clear_all_releases_cache()
 
         server.main({}, testing='guest', session=self.db)

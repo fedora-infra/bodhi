@@ -17,13 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Contains a useful base test class that helps with common testing needs for bodhi.server."""
 from contextlib import contextmanager
+from datetime import datetime, timedelta
 from unittest import mock
 import os
 import subprocess
 import unittest
 
 from pyramid import testing
+from pyramid.paster import get_appsettings
 from sqlalchemy import event
+from sqlalchemy.orm.exc import NoResultFound
 from webtest import TestApp
 import createrepo_c
 
@@ -39,17 +42,14 @@ from bodhi.server import (
     webapp,
 )
 
-from . import create_update, populate
-
 
 original_config = config.config.copy()
 engine = None
 _app = None
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
-DEFAULT_DB = 'sqlite:///' + os.path.join(PROJECT_PATH, 'bodhi-tests.sqlite')
 
 
-def _configure_test_db(db_uri=DEFAULT_DB):
+def _configure_test_db(db_uri):
     """
     Create and configure a test database for Bodhi.
 
@@ -98,6 +98,119 @@ def _configure_test_db(db_uri=DEFAULT_DB):
     return engine
 
 
+def create_update(session, build_nvrs, release_name='F17'):
+    """
+    Use the given session to create and return an Update with the given iterable of build_nvrs.
+
+    Each build_nvr should be a string describing the name, version, and release for the build
+    separated by dashes. For example, build_nvrs might look like this:
+
+    ('bodhi-2.3.3-1.fc24', 'python-fedora-atomic-composer-2016.3-1.fc24')
+
+    You can optionally pass a release_name to select a different release than the default F17, but
+    the release must already exist in the database.
+
+    Args:
+        build_nvrs (iterable): An iterable of strings of NVRs to put into the update.
+        release_name (str): The name of the release to associate with the update.
+    Returns:
+        bodhi.server.models.Update: The generated update.
+    """
+    release = session.query(models.Release).filter_by(name=release_name).one()
+    user = session.query(models.User).filter_by(name='guest').one()
+
+    builds = []
+    for nvr in build_nvrs:
+        name, version, rel = nvr.rsplit('-', 2)
+        try:
+            package = session.query(models.RpmPackage).filter_by(name=name).one()
+        except NoResultFound:
+            package = models.RpmPackage(name=name)
+            session.add(package)
+
+        try:
+            testcase = session.query(models.TestCase).filter_by(name='Wat').one()
+        except NoResultFound:
+            testcase = models.TestCase(name='Wat')
+            session.add(testcase)
+
+        build = models.RpmBuild(nvr=nvr, release=release, package=package, signed=True)
+        build.testcases.append(testcase)
+        builds.append(build)
+        session.add(build)
+
+        # Add a buildroot override for this build
+        expiration_date = datetime.utcnow()
+        expiration_date = expiration_date + timedelta(days=1)
+        override = models.BuildrootOverride(build=build, submitter=user,
+                                            notes='blah blah blah',
+                                            expiration_date=expiration_date)
+        session.add(override)
+
+    update = models.Update(
+        builds=builds, user=user, request=models.UpdateRequest.testing,
+        notes='Useful details!', type=models.UpdateType.bugfix,
+        date_submitted=datetime(1984, 11, 2),
+        requirements='rpmlint', stable_karma=3, unstable_karma=-3, release=release)
+    session.add(update)
+    return update
+
+
+def populate(db):
+    """
+    Create some data for tests to use.
+
+    Args:
+        db (sqlalchemy.orm.session.Session): The database session.
+    """
+    user = models.User(name='guest')
+    db.add(user)
+    anonymous = models.User(name='anonymous')
+    db.add(anonymous)
+    provenpackager = models.Group(name='provenpackager')
+    db.add(provenpackager)
+    packager = models.Group(name='packager')
+    db.add(packager)
+    user.groups.append(packager)
+    release = models.Release(
+        name='F17', long_name='Fedora 17',
+        id_prefix='FEDORA', version='17',
+        dist_tag='f17', stable_tag='f17-updates',
+        testing_tag='f17-updates-testing',
+        candidate_tag='f17-updates-candidate',
+        pending_signing_tag='f17-updates-signing-pending',
+        pending_testing_tag='f17-updates-testing-pending',
+        pending_stable_tag='f17-updates-pending',
+        override_tag='f17-override',
+        branch='f17', state=models.ReleaseState.current,
+        create_automatic_updates=True,
+        package_manager=models.PackageManager.unspecified, testing_repository=None)
+    db.add(release)
+    db.flush()
+    # This mock will help us generate a consistent update alias.
+    with mock.patch(target='uuid.uuid4', return_value='wat'):
+        update = create_update(db, ['bodhi-2.0-1.fc17'])
+    update.type = models.UpdateType.bugfix
+    update.severity = models.UpdateSeverity.medium
+    bug = models.Bug(bug_id=12345)
+    db.add(bug)
+    update.bugs.append(bug)
+
+    comment = models.Comment(karma=1, text="wow. amaze.")
+    db.add(comment)
+    comment.user = user
+    update.comments.append(comment)
+
+    comment = models.Comment(karma=0, text="srsly.  pretty good.")
+    comment.user = anonymous
+    db.add(comment)
+    update.comments.append(comment)
+
+    db.add(update)
+
+    db.commit()
+
+
 class BaseTestCaseMixin:
     """
     The base test class for Bodhi.
@@ -111,58 +224,19 @@ class BaseTestCaseMixin:
 
     _populate_db = True
 
-    app_settings = {
-        'authtkt.secret': 'sssshhhhhh',
-        'authtkt.secure': False,
-        'mako.directories': 'bodhi.server:templates',
-        'session.type': 'memory',
-        'session.key': 'testing',
-        'session.secret': 'foo',
-        'dogpile.cache.backend': 'dogpile.cache.memory',
-        'dogpile.cache.expiration_time': 0,
-        'cache.type': 'memory',
-        'cache.regions': 'default_term, second, short_term, long_term',
-        'cache.second.expire': '1',
-        'cache.short_term.expire': '60',
-        'cache.default_term.expire': '300',
-        'cache.long_term.expire': '3600',
-        'acl_system': 'dummy',
-        'buildsystem': 'dummy',
-        'important_groups': 'proventesters provenpackager releng',
-        'admin_groups': 'bodhiadmin releng',
-        'admin_packager_groups': 'provenpackager',
-        'mandatory_packager_groups': 'packager',
-        'critpath_pkgs': 'kernel',
-        'critpath.num_admin_approvals': 0,
-        'bugtracker': 'dummy',
-        'stats_blacklist': 'bodhi autoqa',
-        'system_users': 'bodhi autoqa',
-        'openid.provider': 'https://id.stg.fedoraproject.org/openid/',
-        'openid.url': 'https://id.stg.fedoraproject.org',
-        'test_case_base_url': 'https://fedoraproject.org/wiki/',
-        'openid_template': '{username}.id.fedoraproject.org',
-        'site_requirements': 'rpmlint',
-        'resultsdb_api_url': 'whatever',
-        'base_address': 'http://0.0.0.0:6543',
-        'cors_connect_src': 'http://0.0.0.0:6543',
-        'cors_origins_ro': 'http://0.0.0.0:6543',
-        'cors_origins_rw': 'http://0.0.0.0:6543',
-        'sqlalchemy.url': DEFAULT_DB,
-        'warm_cache_on_start': False,
-        'pyramid.debug_notfound': False,
-        'pyramid.debug_authorization': False,
-        'docs_path': os.path.join(PROJECT_PATH, "..", "docs"),
-    }
-
     def _setup_method(self):
         """Set up Bodhi for testing."""
         self.config = testing.setUp()
+        self.app_settings = get_appsettings(os.environ["BODHI_CONFIG"])
+        config.config.clear()
+        config.config.load_config(self.app_settings)
+
         # Ensure "cached" objects are cleared before each test.
         models.Release.clear_all_releases_cache()
         models.Release._tag_cache = None
 
         if engine is None:
-            self.engine = _configure_test_db()
+            self.engine = _configure_test_db(config.config["sqlalchemy.url"])
         else:
             self.engine = engine
 
