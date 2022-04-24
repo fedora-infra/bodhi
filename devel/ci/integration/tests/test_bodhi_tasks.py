@@ -93,6 +93,7 @@ def test_update_edit(
             "AND r.id_prefix = 'FEDORA' "
             "AND u.locked = FALSE AND u.status IN ('pending', 'testing') "
             "AND u.type != 'security' "
+            "AND u.from_tag IS NULL "
             "AND us.name NOT LIKE '%packagerbot%' "
             "ORDER BY u.date_submitted DESC LIMIT 1"
         )
