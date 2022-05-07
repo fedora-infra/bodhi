@@ -242,6 +242,14 @@ padding-bottom: 2em;
     box-shadow: 0 0 5px 0px #eee;
 }
 
+.card.user-comment.negative-karma-comment {
+    border-color: #dc3545!important;
+}
+
+.negative-karma-comment .card-header {
+    background-color: #ffc9c9;
+}
+
 .custom-select{
     -webkit-appearance: none;
 }
