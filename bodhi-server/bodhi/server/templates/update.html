@@ -358,7 +358,7 @@ if can_edit and update.release.composed_by_bodhi:
                   <div class="row">
                     <div class="col font-weight-bold text-muted">Karma</div>
                     <div class="col-xs-auto font-weight-bold">
-                        ${self.fragments.karma(update.karma, show_digit=True)}
+                        ${self.fragments.karma(update.karma, show_digit=True, show_details=update._composite_karma)}
                     </div>
                   </div>
               </div>
