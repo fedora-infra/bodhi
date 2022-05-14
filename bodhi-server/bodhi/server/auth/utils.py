@@ -152,11 +152,14 @@ def get_final_redirect(request: 'pyramid.request.Request'):
     Returns:
         HTTPFound: An HTTP 302 response redirecting to the right URL.
     """
-    came_from = request.session.get('came_from', '/')
+    came_from = request.session.get('came_from', request.route_path("home"))
     request.session.pop('came_from', None)
 
     # Mitigate "Covert Redirect"
     if not came_from.startswith(request.host_url):
-        came_from = '/'
+        came_from = request.route_path("home")
+    # Don't redirect endlessly to the login view
+    if came_from.startswith(request.route_url('login')):
+        came_from = request.route_path("home")
 
     return HTTPFound(location=came_from)
