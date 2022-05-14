@@ -91,7 +91,11 @@ ${statusmap[status]}\
 % else:
 <div class="row my-2">
   <div class="col-md-12">
+  % if comment.karma and comment.karma < 0:
+    <div class="card my-2 user-comment negative-karma-comment">
+  % else:
     <div class="card my-2 user-comment">
+  % endif
       <div class="card-header p-2 text-muted">
         <div class="row no-gutters">
           <div class="col font-size-09">

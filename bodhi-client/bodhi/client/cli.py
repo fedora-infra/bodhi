@@ -557,13 +557,19 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
                 sys.exit(1)
             if kwargs['addbuilds'] or kwargs['removebuilds']:
                 click.echo(
-                    "ERROR: The --from-tag option can't be used together with"
-                    " --addbuilds or --removebuilds.", err=True
+                    "ERROR: You have to use the web interface to update"
+                    " builds in a side-tag update.", err=True
                 )
                 sys.exit(1)
             kwargs['from_tag'] = former_update['from_tag']
             del kwargs['builds']
         else:
+            if former_update.get('from_tag', None):
+                click.echo(
+                    "ERROR: This update was created from a side-tag."
+                    " Please add --from_tag and try again.", err=True
+                )
+                sys.exit(1)
             kwargs.pop('from_tag')
             if kwargs['addbuilds']:
                 for build in kwargs['addbuilds'].split(','):

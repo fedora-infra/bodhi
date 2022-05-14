@@ -1812,8 +1812,8 @@ class TestEdit:
                        '--url', 'http://localhost:6543'])
 
         assert result.exit_code == 1
-        assert result.output == ("ERROR: The --from-tag option can't be used together with"
-                                 " --addbuilds or --removebuilds.\n")
+        assert result.output == ("ERROR: You have to use the web interface to update"
+                                 " builds in a side-tag update.\n")
         mocked_client_class.query.assert_called_with(updateid='FEDORA-2017-c95b33872d')
 
     def test_from_tag_removebuilds(self, mocked_client_class, mocker):
@@ -1833,8 +1833,29 @@ class TestEdit:
                        '--url', 'http://localhost:6543'])
 
         assert result.exit_code == 1
-        assert result.output == ("ERROR: The --from-tag option can't be used together with"
-                                 " --addbuilds or --removebuilds.\n")
+        assert result.output == ("ERROR: You have to use the web interface to update"
+                                 " builds in a side-tag update.\n")
+        mocked_client_class.query.assert_called_with(updateid='FEDORA-2017-c95b33872d')
+
+    def test_from_tag_missing_flag(self, mocked_client_class, mocker):
+        """
+        Assert --from-tag is required when editing a side-tag update.
+        """
+        data = client_test_data.EXAMPLE_QUERY_MUNCH.copy()
+        data.updates[0]['from_tag'] = 'fake_tag'
+        mocked_client_class.query = mocker.Mock(return_value=data)
+
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            cli.edit, ['FEDORA-2017-c95b33872d',
+                       '--addbuilds', 'tar-1.29-4.fc25,nedit-5.7-1.fc25',
+                       '--notes', 'Updated package.',
+                       '--url', 'http://localhost:6543'])
+
+        assert result.exit_code == 1
+        assert result.output == ("ERROR: This update was created from a side-tag."
+                                 " Please add --from_tag and try again.\n")
         mocked_client_class.query.assert_called_with(updateid='FEDORA-2017-c95b33872d')
 
     def test_notes_and_notes_file(self, mocked_client_class):
