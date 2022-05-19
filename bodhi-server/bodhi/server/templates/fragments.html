@@ -1,6 +1,6 @@
 <%namespace name="util" module="bodhi.server.util"/>
 
-<%def name="karma(karma, show_digit=False, optional_text=None, zero_thumbsup=True)">
+<%def name="karma(karma, show_digit=False, optional_text=None, zero_thumbsup=True, show_details=None)">
   <%doc>
   Return a span with the karma thumbsup icon, and an optional count of the karma.
 
@@ -13,26 +13,47 @@
       optional_text (str): a string to place after the icon
       zero_thumbsup: if true, and karma is 0, show the thumbsup. otherwise if false,
                      and karma is zero, show thumbsdown.
+      show_details: 2-tuple of the positive and negative karma of an update,
+                    usually provided by _composite_karma property.
   
   </%doc>
-  
+  % if show_details == (0,0):
+    <% show_details = None %>\
+  % endif
   % if karma < 0:
-    <span class="text-danger"><i class="fa fa-thumbs-down pr-1"></i> 
+    <span class="text-danger">
+    <span class="min-width-3 d-inline-block text-center">
+    % if show_details and show_details[0] > 0:
+      <sup class="text-success"><i class="fa fa-thumbs-up"></i></sup>
+    % endif
+    <i class="fa fa-thumbs-down pr-1"></i>
   % elif karma > 0:
-    <span class="text-success"><i class="fa fa-thumbs-up pr-1"></i> 
+    <span class="text-success">
+    <span class="min-width-3 d-inline-block text-center">
+    % if show_details and show_details[1] < 0:
+      <i class="fa fa-thumbs-up"></i>
+      <sub class="text-danger"><i class="fa fa-thumbs-down pr-1"></i></sub>
+    % else:
+      <i class="fa fa-thumbs-up pr-1"></i>
+    % endif
   % else:
     <span class="text-muted">
-    % if zero_thumbsup:
+    <span class="min-width-3 d-inline-block text-center">
+    % if zero_thumbsup and not show_details:
       <i class="fa fa-thumbs-up text-muted pr-1"></i>
-    % else:
+    % elif not show_details:
       <i class="fa fa-thumbs-down text-muted pr-1"></i>
+    % else:
+      <sup class="text-success"><i class="fa fa-thumbs-up"></i></sup>
+      <sub class="text-danger"><i class="fa fa-thumbs-down pr-1"></i></sub>
     % endif
   %endif
+  </span>
   % if optional_text:
     ${optional_text} 
   % endif
   % if show_digit:
-    ${karma}
+      ${karma}
   % endif
   </span>
 </%def>
@@ -91,7 +112,11 @@ ${statusmap[status]}\
 % else:
 <div class="row my-2">
   <div class="col-md-12">
+  % if comment.karma and comment.karma < 0:
+    <div class="card my-2 user-comment negative-karma-comment">
+  % else:
     <div class="card my-2 user-comment">
+  % endif
       <div class="card-header p-2 text-muted">
         <div class="row no-gutters">
           <div class="col font-size-09">
@@ -209,8 +234,8 @@ ${statusmap[status]}\
               </div>
             %endif
             %if display_karma:
-            <div class="col-auto min-width-3 font-weight-bold mr-3">
-                <div>${karma(update.karma, show_digit=True)}</div>
+            <div class="col-auto min-width-5 font-weight-bold mr-3">
+                <div>${karma(update.karma, show_digit=True, show_details=update._composite_karma)}</div>
             </div>
             %endif
       </div>
