@@ -138,7 +138,7 @@ new_edit_options = [
     click.option('--requirements',
                  help='Space or comma-separated list of required Taskotron tasks'),
     click.option('--suggest', help='Post-update user suggestion',
-                 type=click.Choice(['logout', 'reboot'])),
+                 type=click.Choice(constants.SUGGEST_TYPES)),
     click.option('--display-name',
                  help='The name of the update', default=None),
     click.option('--from-tag', help='Use builds from a Koji tag instead of specifying '
@@ -197,7 +197,7 @@ release_options = [
                                                'archived']),
                  help='The state of the release'),
     click.option('--mail-template', help='Name of the email template for this release'),
-    click.option('--composed-by-bodhi/--not-composed-by-bodhi', is_flag=True, default=True,
+    click.option('--composed-by-bodhi/--not-composed-by-bodhi', is_flag=True, default=None,
                  help='The flag that indicates whether the release is composed by Bodhi or not'),
     click.option('--package-manager', type=click.Choice(['unspecified', 'dnf', 'yum']),
                  help='The package manager used by this release'),
@@ -207,7 +207,7 @@ release_options = [
         '--create-automatic-updates/--no-create-automatic-updates',
         help=('Configure for this release, whether or not automatic updates are '
               'created for builds which are tagged into its Koji candidate tag.'),
-        is_flag=True, default=False),
+        is_flag=True, default=None),
     staging_option,
     url_option,
     debug_option]
@@ -557,13 +557,19 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
                 sys.exit(1)
             if kwargs['addbuilds'] or kwargs['removebuilds']:
                 click.echo(
-                    "ERROR: The --from-tag option can't be used together with"
-                    " --addbuilds or --removebuilds.", err=True
+                    "ERROR: You have to use the web interface to update"
+                    " builds in a side-tag update.", err=True
                 )
                 sys.exit(1)
             kwargs['from_tag'] = former_update['from_tag']
             del kwargs['builds']
         else:
+            if former_update.get('from_tag', None):
+                click.echo(
+                    "ERROR: This update was created from a side-tag."
+                    " Please add --from_tag and try again.", err=True
+                )
+                sys.exit(1)
             kwargs.pop('from_tag')
             if kwargs['addbuilds']:
                 for build in kwargs['addbuilds'].split(','):
@@ -627,7 +633,7 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
               type=click.Choice(['pending', 'testing', 'stable', 'obsolete',
                                  'unpushed']))
 @click.option('--suggest', help='Filter by post-update user suggestion',
-              type=click.Choice(['logout', 'reboot']))
+              type=click.Choice(constants.SUGGEST_TYPES))
 @click.option('--type', default=None, help='Filter by update type',
               type=click.Choice(constants.UPDATE_TYPES))
 @click.option('--user', help='Updates submitted by a specific user')
@@ -1219,14 +1225,20 @@ def releases():
 @handle_errors
 @add_options(release_options)
 @add_options(openid_options)
-def create_release(url: str, id_provider: str, client_id: str, debug: bool, composed_by_bodhi: bool,
-                   **kwargs):
+def create_release(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
     """Create a release."""
     client = bindings.BodhiClient(
         base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
     )
     kwargs['csrf_token'] = client.csrf()
-    kwargs['composed_by_bodhi'] = composed_by_bodhi
+    # the defaults for these are set to None so that edit_release
+    # does not change the current value unless it was passed on the
+    # command line; for creating a new release, we set the defaults
+    # here
+    if kwargs['composed_by_bodhi'] is None:
+        kwargs['composed_by_bodhi'] = True
+    if kwargs['create_automatic_updates'] is None:
+        kwargs['create_automatic_updates'] = False
     kwargs['eol'] = kwargs.pop('eol').date() if kwargs['eol'] else None
     save(client, **kwargs)
 
@@ -1236,8 +1248,7 @@ def create_release(url: str, id_provider: str, client_id: str, debug: bool, comp
 @add_options(release_options)
 @add_options(openid_options)
 @click.option('--new-name', help='New release name (eg: F20)')
-def edit_release(url: str, id_provider: str, client_id: str, debug: bool, composed_by_bodhi: bool,
-                 **kwargs):
+def edit_release(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
     """Edit an existing release."""
     client = bindings.BodhiClient(
         base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
@@ -1261,7 +1272,6 @@ def edit_release(url: str, id_provider: str, client_id: str, debug: bool, compos
 
     data['edited'] = edited
     data['csrf_token'] = csrf
-    data['composed_by_bodhi'] = composed_by_bodhi
 
     new_name = kwargs.pop('new_name')
 
