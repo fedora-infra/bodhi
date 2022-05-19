@@ -15,3 +15,4 @@ SCOPE = " ".join([
 ])
 UPDATE_TYPES = ['security', 'bugfix', 'enhancement', 'newpackage']
 REQUEST_TYPES = ['testing', 'stable', 'unpush']
+SUGGEST_TYPES = ['unspecified', 'reboot', 'logout']
