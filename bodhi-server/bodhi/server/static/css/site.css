@@ -228,6 +228,12 @@ padding-bottom: 2em;
 .min-width-3{
     min-width: 3em;
 }
+.min-width-4{
+    min-width: 4em;
+}
+.min-width-5{
+    min-width: 5em;
+}
 
 .min-width-35{
     min-width: 3.5em;
