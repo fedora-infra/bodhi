@@ -1358,6 +1358,14 @@ def test_get_comments_rss(bodhi_container, db_container):
 
     bodhi_ip = bodhi_container.get_IPv4s()[0]
 
+    try:
+        assert http_response.ok
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
     rss = ET.fromstring(http_response.text)
     rss_childs = list(rss)
     channel = rss_childs[0]
