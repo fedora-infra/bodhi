@@ -1,0 +1,1 @@
+Adding or removing builds from a side-tag update by CLI causes the `from_tag` property to be removed
