@@ -228,6 +228,12 @@ padding-bottom: 2em;
 .min-width-3{
     min-width: 3em;
 }
+.min-width-4{
+    min-width: 4em;
+}
+.min-width-5{
+    min-width: 5em;
+}
 
 .min-width-35{
     min-width: 3.5em;
@@ -240,6 +246,14 @@ padding-bottom: 2em;
 .card.user-comment{
     border-color: #ddd!important;
     box-shadow: 0 0 5px 0px #eee;
+}
+
+.card.user-comment.negative-karma-comment {
+    border-color: #dc3545!important;
+}
+
+.negative-karma-comment .card-header {
+    background-color: #ffc9c9;
 }
 
 .custom-select{
