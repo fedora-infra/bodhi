@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 import hashlib
 import math
 import xml.etree.ElementTree as ET
@@ -708,7 +708,6 @@ def test_get_packages_json(bodhi_container, db_container):
             curs.execute(query_packages, (package_name, ))
             rows = curs.fetchall()
             for row in rows:
-                print(row)
                 package = {}
                 package['name'] = package_name
                 package['type'] = row[0]
@@ -718,7 +717,7 @@ def test_get_packages_json(bodhi_container, db_container):
 
     # GET on package with particular name
     with bodhi_container.http_client(port="8080") as c:
-        http_response = c.get(f"/packages/?name={packages[0]['name']}")
+        http_response = c.get(f"/packages/?name={quote(packages[0]['name'])}")
 
     try:
         assert http_response.ok
@@ -733,6 +732,7 @@ def test_get_packages_json(bodhi_container, db_container):
         response_packages.sort(key=lambda p: p["type"])
         assert packages == response_packages
     except AssertionError:
+        print("Packages:", packages)
         print(http_response)
         print(http_response.text)
         with read_file(bodhi_container, "/httpdir/errorlog") as log:
@@ -1358,6 +1358,14 @@ def test_get_comments_rss(bodhi_container, db_container):
 
     bodhi_ip = bodhi_container.get_IPv4s()[0]
 
+    try:
+        assert http_response.ok
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
     rss = ET.fromstring(http_response.text)
     rss_childs = list(rss)
     channel = rss_childs[0]
