@@ -59,6 +59,7 @@ class UnitJob(Job):
             '  pushd "/tmp/${VERSION[0]}-${VERSION[1]}"; '
             '  python setup.py develop; '
             '  popd; '
+            '  popd; '
             'done; '
             # Run the tests in each submodule
             f'for submodule in {modules}; do '

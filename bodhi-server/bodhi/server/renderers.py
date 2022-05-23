@@ -18,15 +18,19 @@
 """Define special view renderers, such as RSS."""
 import logging
 import operator
+import re
 
-from pytz import utc
 from feedgen.feed import FeedGenerator
 from pyramid.exceptions import HTTPBadRequest
+from pytz import utc
 
 from bodhi.server.util import markup
 
 
 log = logging.getLogger(__name__)
+INVALID_CHARS_RE = re.compile(
+    '[^\u0020-\uD7FF\u0009\u000A\u000D\uE000-\uFFFD\U00010000-\U0010FFFF]+'
+)
 
 
 def rss(info):
@@ -165,7 +169,10 @@ def rss(info):
                 # Because we have to use methods to fill feed entry attributes,
                 # it's done by getting methods by name and calling them
                 # on the same line.
-                getattr(feed_item, name)(getter(value))
+                feed_value = getter(value)
+                if name == "description":
+                    feed_value = INVALID_CHARS_RE.sub("", feed_value)
+                getattr(feed_item, name)(feed_value)
 
         return feed.rss_str()
 

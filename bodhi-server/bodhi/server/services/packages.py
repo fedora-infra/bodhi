@@ -20,7 +20,7 @@ import math
 
 from cornice import Service
 from cornice.validators import colander_querystring_validator
-from sqlalchemy import func, distinct
+from sqlalchemy import distinct, func
 from sqlalchemy.sql.expression import case
 
 from bodhi.server.models import Package
