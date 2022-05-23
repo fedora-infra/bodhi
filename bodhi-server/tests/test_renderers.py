@@ -17,14 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test bodhi.server.renderers."""
 
-import pytest
 from pyramid.exceptions import HTTPBadRequest
 from pyramid.testing import DummyRequest
+import pytest
 
-from bodhi.server import renderers
+from bodhi.server import models, renderers
+
+from .base import BasePyTestCase
 
 
-class TestRSS:
+class TestRSS(BasePyTestCase):
     """Test the rss() function."""
 
     def test_invalid_no_request(self):
@@ -41,3 +43,16 @@ class TestRSS:
 
         assert text == 'Invalid RSS feed request'
         assert request.response.status_code == 400
+
+    def test_invalid_caracters(self):
+        request = DummyRequest()
+        # Declare the routes on the testing config, otherwise req.route_url() won't work.
+        self.config.include('cornice')
+        self.config.scan('bodhi.server.services')
+        comment = self.db.query(models.Comment).first()
+        comment.text = "\x1b"
+        try:
+            output = renderers.rss(None)({"comments": [comment]}, {'request': request})
+        except ValueError as e:
+            assert False, e
+        assert output.startswith(b"<?xml version='1.0' encoding='UTF-8'?>")
