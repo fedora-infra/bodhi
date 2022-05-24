@@ -760,7 +760,7 @@ python-versions = ">=2.6"
 
 [[package]]
 name = "pika"
-version = "1.2.0"
+version = "1.2.1"
 description = "Pika Python AMQP Client Library"
 category = "main"
 optional = false
@@ -1996,8 +1996,8 @@ pbr = [
     {file = "pbr-5.8.1.tar.gz", hash = "sha256:66bc5a34912f408bb3925bf21231cb6f59206267b7f63f3503ef865c1a292e25"},
 ]
 pika = [
-    {file = "pika-1.2.0-py2.py3-none-any.whl", hash = "sha256:59da6701da1aeaf7e5e93bb521cc03129867f6e54b7dd352c4b3ecb2bd7ec624"},
-    {file = "pika-1.2.0.tar.gz", hash = "sha256:f023d6ac581086b124190cb3dc81dd581a149d216fa4540ac34f9be1e3970b89"},
+    {file = "pika-1.2.1-py2.py3-none-any.whl", hash = "sha256:fe89e95fb2d8d06fd713eeae2938299941e0ec329db37afca758f5f9458ce169"},
+    {file = "pika-1.2.1.tar.gz", hash = "sha256:e5fbf3a0a3599f4e114f6e4a7af096f9413a8f24f975c2657ba2fac3c931434f"},
 ]
 plaster = [
     {file = "plaster-1.0-py2.py3-none-any.whl", hash = "sha256:215c921a438b5349931fd7df9a5a11a3572947f20f4bc6dd622ac08f1c3ba249"},
