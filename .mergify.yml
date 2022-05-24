@@ -1,8 +1,6 @@
 queue_rules:
   - name: default
     conditions:
-    - label!=WIP
-    - approved-reviews-by=@fedora-infra/bodhi
     - status-success=DCO
     - status-success=Pre-commit checks
     - status-success=Diff-cover check
