@@ -136,7 +136,7 @@ test = ["pytest (>=6.2.0)", "pytest-benchmark", "pytest-cov", "pytest-subtests",
 
 [[package]]
 name = "diff-cover"
-version = "6.4.5"
+version = "6.5.0"
 description = "Run coverage and linting reports on diffs"
 category = "dev"
 optional = false
@@ -709,8 +709,8 @@ cryptography = [
     {file = "cryptography-37.0.2.tar.gz", hash = "sha256:f224ad253cc9cea7568f49077007d2263efa57396a2f2f78114066fd54b5c68e"},
 ]
 diff-cover = [
-    {file = "diff_cover-6.4.5-py3-none-any.whl", hash = "sha256:b51356163ab1f93592dd7e45adb169cc8c7044ad8c2fe19b2bacc0ac90e70336"},
-    {file = "diff_cover-6.4.5.tar.gz", hash = "sha256:a94b8c1c17dc24498917f7289fe383b457d8ad4ef2a3ffca80a892a41c8b58a6"},
+    {file = "diff_cover-6.5.0-py3-none-any.whl", hash = "sha256:fb54e906bf48fd7d4b85950b9dc5b483642213a1b2fb9ba0abcb9103d7c747c4"},
+    {file = "diff_cover-6.5.0.tar.gz", hash = "sha256:3763b4fc2ef91063ba72b50214652224b2d0a9f31544d5504596f5c4a847cd7b"},
 ]
 fedora-messaging = [
     {file = "fedora_messaging-3.0.2-py3-none-any.whl", hash = "sha256:782dc04ba25ebc694324b85d24b7061949402db7dc1ad8e69d55fb623135a184"},
