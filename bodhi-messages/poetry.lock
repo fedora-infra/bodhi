@@ -153,7 +153,7 @@ toml = ["tomli (>=1.2.1)"]
 
 [[package]]
 name = "fedora-messaging"
-version = "3.0.0"
+version = "3.0.2"
 description = "A set of tools for using Fedora's messaging infrastructure"
 category = "main"
 optional = false
@@ -509,11 +509,11 @@ python-versions = "*"
 
 [[package]]
 name = "typing-extensions"
-version = "4.1.1"
-description = "Backported and Experimental Type Hints for Python 3.6+"
+version = "4.2.0"
+description = "Backported and Experimental Type Hints for Python 3.7+"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [[package]]
 name = "wrapt"
@@ -713,8 +713,8 @@ diff-cover = [
     {file = "diff_cover-6.4.5.tar.gz", hash = "sha256:a94b8c1c17dc24498917f7289fe383b457d8ad4ef2a3ffca80a892a41c8b58a6"},
 ]
 fedora-messaging = [
-    {file = "fedora_messaging-3.0.0-py2.py3-none-any.whl", hash = "sha256:f52b2d5b5f4408e8ca4ef64d8685de38ec66fb179a690b4566d937e3b2ec382e"},
-    {file = "fedora_messaging-3.0.0.tar.gz", hash = "sha256:62f5641ea776f3475657210bf76e8f69841a1149bb53e611c9cc3c837fcbf36a"},
+    {file = "fedora_messaging-3.0.2-py3-none-any.whl", hash = "sha256:782dc04ba25ebc694324b85d24b7061949402db7dc1ad8e69d55fb623135a184"},
+    {file = "fedora_messaging-3.0.2.tar.gz", hash = "sha256:94ea22c7e7bf78e988b9d2c4bed80d7b422122429f9dd65408a6b8a28dcf13f8"},
 ]
 hyperlink = [
     {file = "hyperlink-21.0.0-py2.py3-none-any.whl", hash = "sha256:e6b14c37ecb73e89c77d78cdb4c2cc8f3fb59a885c5b3f819ff4ed80f25af1b4"},
@@ -918,8 +918,8 @@ twisted-iocpsupport = [
     {file = "twisted_iocpsupport-1.0.2-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:7d972cfa8439bdcb35a7be78b7ef86d73b34b808c74be56dfa785c8a93b851bf"},
 ]
 typing-extensions = [
-    {file = "typing_extensions-4.1.1-py3-none-any.whl", hash = "sha256:21c85e0fe4b9a155d0799430b0ad741cdce7e359660ccbd8b530613e8df88ce2"},
-    {file = "typing_extensions-4.1.1.tar.gz", hash = "sha256:1a9462dcc3347a79b1f1c0271fbe79e844580bb598bafa1ed208b94da3cdcd42"},
+    {file = "typing_extensions-4.2.0-py3-none-any.whl", hash = "sha256:6657594ee297170d19f67d55c05852a874e7eb634f4f753dbd667855e07c1708"},
+    {file = "typing_extensions-4.2.0.tar.gz", hash = "sha256:f1c24655a0da0d1b67f07e17a5e6b2a105894e6824b92096378bb3668ef02376"},
 ]
 wrapt = [
     {file = "wrapt-1.14.1-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:1b376b3f4896e7930f1f772ac4b064ac12598d1c38d04907e696cc4d794b43d3"},
