@@ -81,8 +81,7 @@ Community
 
 Bodhi is maintained by the Fedora Project and its `source code`_ and `issue tracker`_ are on GitHub.
 There is a `mailing list`_ and an IRC channel on `Libera`_, ``#bodhi`` for discussion about Bodhi.
-Fedora runs a `production instance`_ and `staging instance`_. `Online documentation`_ is available
-on both production and staging.
+Fedora runs a `production instance`_ and `staging instance`_. `Online documentation`_ is available.
 
 
 .. _source code: https://github.com/fedora-infra/bodhi
@@ -91,4 +90,4 @@ on both production and staging.
 .. _Libera: https://libera.chat/
 .. _production instance: https://bodhi.fedoraproject.org/
 .. _staging instance: https://bodhi.stg.fedoraproject.org/
-.. _Online documentation: https://bodhi.fedoraproject.org/docs/
+.. _Online documentation: https://fedora-infra.github.io/bodhi/
