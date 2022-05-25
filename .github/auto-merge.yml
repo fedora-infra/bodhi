@@ -5,3 +5,7 @@
 - match:
     dependency_name: cryptography
     update_type: all
+
+- match:
+    dependency_name: certifi
+    update_type: all
