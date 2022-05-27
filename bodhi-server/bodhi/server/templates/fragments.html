@@ -200,7 +200,7 @@ ${statusmap[status]}\
 <%def name="update(update, display_user=True, display_karma=True, display_commentcount=True)">
   <div class="list-group-item p-1">
       <div class="row align-items-center no-gutters">
-          <div class="col-md">
+          <div class="col-md mb-1 mb-md-0">
               <div class="media">
                   ${util.type2icon(update['type'])|n}
                   <div class="media-body ml-2">
@@ -223,7 +223,7 @@ ${statusmap[status]}\
                   </div>
               </div>
             </div>
-            <div class="col-auto">
+            <div class="col-auto mr-3 mr-md-0">
                 <div>
                   <span class="mr-3 font-size-09 p-1 font-weight-normal badge badge-${status_context(update.status.value)}">${status_text(update)}</span>
                 </div>
