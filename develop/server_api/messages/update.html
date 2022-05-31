@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Update &#8212; bodhi 6.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -34,16 +35,16 @@
           <div class="body" role="main">
             
   <section id="update">
-<h1>Update<a class="headerlink" href="#update" title="Permalink to this headline">¶</a></h1>
+<h1>Update<a class="headerlink" href="#update" title="Permalink to this heading">¶</a></h1>
 <section id="module-bodhi.messages.schemas.update">
-<span id="python-objects"></span><h2>Python objects<a class="headerlink" href="#module-bodhi.messages.schemas.update" title="Permalink to this headline">¶</a></h2>
+<span id="python-objects"></span><h2>Python objects<a class="headerlink" href="#module-bodhi.messages.schemas.update" title="Permalink to this heading">¶</a></h2>
 <p>Message schema for Updates.</p>
 <p>Each message is defined as a Python class. For details, see <a class="reference external" href="https://fedora-messaging.readthedocs.io/en/stable/">fedora-messaging</a> documentation on
 messages.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCommentV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateCommentV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateCommentV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCommentV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when a comment is made on an update.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCommentV1.__str__">
@@ -52,7 +53,7 @@ messages.</p>
 <p>This should provide a detailed representation of the message, much like the body
 of an email.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A human readable representation of this message.</p>
 </dd>
 </dl>
@@ -63,7 +64,7 @@ of an email.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">agent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCommentV1.agent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the agent’s username for this message.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The agent’s username.</p>
 </dd>
 </dl>
@@ -82,7 +83,7 @@ of an email.</p>
 <p>This should provide a short summary of the message, much like the subject line
 of an email.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A summary for this message.</p>
 </dd>
 </dl>
@@ -95,7 +96,7 @@ of an email.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCommentV1.user">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">user</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bodhi.messages.schemas.base.UserV1</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCommentV1.user" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">user</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UserV1</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCommentV1.user" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the user who wrote this comment.</p>
 </dd></dl>
 
@@ -104,7 +105,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCompleteStableV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateCompleteStableV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateCompleteStableV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCompleteStableV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update is available in the stable repository.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCompleteStableV1.summary">
@@ -113,7 +114,7 @@ of an email.</p>
 <p>This should provide a short summary of the message, much like the subject line
 of an email.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A summary for this message.</p>
 </dd>
 </dl>
@@ -129,7 +130,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCompleteTestingV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateCompleteTestingV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateCompleteTestingV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCompleteTestingV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update is available in the testing repository.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCompleteTestingV1.summary">
@@ -138,7 +139,7 @@ of an email.</p>
 <p>This should provide a short summary of the message, much like the subject line
 of an email.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A summary for this message.</p>
 </dd>
 </dl>
@@ -154,14 +155,14 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateEditV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateEditV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateEditV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateEditV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update is edited.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateEditV1.new_bugs">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">new_bugs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateEditV1.new_bugs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an iterable of the new bugs that have been added to the update.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A list of Bugzilla bug IDs.</p>
 </dd>
 </dl>
@@ -174,7 +175,7 @@ of an email.</p>
 <p>This should provide a short summary of the message, much like the subject line
 of an email.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A summary for this message.</p>
 </dd>
 </dl>
@@ -190,7 +191,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateEjectV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateEjectV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateEjectV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateEjectV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update is ejected from the push.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateEjectV1.reason">
@@ -211,7 +212,7 @@ of an email.</p>
 <p>This should provide a short summary of the message, much like the subject line
 of an email.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A summary for this message.</p>
 </dd>
 </dl>
@@ -227,7 +228,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateKarmaThresholdV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateKarmaThresholdV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateKarmaThresholdV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateKarmaThresholdV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update reaches its karma threshold.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateKarmaThresholdV1.status">
@@ -242,7 +243,7 @@ of an email.</p>
 <p>This should provide a short summary of the message, much like the subject line
 of an email.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A summary for this message.</p>
 </dd>
 </dl>
@@ -258,14 +259,14 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateMessage">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateMessage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateMessage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateMessage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.base.BodhiMessage</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BodhiMessage</span></code></p>
 <p>Base class for update messages.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateMessage.packages">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">packages</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateMessage.packages" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of names of packages affected by the action that generated this message.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A list of affected package names.</p>
 </dd>
 </dl>
@@ -273,7 +274,7 @@ of an email.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateMessage.update">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bodhi.messages.schemas.base.UpdateV1</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateMessage.update" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UpdateV1</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateMessage.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the Update referenced by this message.</p>
 </dd></dl>
 
@@ -282,7 +283,7 @@ of an email.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateMessage.url" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a URL to the action that caused this message to be emitted.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A relevant URL.</p>
 </dd>
 </dl>
@@ -293,7 +294,7 @@ of an email.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">usernames</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateMessage.usernames" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of users affected by the action that generated this message.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A list of affected usernames.</p>
 </dd>
 </dl>
@@ -304,7 +305,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateReadyForTestingV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateReadyForTestingV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.base.BodhiMessage</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BodhiMessage</span></code></p>
 <p>Sent when an update is ready to be tested. Original version.</p>
 <p>Does not have ‘update’ property or inherit from UpdateMessage.</p>
 <dl class="py property">
@@ -312,7 +313,7 @@ of an email.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">agent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV1.agent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the agent’s username for this message.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The agent’s username, or None if the body has no agent key.</p>
 </dd>
 </dl>
@@ -323,7 +324,7 @@ of an email.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">packages</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV1.packages" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of names of packages affected by the action that generated this message.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A list of affected package names.</p>
 </dd>
 </dl>
@@ -336,7 +337,7 @@ of an email.</p>
 <p>This should provide a short summary of the message, much like the subject line
 of an email.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A summary for this message.</p>
 </dd>
 </dl>
@@ -352,7 +353,7 @@ of an email.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV1.url" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a URL to the action that caused this message to be emitted.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A relevant URL.</p>
 </dd>
 </dl>
@@ -363,7 +364,7 @@ of an email.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">usernames</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV1.usernames" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of users affected by the action that generated this message.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A list of affected usernames.</p>
 </dd>
 </dl>
@@ -374,7 +375,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV2">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateReadyForTestingV2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateReadyForTestingV2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV1" title="bodhi.messages.schemas.update.UpdateReadyForTestingV1"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateReadyForTestingV1</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV1" title="bodhi.messages.schemas.update.UpdateReadyForTestingV1"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateReadyForTestingV1</span></code></a></p>
 <p>Sent when an update is ready to be tested. Newer version.</p>
 <p>Has ‘update’ property, like other update messages.</p>
 <dl class="py attribute">
@@ -392,7 +393,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestMessage">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateRequestMessage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateRequestMessage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update’s request is changed.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestMessage.summary">
@@ -401,7 +402,7 @@ of an email.</p>
 <p>This should provide a short summary of the message, much like the subject line
 of an email.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A summary for this message.</p>
 </dd>
 </dl>
@@ -412,7 +413,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestObsoleteV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateRequestObsoleteV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateRequestObsoleteV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestObsoleteV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateRequestMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateRequestMessage</span></code></a></p>
 <p>Sent when an update is requested to be obsoleted.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestObsoleteV1.topic">
@@ -424,7 +425,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestRevokeV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateRequestRevokeV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateRequestRevokeV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestRevokeV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateRequestMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateRequestMessage</span></code></a></p>
 <p>Sent when an update is revoked.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestRevokeV1.topic">
@@ -436,7 +437,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestStableV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateRequestStableV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateRequestStableV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestStableV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateRequestMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateRequestMessage</span></code></a></p>
 <p>Sent when an update is submitted as a stable candidate.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestStableV1.topic">
@@ -448,7 +449,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestTestingV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateRequestTestingV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateRequestTestingV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestTestingV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateRequestMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateRequestMessage</span></code></a></p>
 <p>Sent when an update is submitted as a testing candidate.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestTestingV1.topic">
@@ -460,7 +461,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestUnpushV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateRequestUnpushV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateRequestUnpushV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestUnpushV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateRequestMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateRequestMessage</span></code></a></p>
 <p>Sent when an update is requested to be unpushed.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestUnpushV1.topic">
@@ -472,7 +473,7 @@ of an email.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequirementsMetStableV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateRequirementsMetStableV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateRequirementsMetStableV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequirementsMetStableV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.update.UpdateMessage</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when all the update requirements are meant for stable.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequirementsMetStableV1.summary">
@@ -481,7 +482,7 @@ of an email.</p>
 <p>This should provide a short summary of the message, much like the subject line
 of an email.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A summary for this message.</p>
 </dd>
 </dl>
@@ -496,9 +497,9 @@ of an email.</p>
 
 </section>
 <section id="json-schemas">
-<h2>JSON schemas<a class="headerlink" href="#json-schemas" title="Permalink to this headline">¶</a></h2>
+<h2>JSON schemas<a class="headerlink" href="#json-schemas" title="Permalink to this heading">¶</a></h2>
 <section id="bodhi-update-comment">
-<h3>bodhi.update.comment<a class="headerlink" href="#bodhi-update-comment" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.comment<a class="headerlink" href="#bodhi-update-comment" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.comment#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -647,7 +648,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-complete-stable">
-<h3>bodhi.update.complete.stable<a class="headerlink" href="#bodhi-update-complete-stable" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.complete.stable<a class="headerlink" href="#bodhi-update-complete-stable" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.complete.stable#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -758,7 +759,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-complete-testing">
-<h3>bodhi.update.complete.testing<a class="headerlink" href="#bodhi-update-complete-testing" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.complete.testing<a class="headerlink" href="#bodhi-update-complete-testing" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.complete.testing#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -869,7 +870,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-edit">
-<h3>bodhi.update.edit<a class="headerlink" href="#bodhi-update-edit" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.edit<a class="headerlink" href="#bodhi-update-edit" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.edit#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -994,7 +995,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-eject">
-<h3>bodhi.update.eject<a class="headerlink" href="#bodhi-update-eject" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.eject<a class="headerlink" href="#bodhi-update-eject" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.eject#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -1115,7 +1116,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-karma-threshold-reach">
-<h3>bodhi.update.karma.threshold.reach<a class="headerlink" href="#bodhi-update-karma-threshold-reach" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.karma.threshold.reach<a class="headerlink" href="#bodhi-update-karma-threshold-reach" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.karma.threshold.reach#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -1235,7 +1236,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-status-testing-koji-build-group-build-complete">
-<h3>bodhi.update.status.testing.koji-build-group.build.complete<a class="headerlink" href="#bodhi-update-status-testing-koji-build-group-build-complete" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.status.testing.koji-build-group.build.complete<a class="headerlink" href="#bodhi-update-status-testing-koji-build-group-build-complete" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.status.testing#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -1383,7 +1384,7 @@ of an email.</p>
 </div>
 </section>
 <section id="id1">
-<h3>bodhi.update.status.testing.koji-build-group.build.complete<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.status.testing.koji-build-group.build.complete<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.status.testing#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -1625,7 +1626,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-request-obsolete">
-<h3>bodhi.update.request.obsolete<a class="headerlink" href="#bodhi-update-request-obsolete" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.request.obsolete<a class="headerlink" href="#bodhi-update-request-obsolete" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.request.obsolete#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -1741,7 +1742,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-request-revoke">
-<h3>bodhi.update.request.revoke<a class="headerlink" href="#bodhi-update-request-revoke" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.request.revoke<a class="headerlink" href="#bodhi-update-request-revoke" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.request.revoke#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -1857,7 +1858,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-request-stable">
-<h3>bodhi.update.request.stable<a class="headerlink" href="#bodhi-update-request-stable" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.request.stable<a class="headerlink" href="#bodhi-update-request-stable" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.request.stable#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -1973,7 +1974,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-request-testing">
-<h3>bodhi.update.request.testing<a class="headerlink" href="#bodhi-update-request-testing" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.request.testing<a class="headerlink" href="#bodhi-update-request-testing" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.request.testing#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -2089,7 +2090,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-request-unpush">
-<h3>bodhi.update.request.unpush<a class="headerlink" href="#bodhi-update-request-unpush" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.request.unpush<a class="headerlink" href="#bodhi-update-request-unpush" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.request.unpush#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -2205,7 +2206,7 @@ of an email.</p>
 </div>
 </section>
 <section id="bodhi-update-requirements-met-stable">
-<h3>bodhi.update.requirements_met.stable<a class="headerlink" href="#bodhi-update-requirements-met-stable" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.update.requirements_met.stable<a class="headerlink" href="#bodhi-update-requirements-met-stable" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.requirements_met.stable#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -2398,7 +2399,7 @@ of an email.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -2415,7 +2416,7 @@ of an email.</p>
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Administration &#8212; bodhi 6.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -33,13 +34,13 @@
           <div class="body" role="main">
             
   <section id="administration">
-<h1>Administration<a class="headerlink" href="#administration" title="Permalink to this headline">¶</a></h1>
+<h1>Administration<a class="headerlink" href="#administration" title="Permalink to this heading">¶</a></h1>
 <section id="system-requirements">
-<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this headline">¶</a></h2>
+<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this heading">¶</a></h2>
 <p>Bodhi is currently only supported on active Fedora releases. It requires PostgreSQL &gt;= 9.2.0.</p>
 </section>
 <section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">¶</a></h2>
 <p>The Bodhi server is configured via an INI file found at <code class="docutils literal notranslate"><span class="pre">/etc/bodhi/production.ini</span></code>. Bodhi ships
 an example <code class="docutils literal notranslate"><span class="pre">production.ini</span></code> file that has all settings documented. Most settings have reasonable
 defaults if not defined, and the example settings file describes the default values in the
@@ -675,7 +676,7 @@ format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s
 </pre></div>
 </div>
 <section id="logging">
-<h3>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h3>
+<h3>Logging<a class="headerlink" href="#logging" title="Permalink to this heading">¶</a></h3>
 <p>The example configuration above includes an example default logging configuration. However, you may
 wish to do something more advanced, such as e-mail error messages to an address with rate limiting.
 Bodhi provides a rate limiting Python logging Filter at <code class="docutils literal notranslate"><span class="pre">`bodhi.server.logging.RateLimiter`</span></code>.</p>
@@ -727,7 +728,7 @@ per process per spot in the code that logs errors:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.server.logging.RateLimiter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.server.logging.</span></span><span class="sig-name descname"><span class="pre">RateLimiter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3600</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/server/logging.html#RateLimiter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.logging.RateLimiter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Filter</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Filter</span></code></p>
 <p>Log filter that rate-limits logs based on time.</p>
 <p>The rate limit is applied to records by filename and line number.</p>
 <p>Filters can be applied to handlers and loggers. Configuring this via
@@ -768,7 +769,7 @@ which is also licensed GPLv2+.</p>
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3600</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/server/logging.html#RateLimiter.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.logging.RateLimiter.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the log filter.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>rate</strong> – How often, in seconds, to allow records. Defaults to hourly.</p>
 </dd>
 </dl>
@@ -776,13 +777,13 @@ which is also licensed GPLv2+.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="bodhi.server.logging.RateLimiter.filter">
-<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">logging.LogRecord</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/bodhi/server/logging.html#RateLimiter.filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.logging.RateLimiter.filter" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LogRecord</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/bodhi/server/logging.html#RateLimiter.filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.logging.RateLimiter.filter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Record call sites and filter based on time.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>record</strong> – The log record we are filtering on.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the record should be emitted, False otherwise.</p>
 </dd>
 </dl>
@@ -793,22 +794,22 @@ which is also licensed GPLv2+.</p>
 </section>
 </section>
 <section id="components">
-<h2>Components<a class="headerlink" href="#components" title="Permalink to this headline">¶</a></h2>
+<h2>Components<a class="headerlink" href="#components" title="Permalink to this heading">¶</a></h2>
 <section id="web-server">
-<h3>Web Server<a class="headerlink" href="#web-server" title="Permalink to this headline">¶</a></h3>
+<h3>Web Server<a class="headerlink" href="#web-server" title="Permalink to this heading">¶</a></h3>
 <p>Bodhi has a web server component that runs its REST API and serves the web interface.</p>
 </section>
 <section id="message-consumers">
-<h3>Message Consumers<a class="headerlink" href="#message-consumers" title="Permalink to this headline">¶</a></h3>
+<h3>Message Consumers<a class="headerlink" href="#message-consumers" title="Permalink to this heading">¶</a></h3>
 <p>The following sections document the list of messaging consumers.</p>
 <section id="automatic-updates">
-<h4>Automatic updates<a class="headerlink" href="#automatic-updates" title="Permalink to this headline">¶</a></h4>
+<h4>Automatic updates<a class="headerlink" href="#automatic-updates" title="Permalink to this heading">¶</a></h4>
 <p>This consumer will create updates automatically when builds are tagged to a Release’s candidate tag,
 if the Release associated with that tag is configured to do so by having its
 <code class="docutils literal notranslate"><span class="pre">create_automatic_updates</span></code> boolean set to True.</p>
 </section>
 <section id="composer">
-<h4>Composer<a class="headerlink" href="#composer" title="Permalink to this headline">¶</a></h4>
+<h4>Composer<a class="headerlink" href="#composer" title="Permalink to this heading">¶</a></h4>
 <p>Bodhi has a process called the “composer” that is responsible for generating the repositories that
 move packages along the path to their destiny. For each release, there are two composes that get
 run, one for the release’s testing repository, and the other for the release’s stable repository.</p>
@@ -838,18 +839,18 @@ then the compose can be resumed with <code class="docutils literal notranslate">
 </ul>
 </section>
 <section id="greenwave-handler">
-<h4>Greenwave Handler<a class="headerlink" href="#greenwave-handler" title="Permalink to this headline">¶</a></h4>
+<h4>Greenwave Handler<a class="headerlink" href="#greenwave-handler" title="Permalink to this heading">¶</a></h4>
 <p>Bodhi’s greenwave handler watches for messages sent from greenwave about bodhi updates that have
 been tested. When a message is recieved, the appropriate update is updated with the greenwave test
 status.</p>
 </section>
 <section id="signed-handler">
-<h4>Signed Handler<a class="headerlink" href="#signed-handler" title="Permalink to this headline">¶</a></h4>
+<h4>Signed Handler<a class="headerlink" href="#signed-handler" title="Permalink to this heading">¶</a></h4>
 <p>Bodhi’s signed handler is responsible for watching for messages from Robosignatory when it signs
 builds, and marking those builds as signed in the Bodhi database.</p>
 </section>
 <section id="update-handler">
-<h4>Update Handler<a class="headerlink" href="#update-handler" title="Permalink to this headline">¶</a></h4>
+<h4>Update Handler<a class="headerlink" href="#update-handler" title="Permalink to this heading">¶</a></h4>
 <p>Bodhi’s update handler watches for messages sent from the web server when updates are created or
 edited. When it sees these messages, it does background tasks, such as querying bugzilla to
 determine the titles on associated tickets, or querying the Wiki to retrieve test case information.</p>
@@ -937,7 +938,7 @@ determine the titles on associated tickets, or querying the Wiki to retrieve tes
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -954,7 +955,7 @@ determine the titles on associated tickets, or querying the Wiki to retrieve tes
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Testing updates &#8212; bodhi 6.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -34,12 +35,12 @@
           <div class="body" role="main">
             
   <section id="testing-updates">
-<h1>Testing updates<a class="headerlink" href="#testing-updates" title="Permalink to this headline">¶</a></h1>
+<h1>Testing updates<a class="headerlink" href="#testing-updates" title="Permalink to this heading">¶</a></h1>
 <p>Bodhi’s primary use case is to gate proposed software updates based on testing feedback. Feedback
 can be provided automatically by CI systems, or can be provided by humans through comments and
 karma.</p>
 <section id="karma">
-<h2>Karma<a class="headerlink" href="#karma" title="Permalink to this headline">¶</a></h2>
+<h2>Karma<a class="headerlink" href="#karma" title="Permalink to this heading">¶</a></h2>
 <p>Authenticated users may post positive or negative karma onto an update, along with a comment to
 describe their experience. Once the update reaches its karma threshold (set by the packager), it may
 be pushed out to the stable repositories. This will happen automatically if the update is configured
@@ -53,7 +54,7 @@ plan for the associated packages, and the tester may provide feedback for each o
 pages as well.</p>
 </section>
 <section id="automated-tests">
-<h2>Automated tests<a class="headerlink" href="#automated-tests" title="Permalink to this headline">¶</a></h2>
+<h2>Automated tests<a class="headerlink" href="#automated-tests" title="Permalink to this heading">¶</a></h2>
 <p>Bodhi may also provide feedback from automated test systems if it is configured to do so. To view
 this feedback, click on the update’s “Automated Tests” tab.</p>
 <p>Bodhi may also be configured to query <a class="reference external" href="https://pagure.io/greenwave">Greenwave</a> for automated test based gating decisions on
@@ -61,7 +62,7 @@ updates. If this is enabled, the update’s web page will display the current st
 gating decision.</p>
 </section>
 <section id="stable-push">
-<h2>Stable push<a class="headerlink" href="#stable-push" title="Permalink to this headline">¶</a></h2>
+<h2>Stable push<a class="headerlink" href="#stable-push" title="Permalink to this heading">¶</a></h2>
 <p>An update can be pushed to stable repository either manually or automatically, through Bodhi’s
 <cite>autotime</cite> or <cite>autokarma</cite> features.</p>
 <p>For becoming pushable to stable an update must fullfill some criteria set by the associated
@@ -164,7 +165,7 @@ autopush will be performed <strong>after 3 more days</strong>.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -181,7 +182,7 @@ autopush will be performed <strong>after 3 more days</strong>.</p>
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

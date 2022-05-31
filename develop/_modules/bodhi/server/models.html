@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,6 +11,7 @@
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -279,6 +280,7 @@
     <span class="sd">&quot;&quot;&quot;A database column type for an enum.&quot;&quot;&quot;</span>
 
     <span class="n">cache_ok</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="sd">&quot;&quot;&quot;See ``sqlalchemy.types.TypeDecorator.cache_ok``&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DeclEnumType.__init__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnumType.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enum</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -867,7 +869,7 @@
 <span class="sd">            Bodhi or not. Defaults to True.</span>
 <span class="sd">        create_automatic_updates (bool): A flag indicating that updates should</span>
 <span class="sd">            be created automatically for Koji builds tagged into the</span>
-<span class="sd">            `candidate_tag`. Defaults to False.</span>
+<span class="sd">            ``candidate_tag``. Defaults to False.</span>
 <span class="sd">        package_manager (EnumSymbol): The package manager this release uses. This must be one of</span>
 <span class="sd">            the values defined in :class:`PackageManager`.</span>
 <span class="sd">        testing_repository (str): The name of repository where updates are placed for</span>
@@ -1869,7 +1871,7 @@
 
 <span class="sd">    The update contains not just one package, but a collection of packages. Each</span>
 <span class="sd">    package can be referenced only once in one Update. Packages are referenced</span>
-<span class="sd">    through their Build objects using field `builds` below.</span>
+<span class="sd">    through their Build objects using field ``builds`` below.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        autokarma (bool): A boolean that indicates whether or not the update will</span>
@@ -5111,7 +5113,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -5128,7 +5130,7 @@
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

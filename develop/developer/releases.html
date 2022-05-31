@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Release process &#8212; bodhi 6.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -34,10 +35,10 @@
           <div class="body" role="main">
             
   <section id="release-process">
-<h1>Release process<a class="headerlink" href="#release-process" title="Permalink to this headline">¶</a></h1>
+<h1>Release process<a class="headerlink" href="#release-process" title="Permalink to this heading">¶</a></h1>
 <p>This document describes the process for making a Bodhi release.</p>
 <section id="branches">
-<h2>Branches<a class="headerlink" href="#branches" title="Permalink to this headline">¶</a></h2>
+<h2>Branches<a class="headerlink" href="#branches" title="Permalink to this heading">¶</a></h2>
 <p>Bodhi follows <a class="reference external" href="https://semver.org">semantic versioning</a>, and so <a class="reference external" href="https://www.theonion.com/craftsman-confirms-new-hammer-backwards-compatible-with-1834722479">backwards incompatible</a> changes get a major release,
 releases with new features get a minor release, and releases that only contain bug fixes get a patch
 release.</p>
@@ -54,7 +55,7 @@ branch, and then cherry pick the desired commits from <code class="docutils lite
 <p>Of course, if you want to make a new major release, simply create a <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch from the
 desired commit on <code class="docutils literal notranslate"><span class="pre">develop</span></code>.</p>
 <section id="backporting-patches-with-mergify">
-<h3>Backporting Patches with Mergify<a class="headerlink" href="#backporting-patches-with-mergify" title="Permalink to this headline">¶</a></h3>
+<h3>Backporting Patches with Mergify<a class="headerlink" href="#backporting-patches-with-mergify" title="Permalink to this heading">¶</a></h3>
 <p>To simplify the release process, almost all patches are sent to the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch. Once they
 are reviewed and merged, they can be cherry picked to a <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch if desired. To aid in
 this process, we use <a class="reference external" href="https://mergify.com">Mergify</a>’s <a class="reference external" href="https://docs.mergify.com/actions/backport">patch backporting feature</a>. For each actively maintained
@@ -70,7 +71,7 @@ request.</p>
 </section>
 </section>
 <section id="deploying-a-development-snapshot-to-staging">
-<h2>Deploying a development snapshot to Staging<a class="headerlink" href="#deploying-a-development-snapshot-to-staging" title="Permalink to this headline">¶</a></h2>
+<h2>Deploying a development snapshot to Staging<a class="headerlink" href="#deploying-a-development-snapshot-to-staging" title="Permalink to this heading">¶</a></h2>
 <p>On the Fedora Infrastructure, the <a class="reference external" href="https://bodhi.stg.fedoraproject.org">Bodhi Staging instance</a> is
 used to test out Bodhi in an enviroment as close to production as possible.</p>
 <p>To run this procedure, you will need the ability to run playbooks on batcave, and your Fedora Account
@@ -128,9 +129,9 @@ In a few minutes the new version of bodhi will appear on <a class="reference ext
 </ol>
 </section>
 <section id="how-to-make-a-release">
-<h2>How to make a release<a class="headerlink" href="#how-to-make-a-release" title="Permalink to this headline">¶</a></h2>
+<h2>How to make a release<a class="headerlink" href="#how-to-make-a-release" title="Permalink to this heading">¶</a></h2>
 <section id="preparation">
-<h3>Preparation<a class="headerlink" href="#preparation" title="Permalink to this headline">¶</a></h3>
+<h3>Preparation<a class="headerlink" href="#preparation" title="Permalink to this heading">¶</a></h3>
 <p>If you are making a new major or new minor release:</p>
 <ol class="arabic simple">
 <li><p>Prepare the <code class="docutils literal notranslate"><span class="pre">.mergify.yml</span></code> file for the new <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch as described above.</p></li>
@@ -161,7 +162,7 @@ flag being passed to <code class="docutils literal notranslate"><span class="pre
 </ol>
 </section>
 <section id="build-a-beta">
-<h3>Build a beta<a class="headerlink" href="#build-a-beta" title="Permalink to this headline">¶</a></h3>
+<h3>Build a beta<a class="headerlink" href="#build-a-beta" title="Permalink to this heading">¶</a></h3>
 <p>Bodhi uses the <a class="reference external" href="https://src.fedoraproject.org/rpms/bodhi/blob/master/f/bodhi.spec">Fedora Rawhide spec file</a> to build production RPMs for the
 <a class="reference external" href="https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/bodhi/">Fedora Infrastructure repositories</a>. As upstream Bodhi does not have any infrastructure of its own
 for beta testing, we use <a class="reference external" href="https://bodhi.stg.fedoraproject.org">Fedora’s staging instance</a> of Bodhi to do our beta testing. Thus, in
@@ -348,7 +349,7 @@ there:</p>
 </ol>
 </section>
 <section id="deploy-the-beta-to-staging">
-<h3>Deploy the beta to staging<a class="headerlink" href="#deploy-the-beta-to-staging" title="Permalink to this headline">¶</a></h3>
+<h3>Deploy the beta to staging<a class="headerlink" href="#deploy-the-beta-to-staging" title="Permalink to this heading">¶</a></h3>
 <p>To deploy to beta to staging, read the <a class="reference external" href="https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/bodhi/#_performing_a_bodhi_upgrade">Fedora Infrastructure Bodhi SOP</a>.</p>
 <p>Notify people that the beta has been deployed so they can test and provide feedback.
 You can notify the tickets that are referenced in the release notes, Fedora IRC channels (
@@ -356,7 +357,7 @@ You can notify the tickets that are referenced in the release notes, Fedora IRC 
 <code class="docutils literal notranslate"><span class="pre">#fedora-qa</span></code>), and the Fedora infrastructure mailing list.</p>
 </section>
 <section id="test-the-beta">
-<h3>Test the beta<a class="headerlink" href="#test-the-beta" title="Permalink to this headline">¶</a></h3>
+<h3>Test the beta<a class="headerlink" href="#test-the-beta" title="Permalink to this heading">¶</a></h3>
 <p>Testing beta builds in staging can be a bit tricky. One problem you may encounter is that the
 staging Koji instance doesn’t have all the data from production, and its database most likely wasn’t
 synchronized with production data at the same time that Bodhi’s database was. The latter means that
@@ -407,7 +408,7 @@ nothing to do in any of them and will remove them.</p>
 beta and test again.</p>
 </section>
 <section id="release-bodhi-upstream">
-<h3>Release Bodhi upstream<a class="headerlink" href="#release-bodhi-upstream" title="Permalink to this headline">¶</a></h3>
+<h3>Release Bodhi upstream<a class="headerlink" href="#release-bodhi-upstream" title="Permalink to this heading">¶</a></h3>
 <p>Once you are satisfied with the quality of the beta and the beta has been in staging for a while (a
 week is typical) to give people time to test and provide feedback, it is time to make a release.</p>
 <p>We start by checking out the branch we want to make a release on, and we use <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span></code> to create a
@@ -449,7 +450,7 @@ below:</p>
 </div>
 </section>
 <section id="release-bodhi-downstream">
-<h3>Release Bodhi downstream<a class="headerlink" href="#release-bodhi-downstream" title="Permalink to this headline">¶</a></h3>
+<h3>Release Bodhi downstream<a class="headerlink" href="#release-bodhi-downstream" title="Permalink to this heading">¶</a></h3>
 <p>Next it is time to release Bodhi downstream. Don’t forget to remove the patch you made earlier to
 set its version to a beta, and all the code that used commit hashes instead of versions.</p>
 <ol class="arabic">
@@ -469,13 +470,13 @@ Rawhide.</p>
 </ol>
 </section>
 <section id="deploy-the-beta-to-staging-and-production">
-<h3>Deploy the beta to staging and production<a class="headerlink" href="#deploy-the-beta-to-staging-and-production" title="Permalink to this headline">¶</a></h3>
+<h3>Deploy the beta to staging and production<a class="headerlink" href="#deploy-the-beta-to-staging-and-production" title="Permalink to this heading">¶</a></h3>
 <p>As before, read the <a class="reference external" href="https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/bodhi/#_performing_a_bodhi_upgrade">Fedora Infrastructure Bodhi SOP</a> for details on how we deploy Bodhi in
 Fedora Infrastructure.</p>
 <p>It is wise to deploy the real release to staging as a sanity check before deploying to production.</p>
 </section>
 <section id="notifications">
-<h3>Notifications<a class="headerlink" href="#notifications" title="Permalink to this headline">¶</a></h3>
+<h3>Notifications<a class="headerlink" href="#notifications" title="Permalink to this heading">¶</a></h3>
 <p>Notify people that the release and deployment are done. You can notify the tickets that are
 referenced in the release notes, Fedora IRC channels (<code class="docutils literal notranslate"><span class="pre">#bodhi</span></code>, <code class="docutils literal notranslate"><span class="pre">#fedora-admin</span></code>,
 <code class="docutils literal notranslate"><span class="pre">#fedora-apps</span></code>, <code class="docutils literal notranslate"><span class="pre">#fedora-devel</span></code>, <code class="docutils literal notranslate"><span class="pre">#fedora-releng</span></code>, and <code class="docutils literal notranslate"><span class="pre">#fedora-qa</span></code>), and the Fedora
@@ -564,7 +565,7 @@ infrastructure mailing list.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -581,7 +582,7 @@ infrastructure mailing list.</p>
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

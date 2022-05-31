@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Errata &#8212; bodhi 6.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -34,16 +35,16 @@
           <div class="body" role="main">
             
   <section id="errata">
-<h1>Errata<a class="headerlink" href="#errata" title="Permalink to this headline">¶</a></h1>
+<h1>Errata<a class="headerlink" href="#errata" title="Permalink to this heading">¶</a></h1>
 <section id="module-bodhi.messages.schemas.errata">
-<span id="python-objects"></span><h2>Python objects<a class="headerlink" href="#module-bodhi.messages.schemas.errata" title="Permalink to this headline">¶</a></h2>
+<span id="python-objects"></span><h2>Python objects<a class="headerlink" href="#module-bodhi.messages.schemas.errata" title="Permalink to this heading">¶</a></h2>
 <p>Message schema for Errata.</p>
 <p>Each message is defined as a Python class. For details, see <a class="reference external" href="https://fedora-messaging.readthedocs.io/en/stable/">fedora-messaging</a> documentation on
 messages.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.errata.ErrataPublishV1">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.errata.</span></span><span class="sig-name descname"><span class="pre">ErrataPublishV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/errata.html#ErrataPublishV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.errata.ErrataPublishV1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">bodhi.messages.schemas.base.BodhiMessage</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BodhiMessage</span></code></p>
 <p>Sent when an errata is published.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.errata.ErrataPublishV1.__str__">
@@ -58,7 +59,7 @@ of an email.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">agent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.errata.ErrataPublishV1.agent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the agent’s username for this message.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The agent’s username.</p>
 </dd>
 </dl>
@@ -69,7 +70,7 @@ of an email.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">packages</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.messages.schemas.errata.ErrataPublishV1.packages" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of package names affected by the action that generated this message.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A list of affected package names.</p>
 </dd>
 </dl>
@@ -90,7 +91,7 @@ of an email.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.errata.ErrataPublishV1.update">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bodhi.messages.schemas.base.UpdateV1</span></em><a class="headerlink" href="#bodhi.messages.schemas.errata.ErrataPublishV1.update" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">update</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UpdateV1</span></em><a class="headerlink" href="#bodhi.messages.schemas.errata.ErrataPublishV1.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the Update from this errata.</p>
 </dd></dl>
 
@@ -99,7 +100,7 @@ of an email.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">url</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.errata.ErrataPublishV1.url" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a URL to the action that caused this message to be emitted.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>A relevant URL.</p>
 </dd>
 </dl>
@@ -109,9 +110,9 @@ of an email.</p>
 
 </section>
 <section id="json-schemas">
-<h2>JSON schemas<a class="headerlink" href="#json-schemas" title="Permalink to this headline">¶</a></h2>
+<h2>JSON schemas<a class="headerlink" href="#json-schemas" title="Permalink to this heading">¶</a></h2>
 <section id="bodhi-errata-publish">
-<h3>bodhi.errata.publish<a class="headerlink" href="#bodhi-errata-publish" title="Permalink to this headline">¶</a></h3>
+<h3>bodhi.errata.publish<a class="headerlink" href="#bodhi-errata-publish" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.errata.publish#&quot;</span><span class="p">,</span>
     <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
@@ -314,7 +315,7 @@ of an email.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -331,7 +332,7 @@ of an email.</p>
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

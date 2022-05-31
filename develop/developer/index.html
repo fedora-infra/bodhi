@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Developer documentation &#8212; bodhi 6.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -34,10 +35,10 @@
           <div class="body" role="main">
             
   <section id="developer-documentation">
-<h1>Developer documentation<a class="headerlink" href="#developer-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>Developer documentation<a class="headerlink" href="#developer-documentation" title="Permalink to this heading">¶</a></h1>
 <p>This page contains information for developers who wish to contribute to Bodhi.</p>
 <section id="contribution-guidelines">
-<h2>Contribution guidelines<a class="headerlink" href="#contribution-guidelines" title="Permalink to this headline">¶</a></h2>
+<h2>Contribution guidelines<a class="headerlink" href="#contribution-guidelines" title="Permalink to this heading">¶</a></h2>
 <p>Before you submit a pull request to Bodhi, please ensure that it meets these criteria:</p>
 <ul>
 <li><p>All tests must pass.</p></li>
@@ -122,7 +123,7 @@ you want to be credited as.</p></li>
 directory with the format explained below.</p></li>
 </ul>
 <section id="release-notes">
-<h3>Release Notes<a class="headerlink" href="#release-notes" title="Permalink to this headline">¶</a></h3>
+<h3>Release Notes<a class="headerlink" href="#release-notes" title="Permalink to this heading">¶</a></h3>
 <p>To add entries to the release notes, create a file in the <code class="docutils literal notranslate"><span class="pre">news</span></code> directory in the
 <code class="docutils literal notranslate"><span class="pre">source.type</span></code> name format, where the <code class="docutils literal notranslate"><span class="pre">source</span></code> part of the filename is:</p>
 <ul class="simple">
@@ -147,20 +148,20 @@ there is no associated issue or pull request.</p></li>
 </section>
 </section>
 <section id="issues">
-<h2>Issues<a class="headerlink" href="#issues" title="Permalink to this headline">¶</a></h2>
+<h2>Issues<a class="headerlink" href="#issues" title="Permalink to this heading">¶</a></h2>
 <p>Bodhi uses GitHub’s <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues">issue tracker</a> and
 <a class="reference external" href="https://github.com/fedora-infra/bodhi/projects">kanban boards</a> to track and plan issues and work.
 If you aren’t sure what you’d like to work on, take a look at Bodhi’s
 <a class="reference external" href="https://github.com/fedora-infra/bodhi/labels">labels</a> which are used to categorize the various
 issues. Each label has a short description explaining its purpose.</p>
 <section id="easy-fix">
-<h3>Easy Fix<a class="headerlink" href="#easy-fix" title="Permalink to this headline">¶</a></h3>
+<h3>Easy Fix<a class="headerlink" href="#easy-fix" title="Permalink to this heading">¶</a></h3>
 <p>If you are looking for some easy tasks to get started with Bodhi development, have a look at Bodhi’s
 <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues?q=is%3Aopen+is%3Aissue+label%3AEasyFix">EasyFix</a> tickets.</p>
 </section>
 </section>
 <section id="ci-tests">
-<h2>CI Tests<a class="headerlink" href="#ci-tests" title="Permalink to this headline">¶</a></h2>
+<h2>CI Tests<a class="headerlink" href="#ci-tests" title="Permalink to this heading">¶</a></h2>
 <p>All Bodhi pull requests are tested in a <a class="reference external" href="https://ci.centos.org/">Jenkins instance</a>
 that is graciously hosted for us by the CentOS Project. Sometimes tests fail, and when they do you
 can visit the test job that failed and view its console output by visiting the
@@ -186,7 +187,7 @@ failure, I can execute the script like this:</p>
 that runs <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">devel/ci/bodhi-ci</span></code> for you.</p>
 </section>
 <section id="create-a-bodhi-development-environment">
-<h2>Create a Bodhi development environment<a class="headerlink" href="#create-a-bodhi-development-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Create a Bodhi development environment<a class="headerlink" href="#create-a-bodhi-development-environment" title="Permalink to this heading">¶</a></h2>
 <p>There are two ways to bootstrap a Bodhi development environment. You can use Vagrant, or you can use
 virtualenv on an existing host. <a class="reference external" href="https://www.vagrantup.com">Vagrant</a> allows contributors to get quickly up and running with a
 Bodhi development environment by automatically configuring a virtual machine. <a class="reference external" href="https://virtualenv.pypa.io/en/stable/">Virtualenv</a> is
@@ -280,7 +281,7 @@ working system more quickly and with less effort. If you would like to use Vagra
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -297,7 +298,7 @@ working system more quickly and with less effort. If you would like to use Vagra
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

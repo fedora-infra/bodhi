@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Update states &#8212; bodhi 6.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -34,7 +35,7 @@
           <div class="body" role="main">
             
   <section id="update-states">
-<h1>Update states<a class="headerlink" href="#update-states" title="Permalink to this headline">¶</a></h1>
+<h1>Update states<a class="headerlink" href="#update-states" title="Permalink to this heading">¶</a></h1>
 <p>Once submitted to Bodhi, updates move through the following states:</p>
 <p><a class="reference internal" href="#pending"><span class="std std-ref">Pending</span></a>: The update has not yet been pushed to the testing or stable repositories.</p>
 <p><a class="reference internal" href="#testing"><span class="std std-ref">Testing</span></a>: The package is in the updates-testing repository for people to test.</p>
@@ -61,7 +62,7 @@ available for anyone to download on the master mirror.</div>
 </div>
 </div>
 <section id="pending">
-<span id="id1"></span><h2>Pending<a class="headerlink" href="#pending" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2>Pending<a class="headerlink" href="#pending" title="Permalink to this heading">¶</a></h2>
 <p>Once an update is submitted to Bodhi it will enter the pending state. Bodhi will perform some sanity
 checks on the update request. Is the package built and available in koji? Is it tagged as an updates
 candidate for the release it is intended for? The update path for the package will also be checked
@@ -70,7 +71,7 @@ update must not break the upgrade path or it will be rejected.</p>
 <p>Bodhi will send e-mail notifications when the update has been signed and pushed.</p>
 </section>
 <section id="testing">
-<span id="id2"></span><h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>Testing<a class="headerlink" href="#testing" title="Permalink to this heading">¶</a></h2>
 <p>The testing status means that the update has been pushed to its release’s testing repository. While
 in the testing repository users may provide feedback via karma and comments. Once enough feedback is
 generated, Bodhi’s web interface can be used to release the update by clicking
@@ -84,63 +85,63 @@ be pushed to stable, and will be unpushed if it reaches -3.</p>
 package is ready to go to stable. These are documented in the next two sections.</p>
 </section>
 <section id="testing-stable">
-<span id="id3"></span><h2>Testing/Stable<a class="headerlink" href="#testing-stable" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>Testing/Stable<a class="headerlink" href="#testing-stable" title="Permalink to this heading">¶</a></h2>
 <p>The “stable” state means that the package will be sent out to the stable
 repositories the next time a Release Engineer runs the update push command. The update will remain
 in the testing repository during this state.</p>
 </section>
 <section id="frozen">
-<span id="id4"></span><h2>Frozen<a class="headerlink" href="#frozen" title="Permalink to this headline">¶</a></h2>
+<span id="id4"></span><h2>Frozen<a class="headerlink" href="#frozen" title="Permalink to this heading">¶</a></h2>
 <p>A package is said to be in a frozen state when a release is stabilized before the release Beta or
 GA (Generaly Available). In such a state, all updates are blocked and release engineering will only
 push the updates that have been given a freeze break exception to fix a bug.</p>
 </section>
 <section id="stable">
-<span id="id5"></span><h2>Stable<a class="headerlink" href="#stable" title="Permalink to this headline">¶</a></h2>
+<span id="id5"></span><h2>Stable<a class="headerlink" href="#stable" title="Permalink to this heading">¶</a></h2>
 <p>After an update is pushed to the stable repository, it is marked as stable in Bodhi. At this point,
 Bodhi will close associated bugs, and will send out update notices to the appropriate e-mail
 addresses.</p>
 </section>
 <section id="side-tag-active">
-<span id="sidetag-active"></span><h2>Side_tag_active<a class="headerlink" href="#side-tag-active" title="Permalink to this headline">¶</a></h2>
+<span id="sidetag-active"></span><h2>Side_tag_active<a class="headerlink" href="#side-tag-active" title="Permalink to this heading">¶</a></h2>
 <p>An update can be created as a side tag. This corresponds to the request for a Koji side tag, which is
 a build target used to collect and iterate builds temporarily. This allows builds to be iterated without
 interfering with content in tags that ship to consumers. Once the builds are complete and correct, the
 side tag can then be merged into an existing tag.</p>
 </section>
 <section id="side-tag-active-testing">
-<span id="sidetag-active-testing"></span><h2>Side_tag_active/Testing<a class="headerlink" href="#side-tag-active-testing" title="Permalink to this headline">¶</a></h2>
+<span id="sidetag-active-testing"></span><h2>Side_tag_active/Testing<a class="headerlink" href="#side-tag-active-testing" title="Permalink to this heading">¶</a></h2>
 <p>The side tag enters this state when it is requested to merge. This happens for example when the
 release requires human feedback and the appropriate waiting period or karma threshold has been
 reached. When the merge completes, the side tag update’s state passes to pending testing as with
 any other update.</p>
 </section>
 <section id="side-tag-active-stable">
-<span id="sidetag-active-stable"></span><h2>Side_tag_active/Stable<a class="headerlink" href="#side-tag-active-stable" title="Permalink to this headline">¶</a></h2>
+<span id="sidetag-active-stable"></span><h2>Side_tag_active/Stable<a class="headerlink" href="#side-tag-active-stable" title="Permalink to this heading">¶</a></h2>
 <p>The side tag enters this state when requested to push to stable, for example, when it requests tests
 to be run on builds without human feedback. If the tests pass, Bodhi tries to merge the side tag. If
 that is successful, the update passes to the stable state.</p>
 </section>
 <section id="side-tag-expired">
-<span id="sidetag-expired"></span><h2>Side_tag_expired<a class="headerlink" href="#side-tag-expired" title="Permalink to this headline">¶</a></h2>
+<span id="sidetag-expired"></span><h2>Side_tag_expired<a class="headerlink" href="#side-tag-expired" title="Permalink to this heading">¶</a></h2>
 <p>A side tag update has a specific lifetime that is set in Bodhi configuration.  After this update’s
 lifetime has passed, its state is moved to expired, the underlying update object and all content is
 deleted, and the koji side tag is also deleted.</p>
 </section>
 <section id="obsolete">
-<span id="id6"></span><h2>Obsolete<a class="headerlink" href="#obsolete" title="Permalink to this headline">¶</a></h2>
+<span id="id6"></span><h2>Obsolete<a class="headerlink" href="#obsolete" title="Permalink to this heading">¶</a></h2>
 <p>When submitting a new version of a package, Bodhi will automatically obsolete any pending or testing
 updates that do not have an active push request. Once obsoleted, the new update will inherit the old
 update’s bugs and notes.</p>
 </section>
 <section id="revoked">
-<span id="id7"></span><h2>Revoked<a class="headerlink" href="#revoked" title="Permalink to this headline">¶</a></h2>
+<span id="id7"></span><h2>Revoked<a class="headerlink" href="#revoked" title="Permalink to this heading">¶</a></h2>
 <p>If the update is in pending request for testing, then revoking it will put the update in the
 <a class="reference internal" href="#unpushed">unpushed</a> status. If the update is in testing request stable, then revoking will keep the
 <a class="reference internal" href="#testing">testing</a> status.</p>
 </section>
 <section id="unpushed">
-<span id="id8"></span><h2>Unpushed<a class="headerlink" href="#unpushed" title="Permalink to this headline">¶</a></h2>
+<span id="id8"></span><h2>Unpushed<a class="headerlink" href="#unpushed" title="Permalink to this heading">¶</a></h2>
 <p>The developer has decided to pull the update from the testing repository. This state can only be
 reached if the update is in the testing state.</p>
 </section>
@@ -235,7 +236,7 @@ reached if the update is in the testing state.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -252,7 +253,7 @@ reached if the update is in the testing state.</p>
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
