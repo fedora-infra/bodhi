@@ -246,6 +246,7 @@ class DeclEnumType(SchemaType, TypeDecorator):
     """A database column type for an enum."""
 
     cache_ok = True
+    """See ``sqlalchemy.types.TypeDecorator.cache_ok``"""
 
     def __init__(self, enum):
         """
@@ -834,7 +835,7 @@ class Release(Base):
             Bodhi or not. Defaults to True.
         create_automatic_updates (bool): A flag indicating that updates should
             be created automatically for Koji builds tagged into the
-            `candidate_tag`. Defaults to False.
+            ``candidate_tag``. Defaults to False.
         package_manager (EnumSymbol): The package manager this release uses. This must be one of
             the values defined in :class:`PackageManager`.
         testing_repository (str): The name of repository where updates are placed for
@@ -1836,7 +1837,7 @@ class Update(Base):
 
     The update contains not just one package, but a collection of packages. Each
     package can be referenced only once in one Update. Packages are referenced
-    through their Build objects using field `builds` below.
+    through their Build objects using field ``builds`` below.
 
     Attributes:
         autokarma (bool): A boolean that indicates whether or not the update will
