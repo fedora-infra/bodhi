@@ -85,7 +85,7 @@ bodhi-messages = "^6.0.0"
 celery = ">=5.2.1"
 click = ">=7.1.2"
 colander = "^1.8.3"
-cornice = "^5.0.3"
+cornice = ">=5.0.3"
 "dogpile.cache" = "^1.1.2"
 pyasn1-modules = "^0.2.8" # Due to an unfortunate dash in its name, installs break if pyasn1 is installed first 
 fedora-messaging = "^3.0.0"
