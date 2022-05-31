@@ -49,7 +49,7 @@ schema:
 	@PYTHONPATH=$(BODHI_SERVER_PATH) $(PYTHON) ./generate_json_schema
 
 html: schema
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html -T
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 

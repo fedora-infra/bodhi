@@ -291,7 +291,7 @@ texinfo_documents = [
 intersphinx_mapping = {'http://docs.python.org/': None}
 
 extlinks = {
-    'commit': ('https://github.com/fedora-infra/bodhi/commit/%s', ''),
-    'issue': ('https://github.com/fedora-infra/bodhi/issues/%s', '#'),
-    'pr': ('https://github.com/fedora-infra/bodhi/pull/%s', 'PR#'),
+    'commit': ('https://github.com/fedora-infra/bodhi/commit/%s', '%s'),
+    'issue': ('https://github.com/fedora-infra/bodhi/issues/%s', '#%s'),
+    'pr': ('https://github.com/fedora-infra/bodhi/pull/%s', 'PR#%s'),
 }
