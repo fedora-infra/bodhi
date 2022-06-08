@@ -119,7 +119,7 @@ class DiffCoverJob(Job):
         self._command = [executable] + [
             f'/results/coverage-{m}.xml' for m in self.options["modules"]
         ] + [
-            '--compare-branch=origin/develop', '--fail-under=100'
+            '--compare-branch=origin/6.0', '--fail-under=100'
         ]
         self._convert_command_for_container(include_git=True)
 
