@@ -41,7 +41,8 @@ except ImportError:  # pragma: no cover
     # dnf is not available on EL 7.
     dnf = None  # pragma: no cover
 from munch import munchify
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, ConnectionError
+import requests
 import koji
 
 from .constants import (
@@ -216,11 +217,15 @@ class BodhiClient:
         Returns:
             requests.Response: The response as returned by python-requests.
         """
-        if kwargs.pop("auth", False):
+        auth = kwargs.pop("auth", False)
+        if auth:
             self.ensure_auth()
+            request_func = self.oidc.request
+        else:
+            request_func = requests.request
         try:
-            response = self.oidc.request(verb, f"{self.base_url}{url}", **kwargs)
-        except OIDCClientError as e:
+            response = request_func(verb, f"{self.base_url}{url}", **kwargs)
+        except (OIDCClientError, ConnectionError) as e:
             raise BodhiClientException(str(e))
         if not response.ok:
             raise BodhiClientException(response.text)
