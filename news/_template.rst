@@ -8,6 +8,11 @@
    {%- endif -%}
 {%- endmacro -%}
 
+
+{{ top_line }}
+{{ top_underline * ((top_line)|length)}}
+
+Released on {{ versiondata.date }}.
 This is a {major|feature|bugfix} release that adds [short summary].
 
 {% for section, _ in sections.items() %}
