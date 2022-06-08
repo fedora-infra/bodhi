@@ -1,0 +1,356 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Using the GraphQL API &#8212; bodhi 5.7.5 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Python bindings" href="../../python_bindings.html" />
+    <link rel="prev" title="Users" href="../rest/users.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="using-the-graphql-api">
+<h1>Using the GraphQL API<a class="headerlink" href="#using-the-graphql-api" title="Permalink to this headline">¶</a></h1>
+<p>This provides the documentation on how to use the GraphiQL client to query Bodhi’s resources.</p>
+<div class="section" id="the-basics">
+<h2>The Basics<a class="headerlink" href="#the-basics" title="Permalink to this headline">¶</a></h2>
+<p>The GraphQL API assists in getting data in and out of* Bodhi. It’s an HTTP-based API that can be
+used to query &amp; post data. It’s composed of:</p>
+<ul class="simple">
+<li><p><strong>Node</strong>  : An individual object. (Eg: Release, Update, etc.)</p></li>
+<li><p><strong>Edge</strong>  : A connection between a collection of objects and a single object. (Eg: Releases in an Update)</p></li>
+<li><p><strong>Field</strong> : Data/attributes of an object. (Eg: id_prefix of a Release)</p></li>
+</ul>
+<p>You can implement GraphQL queries by either sending POST requests using CURL to the /graphql
+endpoint, or using the GraphiQL client.</p>
+<div class="section" id="using-the-graphiql-client">
+<h3>Using the GraphiQL Client<a class="headerlink" href="#using-the-graphiql-client" title="Permalink to this headline">¶</a></h3>
+<p>GraphiQL is a GUI for editing and testing GraphQL queries and mutations cleanly.</p>
+<p>On the left side of the interface, you can enter traditional GraphQL queries. On the right
+tab, you will see the consequent data rendered.</p>
+</div>
+<div class="section" id="graphql-query-response-structure">
+<h3>GraphQL Query/Response Structure<a class="headerlink" href="#graphql-query-response-structure" title="Permalink to this headline">¶</a></h3>
+<p>A typical GraphQL query looks like this</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="n">nameOfQuery</span><span class="p">(</span><span class="n">optionalArgument</span><span class="p">:</span> <span class="n">argumentValue</span><span class="p">){</span>
+    <span class="n">fieldDesired</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>A typical GraphQL data response looks like this</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;data&quot;</span><span class="p">:{</span>
+    <span class="s2">&quot;nameOfQuery&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span>
+        <span class="s2">&quot;fieldDesired&quot;</span><span class="p">:</span> <span class="n">value</span>
+      <span class="p">}</span>
+    <span class="p">]</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="available-queries">
+<h2>Available Queries<a class="headerlink" href="#available-queries" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">nameOfQuery</span></code> can be replaced with <code class="docutils literal notranslate"><span class="pre">allReleases</span></code>, <code class="docutils literal notranslate"><span class="pre">getRelease</span></code>, and <code class="docutils literal notranslate"><span class="pre">getUpdate</span></code>.</p>
+<div class="section" id="allreleases">
+<h3>allReleases<a class="headerlink" href="#allreleases" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 72%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Description</strong></p></td>
+<td><p>Query all releases in Bodhi.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Object</strong></p></td>
+<td><p>bodhi.server.models.release</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Fields Available</strong></p></td>
+<td><p>name, longName, version, id_prefix, branch, distTag, stableTag, testingTag, candidateTag,
+pendingSigningTag, pendingTestingTag, PendingStableTag, OverrideTag, mailTemplate, state, id,
+composedByBodhi, createAutomaticUpdates, packageManager, testingRepository</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Curl Request</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">curl</span> <span class="pre">-H</span> <span class="pre">'Content-Type:</span> <span class="pre">application/json'</span> <span class="pre">-X</span> <span class="pre">POST</span> <span class="pre">-d</span> <span class="pre">'{&quot;query&quot;:</span> <span class="pre">&quot;query</span> <span class="pre">{allReleases</span> <span class="pre">{name</span> <span class="pre">state}}&quot;}'</span> <span class="pre">https://bodhi.fedoraproject.org/graphql</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>GraphiQL Client Query</strong></p></td>
+<td><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="n">allReleases</span> <span class="p">{</span>
+     <span class="n">name</span>
+     <span class="n">state</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><strong>Output</strong></p></td>
+<td><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+       <span class="s2">&quot;allReleases&quot;</span><span class="p">:</span> <span class="p">[</span>
+         <span class="p">{</span>
+           <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;F32C&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;current&quot;</span>
+         <span class="p">},</span>
+         <span class="p">{</span>
+         <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;F33&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;pending&quot;</span>
+         <span class="p">},</span>
+       <span class="o">..</span>
+       <span class="o">..</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="getrelease">
+<h3>getRelease<a class="headerlink" href="#getrelease" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 72%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Description</strong></p></td>
+<td><p>Query specific releases in Bodhi using arguments as a filter.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Object</strong></p></td>
+<td><p>bodhi.server.models.release</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Valid Arguments</strong></p></td>
+<td><p>idPrefix, name, composedByBodhi, state</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Fields Available</strong></p></td>
+<td><p>name, longName, version, id_prefix, branch, distTag, stableTag, testingTag, candidateTag,
+pendingSigningTag, pendingTestingTag, PendingStableTag, OverrideTag, mailTemplate, state, id,
+composedByBodhi, createAutomaticUpdates, packageManager, testingRepository</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Curl Request</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">curl</span> <span class="pre">-H</span> <span class="pre">'Content-Type:</span> <span class="pre">application/json'</span> <span class="pre">-X</span> <span class="pre">POST</span> <span class="pre">-d</span> <span class="pre">'{&quot;query&quot;:</span> <span class="pre">&quot;query{getRelease(composedByBodhi:</span> <span class="pre">true,</span> <span class="pre">name:</span> <span class="pre">&quot;F22&quot;){name</span> <span class="pre">state}}&quot;}'</span> <span class="pre">https://bodhi.fedoraproject.org/graphql</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>GraphiQL Client Query</strong></p></td>
+<td><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="n">getReleases</span><span class="p">(</span><span class="n">composedByBodhi</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="s2">&quot;F22&quot;</span><span class="p">){</span>
+     <span class="n">name</span>
+     <span class="n">state</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>Output</strong></p></td>
+<td><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+ <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+     <span class="s2">&quot;getReleases&quot;</span><span class="p">:</span> <span class="p">[</span>
+       <span class="p">{</span>
+         <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;F22&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;archived&quot;</span>
+       <span class="p">}</span>
+     <span class="p">]</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="getupdate">
+<h3>getUpdate<a class="headerlink" href="#getupdate" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 72%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Description</strong></p></td>
+<td><p>Query specific updates in Bodhi using arguments as a filter.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Object</strong></p></td>
+<td><p>bodhi.server.models.update</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Valid Arguments</strong></p></td>
+<td><p>stableKarma, unstableKarma, stableDays, updateType, status, request, severity, pushed,
+critpath, dateApproved, alias, releaseId, userId, testGatingStatus, FromTag</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Fields Available</strong></p></td>
+<td><p>autoKarma, autotime, stableKarma, unstableKarma, stableDays, requirements, requireBugs,
+requireTestCases, displayName, notes, updateType, status, request, severity, locked, pushed,
+critpath, closeBugs, dateSubmitted, dateModified, dateApproved, datePushed, dateTesting,
+dateStable, alias, releaseId, userId, testGatingStatus, FromTag</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Curl Request</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">curl</span> <span class="pre">-H</span> <span class="pre">'Content-Type:</span> <span class="pre">application/json'</span> <span class="pre">-X</span> <span class="pre">POST</span> <span class="pre">-d</span> <span class="pre">'{&quot;query&quot;:</span> <span class="pre">&quot;query{getUpdate(userId:</span> <span class="pre">5136){critpath}}&quot;}'</span> <span class="pre">https://bodhi.fedoraproject.org/graphql</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>GraphiQL Client Query</strong></p></td>
+<td><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="n">getUpdate</span><span class="p">(</span><span class="n">userId</span><span class="p">:</span> <span class="mi">5136</span><span class="p">){</span>
+     <span class="n">critpath</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><strong>Output</strong></p></td>
+<td><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;getUpdates&quot;</span><span class="p">:</span> <span class="p">[</span>
+     <span class="p">{</span>
+      <span class="s2">&quot;critpath&quot;</span><span class="p">:</span> <span class="n">false</span>
+     <span class="p">}</span>
+   <span class="p">]</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user/man_pages/index.html">Man pages</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../user/release_notes.html">Release notes</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Bodhi Server APIs</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../index.html#message-api">Message API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#rest-api">REST API</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html#graphql-api">GRAPHQL API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Bodhi Server APIs</a><ul>
+      <li>Previous: <a href="../rest/users.html" title="previous chapter">Users</a></li>
+      <li>Next: <a href="../../python_bindings.html" title="next chapter">Python bindings</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2022, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/server_api/graphql/documentation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

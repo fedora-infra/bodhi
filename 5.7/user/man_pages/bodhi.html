@@ -1,0 +1,846 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bodhi &#8212; bodhi 5.7.5 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="bodhi-push" href="bodhi-push.html" />
+    <link rel="prev" title="Man pages" href="index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="bodhi">
+<h1>bodhi<a class="headerlink" href="#bodhi" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span></code> COMMAND SUBCOMMAND [OPTIONS] [ARGS]…</p>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span></code> is the command line interface to bodhi, Fedora’s update release management system. It can
+be used to create or modify updates and overrides.</p>
+</div>
+<div class="section" id="options">
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<p>Most of the commands will accept these options:</p>
+<p><code class="docutils literal notranslate"><span class="pre">--debug</span></code></p>
+<blockquote>
+<div><p>Some commands accept this flag to show extra debug information.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--help</span></code></p>
+<blockquote>
+<div><p>Show help text and exit.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--password</span> <span class="pre">&lt;text&gt;</span></code></p>
+<blockquote>
+<div><p>A password to authenticate as the user given by <code class="docutils literal notranslate"><span class="pre">--user</span></code>.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--staging</span></code></p>
+<blockquote>
+<div><p>Use the staging bodhi instance instead of the production instance.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--url</span> <span class="pre">&lt;url&gt;</span></code></p>
+<blockquote>
+<div><p>Use the Bodhi server at the given URL instead of the default server. This can also be set with
+the <code class="docutils literal notranslate"><span class="pre">BODHI_URL</span></code> environment variable. This is ignored if the <code class="docutils literal notranslate"><span class="pre">--staging</span></code> flag is set.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--user</span> <span class="pre">&lt;username&gt;</span></code></p>
+<blockquote>
+<div><p>Many commands accept this flag to specify a Fedora username to authenticate with. Note that some
+read operations such as querying updates and overrides use this same flag, but as a search
+parameter instead of authentication (as authentication is not required for these operations).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--version</span></code></p>
+<blockquote>
+<div><p>Show version and exit. Not accepted by subcommands.</p>
+</div></blockquote>
+</div>
+<div class="section" id="commands">
+<h2>Commands<a class="headerlink" href="#commands" title="Permalink to this headline">¶</a></h2>
+<p>There are four commands, <code class="docutils literal notranslate"><span class="pre">composes</span></code>, <code class="docutils literal notranslate"><span class="pre">overrides</span></code>, <code class="docutils literal notranslate"><span class="pre">updates</span></code> and <code class="docutils literal notranslate"><span class="pre">releases</span></code>. They are described
+in more detail in their own sections below.</p>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">composes</span> <span class="pre">&lt;subcommand&gt;</span> <span class="pre">[options]</span> <span class="pre">[args]</span></code></p>
+<blockquote>
+<div><p>Provides an interface to view composes. Supports subcommands <code class="docutils literal notranslate"><span class="pre">list</span></code> and <code class="docutils literal notranslate"><span class="pre">info</span></code>, described below.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">overrides</span> <span class="pre">&lt;subcommand&gt;</span> <span class="pre">[options]</span> <span class="pre">[args]</span></code></p>
+<blockquote>
+<div><p>Provides commands to aid in management of build overrides. Supports subcommands <code class="docutils literal notranslate"><span class="pre">query</span></code> and
+<code class="docutils literal notranslate"><span class="pre">save</span></code>, described below.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">updates</span> <span class="pre">&lt;subcommand&gt;</span> <span class="pre">[options]</span> <span class="pre">[args]</span></code></p>
+<blockquote>
+<div><p>Provides an interface to manage updates. Supports subcommands <code class="docutils literal notranslate"><span class="pre">comment</span></code>, <code class="docutils literal notranslate"><span class="pre">download</span></code>,
+<code class="docutils literal notranslate"><span class="pre">new</span></code>, <code class="docutils literal notranslate"><span class="pre">query</span></code>, and <code class="docutils literal notranslate"><span class="pre">request</span></code>, described below.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">releases</span> <span class="pre">&lt;subcommand&gt;</span> <span class="pre">[options]</span> <span class="pre">[args]</span></code></p>
+<blockquote>
+<div><p>Provides an interface to manage releases. Supports subcommands <code class="docutils literal notranslate"><span class="pre">create</span></code>, <code class="docutils literal notranslate"><span class="pre">edit</span></code>, <code class="docutils literal notranslate"><span class="pre">info</span></code> and
+<code class="docutils literal notranslate"><span class="pre">list</span></code>, described below.</p>
+</div></blockquote>
+</div>
+<div class="section" id="composes">
+<h2>Composes<a class="headerlink" href="#composes" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">composes</span></code> command allows users to view composes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">composes</span> <span class="pre">list</span> <span class="pre">[options]</span></code></p>
+<blockquote>
+<div><p>The <code class="docutils literal notranslate"><span class="pre">list</span></code> subcommand allows you to see the current composes on the Bodhi server. It supports
+the following options:</p>
+<p><code class="docutils literal notranslate"><span class="pre">-v,</span> <span class="pre">--verbose</span></code></p>
+<blockquote>
+<div><p>Print more detail about the composes.</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">composes</span> <span class="pre">info</span> <span class="pre">[options]</span> <span class="pre">RELEASE</span> <span class="pre">REQUEST</span></code></p>
+<blockquote>
+<div><p>The <code class="docutils literal notranslate"><span class="pre">info</span></code> subcommand allows you to see the compose for release with the given request.</p>
+</div></blockquote>
+</div>
+<div class="section" id="overrides">
+<h2>Overrides<a class="headerlink" href="#overrides" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">overrides</span></code> command allows users to manage build overrides.</p>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">overrides</span> <span class="pre">query</span> <span class="pre">[options]</span></code></p>
+<blockquote>
+<div><p>The <code class="docutils literal notranslate"><span class="pre">query</span></code> subcommand provides an interface for users to query the bodhi server for existing
+overrides.  The <code class="docutils literal notranslate"><span class="pre">query</span></code> subcommand supports the following options:</p>
+<p><code class="docutils literal notranslate"><span class="pre">--mine</span></code></p>
+<blockquote>
+<div><p>Show only your overrides.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--active</span></code></p>
+<blockquote>
+<div><p>Filter for only active overrides</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--expired</span></code></p>
+<blockquote>
+<div><p>Filter for only expired overrides</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--packages</span> <span class="pre">&lt;packagename&gt;</span></code></p>
+<blockquote>
+<div><p>Query for overrides related to the given packages, given as a comma-separated list.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--releases</span> <span class="pre">&lt;releases&gt;</span></code></p>
+<blockquote>
+<div><p>Query for overrides related to a list of releases, given as a comma-separated list.
+&lt;releases&gt; is the release shortname, for example: F26 or F26,F25, or a macro filter
+(<cite>__current__</cite>, <cite>__pending__</cite>, <cite>__archived__</cite>) to include all releases in a
+certain status.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--builds</span> <span class="pre">&lt;builds&gt;</span></code></p>
+<blockquote>
+<div><p>Query for overrides for a list of builds, given as a comma-separated list.
+&lt;builds&gt; is the build NVR, for example: corebird-1.3-0.fc24</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--user</span> <span class="pre">&lt;username&gt;</span></code></p>
+<blockquote>
+<div><p>Filter for overrides by a list of usernames, given as a comma-separated list.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--rows</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<blockquote>
+<div><p>Limits number of results shown per page.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--page</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<blockquote>
+<div><p>Go to page number.</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">overrides</span> <span class="pre">save</span> <span class="pre">[options]</span> <span class="pre">&lt;nvr&gt;</span></code></p>
+<blockquote>
+<div><p>Save the build root given by <code class="docutils literal notranslate"><span class="pre">&lt;nvr&gt;</span></code> as a buildroot override. The <code class="docutils literal notranslate"><span class="pre">save</span></code> subcommand supports
+the following options:</p>
+<p><code class="docutils literal notranslate"><span class="pre">--duration</span> <span class="pre">&lt;days&gt;</span></code></p>
+<blockquote>
+<div><p>The number of days the override should exist, given as an integer.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--notes</span> <span class="pre">&lt;text&gt;</span></code></p>
+<blockquote>
+<div><p>Notes on why this override is in place.</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">overrides</span> <span class="pre">edit</span> <span class="pre">[options]</span> <span class="pre">&lt;nvr&gt;</span></code></p>
+<blockquote>
+<div><p>Edit the build root given by <code class="docutils literal notranslate"><span class="pre">&lt;nvr&gt;</span></code> as a buildroot override. The <code class="docutils literal notranslate"><span class="pre">edit</span></code> subcommand supports
+the same options than the <code class="docutils literal notranslate"><span class="pre">save</span></code> command and also the following option:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--expire</span></code></dt><dd><p>Force an override to the expired state.</p>
+</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="updates">
+<h2>Updates<a class="headerlink" href="#updates" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">updates</span></code> command allows users to interact with bodhi updates.</p>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">updates</span> <span class="pre">comment</span> <span class="pre">[options]</span> <span class="pre">&lt;update&gt;</span> <span class="pre">&lt;text&gt;</span></code></p>
+<blockquote>
+<div><p>Leave the given text as a comment on a bodhi update. The <code class="docutils literal notranslate"><span class="pre">comment</span></code> subcommand
+supports the following options:</p>
+<p><code class="docutils literal notranslate"><span class="pre">--karma</span> <span class="pre">[+1</span> <span class="pre">|</span> <span class="pre">0</span> <span class="pre">|</span> <span class="pre">-1]</span></code></p>
+<blockquote>
+<div><p>The karma value you wish to contribute to the update.</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">updates</span> <span class="pre">download</span> <span class="pre">[options]</span></code></p>
+<blockquote>
+<div><p>Download update(s) given by ID(s) or NVR(s). One of <code class="docutils literal notranslate"><span class="pre">--updateid</span></code> or
+<code class="docutils literal notranslate"><span class="pre">builds</span></code> is required. The download subcommand supports the following options:</p>
+<p><code class="docutils literal notranslate"><span class="pre">--debuginfo</span></code></p>
+<blockquote>
+<div><p>Include debuginfo packages when downloading.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--updateid</span> <span class="pre">&lt;ids&gt;</span></code></p>
+<blockquote>
+<div><p>A comma-separated list of update IDs you would like to download.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--builds</span> <span class="pre">&lt;nvrs&gt;</span></code></p>
+<blockquote>
+<div><p>A comma-separated list of NVRs that identify updates you would like to download.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--arch</span> <span class="pre">&lt;arch&gt;</span></code></p>
+<blockquote>
+<div><p>You can specify an architecture of packages to download. “all” will download packages for all architectures.
+Omitting this option will download packages for the architecture you are currently running.</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">updates</span> <span class="pre">new</span> <span class="pre">[options]</span> <span class="pre">&lt;builds_or_tag&gt;</span></code></p>
+<blockquote>
+<div><p>Create a new bodhi update containing the builds, given as a comma separated list of NVRs. The
+<code class="docutils literal notranslate"><span class="pre">new</span></code> subcommand supports the following options:</p>
+<p><code class="docutils literal notranslate"><span class="pre">--type</span> <span class="pre">[security</span> <span class="pre">|</span> <span class="pre">bugfix</span> <span class="pre">|</span> <span class="pre">enhancement</span> <span class="pre">|</span> <span class="pre">newpackage]</span></code></p>
+<blockquote>
+<div><p>The type of the new update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--notes</span> <span class="pre">&lt;text&gt;</span></code></p>
+<blockquote>
+<div><p>The description of the update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--notes-file</span> <span class="pre">&lt;path&gt;</span></code></p>
+<blockquote>
+<div><p>A path to a file containing a description of the update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--bugs</span> <span class="pre">&lt;bugs&gt;</span></code></p>
+<blockquote>
+<div><p>A comma separated list of bugs to associate with this update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--close-bugs</span></code></p>
+<blockquote>
+<div><p>If given, this flag will cause bodhi to close the referenced bugs automatically when the
+update reaches stable.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--request</span> <span class="pre">[testing</span> <span class="pre">|</span> <span class="pre">stable</span> <span class="pre">|</span> <span class="pre">upush]</span></code></p>
+<blockquote>
+<div><p>The repository requested for this update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--autokarma</span></code></p>
+<blockquote>
+<div><p>Enable autokarma for this update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--autotime</span></code></p>
+<blockquote>
+<div><p>Enable autotime for this update. Automatically push the update to stable based on the
+time spent in testing.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--stable-karma</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<blockquote>
+<div><p>Configure the stable karma threshold for the given value.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--unstable-karma</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<blockquote>
+<div><p>Configure the unstable karma threshold for the given value.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--stable-days</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<blockquote>
+<div><p>Configure the number of days an update has to spend in testing before
+being automatically pushed to stable.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--suggest</span> <span class="pre">[logout</span> <span class="pre">|</span> <span class="pre">reboot]</span></code></p>
+<blockquote>
+<div><p>Suggest that the user logout or reboot upon applying the update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--file</span> <span class="pre">&lt;path&gt;</span></code></p>
+<blockquote>
+<div><p>A path to a file containing all the update details.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--requirements</span> <span class="pre">&lt;Taskotron</span> <span class="pre">tasks&gt;</span></code></p>
+<blockquote>
+<div><p>A comma or space-separated list of required Taskotron tasks that must pass for this update
+to reach stable.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--display-name</span> <span class="pre">&lt;text&gt;</span></code></p>
+<blockquote>
+<div><p>The name of the update</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--from-tag</span></code></p>
+<blockquote>
+<div><p>If this flag is provided, <code class="docutils literal notranslate"><span class="pre">&lt;builds_or_tag&gt;</span></code> will be interpreted as a Koji tag and expand
+to all latest builds in it. Only a single tag can be provided.</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">updates</span> <span class="pre">edit</span> <span class="pre">[options]</span> <span class="pre">&lt;update&gt;</span></code></p>
+<blockquote>
+<div><p>Edit an existing bodhi update, given an update id or an update title. The
+<code class="docutils literal notranslate"><span class="pre">edit</span></code> subcommand supports the following options:</p>
+<p><code class="docutils literal notranslate"><span class="pre">--addbuilds</span> <span class="pre">&lt;builds&gt;</span></code></p>
+<blockquote>
+<div><p>Add a comma separated list of build nvr to this update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--removebuilds</span> <span class="pre">&lt;builds&gt;</span></code></p>
+<blockquote>
+<div><p>Remove a comma separated list of build nvr from this update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--type</span> <span class="pre">[security</span> <span class="pre">|</span> <span class="pre">bugfix</span> <span class="pre">|</span> <span class="pre">enhancement</span> <span class="pre">|</span> <span class="pre">newpackage]</span></code></p>
+<blockquote>
+<div><p>The type of the new update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--notes</span> <span class="pre">&lt;text&gt;</span></code></p>
+<blockquote>
+<div><p>The description of the update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--notes-file</span> <span class="pre">&lt;path&gt;</span></code></p>
+<blockquote>
+<div><p>A path to a file containing a description of the update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--bugs</span> <span class="pre">&lt;bugs&gt;</span></code></p>
+<blockquote>
+<div><p>A comma separated list of bugs to associate with this update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--close-bugs</span></code></p>
+<blockquote>
+<div><p>If given, this flag will cause bodhi to close the referenced bugs automatically when the
+update reaches stable.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--request</span> <span class="pre">[testing</span> <span class="pre">|</span> <span class="pre">stable</span> <span class="pre">|</span> <span class="pre">upush]</span></code></p>
+<blockquote>
+<div><p>The repository requested for this update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--autokarma</span></code></p>
+<blockquote>
+<div><p>Enable autokarma for this update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--stable-karma</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<blockquote>
+<div><p>Configure the stable karma threshold for the given value.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--unstable-karma</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<blockquote>
+<div><p>Configure the unstable karma threshold for the given value.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--suggest</span> <span class="pre">[logout</span> <span class="pre">|</span> <span class="pre">reboot]</span></code></p>
+<blockquote>
+<div><p>Suggest that the user logout or reboot upon applying the update.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--requirements</span> <span class="pre">&lt;Taskotron</span> <span class="pre">tasks&gt;</span></code></p>
+<blockquote>
+<div><p>A comma or space-separated list of required Taskotron tasks that must pass for this update
+to reach stable.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--display-name</span> <span class="pre">&lt;text&gt;</span></code></p>
+<blockquote>
+<div><p>The name of the update</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--from-tag</span></code></p>
+<blockquote>
+<div><p>If given, for updates that were created from a Koji tag, this will update
+the builds to the latest ones in the tag.</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">updates</span> <span class="pre">query</span> <span class="pre">[options]</span></code></p>
+<blockquote>
+<div><p>Query the bodhi server for updates.</p>
+<p>If the query returns only one update, a detailed view of the update will be displayed.</p>
+<p>If more than one update is returned, the command will display a list showing the packages
+contained in the update, the update content-type (rpm / module / …), the current status
+of the update (pushed / testing / …) and the date of the last status change with
+the number of days passed since. A leading <code class="docutils literal notranslate"><span class="pre">*</span></code> marks security updates.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">query</span></code> subcommand supports the following options:</p>
+<p><code class="docutils literal notranslate"><span class="pre">--updateid</span> <span class="pre">&lt;id&gt;</span></code></p>
+<blockquote>
+<div><p>Query for the update given by id.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--title</span> <span class="pre">&lt;title&gt;</span></code></p>
+<blockquote>
+<div><p>Query for the update given by title.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--alias</span> <span class="pre">&lt;alias&gt;</span></code></p>
+<blockquote>
+<div><p>Query for the update given by alias.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--approved-since</span> <span class="pre">&lt;timestamp&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates approved after the given timestamp.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--approved-before</span> <span class="pre">&lt;timestamp&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates approved before the given timestamp.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--modified-since</span> <span class="pre">&lt;timestamp&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates modified after the given timestamp.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--modified-before</span> <span class="pre">&lt;timestamp&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates modified before the given timestamp.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--builds</span> <span class="pre">&lt;builds&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates containing the given builds, given as a comma-separated list.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--bugs</span> <span class="pre">&lt;bugs&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates related to the given bugs, given as a comma-separated list.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--content-type</span> <span class="pre">&lt;content_type&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates of a given content type: either rpm, module, or (in the future) container.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--critpath</span></code></p>
+<blockquote>
+<div><p>Query for updates submitted for the critical path.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--from-side-tag</span></code></p>
+<blockquote>
+<div><p>Query for updates created from a side-tag.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--not-from-side-tag</span></code></p>
+<blockquote>
+<div><p>Query for updates not created from a side-tag.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--gating</span> <span class="pre">[passed</span> <span class="pre">|</span> <span class="pre">failed</span> <span class="pre">|</span> <span class="pre">ignored</span> <span class="pre">|</span> <span class="pre">waiting</span> <span class="pre">|</span> <span class="pre">running</span> <span class="pre">|</span> <span class="pre">queued</span> <span class="pre">|</span> <span class="pre">greenwave_failed]</span></code></p>
+<blockquote>
+<div><p>Query for updates based on test gating status.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--mine</span></code></p>
+<blockquote>
+<div><p>Show only your updates.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--packages</span> <span class="pre">&lt;packages&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates related to the given packages, given as a comma-separated list.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--pushed</span></code></p>
+<blockquote>
+<div><p>Query for updates that have been pushed.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--pushed-since</span> <span class="pre">&lt;timestamp&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates that have been pushed after the given timestamp.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--pushed-before</span> <span class="pre">&lt;timestamp&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates that have been pushed before the given timestamp.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--releases</span> <span class="pre">&lt;releases&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates related to a list of releases, given as a comma-separated list.
+It is possible to use the macro filters <cite>__current__</cite>, <cite>__pending__</cite> and <cite>__archived__</cite>
+to include all releases in a certain status.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--locked</span></code></p>
+<blockquote>
+<div><p>Query for updates that are currently locked.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--request</span> <span class="pre">[testing</span> <span class="pre">|</span> <span class="pre">stable</span> <span class="pre">|</span> <span class="pre">unpush]</span></code></p>
+<blockquote>
+<div><p>Query for updates marked with the given request type.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--severity</span> <span class="pre">[unspecified,</span> <span class="pre">urgent,</span> <span class="pre">high,</span> <span class="pre">medium,</span> <span class="pre">low]</span></code></p>
+<blockquote>
+<div><p>Query for updates with a specific severity.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--submitted-since</span> <span class="pre">&lt;timestamp&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates that were submitted since the given timestamp.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--submitted-before</span> <span class="pre">&lt;timestamp&gt;</span></code></p>
+<blockquote>
+<div><p>Query for updates that were submitted before the given timestamp.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--status</span> <span class="pre">[pending</span> <span class="pre">|</span> <span class="pre">testing</span> <span class="pre">|</span> <span class="pre">stable</span> <span class="pre">|</span> <span class="pre">obsolete</span> <span class="pre">|</span> <span class="pre">unpushed]</span></code></p>
+<blockquote>
+<div><p>Filter by status.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--suggest</span> <span class="pre">[logout</span> <span class="pre">|</span> <span class="pre">reboot]</span></code></p>
+<blockquote>
+<div><p>Filter for updates that suggest logout or reboot to the user.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--type</span> <span class="pre">[newpackage</span> <span class="pre">|</span> <span class="pre">security</span> <span class="pre">|</span> <span class="pre">bugfix</span> <span class="pre">|</span> <span class="pre">enhancement]</span></code></p>
+<blockquote>
+<div><p>Filter by update type.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--user</span> <span class="pre">&lt;username&gt;</span></code></p>
+<blockquote>
+<div><p>Filter for updates by a list of usernames, given as a comma-separated list.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--rows</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<blockquote>
+<div><p>Limits number of results shown per page.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--page</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<blockquote>
+<div><p>Go to page number.</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">updates</span> <span class="pre">request</span> <span class="pre">[options]</span> <span class="pre">&lt;update&gt;</span> <span class="pre">&lt;state&gt;</span></code></p>
+<blockquote>
+<div><p>Request that the given update be changed to the given state. <code class="docutils literal notranslate"><span class="pre">update</span></code> should be given by
+update id, and <code class="docutils literal notranslate"><span class="pre">state</span></code> should be one of testing, stable, unpush, obsolete, or revoke.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">updates</span> <span class="pre">waive</span> <span class="pre">[options]</span> <span class="pre">&lt;update&gt;</span> <span class="pre">&lt;comment&gt;</span></code></p>
+<blockquote>
+<div><p>Show or waive unsatisfied test requirements on an update.</p>
+<p>The following options are supported:</p>
+<p><code class="docutils literal notranslate"><span class="pre">--show</span></code></p>
+<blockquote>
+<div><p>List the unsatisfied test requirements.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--test</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>Waive the test specified by name in TEXT. all can be used to waive all unsatisfied tests.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--debug</span></code></p>
+<blockquote>
+<div><p>Display debugging information.</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">updates</span> <span class="pre">trigger-tests</span> <span class="pre">[options]</span> <span class="pre">&lt;update&gt;</span></code></p>
+<blockquote>
+<div><p>Trigger tests for an update. This update must be in testing state.</p>
+</div></blockquote>
+</div>
+<div class="section" id="releases">
+<h2>Releases<a class="headerlink" href="#releases" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">releases</span></code> command allows users to manage update releases.</p>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">releases</span> <span class="pre">create</span> <span class="pre">[options]</span></code></p>
+<blockquote>
+<div><p>The <code class="docutils literal notranslate"><span class="pre">create</span></code> command allows administrators to create new releases in Bodhi:</p>
+<p><code class="docutils literal notranslate"><span class="pre">--branch</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The git branch that corresponds to this release (e.g., f29).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--candidate-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use to search for update candidates (e.g., f29-updates-candidate).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--composed-by-bodhi,</span> <span class="pre">--not-composed-by-bodhi</span></code></p>
+<blockquote>
+<div><p>The flag that indicates whether the release is composed by Bodhi or not.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--dist-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji dist tag for this release (e.g., f29).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--id-prefix</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The release’s prefix (e.g., FEDORA).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--long-name</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The long name of the release (e.g., Fedora 29).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--name</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The name of the release (e.g., F29).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--override-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use for buildroot overrides (e.g., f29-override).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--package-manager</span> <span class="pre">[unspecified|dnf|yum]</span></code></p>
+<blockquote>
+<div><p>The package manager used by this release. If not specified it defaults to ‘unspecified’.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--password</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The password to use when authenticating to Bodhi.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--pending-stable-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use on updates that are marked stable (e.g., f29-updates-pending).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--pending-testing-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use on updates that are pending testing (e.g., f29-updates-pending-testing).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--stable-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use for stable updates (e.g., f29-updates).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--state</span> <span class="pre">[disabled|pending|frozen|current|archived]</span></code></p>
+<blockquote>
+<div><p>The state of the release.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--testing-repository</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The name of the testing repository used to test updates. Not required.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--testing-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use for testing updates (e.g., f29-updates-testing).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--username</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The username to use when authenticating to Bodhi.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--version</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The version of the release (e.g., 29).</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">releases</span> <span class="pre">edit</span> <span class="pre">[options]</span></code></p>
+<blockquote>
+<div><p>The <code class="docutils literal notranslate"><span class="pre">edit</span></code> command allows administrators to edit existing releases:</p>
+<p><code class="docutils literal notranslate"><span class="pre">--branch</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The git branch that corresponds to this release (e.g., f29).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--candidate-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use to search for update candidates (e.g., f29-updates-candidate).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--composed-by-bodhi,</span> <span class="pre">--not-composed-by-bodhi</span></code></p>
+<blockquote>
+<div><p>The flag that indicates whether the release is composed by Bodhi or not.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--dist-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji dist tag for this release (e.g., f29).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--id-prefix</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The release’s prefix (e.g., FEDORA).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--long-name</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The long name of the release (e.g., Fedora 29).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--name</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The name of the release (e.g., F29).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--new-name</span></code></p>
+<blockquote>
+<div><p>Change the release’s name to a new value (e.g., F29).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--override-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use for buildroot overrides (e.g., f29-override).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--package-manager</span> <span class="pre">[unspecified|dnf|yum]</span></code></p>
+<blockquote>
+<div><p>The package manager used by this release. If not specified it defaults to ‘unspecified’.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--password</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The password to use when authenticating to Bodhi.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--pending-stable-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use on updates that are marked stable (e.g., f29-updates-pending).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--pending-testing-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use on updates that are pending testing (e.g., f29-updates-testing-pending).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--stable-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use for stable updates (e.g., f29-updates).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--state</span> <span class="pre">[disabled|pending|frozen|current|archived]</span></code></p>
+<blockquote>
+<div><p>The state of the release.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--testing-repository</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The name of the testing repository used to test updates. Not required.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--testing-tag</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The Koji tag to use for testing updates (e.g., f29-updates-testing).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--username</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The username to use when authenticating to Bodhi.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--version</span> <span class="pre">TEXT</span></code></p>
+<blockquote>
+<div><p>The version of the release (e.g., 29).</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">releases</span> <span class="pre">info</span> <span class="pre">RELEASE_NAME</span></code></p>
+<blockquote>
+<div><p>The <code class="docutils literal notranslate"><span class="pre">info</span></code> command prints information about the given release.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">releases</span> <span class="pre">list</span> <span class="pre">[options]</span></code></p>
+<blockquote>
+<div><p>The <code class="docutils literal notranslate"><span class="pre">list</span></code> command prints list of releases.</p>
+<p><code class="docutils literal notranslate"><span class="pre">--display-archived</span></code></p>
+<blockquote>
+<div><p>Display full list, including archived releases.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--rows</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<blockquote>
+<div><p>Limits number of results shown per page.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">--page</span> <span class="pre">&lt;integer&gt;</span></code></p>
+<blockquote>
+<div><p>Go to page number.</p>
+</div></blockquote>
+</div></blockquote>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Create a new update with multiple builds:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ bodhi updates new --user bowlofeggs --type bugfix --notes &quot;Fix permission issues during startup.&quot; --bugs 1393587 --close-bugs --request testing --autokarma --stable-karma 3 --unstable-karma -3 ejabberd-16.09-2.fc25,erlang-esip-1.0.8-1.fc25,erlang-fast_tls-1.0.7-1.fc25,erlang-fast_yaml-1.0.6-1.fc25,erlang-fast_xml-1.1.15-1.fc25,erlang-iconv-1.0.2-1.fc25,erlang-stringprep-1.0.6-1.fc25,erlang-stun-1.0.7-1.fc25
+</pre></div>
+</div>
+</div>
+<div class="section" id="help">
+<h2>Help<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h2>
+<p>If you find bugs in bodhi (or in the man page), please feel free to file a bug report or a pull
+request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">fedora</span><span class="o">-</span><span class="n">infra</span><span class="o">/</span><span class="n">bodhi</span>
+</pre></div>
+</div>
+<p>Bodhi’s documentation is available online: <a class="reference external" href="https://bodhi.fedoraproject.org/docs">https://bodhi.fedoraproject.org/docs</a></p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Man pages</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">bodhi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bodhi-push.html">bodhi-push</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bodhi-sar.html">bodhi-sar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bodhi-shell.html">bodhi-shell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bodhi-skopeo-lite.html">bodhi-skopeo-lite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bodhi-untag-branched.html">bodhi-untag-branched</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initialize_bodhi_db.html">initialize_bodhi_db</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Man pages</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Man pages</a></li>
+      <li>Next: <a href="bodhi-push.html" title="next chapter">bodhi-push</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2022, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/user/man_pages/bodhi.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
