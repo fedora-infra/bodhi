@@ -1,0 +1,1818 @@
+bodhi.update.comment
+--------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.comment#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when a comment is added to an update",
+        "type": "object",
+        "properties": {
+            "comment": {
+                "type": "object",
+                "description": "The comment added to an update",
+                "properties": {
+                    "karma": {
+                        "type": "integer",
+                        "description": "The karma associated with the comment"
+                    },
+                    "text": {
+                        "type": "string",
+                        "description": "The text of the comment"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "description": "The timestamp that the comment was left on."
+                    },
+                    "update": {
+                        "type": "object",
+                        "description": "An update",
+                        "properties": {
+                            "alias": {
+                                "type": "string",
+                                "description": "The alias of the update"
+                            },
+                            "builds": {
+                                "type": "array",
+                                "description": "A list of builds included in this update",
+                                "items": {
+                                    "$ref": "#/definitions/build"
+                                }
+                            },
+                            "release": {
+                                "type": "object",
+                                "description": "A release",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "The name of the release e.g. F32"
+                                    }
+                                },
+                                "required": [
+                                    "name"
+                                ]
+                            },
+                            "request": {
+                                "type": [
+                                    "null",
+                                    "string"
+                                ],
+                                "description": "The request of the update, if any",
+                                "enum": [
+                                    null,
+                                    "testing",
+                                    "obsolete",
+                                    "unpush",
+                                    "revoke",
+                                    "stable"
+                                ]
+                            },
+                            "status": {
+                                "type": "string",
+                                "description": "The current status of the update",
+                                "enum": [
+                                    null,
+                                    "pending",
+                                    "testing",
+                                    "stable",
+                                    "unpushed",
+                                    "obsolete",
+                                    "side_tag_active",
+                                    "side_tag_expired"
+                                ]
+                            },
+                            "user": {
+                                "type": "object",
+                                "description": "The user that submitted the override",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "The user's account name"
+                                    }
+                                },
+                                "required": [
+                                    "name"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "alias",
+                            "builds",
+                            "release",
+                            "request",
+                            "status",
+                            "user"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "karma",
+                    "text",
+                    "timestamp",
+                    "update",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "comment"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
+bodhi.update.complete.stable
+----------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.complete.stable#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is pushed stable",
+        "type": "object",
+        "properties": {
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
+bodhi.update.complete.testing
+-----------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.complete.testing#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is pushed to testing",
+        "type": "object",
+        "properties": {
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
+bodhi.update.edit
+-----------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.edit#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is edited",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The user who edited the update"
+            },
+            "new_bugs": {
+                "type": "array",
+                "description": "An array of bug ids that have been added to the update",
+                "items": {
+                    "type": "integer",
+                    "description": "A Bugzilla bug ID"
+                }
+            },
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "agent",
+            "new_bugs",
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
+bodhi.update.eject
+------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.eject#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is ejected from a compose",
+        "type": "object",
+        "properties": {
+            "reason": {
+                "type": "string",
+                "description": "The reason the update was ejected"
+            },
+            "repo": {
+                "type": "string",
+                "description": "The name of the repo that the update is associated with"
+            },
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "reason",
+            "repo",
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
+bodhi.update.karma.threshold.reach
+----------------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.karma.threshold.reach#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update reaches its karma threshold",
+        "type": "object",
+        "properties": {
+            "status": {
+                "type": "string",
+                "description": "Which karma threshold was reached",
+                "enum": [
+                    "stable",
+                    "unstable"
+                ]
+            },
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "status",
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
+bodhi.update.status.testing.koji-build-group.build.complete
+-----------------------------------------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.status.testing#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is ready for testing",
+        "type": "object",
+        "properties": {
+            "contact": {
+                "description": "Schema for message sent when an update is ready for testing",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "A human readable name of the team running the testing or gating"
+                    },
+                    "team": {
+                        "type": "string",
+                        "description": "A human readable name of the team running the testing or gating"
+                    },
+                    "docs": {
+                        "type": "string",
+                        "description": " Link to documentation with details about the system."
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "Contact email address."
+                    }
+                },
+                "required": [
+                    "name",
+                    "team",
+                    "docs",
+                    "email"
+                ]
+            },
+            "artifact": {
+                "description": "Details about the builds to test.",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "description": "The bodhi identifier for this update",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "Artifact type, in this case \"rpm-build-group\".",
+                        "type": "string"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this group",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "repository": {
+                        "description": "Url of the repository with packages from the side-tag.",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "release": {
+                        "description": "The release targetted by this side-tag/group of builds.",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "type",
+                    "builds",
+                    "repository",
+                    "release"
+                ]
+            },
+            "generated_at": {
+                "description": "Time when the requested was generated, in UTC and ISO 8601 format",
+                "type": "string"
+            },
+            "version": {
+                "description": "Version of the specification",
+                "type": "string"
+            },
+            "agent": {
+                "description": "Re-trigger request: name of requester, trigger on push: \"bodhi\".",
+                "type": "string"
+            }
+        },
+        "required": [
+            "contact",
+            "artifact",
+            "generated_at",
+            "version",
+            "agent"
+        ],
+        "definitions": {
+            "build": {
+                "description": "Details about a build to test.",
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "description": "Artifact type, in this case \"koji-build\"",
+                        "type": "string"
+                    },
+                    "id": {
+                        "description": "Build ID of the koji build.",
+                        "type": "integer"
+                    },
+                    "task_id": {
+                        "description": "Task ID of the koji build.",
+                        "type": [
+                            "null",
+                            "integer"
+                        ]
+                    },
+                    "component": {
+                        "description": "Name of the component tested.",
+                        "type": "string"
+                    },
+                    "issuer": {
+                        "description": "Build issuer of the artifact.",
+                        "type": "string"
+                    },
+                    "scratch": {
+                        "description": "Indication if the build is a scratch build.",
+                        "type": "boolean"
+                    },
+                    "nvr": {
+                        "description": "Name-version-release of the artifact.",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "id",
+                    "issuer",
+                    "component",
+                    "nvr",
+                    "scratch"
+                ]
+            }
+        },
+        "re-trigger": {
+            "type": "bool",
+            "description": "This flag is True if the message is sent to re-trigger tests"
+        }
+    }
+
+bodhi.update.status.testing.koji-build-group.build.complete
+-----------------------------------------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.status.testing#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is ready for testing",
+        "type": "object",
+        "properties": {
+            "contact": {
+                "description": "Schema for message sent when an update is ready for testing",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "A human readable name of the team running the testing or gating"
+                    },
+                    "team": {
+                        "type": "string",
+                        "description": "A human readable name of the team running the testing or gating"
+                    },
+                    "docs": {
+                        "type": "string",
+                        "description": " Link to documentation with details about the system."
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "Contact email address."
+                    }
+                },
+                "required": [
+                    "name",
+                    "team",
+                    "docs",
+                    "email"
+                ]
+            },
+            "artifact": {
+                "description": "Details about the builds to test.",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "description": "The bodhi identifier for this update",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "Artifact type, in this case \"rpm-build-group\".",
+                        "type": "string"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this group",
+                        "items": {
+                            "$ref": "#/definitions/artifactbuild"
+                        }
+                    },
+                    "repository": {
+                        "description": "Url of the repository with packages from the side-tag.",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "release": {
+                        "description": "The release targetted by this side-tag/group of builds.",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "type",
+                    "builds",
+                    "repository",
+                    "release"
+                ]
+            },
+            "generated_at": {
+                "description": "Time when the requested was generated, in UTC and ISO 8601 format",
+                "type": "string"
+            },
+            "version": {
+                "description": "Version of the specification",
+                "type": "string"
+            },
+            "agent": {
+                "description": "Re-trigger request: name of requester, trigger on push: \"bodhi\".",
+                "type": "string"
+            },
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "contact",
+            "artifact",
+            "generated_at",
+            "version",
+            "agent",
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            },
+            "artifactbuild": {
+                "description": "Details about a build to test.",
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "description": "Artifact type, in this case \"koji-build\"",
+                        "type": "string"
+                    },
+                    "id": {
+                        "description": "Build ID of the koji build.",
+                        "type": "integer"
+                    },
+                    "task_id": {
+                        "description": "Task ID of the koji build.",
+                        "type": [
+                            "null",
+                            "integer"
+                        ]
+                    },
+                    "component": {
+                        "description": "Name of the component tested.",
+                        "type": "string"
+                    },
+                    "issuer": {
+                        "description": "Build issuer of the artifact.",
+                        "type": "string"
+                    },
+                    "scratch": {
+                        "description": "Indication if the build is a scratch build.",
+                        "type": "boolean"
+                    },
+                    "nvr": {
+                        "description": "Name-version-release of the artifact.",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "id",
+                    "issuer",
+                    "component",
+                    "nvr",
+                    "scratch"
+                ]
+            }
+        },
+        "re-trigger": {
+            "type": "bool",
+            "description": "This flag is True if the message is sent to re-trigger tests"
+        }
+    }
+
+bodhi.update.request.obsolete
+-----------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.request.obsolete#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is obsoleted",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The user who requested the update to be obsoleted"
+            },
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "agent",
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
+bodhi.update.request.revoke
+---------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.request.revoke#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is revoked",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The user who requested the update to be revoked"
+            },
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "agent",
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
+bodhi.update.request.stable
+---------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.request.stable#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is requested stable",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The user who requested the update to be stable"
+            },
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "agent",
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
+bodhi.update.request.testing
+----------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.request.testing#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is requested testing",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The user who requested the update to be tested"
+            },
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "agent",
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
+bodhi.update.request.unpush
+---------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.request.unpush#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is unpushed",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The user who requested the update to be unpushed"
+            },
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "agent",
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
+bodhi.update.requirements_met.stable
+------------------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.requirements_met.stable#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update meets stable requirements",
+        "type": "object",
+        "properties": {
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "update"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
