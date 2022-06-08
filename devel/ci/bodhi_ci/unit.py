@@ -68,6 +68,7 @@ class UnitJob(Job):
             f'/usr/bin/python3 -m pytest {pytest_flags}; '
             '  exitcode=$?; '
             '  cp *.xml /results/$submodule/; '
+            '  cp -r htmlcov /results/$submodule/; '
             '  test $exitcode -gt 0 && exit 1; '
             '  cd ..; '
             'done'
