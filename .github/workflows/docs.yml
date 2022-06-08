@@ -2,8 +2,9 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - develop
+      - 'develop'
       - '5.7'
+      - '6.0'
     paths:
       - docs/**
 
@@ -18,23 +19,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ matrix.branch }}
 
       - name: Install deps
         run: pip install click sphinx sqlalchemy_schemadisplay
 
       - name: Build the docs
-        run: devel/ci/bodhi-ci docs -r ${{ matrix.release }}
-      
+        run: devel/ci/bodhi-ci docs -r pip
+
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.2.5
         with:
           branch: gh-pages
-          folder: test_results/${{ matrix.release }}-docs/html
-          target-folder: ${{ matrix.branch }}
+          folder: test_results/pip-docs/html
+          target-folder: ${{ env.GITHUB_REF_NAME }}
     strategy:
       fail-fast: false
-      matrix:
-        release: [pip]
-        branch: ['develop', '5.7']
