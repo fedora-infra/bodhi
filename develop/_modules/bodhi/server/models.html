@@ -2655,24 +2655,22 @@
                     <span class="s1">&#39;sent back to testing.&#39;</span><span class="p">,</span>
                 <span class="p">})</span>
                 <span class="n">builds_to_tag</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">nvr</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">up</span><span class="o">.</span><span class="n">builds</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">from_tag</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span><span class="p">:</span>
-                    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">get_pending_signing_side_tag</span><span class="p">(</span><span class="n">up</span><span class="o">.</span><span class="n">from_tag</span><span class="p">)]</span>
-                <span class="k">elif</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">:</span>
-                    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># No need to unpush the update, just tag new builds</span>
                 <span class="c1"># into the appropriate pending-signing tag</span>
+                <span class="c1"># and release-candidate tag if builds are in side-tag</span>
                 <span class="n">builds_to_tag</span> <span class="o">=</span> <span class="n">new_builds</span>
-                <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">from_tag</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span><span class="p">:</span>
-                    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">get_pending_signing_side_tag</span><span class="p">(</span><span class="n">up</span><span class="o">.</span><span class="n">from_tag</span><span class="p">)]</span>
-                <span class="k">elif</span> <span class="n">up</span><span class="o">.</span><span class="n">from_tag</span><span class="p">:</span>
-                    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">candidate_tag</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">:</span>
-                        <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># For normal updates the builds already have candidate_tag</span>
-                    <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">:</span>
-                        <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">from_tag</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span><span class="p">:</span>
+                <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">get_pending_signing_side_tag</span><span class="p">(</span><span class="n">up</span><span class="o">.</span><span class="n">from_tag</span><span class="p">)]</span>
+            <span class="k">elif</span> <span class="n">up</span><span class="o">.</span><span class="n">from_tag</span><span class="p">:</span>
+                <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">candidate_tag</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">:</span>
+                    <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># For normal updates the builds already have candidate_tag</span>
+                <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">:</span>
+                    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">]</span>
 
             <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
                 <span class="n">tag_update_builds_task</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span> <span class="n">builds</span><span class="o">=</span><span class="n">builds_to_tag</span><span class="p">)</span>
@@ -5130,7 +5128,7 @@
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -135,12 +135,12 @@ In a few minutes the new version of bodhi will appear on <a class="reference ext
 <p>If you are making a new major or new minor release:</p>
 <ol class="arabic simple">
 <li><p>Prepare the <code class="docutils literal notranslate"><span class="pre">.mergify.yml</span></code> file for the new <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch as described above.</p></li>
-<li><p>Raise the version to the appropriate value in <code class="docutils literal notranslate"><span class="pre">bodhi/__init__.py</span></code> and <code class="docutils literal notranslate"><span class="pre">setup.py</span></code>.</p></li>
+<li><p>Raise the version to the appropriate value in <code class="docutils literal notranslate"><span class="pre">bodhi-*/pyproject.toml</span></code>.</p></li>
 <li><p>Add missing authors to the release notes fragments by changing to the <code class="docutils literal notranslate"><span class="pre">news</span></code> directory and
 running the <code class="docutils literal notranslate"><span class="pre">get-authors.py</span></code> script, but check for duplicates and errors</p></li>
-<li><p>Generate the release notes by running <code class="docutils literal notranslate"><span class="pre">towncrier</span></code>. Be aware that any commits that were cherry
-picked to a previous release branch will show up again, and we wouldn’t want to mark those
-commits as being new</p></li>
+<li><p>Generate the release notes by running <code class="docutils literal notranslate"><span class="pre">towncrier</span> <span class="pre">build</span> <span class="pre">--version</span> <span class="pre">VERSION</span></code>. Be aware that any
+commits that were cherry picked to a previous release branch will show up again, and we wouldn’t
+want to mark those commits as being new</p></li>
 <li><p>Add a note to all the associated issues and pull requests to let them know they will be included
 in this release.</p></li>
 <li><p>Push those changes to the upstream repository (via a PR or not)</p></li>
@@ -582,7 +582,7 @@ infrastructure mailing list.</p>
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
