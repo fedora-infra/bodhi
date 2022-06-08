@@ -26,6 +26,7 @@ devel/docker/settings/policies/*
 bodhi-server/development.ini
 */dist
 docs/_build
+*/docs/_build
 docs/docblocks
 docs/developer/docblocks
 docs/generated
