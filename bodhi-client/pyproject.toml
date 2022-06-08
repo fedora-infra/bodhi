@@ -32,7 +32,7 @@ include = [
 exclude = ["docs/_build"]
 
 [tool.poetry.dev-dependencies]
-Sphinx = "^3.4.3"
+Sphinx = ">=3.4.3"
 pytest = ">=6.0.0"
 pytest-cov = ">=2.11.1"
 pytest-mock = ">=3.5.1"
