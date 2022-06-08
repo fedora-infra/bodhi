@@ -272,7 +272,7 @@ class BaseTestCaseMixin:
             with mock.patch('bodhi.server.Session.remove'):
                 _app = TestApp(main({}, testing='guest', session=self.db, **self.app_settings))
         self.app = _app
-        self.registry = self.app.app.application.registry
+        self.registry = self.app.app.registry
 
         # ensure a clean state of the dev build system
         buildsys.DevBuildsys.clear()

@@ -474,7 +474,7 @@ class TestNewUpdate(BasePyTestCase):
         """
         Test html rendering of default build link
         """
-        self.app.app.application.registry.settings['koji_web_url'] = \
+        self.registry.settings['koji_web_url'] = \
             'https://koji.fedoraproject.org/koji/'
         nvr = 'bodhi-2.0.0-2.fc17'
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
@@ -490,7 +490,7 @@ class TestNewUpdate(BasePyTestCase):
         """
         Test html rendering of default build link without trailing slash
         """
-        self.app.app.application.registry.settings['koji_web_url'] = \
+        self.registry.settings['koji_web_url'] = \
             'https://koji.fedoraproject.org/koji'
         nvr = 'bodhi-2.0.0-2.fc17'
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
@@ -507,7 +507,7 @@ class TestNewUpdate(BasePyTestCase):
         Test html rendering of build link using a mock config variable 'koji_web_url'
         without a trailing slash in it
         """
-        self.app.app.application.registry.settings['koji_web_url'] = 'https://host.org'
+        self.registry.settings['koji_web_url'] = 'https://host.org'
         nvr = 'bodhi-2.0.0-2.fc17'
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             resp = self.app.post_json('/updates/', self.get_update(nvr))
@@ -1388,7 +1388,7 @@ class TestUpdatesService(BasePyTestCase):
     def test_home_html_legal(self):
         """Test the home page HTML when a legal link is configured."""
         with mock.patch.dict(
-                self.app.app.application.registry.settings,
+                self.registry.settings,
                 {'legal_link': 'http://loweringthebar.net/'}):
             resp = self.app.get('/', headers={'Accept': 'text/html'})
 
@@ -1399,7 +1399,7 @@ class TestUpdatesService(BasePyTestCase):
 
     def test_home_html_no_legal(self):
         """Test the home page HTML when no legal link is configured."""
-        with mock.patch.dict(self.app.app.application.registry.settings, {'legal_link': ''}):
+        with mock.patch.dict(self.registry.settings, {'legal_link': ''}):
             resp = self.app.get('/', headers={'Accept': 'text/html'})
 
         assert 'Fedora Updates System' in resp
@@ -1936,7 +1936,7 @@ class TestUpdatesService(BasePyTestCase):
         """Test getting a single update via HTML when no privacy link is configured."""
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
 
-        with mock.patch.dict(self.app.app.application.registry.settings, {'privacy_link': ''}):
+        with mock.patch.dict(self.registry.settings, {'privacy_link': ''}):
             resp = self.app.get(f'/updates/{update.alias}',
                                 headers={'Accept': 'text/html'})
 
@@ -1952,7 +1952,7 @@ class TestUpdatesService(BasePyTestCase):
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
 
         with mock.patch.dict(
-                self.app.app.application.registry.settings,
+                self.registry.settings,
                 {'privacy_link': 'https://privacyiscool.com'}):
             resp = self.app.get(f'/updates/{update.alias}',
                                 headers={'Accept': 'text/html'})
@@ -5388,7 +5388,7 @@ class TestUpdatesService(BasePyTestCase):
         update.comment(self.db, 'works', 1, 'bowlofeggs')
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
-        self.app.app.application.registry.settings['test_gating.required'] = True
+        self.registry.settings['test_gating.required'] = True
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
@@ -5417,7 +5417,7 @@ class TestUpdatesService(BasePyTestCase):
         update.comment(self.db, 'works', 1, 'bowlofeggs')
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
-        self.app.app.application.registry.settings['test_gating.required'] = True
+        self.registry.settings['test_gating.required'] = True
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 

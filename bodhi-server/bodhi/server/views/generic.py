@@ -21,14 +21,14 @@ import datetime
 
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest, REGISTRY
 from pyramid.exceptions import HTTPBadRequest, HTTPForbidden
-from pyramid.httpexceptions import HTTPUnauthorized
+from pyramid.httpexceptions import HTTPMovedPermanently, HTTPUnauthorized
 from pyramid.response import Response
 from pyramid.settings import asbool
 from pyramid.view import notfound_view_config, view_config
 import cornice.errors
 import sqlalchemy as sa
 
-from bodhi.server import log, models
+from bodhi.server import log, METADATA, models
 from bodhi.server.config import config
 import bodhi.server.util
 
@@ -608,3 +608,12 @@ def exception_json_view(exc, request):
         request.errors = errors
 
     return bodhi.server.services.errors.json_handler(request)
+
+
+@view_config(route_name='docs')
+def docs(request):
+    """Legacy: Redirect the previously self-hosted documentation."""
+    major_minor_version = ".".join(METADATA["version"].split(".")[:2])
+    subpath = "/".join(request.subpath)
+    url = f"https://fedora-infra.github.io/bodhi/{major_minor_version}/{subpath}"
+    raise HTTPMovedPermanently(url)
