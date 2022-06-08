@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f35]
+        release: [f36]
 
   build_in_koji:
     name: Build ${{matrix.module}} on ${{matrix.release}} in Koji
@@ -74,4 +74,4 @@ jobs:
       fail-fast: false
       matrix:
         module: [bodhi-client, bodhi-messages, bodhi-server]
-        release: [f35]
+        release: [f36]
