@@ -141,13 +141,16 @@ class TestBodhiClientAuth(BodhiClientTestCase):
         )
         self.oidc.login.assert_not_called()
 
-    def test_send_request_ok(self):
-        self.oidc.request.return_value = build_response(200, "/url", '{"foo": "bar"}')
+    def test_send_request_ok(self, mocker):
+        requests = mocker.patch("bodhi.client.bindings.requests")
+        requests.request.return_value = build_response(200, "/url", '{"foo": "bar"}')
+
         client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
 
         response = client.send_request("somewhere", "GET")
 
-        self.oidc.request.assert_called_once_with("GET", "http://example.com/bodhi/somewhere")
+        requests.request.assert_called_once_with("GET", "http://example.com/bodhi/somewhere")
+        self.oidc.request.assert_not_called()
         assert "foo" in response
         assert response.foo == "bar"
 
@@ -161,19 +164,29 @@ class TestBodhiClientAuth(BodhiClientTestCase):
         self.oidc.ensure_auth.assert_called_once_with()
 
     def test_send_request_error(self, mocker):
-        self.oidc.request.return_value = build_response(500, "/url", "error")
+        response = build_response(500, "/url", "error")
+        requests = mocker.patch("bodhi.client.bindings.requests")
+        self.oidc.request.return_value = requests.request.return_value = response
         client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
 
         with pytest.raises(bindings.BodhiClientException) as exc:
             client.send_request("somewhere", "GET")
         assert str(exc.value) == "error"
+        with pytest.raises(bindings.BodhiClientException) as exc:
+            client.send_request("somewhere", "GET", auth=True)
+        assert str(exc.value) == "error"
 
     def test_send_request_failure(self, mocker):
-        self.oidc.request.side_effect = OIDCClientError("Something went wrong")
+        failure = OIDCClientError("Something went wrong")
+        requests = mocker.patch("bodhi.client.bindings.requests")
+        self.oidc.request.side_effect = requests.request.side_effect = failure
         client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
 
         with pytest.raises(bindings.BodhiClientException) as exc:
             client.send_request("somewhere", "GET")
+        assert str(exc.value) == "Something went wrong"
+        with pytest.raises(bindings.BodhiClientException) as exc:
+            client.send_request("somewhere", "GET", auth=True)
         assert str(exc.value) == "Something went wrong"
 
 
