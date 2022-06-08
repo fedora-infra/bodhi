@@ -4,6 +4,7 @@ on:
     branches:
       - develop
       - '5.7'
+      - '6.0'
     paths:
       - docs/**
 
