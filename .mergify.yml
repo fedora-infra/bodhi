@@ -70,6 +70,16 @@ pull_request_rules:
   - -draft
   - label=5.7-backports
 
+- name: backport 6.0
+  actions:
+    backport:
+      branches:
+      - '6.0'
+  conditions:
+  - label!=WIP
+  - -draft
+  - label=6.0-backports
+
 - name: dependabot
   actions:
     queue:
