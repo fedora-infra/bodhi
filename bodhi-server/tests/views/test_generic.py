@@ -23,7 +23,7 @@ from pyramid.testing import DummyRequest
 import pytest
 import webtest
 
-from bodhi.server import main, util
+from bodhi.server import __version__, main, util
 from bodhi.server.models import Release, ReleaseState, Update, UpdateStatus
 
 from .. import base
@@ -499,6 +499,12 @@ class TestGenericViews(base.BasePyTestCase):
         """Test the API Version JSON call"""
         res = self.app.get('/api_version')
         assert str(util.version()) in res
+
+    def test_docs(self):
+        """Test the docs redirection."""
+        res = self.app.get('/docs/some/where.html', status=301)
+        ver = ".".join(__version__.split(".")[:2])
+        assert res.location == f"https://fedora-infra.github.io/bodhi/{ver}/some/where.html"
 
 
 class TestNotfoundView(base.BasePyTestCase):

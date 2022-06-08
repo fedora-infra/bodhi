@@ -55,7 +55,6 @@ RUN dnf install -y \
     python3-waitress \
     python3-webtest \
     python3-wheel \
-    python3-whitenoise \
     python3-yaml \
     rpm-build \
     rpmdevtools \

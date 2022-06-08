@@ -374,9 +374,6 @@ class BodhiConfig(dict):
                 'Bodhi is disabling automatic push to stable due to negative karma. The '
                 'maintainer may push manually if they determine that the issue is not severe.'),
             'validator': str},
-        'docs_path': {
-            'value': '/usr/share/doc/bodhi-docs/html/',
-            'validator': str},
         'dogpile.cache.arguments.filename': {
             'value': '/var/cache/bodhi-dogpile-cache.dbm',
             'validator': str},

@@ -69,7 +69,6 @@
       - python3-sqlalchemy
       - python3-sqlalchemy_schemadisplay
       - python3-webtest
-      - python3-whitenoise
       - redhat-rpm-config
       - screen
       - skopeo
@@ -196,7 +195,6 @@
   loop:
     - {key: "celery_config", value: "%(here)s/bodhi/bodhi-server/celeryconfig.py"}
     - {key: "pungi.basepath", value: "%(here)s/bodhi/devel/ci/integration/bodhi/"}
-    - {key: "docs_path", value: "%(here)s/bodhi/docs/_build/html/"}
 
 - name: Change development.ini to make bodhi use the staging infrastructure
   import_tasks: configure_stg.yml
