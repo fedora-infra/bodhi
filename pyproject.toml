@@ -55,8 +55,7 @@ inherit = true
 add-ignore = "D413"
 
 [tool.pytest.ini_options]
-addopts = "--cov-config .coveragerc --cov=bodhi --cov-report term --cov-report xml --cov-report html"
-verbosity = 1
+addopts = "--cov-config .coveragerc --cov=bodhi --cov-report term-missing --cov-report xml --cov-report html"
 testpaths = ["tests"]
 
 [tool.towncrier]

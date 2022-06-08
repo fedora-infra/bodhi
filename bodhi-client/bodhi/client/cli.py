@@ -314,21 +314,15 @@ def _save_override(url: str, staging: bool, edit: bool = False,
         print_resp(resp, client, override_hint=True)
 
 
-@click.group()
+@click.group(help="Command line tool for interacting with Bodhi.")
 @click.version_option(message='%(version)s')
 def cli():
-    # Docs that show in the --help
-    """Command line tool for interacting with Bodhi."""
-    # Developer Docs
     """Create the main CLI group."""
     pass  # pragma: no cover
 
 
-@cli.group()
+@cli.group(help="Interact with composes.")
 def composes():
-    # Docs that show in the --help
-    """Interact with composes."""
-    # Developer Docs
     """Create the composes group."""
     pass  # pragma: no cover
 
@@ -384,11 +378,8 @@ def list_composes(url: str, id_provider: str, client_id: str, staging: bool, ver
     print_resp(client.list_composes(), client, verbose)
 
 
-@cli.group()
+@cli.group(help="Interact with updates on Bodhi.")
 def updates():
-    # Docs that show in the --help
-    """Interact with updates on Bodhi."""
-    # Developer Docs
     """Create the updates group."""
     pass  # pragma: no cover
 
@@ -994,11 +985,8 @@ def trigger_tests(update: str, url: str, id_provider: str, client_id: str, **kwa
     print_resp(resp, client)
 
 
-@cli.group()
+@cli.group(help="Interact with overrides on Bodhi.")
 def overrides():
-    # Docs that show in the --help
-    """Interact with overrides on Bodhi."""
-    # Developer Docs
     """Create the overrides CLI group."""
     pass  # pragma: no cover
 
@@ -1212,11 +1200,8 @@ def print_resp(resp: munch.Munch, client: bindings.BodhiClient, verbose: bool = 
             click.echo(caveat.description)
 
 
-@cli.group()
+@cli.group(help="Interact with releases.")
 def releases():
-    # Docs that show in the --help
-    """Interact with releases."""
-    # Developer Docs
     """Manage the releases."""
     pass  # pragma: no cover
 
