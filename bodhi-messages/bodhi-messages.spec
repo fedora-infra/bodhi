@@ -2,7 +2,7 @@
 %global pypi_name bodhi-messages
 %global pypi_version 6.0.0
 
-Name:           python-%{pypi_name}
+Name:           %{pypi_name}
 Version:        %{pypi_version}
 Release:        0%{?dist}
 Summary:        JSON schema for messages sent by Bodhi
