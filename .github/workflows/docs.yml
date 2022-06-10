@@ -31,6 +31,6 @@ jobs:
         with:
           branch: gh-pages
           folder: test_results/pip-docs/html
-          target-folder: ${{ env.GITHUB_REF_NAME }}
+          target-folder: ${{ github.ref_name }}
     strategy:
       fail-fast: false

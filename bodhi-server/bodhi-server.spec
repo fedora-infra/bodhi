@@ -1,4 +1,3 @@
-# Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-server
 %global pypi_version 6.0.0
 
@@ -14,6 +13,7 @@ BuildArch:      noarch
 
 BuildRequires:  make
 BuildRequires:  pyproject-rpm-macros
+BuildRequires:  systemd-rpm-macros
 BuildRequires:  python3-devel
 BuildRequires:  python3-pytest
 BuildRequires:  python3-pytest-cov
@@ -84,6 +84,13 @@ rm -rf %{pypi_name}.egg-info
 %generate_buildrequires
 %pyproject_buildrequires
 
+# https://docs.fedoraproject.org/en-US/packaging-guidelines/UsersAndGroups/#_dynamic_allocation
+cat > %{name}.sysusers << EOF
+#Type Name   ID  GECOS           Home directory         Shell
+u     bodhi  -   "Bodhi Server"  %{_datadir}/%{name}    /sbin/nologin
+EOF
+
+
 %build
 %pyproject_wheel
 make %{?_smp_mflags} -C docs man
@@ -106,8 +113,14 @@ install apache/bodhi.wsgi %{buildroot}%{_datadir}/bodhi/bodhi.wsgi
 install -d %{buildroot}%{_mandir}/man1
 install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 
+install -p -D -m 0644 %{name}.sysusers %{buildroot}%{_sysusersdir}/%{name}.sysusers
+
 %check
 %{pytest} -v
+
+%pre -n %{pypi_name}
+%sysusers_create_compat %{name}.sysusers
+
 
 %files -n %{pypi_name}
 %doc README.rst bodhi/server/migrations/README.rst bodhi/server/static/vendor/fedora-bootstrap/README.rst
@@ -128,6 +141,7 @@ install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 %{python3_sitelib}/bodhi_server-%{pypi_version}.dist-info
 %{_mandir}/man1/bodhi-*.1*
 %{_mandir}/man1/initialize_bodhi_db.1*
+%{_sysusersdir}/%{name}.sysusers
 %attr(-,bodhi,root) %{_datadir}/bodhi
 %attr(-,bodhi,bodhi) %config(noreplace) %{_sysconfdir}/bodhi/*
 %attr(0775,bodhi,bodhi) %{_localstatedir}/cache/bodhi
