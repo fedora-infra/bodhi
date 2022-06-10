@@ -4,6 +4,9 @@ Release notes
 
 .. towncrier release notes start
 
+v6.0.0
+======
+
 This is a major release that adds authentication with OpenID Connect.
 
 
