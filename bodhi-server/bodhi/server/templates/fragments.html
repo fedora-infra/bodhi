@@ -17,38 +17,45 @@
                     usually provided by _composite_karma property.
   
   </%doc>
-  % if show_details == (0,0):
-    <% show_details = None %>\
-  % endif
   % if karma < 0:
-    <span class="text-danger">
+  <span class="text-danger">
+    % if show_details:
     <span class="min-width-3 d-inline-block text-center">
-    % if show_details and show_details[0] > 0:
+      % if show_details[0] > 0:
       <sup class="text-success"><i class="fa fa-thumbs-up"></i></sup>
+      % endif
     % endif
     <i class="fa fa-thumbs-down pr-1"></i>
   % elif karma > 0:
-    <span class="text-success">
+  <span class="text-success">
+    % if show_details:
     <span class="min-width-3 d-inline-block text-center">
-    % if show_details and show_details[1] < 0:
+      % if show_details[1] < 0:
       <i class="fa fa-thumbs-up"></i>
       <sub class="text-danger"><i class="fa fa-thumbs-down pr-1"></i></sub>
-    % else:
+      % else:
       <i class="fa fa-thumbs-up pr-1"></i>
+      % endif
+    % else:
+    <i class="fa fa-thumbs-up pr-1"></i>
     % endif
   % else:
-    <span class="text-muted">
+  <span class="text-muted">
+    % if show_details:
     <span class="min-width-3 d-inline-block text-center">
-    % if zero_thumbsup and not show_details:
-      <i class="fa fa-thumbs-up text-muted pr-1"></i>
-    % elif not show_details:
-      <i class="fa fa-thumbs-down text-muted pr-1"></i>
-    % else:
+    % endif
+    % if show_details and show_details != (0,0):
       <sup class="text-success"><i class="fa fa-thumbs-up"></i></sup>
       <sub class="text-danger"><i class="fa fa-thumbs-down pr-1"></i></sub>
+    % elif zero_thumbsup:
+      <i class="fa fa-thumbs-up text-muted pr-1"></i>
+    % else:
+      <i class="fa fa-thumbs-down text-muted pr-1"></i>
     % endif
   %endif
-  </span>
+    % if show_details:
+    </span>
+    % endif
   % if optional_text:
     ${optional_text} 
   % endif
