@@ -226,23 +226,24 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         A comma separated list of bugs to associate with this update.
 
-    ``--close-bugs``
+    ``--close-bugs / --no-close-bugs``
 
         If given, this flag will cause bodhi to close the referenced bugs automatically when the
-        update reaches stable.
+        update reaches stable. When creating a new update this is off by default.
 
     ``--request [testing | stable | upush]``
 
         The repository requested for this update.
 
-    ``--autokarma``
+    ``--autokarma / --no-autokarma``
 
-        Enable autokarma for this update.
+        Enable or disable autokarma for this update. When creating a new update this is off
+        by default.
 
-    ``--autotime``
+    ``--autotime / --no-autotime``
 
         Enable autotime for this update. Automatically push the update to stable based on the
-        time spent in testing.
+        time spent in testing. When creating a new update this is off by default.
 
     ``--stable-karma <integer>``
 
