@@ -126,13 +126,14 @@ new_edit_options = [
     click.option('--notes', help='Update description'),
     click.option('--notes-file', help='Update description from a file'),
     click.option('--bugs', help='Comma-separated list of bug numbers', default=''),
-    click.option('--close-bugs', is_flag=True, help='Automatically close bugs'),
+    click.option('--close-bugs', is_flag=True, default=None, help='Automatically close bugs'),
     click.option('--request', help='Requested repository',
                  type=click.Choice(constants.REQUEST_TYPES)),
-    click.option('--autotime', is_flag=True, help='Enable stable push base on time in testing'),
+    click.option('--autotime', is_flag=True, default=None,
+                 help='Enable stable push base on time in testing'),
     click.option('--stable-days', type=click.INT,
                  help='Days in testing required to push to stable'),
-    click.option('--autokarma', is_flag=True, help='Enable karma automatism'),
+    click.option('--autokarma', is_flag=True, default=None, help='Enable karma automatism'),
     click.option('--stable-karma', type=click.INT, help='Stable karma threshold'),
     click.option('--unstable-karma', type=click.INT, help='Unstable karma threshold'),
     click.option('--requirements',
@@ -141,9 +142,8 @@ new_edit_options = [
                  type=click.Choice(constants.SUGGEST_TYPES)),
     click.option('--display-name',
                  help='The name of the update', default=None),
-    click.option('--from-tag', help='Use builds from a Koji tag instead of specifying '
-                                    'them individually.',
-                 is_flag=True),
+    click.option('--from-tag', is_flag=True,
+                 help='Use builds from a Koji tag instead of specifying them individually.'),
     staging_option]
 
 
@@ -430,6 +430,12 @@ def new(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
         base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
     )
 
+    # Because some flag options are common between new and edit, we cannot set the default
+    # to be a boolean, instead we set them here
+    for option in ['close_bugs', 'autotime', 'autokarma']:
+        if kwargs[option] is None:
+            kwargs[option] = False
+
     # Because bodhi.server.services.updates expects from_tag to be string
     # copy builds to from_tag and remove builds
     if kwargs['from_tag']:
@@ -531,6 +537,12 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
 
         # Convert list of 'Bug' instances in DB to comma separated bug_ids for parsing.
         former_update = resp['updates'][0].copy()
+
+        # If these flags are not set by the user we load values from the existing update
+        for option in ['close_bugs', 'autotime', 'autokarma']:
+            if kwargs[option] is None:
+                kwargs[option] = former_update[option]
+
         if not kwargs['bugs']:
             kwargs['bugs'] = ",".join([str(bug['bug_id']) for bug in former_update['bugs']])
             former_update.pop('bugs', None)
