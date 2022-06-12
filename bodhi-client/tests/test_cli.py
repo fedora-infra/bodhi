@@ -1581,13 +1581,13 @@ class TestEdit:
             mock.call(
                 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'close_bugs': True, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
-                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
+                    'autokarma': True, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': 'unspecified', 'notes': 'New package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
                     'bugs': '1234,5678', 'requirements': '', 'type': 'newpackage',
-                    'severity': 'low', 'display_name': None, 'autotime': False,
+                    'severity': 'low', 'display_name': None, 'autotime': True,
                     'stable_days': None}),
             mock.call(
                 'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
@@ -1610,13 +1610,13 @@ class TestEdit:
             mock.call(
                 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'close_bugs': True, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
-                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
+                    'autokarma': True, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': 'unspecified', 'notes': 'Updated package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
                     'bugs': '1420605', 'requirements': '', 'type': 'newpackage',
-                    'severity': 'low', 'display_name': None, 'autotime': False, 'stable_days': None
+                    'severity': 'low', 'display_name': None, 'autotime': True, 'stable_days': None
                 }
             ),
             mock.call(
@@ -1644,13 +1644,13 @@ class TestEdit:
             mock.call(
                 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'close_bugs': True, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
-                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
+                    'autokarma': True, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': 'unspecified', 'notes': 'this is an edited note',
                     'notes_file': None, 'request': None, 'severity': 'low',
                     'bugs': '1420605', 'requirements': '', 'unstable_karma': -3,
-                    'type': 'newpackage', 'display_name': None, 'autotime': False,
+                    'type': 'newpackage', 'display_name': None, 'autotime': True,
                     'stable_days': None,
                 }
             ),
@@ -1683,13 +1683,13 @@ class TestEdit:
                 mock.call(
                     'updates/', auth=True, verb='POST',
                     data={
-                        'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                        'close_bugs': True, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                         'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
-                        'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
+                        'autokarma': True, 'edited': 'FEDORA-2017-c95b33872d',
                         'suggest': 'unspecified', 'notes': 'This is a --notes-file note!',
                         'notes_file': 'notefile.txt', 'request': None, 'severity': 'low',
                         'bugs': '1420605', 'requirements': '', 'unstable_karma': -3,
-                        'type': 'newpackage', 'display_name': None, 'autotime': False,
+                        'type': 'newpackage', 'display_name': None, 'autotime': True,
                         'stable_days': None
                     }
                 ),
@@ -1721,14 +1721,14 @@ class TestEdit:
             mock.call(
                 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'close_bugs': True, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'display_name': None,
                     'builds': ['tar-1.29-4.fc25', 'nedit-5.7-1.fc25'],
-                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
+                    'autokarma': True, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': u'unspecified', 'notes': u'add and remove builds',
                     'notes_file': None, 'request': None, 'severity': u'low',
                     'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
-                    'type': 'newpackage', 'autotime': False, 'stable_days': None
+                    'type': 'newpackage', 'autotime': True, 'stable_days': None
                 }
             ),
             mock.call(
@@ -1760,12 +1760,12 @@ class TestEdit:
             mock.call(
                 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
-                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
+                    'close_bugs': True, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'autokarma': True, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': 'unspecified', 'notes': 'Updated package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
                     'bugs': '1420605', 'requirements': '', 'type': 'newpackage',
-                    'severity': u'low', 'display_name': None, 'autotime': False,
+                    'severity': u'low', 'display_name': None, 'autotime': True,
                     'stable_days': None, 'from_tag': 'fake_tag',
                     'staging': False,
                 }
@@ -1927,14 +1927,14 @@ class TestEdit:
             mock.call(
                 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'close_bugs': True, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
-                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
+                    'autokarma': True, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': 'unspecified', 'notes': 'testing required tasks',
                     'notes_file': None, 'request': None, 'severity': 'low',
                     'bugs': '1420605', 'unstable_karma': -3, 'display_name': None,
                     'requirements': 'dist.depcheck dist.rpmdeplint', 'type': 'newpackage',
-                    'autotime': False, 'stable_days': None
+                    'autotime': True, 'stable_days': None
                 }
             ),
             mock.call(
@@ -1975,13 +1975,13 @@ class TestEdit:
             mock.call(
                 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'close_bugs': True, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
-                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
+                    'autokarma': True, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': 'unspecified', 'notes': 'New package.', 'display_name': None,
                     'notes_file': None, 'request': None, 'severity': 'low',
                     'bugs': '', 'requirements': '', 'unstable_karma': -3, 'type': 'newpackage',
-                    'autotime': False, 'stable_days': None
+                    'autotime': True, 'stable_days': None
                 }
             ),
             mock.call(
