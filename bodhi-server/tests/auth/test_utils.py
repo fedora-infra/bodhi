@@ -1,11 +1,15 @@
+from unittest import mock
+
+from authlib.oauth2.rfc6750 import InvalidTokenError
 from pyramid import testing
-from pyramid.httpexceptions import HTTPUnauthorized
+from pyramid.httpexceptions import HTTPAccepted, HTTPUnauthorized
 import pytest
 
 from bodhi.server import models
-from bodhi.server.auth.utils import get_final_redirect, remember_me
+from bodhi.server.auth.utils import get_and_store_user, get_final_redirect, remember_me
 
 from .. import base
+from .utils import fake_send
 
 
 class TestRememberMe(base.BasePyTestCase):
@@ -116,3 +120,28 @@ class TestGetFinalRedirect(base.BasePyTestCase):
         req.session['came_from'] = "http://example.com/login?method=openid"
         response = get_final_redirect(req)
         assert response.location == "/"
+
+
+class TestGetAndStoreUser(base.BasePyTestCase):
+
+    def test_no_userinfo(self):
+        """Test when the OIDC server has no userinfo."""
+        request = testing.DummyRequest(
+            path="/oidc/login",
+            headers={"Authorization": "Bearer TOKEN"}
+        )
+        request.registry = self.registry
+        request.db = self.db
+
+        userinfo_response = {
+            "error": "invalid_request",
+            "error_description": "No userinfo for token",
+        }
+
+        with mock.patch(
+            'requests.sessions.Session.send',
+            side_effect=fake_send({"UserInfo": userinfo_response})
+        ):
+            with pytest.raises(InvalidTokenError) as exc:
+                get_and_store_user(request, "TOKEN", HTTPAccepted())
+        assert str(exc.value) == "invalid_token: No userinfo for token"
