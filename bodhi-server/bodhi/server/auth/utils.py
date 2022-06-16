@@ -2,6 +2,7 @@
 
 import typing
 
+from authlib.oauth2.rfc6750 import InvalidTokenError
 from pyramid.httpexceptions import HTTPFound, HTTPUnauthorized
 from pyramid.security import remember
 
@@ -36,6 +37,9 @@ def get_and_store_user(
     """
     # Get information about the user
     userinfo = request.registry.oidc.fedora.userinfo(token={"access_token": access_token})
+    if "error" in userinfo:
+        raise InvalidTokenError(description=userinfo["error_description"])
+
     username = userinfo['nickname']
     log.info(f'{username} successfully logged in')
     # Create or update the user in the database, update the groups
