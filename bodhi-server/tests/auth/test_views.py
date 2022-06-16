@@ -1,6 +1,5 @@
 from unittest import mock
 from urllib.parse import urlparse
-import time
 
 from authlib.common.urls import url_decode
 from pyramid import testing
@@ -8,50 +7,10 @@ from pyramid.httpexceptions import HTTPUnauthorized
 import pytest
 
 from bodhi.server import models
-from bodhi.server.auth.constants import SCOPES
 from bodhi.server.auth.views import authorize_oidc, login_with_token
 
 from .. import base
-from ..utils import get_bearer_token, mock_send_value
-from .utils import set_session_data
-
-
-def fake_send(responses=None):
-    now = int(time.time())
-    default_responses = {
-        "UserInfo": {
-            "sub": "SUB",
-            "nickname": "testuser",
-            "email": "testuser@example.com",
-            "groups": ["testgroup1", "testgroup2"]
-        },
-        "openid-configuration": {
-            "userinfo_endpoint": "https://id.stg.fedoraproject.org/openidc/UserInfo",
-            "token_endpoint": "https://id.stg.fedoraproject.org/openidc/Token",
-            "authorization_endpoint": "https://id.stg.fedoraproject.org/openidc/Authorization",
-        },
-        "Token": get_bearer_token(),
-        "TokenInfo": {
-            "active": True,
-            "client_id": "test-client-id",
-            "username": "testuser",
-            "scope": SCOPES,
-            "sub": "SUB",
-            "aud": "https://protected.example.net/resource",
-            "iss": "https://server.example.com/",
-            "exp": now + 3600,
-            "iat": now
-        },
-    }
-    _responses = default_responses.copy()
-    _responses.update(responses or {})
-
-    def _mocker(req, **kwargs):
-        for endpoint, response in _responses.items():
-            if req.url.endswith(f"/{endpoint}"):
-                return mock_send_value(response)
-        raise RuntimeError(f"Unsupported URL: {req.url}")
-    return _mocker
+from .utils import set_session_data, fake_send
 
 
 class TestLogin(base.BasePyTestCase):
