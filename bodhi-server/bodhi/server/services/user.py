@@ -96,19 +96,19 @@ validators = (
 )
 
 
-@users.get(schema=bodhi.server.schemas.ListUserSchema,
+@users.get(schema=bodhi.server.schemas.ListUserSchema(),
            accept=("application/json", "text/json"), renderer="json",
            error_handler=bodhi.server.services.errors.json_handler,
            validators=validators)
-@users.get(schema=bodhi.server.schemas.ListUserSchema,
+@users.get(schema=bodhi.server.schemas.ListUserSchema(),
            accept=("application/javascript"), renderer="jsonp",
            error_handler=bodhi.server.services.errors.jsonp_handler,
            validators=validators)
-@users.get(schema=bodhi.server.schemas.ListUserSchema, renderer="rss",
+@users.get(schema=bodhi.server.schemas.ListUserSchema(), renderer="rss",
            accept=('application/atom+xml',),
            error_handler=bodhi.server.services.errors.html_handler,
            validators=validators)
-@users_rss.get(schema=bodhi.server.schemas.ListUserSchema, renderer="rss",
+@users_rss.get(schema=bodhi.server.schemas.ListUserSchema(), renderer="rss",
                error_handler=bodhi.server.services.errors.html_handler,
                validators=validators)
 def query_users(request):

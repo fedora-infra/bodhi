@@ -199,7 +199,7 @@ releases_get_validators = (colander_querystring_validator, validate_release, val
                            validate_packages)
 
 
-@releases.get(accept="text/html", schema=bodhi.server.schemas.ListReleaseSchema,
+@releases.get(accept="text/html", schema=bodhi.server.schemas.ListReleaseSchema(),
               renderer='releases.html',
               error_handler=bodhi.server.services.errors.html_handler,
               validators=releases_get_validators)
@@ -272,7 +272,7 @@ def query_releases_html(request):
 
 
 @releases.get(accept=('application/json', 'text/json'),
-              schema=bodhi.server.schemas.ListReleaseSchema, renderer='json',
+              schema=bodhi.server.schemas.ListReleaseSchema(), renderer='json',
               error_handler=bodhi.server.services.errors.json_handler,
               validators=releases_get_validators)
 def query_releases_json(request):
@@ -341,7 +341,7 @@ def query_releases_json(request):
     )
 
 
-@releases.post(schema=bodhi.server.schemas.SaveReleaseSchema,
+@releases.post(schema=bodhi.server.schemas.SaveReleaseSchema(),
                permission='admin', renderer='json',
                error_handler=bodhi.server.services.errors.json_handler,
                validators=(colander_body_validator,
