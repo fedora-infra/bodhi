@@ -167,7 +167,7 @@ toml = ["tomli (>=1.2.1)"]
 
 [[package]]
 name = "docutils"
-version = "0.16"
+version = "0.18.1"
 description = "Docutils -- Python Documentation Utilities"
 category = "dev"
 optional = false
@@ -758,8 +758,8 @@ diff-cover = [
     {file = "diff_cover-6.5.0.tar.gz", hash = "sha256:3763b4fc2ef91063ba72b50214652224b2d0a9f31544d5504596f5c4a847cd7b"},
 ]
 docutils = [
-    {file = "docutils-0.16-py2.py3-none-any.whl", hash = "sha256:0c5b78adfbf7762415433f5515cd5c9e762339e23369dbe8000d84a4bf4ab3af"},
-    {file = "docutils-0.16.tar.gz", hash = "sha256:c2de3a60e9e7d07be26b7f2b00ca0309c207e06c100f9cc2a94931fc75a478fc"},
+    {file = "docutils-0.18.1-py2.py3-none-any.whl", hash = "sha256:23010f129180089fbcd3bc08cfefccb3b890b0050e1ca00c867036e9d161b98c"},
+    {file = "docutils-0.18.1.tar.gz", hash = "sha256:679987caf361a7539d76e584cbeddc311e3aee937877c87346f31debc63e9d06"},
 ]
 gssapi = [
     {file = "gssapi-1.7.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:69104cb87205ab6b6ac1e265b2df1c94b661140fdd5db223fefc564f958bcd44"},
