@@ -26,12 +26,12 @@ from bodhi.server.models import (
     ContentType,
     PackageManager,
     ReleaseState,
+    TestGatingStatus,
     UpdateRequest,
     UpdateSeverity,
     UpdateStatus,
     UpdateSuggestion,
     UpdateType,
-    TestGatingStatus,
 )
 from bodhi.server.validators import validate_csrf_token
 

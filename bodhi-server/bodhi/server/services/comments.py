@@ -88,21 +88,21 @@ validators = (
 
 
 @comments_rss.get(
-    schema=bodhi.server.schemas.ListCommentSchema, renderer='rss',
+    schema=bodhi.server.schemas.ListCommentSchema(), renderer='rss',
     error_handler=bodhi.server.services.errors.html_handler, validators=validators)
 @comments.get(
-    schema=bodhi.server.schemas.ListCommentSchema, renderer='rss',
+    schema=bodhi.server.schemas.ListCommentSchema(), renderer='rss',
     accept=('application/atom+xml',),
     error_handler=bodhi.server.services.errors.html_handler, validators=validators)
 @comments.get(
-    schema=bodhi.server.schemas.ListCommentSchema, accept=('application/json', 'text/json'),
+    schema=bodhi.server.schemas.ListCommentSchema(), accept=('application/json', 'text/json'),
     renderer='json', error_handler=bodhi.server.services.errors.json_handler, validators=validators)
 @comments.get(
-    schema=bodhi.server.schemas.ListCommentSchema, accept=('application/javascript'),
+    schema=bodhi.server.schemas.ListCommentSchema(), accept=('application/javascript'),
     renderer='jsonp', error_handler=bodhi.server.services.errors.jsonp_handler,
     validators=validators)
 @comments.get(
-    schema=bodhi.server.schemas.ListCommentSchema, accept=('text/html'), renderer='comments.html',
+    schema=bodhi.server.schemas.ListCommentSchema(), accept=('text/html'), renderer='comments.html',
     error_handler=bodhi.server.services.errors.html_handler, validators=validators)
 def query_comments(request):
     """
@@ -186,15 +186,17 @@ def query_comments(request):
     )
 
 
-@comments.post(schema=bodhi.server.schemas.SaveCommentSchema,
-               renderer='json',
-               error_handler=bodhi.server.services.errors.json_handler,
-               validators=(
-                   colander_body_validator,
-                   validate_update,
-                   validate_bug_feedback,
-                   validate_testcase_feedback,
-               ))
+@comments.post(
+    schema=bodhi.server.schemas.SaveCommentSchema(),
+    renderer='json',
+    error_handler=bodhi.server.services.errors.json_handler,
+    validators=(
+        colander_body_validator,
+        validate_update,
+        validate_bug_feedback,
+        validate_testcase_feedback,
+    )
+)
 def new_comment(request):
     """
     Add a new comment to an update.
