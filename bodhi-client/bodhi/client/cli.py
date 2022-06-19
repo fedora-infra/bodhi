@@ -144,8 +144,6 @@ new_edit_options = [
                  type=click.Choice(constants.SUGGEST_TYPES)),
     click.option('--display-name',
                  help='The name of the update', default=None),
-    click.option('--from-tag', is_flag=True,
-                 help='Use builds from a Koji tag instead of specifying them individually.'),
     staging_option]
 
 
@@ -403,6 +401,8 @@ def require_severity_for_security_update(type: str, severity: str):
 @click.option('--type', default='bugfix', help='Update type', required=True,
               type=click.Choice(constants.UPDATE_TYPES))
 @add_options(new_edit_options)
+@click.option('--from-tag', is_flag=True,
+              help='Use builds from a Koji tag instead of specifying them individually')
 @click.argument('builds_or_tag')
 @click.option('--file', help='A text file containing all the update details')
 @handle_errors
@@ -414,8 +414,8 @@ def new(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
     """
     Create a new update.
 
-    BUILDS: a comma separated list of Builds to be added to the update
-    (e.g. 0ad-0.0.21-4.fc26,2ping-3.2.1-4.fc26)
+    BUILDS_OR_TAG: a comma separated list of Builds to be added to the update
+    (e.g. 0ad-0.0.21-4.fc26,2ping-3.2.1-4.fc26) or a single side-tag name
     """
     # Developer Docs
     """
@@ -551,31 +551,18 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
 
         kwargs['builds'] = [b['nvr'] for b in former_update['builds']]
         kwargs['edited'] = former_update['alias']
-        # Because bodhi.server.services.updates expects from_tag to be string
-        # copy builds to from_tag and remove builds
-        if kwargs['from_tag']:
-            if not former_update.get('from_tag', None):
+
+        if former_update.get('from_tag', None):
+            # The build list is always refreshed from the side-tag by validate_from_tag()
+            if (kwargs['addbuilds'] or kwargs['removebuilds']):
                 click.echo(
-                    "ERROR: This update was not created from a tag."
-                    " Please remove --from_tag and try again.", err=True
-                )
-                sys.exit(1)
-            if kwargs['addbuilds'] or kwargs['removebuilds']:
-                click.echo(
-                    "ERROR: You have to use the web interface to update"
-                    " builds in a side-tag update.", err=True
+                    "ERROR: The --addbuilds and --removebuilds options"
+                    " cannot be used with a side-tag update.", err=True
                 )
                 sys.exit(1)
             kwargs['from_tag'] = former_update['from_tag']
             del kwargs['builds']
         else:
-            if former_update.get('from_tag', None):
-                click.echo(
-                    "ERROR: This update was created from a side-tag."
-                    " Please add --from_tag and try again.", err=True
-                )
-                sys.exit(1)
-            kwargs.pop('from_tag')
             if kwargs['addbuilds']:
                 for build in kwargs['addbuilds'].split(','):
                     if build not in kwargs['builds']:
@@ -583,6 +570,7 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
             if kwargs['removebuilds']:
                 for build in kwargs['removebuilds'].split(','):
                     kwargs['builds'].remove(build)
+
         del kwargs['addbuilds']
         del kwargs['removebuilds']
 
