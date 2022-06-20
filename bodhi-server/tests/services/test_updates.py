@@ -5331,7 +5331,11 @@ class TestUpdatesService(BasePyTestCase):
 
         # Request and Status remains testing since the autopush is disabled
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        assert up.request == UpdateRequest.testing
+        if not rawhide_workflow:
+            assert up.request == UpdateRequest.testing
+        else:
+            assert up.request == UpdateRequest.stable
+
         assert up.status == UpdateStatus.testing
 
     @mock.patch(**mock_valid_requirements)
