@@ -1069,6 +1069,27 @@ class TestSetRequest(BasePyTestCase):
         )
 
     @mock.patch(**mock_valid_requirements)
+    def test_set_request_rawhide(self, *args):
+        """Ensure that we get an error if trying to set request on a rawhide update"""
+        nvr = 'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Build).filter_by(nvr=nvr).one().update
+        up.locked = False
+        up.requirements = ''
+        up.test_gating_status = TestGatingStatus.passed
+        up.date_testing = datetime.utcnow() - timedelta(days=8)
+        up.release.composed_by_bodhi = False
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json(f'/updates/{up.alias}/request', post_data, status=400)
+
+        assert res.json_body['status'] == 'error'
+        assert res.json_body['errors'][0]['description'] == (
+            "Setting a request on an Update for a Release not composed by Bodhi is not allowed"
+        )
+
+    @mock.patch(**mock_valid_requirements)
     def test_set_request_archived_release(self, *args):
         """Ensure that we get an error if trying to setrequest of a update in an archived release"""
         nvr = 'bodhi-2.0-1.fc17'
@@ -5310,11 +5331,7 @@ class TestUpdatesService(BasePyTestCase):
 
         # Request and Status remains testing since the autopush is disabled
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        if not rawhide_workflow:
-            assert up.request == UpdateRequest.testing
-        else:
-            assert up.request == UpdateRequest.stable
-
+        assert up.request == UpdateRequest.testing
         assert up.status == UpdateStatus.testing
 
     @mock.patch(**mock_valid_requirements)

@@ -2996,6 +2996,11 @@ class Update(Base):
             raise LockedUpdateException("Can't change the request on a "
                                         "locked update")
 
+        if not self.release.composed_by_bodhi \
+                and action == (UpdateRequest.stable or UpdateRequest.testing):
+            raise BodhiException('Setting a request on an Update for a Release '
+                                 'not composed by Bodhi is not allowed')
+
         if action is UpdateRequest.unpush:
             self.unpush(db)
             self.comment(db, u'This update has been unpushed.', author=username)
@@ -3810,7 +3815,8 @@ class Update(Base):
             self.autotime = False
             text = config.get('disable_automatic_push_to_stable')
             self.comment(db, text, author='bodhi')
-        elif self.stable_karma and self.karma >= self.stable_karma:
+        elif self.stable_karma and self.karma >= self.stable_karma \
+                and self.release.composed_by_bodhi:
             if config.get('test_gating.required') and not self.test_gating_passed:
                 log.info("%s reached stable karma threshold, but does not meet gating "
                          "requirements", self.alias)
