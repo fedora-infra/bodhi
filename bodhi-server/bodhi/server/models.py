@@ -3801,8 +3801,10 @@ class Update(Base):
         if self.status not in (UpdateStatus.testing, UpdateStatus.pending):
             return
         # If an update receives negative karma disable autopush
+        # exclude rawhide updates see #4566
         if (self.autokarma or self.autotime) and self._composite_karma[1] != 0 and self.status is \
-                UpdateStatus.testing and self.request is not UpdateRequest.stable:
+                UpdateStatus.testing and self.request is not UpdateRequest.stable and \
+                self.release.composed_by_bodhi:
             log.info("Disabling Auto Push since the update has received negative karma")
             self.autokarma = False
             self.autotime = False
