@@ -514,6 +514,10 @@ def test_get_users_json(bodhi_container, db_container):
     for user in users:
         user["avatar"] = create_avatar_url(user["name"], 24)
         user["openid"] = f"{user['name']}.id.dev.fedoraproject.org"
+        # Python and SQL don't sort identically :(
+        # Python: fedorabugs > fedora-contributor
+        # SQL: fedorabugs < fedora-contributor
+        user["groups"].sort(key=lambda d: d["name"])
 
     try:
         assert http_response.ok
@@ -522,7 +526,7 @@ def test_get_users_json(bodhi_container, db_container):
             # Sort groups for comparaison
             user["groups"].sort(key=lambda d: d["name"])
         for user in users:
-            assert user in response_users
+            assert user in response_users, f"{user} not in {response_users}"
         assert http_response.json()["page"] == 1
         assert http_response.json()["pages"] == int(math.ceil(total / float(20)))
         assert http_response.json()["rows_per_page"] == 20
