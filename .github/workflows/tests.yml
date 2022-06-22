@@ -3,9 +3,11 @@ on:
   push:
     branches:
       - develop
+      - 6.0
   pull_request:
     branches:
       - develop
+      - 6.0
 
 name: Run tests
 
