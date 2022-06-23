@@ -22,46 +22,47 @@ import math
 
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
-from sqlalchemy import func, distinct
+from requests import RequestException
+from requests import Timeout as RequestsTimeout
+from sqlalchemy import distinct, func
 from sqlalchemy.sql import or_
-from requests import RequestException, Timeout as RequestsTimeout
 
+from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import log, security
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.models import (
-    Update,
     Bug,
-    ContentType,
-    UpdateRequest,
-    UpdateStatus,
     Build,
+    ContentType,
     Package,
     Release,
+    Update,
+    UpdateRequest,
+    UpdateStatus,
 )
 from bodhi.server.tasks import handle_side_and_related_tags_task
+from bodhi.server.validators import (
+    validate_acls,
+    validate_bugs,
+    validate_build_nvrs,
+    validate_build_tags,
+    validate_build_uniqueness,
+    validate_builds,
+    validate_builds_or_from_tag_exist,
+    validate_enums,
+    validate_from_tag,
+    validate_release,
+    validate_releases,
+    validate_request,
+    validate_requirements,
+    validate_severity,
+    validate_update_id,
+    validate_username,
+)
+import bodhi.server.notifications as notifications
 import bodhi.server.schemas
 import bodhi.server.services.errors
 import bodhi.server.util
-from bodhi.server.validators import (
-    validate_builds_or_from_tag_exist,
-    validate_build_nvrs,
-    validate_build_uniqueness,
-    validate_build_tags,
-    validate_acls,
-    validate_builds,
-    validate_enums,
-    validate_releases,
-    validate_release,
-    validate_username,
-    validate_update_id,
-    validate_requirements,
-    validate_bugs,
-    validate_request,
-    validate_severity,
-    validate_from_tag,
-)
-from bodhi.messages.schemas import update as update_schemas
-import bodhi.server.notifications as notifications
 
 
 update = Service(name='update', path='/updates/{id}',
@@ -171,17 +172,19 @@ def get_update_for_editing(request):
     )
 
 
-@update_request.post(schema=bodhi.server.schemas.UpdateRequestSchema,
-                     validators=(
-                         colander_body_validator,
-                         validate_enums,
-                         validate_update_id,
-                         validate_build_tags,
-                         validate_acls,
-                         validate_request,
-                     ),
-                     permission='edit', renderer='json',
-                     error_handler=bodhi.server.services.errors.json_handler)
+@update_request.post(
+    schema=bodhi.server.schemas.UpdateRequestSchema(),
+    validators=(
+        colander_body_validator,
+        validate_enums,
+        validate_update_id,
+        validate_build_tags,
+        validate_acls,
+        validate_request,
+    ),
+    permission='edit', renderer='json',
+    error_handler=bodhi.server.services.errors.json_handler
+)
 def set_request(request):
     """
     Set a specific :class:`bodhi.server.models.UpdateRequest` on a given update.
@@ -237,22 +240,22 @@ validators = (
 )
 
 
-@updates_rss.get(schema=bodhi.server.schemas.ListUpdateSchema, renderer='rss',
+@updates_rss.get(schema=bodhi.server.schemas.ListUpdateSchema(), renderer='rss',
                  error_handler=bodhi.server.services.errors.html_handler,
                  validators=validators)
-@updates.get(schema=bodhi.server.schemas.ListUpdateSchema, renderer='rss',
+@updates.get(schema=bodhi.server.schemas.ListUpdateSchema(), renderer='rss',
              accept=('application/atom+xml',),
              error_handler=bodhi.server.services.errors.html_handler,
              validators=validators)
-@updates.get(schema=bodhi.server.schemas.ListUpdateSchema,
+@updates.get(schema=bodhi.server.schemas.ListUpdateSchema(),
              accept=('application/json', 'text/json'), renderer='json',
              error_handler=bodhi.server.services.errors.json_handler,
              validators=validators)
-@updates.get(schema=bodhi.server.schemas.ListUpdateSchema,
+@updates.get(schema=bodhi.server.schemas.ListUpdateSchema(),
              accept=('application/javascript'), renderer='jsonp',
              error_handler=bodhi.server.services.errors.jsonp_handler,
              validators=validators)
-@updates.get(schema=bodhi.server.schemas.ListUpdateSchema,
+@updates.get(schema=bodhi.server.schemas.ListUpdateSchema(),
              accept=('text/html'), renderer='updates.html',
              error_handler=bodhi.server.services.errors.html_handler,
              validators=validators)
@@ -448,23 +451,25 @@ def query_updates(request):
     return return_values
 
 
-@updates.post(schema=bodhi.server.schemas.SaveUpdateSchema,
-              permission='create', renderer='json',
-              error_handler=bodhi.server.services.errors.json_handler,
-              validators=(
-                  colander_body_validator,
-                  validate_from_tag,
-                  validate_build_nvrs,
-                  validate_builds,
-                  validate_build_tags,
-                  validate_build_uniqueness,
-                  validate_builds_or_from_tag_exist,
-                  validate_acls,
-                  validate_enums,
-                  validate_requirements,
-                  validate_bugs,
-                  validate_severity,
-              ))
+@updates.post(
+    schema=bodhi.server.schemas.SaveUpdateSchema(),
+    permission='create', renderer='json',
+    error_handler=bodhi.server.services.errors.json_handler,
+    validators=(
+        colander_body_validator,
+        validate_from_tag,
+        validate_build_nvrs,
+        validate_builds,
+        validate_build_tags,
+        validate_build_uniqueness,
+        validate_builds_or_from_tag_exist,
+        validate_acls,
+        validate_enums,
+        validate_requirements,
+        validate_bugs,
+        validate_severity,
+    )
+)
 def new_update(request):
     """
     Save an update.
@@ -653,7 +658,7 @@ def new_update(request):
     return result
 
 
-@update_waive_test_results.post(schema=bodhi.server.schemas.WaiveTestResultsSchema,
+@update_waive_test_results.post(schema=bodhi.server.schemas.WaiveTestResultsSchema(),
                                 validators=(colander_body_validator,
                                             validate_update_id,
                                             validate_acls),
@@ -687,7 +692,7 @@ def waive_test_results(request):
     return dict(update=update)
 
 
-@update_get_test_results.get(schema=bodhi.server.schemas.GetTestResultsSchema,
+@update_get_test_results.get(schema=bodhi.server.schemas.GetTestResultsSchema(),
                              validators=(validate_update_id),
                              renderer='json',
                              error_handler=bodhi.server.services.errors.json_handler)
@@ -725,7 +730,7 @@ def get_test_results(request):
     return dict(decisions=decisions)
 
 
-@update_trigger_tests.post(schema=bodhi.server.schemas.TriggerTestsSchema,
+@update_trigger_tests.post(schema=bodhi.server.schemas.TriggerTestsSchema(),
                            validators=(colander_body_validator,
                                        validate_update_id,
                                        validate_acls),

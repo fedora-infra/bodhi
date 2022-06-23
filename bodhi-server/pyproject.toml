@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhi-server"
-version = "6.0.0"
+version = "6.0.1"
 description = "Bodhi server"
 readme = "README.rst"
 authors = ["Fedora Infrastructure Team"]
@@ -113,7 +113,6 @@ waitress = ">=1.4.4"
 
 [tool.pytest.ini_options]
 addopts = "--cov-config .coveragerc --cov=bodhi --cov-report term --cov-report xml --cov-report html"
-verbosity = 1
 testpaths = ["tests"]
 
 [tool.poetry.plugins."paste.app_factory"]

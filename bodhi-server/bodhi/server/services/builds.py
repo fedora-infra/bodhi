@@ -60,7 +60,7 @@ def get_build(request):
     return build
 
 
-@builds.get(schema=bodhi.server.schemas.ListBuildSchema, renderer='json',
+@builds.get(schema=bodhi.server.schemas.ListBuildSchema(), renderer='json',
             error_handler=bodhi.server.services.errors.json_handler,
             validators=(colander_querystring_validator, validate_releases, validate_updates,
                         validate_packages))

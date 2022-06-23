@@ -1,8 +1,4 @@
 <%inherit file="master.html"/>
-<%block name="css">
-${parent.css()}
-<link href="${request.static_url('bodhi.server:static/vendor/chartjs/Chart.min.css')}" rel="stylesheet" />
-</%block>
 <div class="subheader">
     <div class="container py-4">
       <div class="row">
@@ -216,11 +212,10 @@ ${parent.css()}
 
 <%block name="javascript">
 ${parent.javascript()}
-<script src="${request.static_url('bodhi.server:static/vendor/chartjs/Chart.min.js')}"></script>
+<script src="${request.static_url('bodhi.server:static/vendor/chartjs/chart.min.js')}"></script>
 
 <script type="text/javascript">
   $(document).ready(function() {
-    Chart.platform.disableCSSInjection = true;
     $('#releasetimeline').html('');
     $('#releasestatus').html('');
     $('#releasetypes').html('');
@@ -235,7 +230,8 @@ ${parent.javascript()}
           borderColor : "${self.util.type2color(ud_type)}",
           pointBackgroundColor : "${self.util.type2color(ud_type)}",
           pointBorderColor : "#fff",
-          fill : "False",
+          fill : false,
+          tension: 0.2,
           data : [
             % for yearmonth in date_commits[ud_type]:
             ${date_commits[ud_type][yearmonth]},
@@ -246,14 +242,16 @@ ${parent.javascript()}
       ]
     }
     var options_timeline = {
-        scales: {
-            yAxes: [{
-                stacked: false
-            }]
+        plugins: {
+            title: {
+                display: true,
+                text: "${release['long_name']} Updates Timeline"
+            }
         },
-        title: {
-            display: true,
-            text: "${release['long_name']} Updates Timeline"
+        scales: {
+            y: {
+                stacked: false
+            }
         }
     }
     // About 25 labels should be printed at most.
@@ -289,9 +287,12 @@ ${parent.javascript()}
       }]
     }
     var options_status = {
-        legend: {
-            display: true,
-            position: "right"
+        aspectRatio: 2,
+        plugins: {
+            legend: {
+                display: true,
+                position: "right"
+            }
         }
     }
     var releasestatus = document.getElementById("releasestatus").getContext("2d");
@@ -316,9 +317,12 @@ ${parent.javascript()}
       }]
     }
     var options_types = {
-        legend: {
-            display: true,
-            position: "right"
+        aspectRatio: 2,
+        plugins: {
+            legend: {
+                display: true,
+                position: "right"
+            }
         }
     }
     var releasetypes = document.getElementById("releasetypes").getContext("2d");

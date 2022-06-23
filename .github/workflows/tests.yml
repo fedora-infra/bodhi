@@ -32,6 +32,8 @@ jobs:
     name: Diff-cover check
     runs-on: ubuntu-latest
     needs: unit_tests
+    # Run diff-cover even if the unit tests failed on rawhide:
+    if: always()
     steps:
       - uses: actions/checkout@v2
         with:

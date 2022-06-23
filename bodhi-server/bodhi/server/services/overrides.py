@@ -17,27 +17,27 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define API endpoints for managing and searching buildroot overrides."""
 
-import math
 from datetime import datetime
+import math
 
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
 from pyramid.exceptions import HTTPNotFound
-from sqlalchemy import func, distinct
+from sqlalchemy import distinct, func
 from sqlalchemy.sql import or_
 
 from bodhi.server import log, security
 from bodhi.server.models import Build, BuildrootOverride, Package, Release, User
-import bodhi.server.schemas
-import bodhi.server.services.errors
 from bodhi.server.validators import (
-    validate_override_builds,
     validate_expiration_date,
+    validate_override_builds,
     validate_override_notes,
     validate_packages,
     validate_releases,
     validate_username,
 )
+import bodhi.server.schemas
+import bodhi.server.services.errors
 
 
 override = Service(name='override', path='/overrides/{nvr}',
@@ -98,22 +98,22 @@ validators = (
 )
 
 
-@overrides_rss.get(schema=bodhi.server.schemas.ListOverrideSchema, renderer='rss',
+@overrides_rss.get(schema=bodhi.server.schemas.ListOverrideSchema(), renderer='rss',
                    error_handler=bodhi.server.services.errors.html_handler,
                    validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema, renderer='rss',
+@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(), renderer='rss',
                accept=('application/atom+xml',),
                error_handler=bodhi.server.services.errors.html_handler,
                validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema,
+@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(),
                accept=("application/json", "text/json"), renderer="json",
                error_handler=bodhi.server.services.errors.json_handler,
                validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema,
+@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(),
                accept=("application/javascript"), renderer="jsonp",
                error_handler=bodhi.server.services.errors.jsonp_handler,
                validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema,
+@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(),
                accept=('text/html'), renderer='overrides.html',
                error_handler=bodhi.server.services.errors.html_handler,
                validators=validators)
@@ -215,26 +215,30 @@ def query_overrides(request):
     return return_values
 
 
-@overrides.post(schema=bodhi.server.schemas.SaveOverrideSchema,
-                permission='edit',
-                accept=("application/json", "text/json"), renderer='json',
-                error_handler=bodhi.server.services.errors.json_handler,
-                validators=(
-                    colander_body_validator,
-                    validate_override_builds,
-                    validate_expiration_date,
-                    validate_override_notes,
-                ))
-@overrides.post(schema=bodhi.server.schemas.SaveOverrideSchema,
-                permission='edit',
-                accept=("application/javascript"), renderer="jsonp",
-                error_handler=bodhi.server.services.errors.jsonp_handler,
-                validators=(
-                    colander_body_validator,
-                    validate_override_builds,
-                    validate_expiration_date,
-                    validate_override_notes,
-                ))
+@overrides.post(
+    schema=bodhi.server.schemas.SaveOverrideSchema(),
+    permission='edit',
+    accept=("application/json", "text/json"), renderer='json',
+    error_handler=bodhi.server.services.errors.json_handler,
+    validators=(
+        colander_body_validator,
+        validate_override_builds,
+        validate_expiration_date,
+        validate_override_notes,
+    )
+)
+@overrides.post(
+    schema=bodhi.server.schemas.SaveOverrideSchema(),
+    permission='edit',
+    accept=("application/javascript"), renderer="jsonp",
+    error_handler=bodhi.server.services.errors.jsonp_handler,
+    validators=(
+        colander_body_validator,
+        validate_override_builds,
+        validate_expiration_date,
+        validate_override_notes,
+    )
+)
 def save_override(request):
     """
     Create or edit a buildroot override.
