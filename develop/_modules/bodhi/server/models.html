@@ -3030,6 +3030,11 @@
             <span class="k">raise</span> <span class="n">LockedUpdateException</span><span class="p">(</span><span class="s2">&quot;Can&#39;t change the request on a &quot;</span>
                                         <span class="s2">&quot;locked update&quot;</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span> \
+                <span class="ow">and</span> <span class="n">action</span> <span class="o">==</span> <span class="p">(</span><span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span> <span class="ow">or</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">BodhiException</span><span class="p">(</span><span class="s1">&#39;Setting a request on an Update for a Release &#39;</span>
+                                 <span class="s1">&#39;not composed by Bodhi is not allowed&#39;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">action</span> <span class="ow">is</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">unpush</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">unpush</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;This update has been unpushed.&#39;</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="n">username</span><span class="p">)</span>
@@ -3835,14 +3840,17 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span><span class="p">,</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span><span class="p">):</span>
             <span class="k">return</span>
         <span class="c1"># If an update receives negative karma disable autopush</span>
+        <span class="c1"># exclude rawhide updates see #4566</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">autokarma</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">autotime</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_composite_karma</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">is</span> \
-                <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span><span class="p">:</span>
+                <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span> <span class="ow">and</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Disabling Auto Push since the update has received negative karma&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">autokarma</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">autotime</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">text</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disable_automatic_push_to_stable&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="s1">&#39;bodhi&#39;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stable_karma</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stable_karma</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stable_karma</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stable_karma</span> \
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test_gating.required&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_passed</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> reached stable karma threshold, but does not meet gating &quot;</span>
                          <span class="s2">&quot;requirements&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
@@ -5128,7 +5136,7 @@
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

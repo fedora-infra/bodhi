@@ -97,8 +97,8 @@ To deploy to staging:
       # Upgrade the Bodhi frontend on staging
       $ sudo rbac-playbook openshift-apps/bodhi.yml -l staging
 
-#. The final playbook in that run will cause the openshift images for bodhi to rebuild and redeploy. 
-   In a few minutes the new version of bodhi will appear on https://bodhi.stg.fedoraproject.org. 
+#. The final playbook in that run will cause the openshift images for bodhi to rebuild and redeploy.
+   In a few minutes the new version of bodhi will appear on https://bodhi.stg.fedoraproject.org.
 
    You can check the status of the openshift image builds and deployment on https://os.stg.fedoraproject.org
 
@@ -136,6 +136,8 @@ If you are making a new major or new minor release:
 #. Adjust ``diff-cover`` to use the new ``major.minor`` branch for comparison in
    ``devel/ci/bodhi-ci``. You can find the spot to edit by searching for the ``--compare-branch``
    flag being passed to ``diff-cover``. This change should remain in that release branch only.
+#. In ``.github/workflows/tests.yml``, add the new ``major.minor`` branch in the list of branches
+   on which CI is run.
 #. Push that new branch to the upstream repository
 
 Build a beta
