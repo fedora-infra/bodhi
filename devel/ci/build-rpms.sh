@@ -24,7 +24,7 @@ for submodule in ${MODULES}; do
     sed -i "s/^%global pypi_version.*/%global pypi_version $moduleversion/g" ~/rpmbuild/SPECS/$submodule.spec
     sed -i "s/^Version:.*/Version:        %{pypi_version}$versionsuffix/g" ~/rpmbuild/SPECS/$submodule.spec
     rpmdev-bumpspec ~/rpmbuild/SPECS/$submodule.spec
-    rpmbuild -ba ~/rpmbuild/SPECS/$submodule.spec
+    rpmbuild -ba --nocheck ~/rpmbuild/SPECS/$submodule.spec
     if [[ "$submodule" == bodhi-messages ]]; then
         rpm -ivf /root/rpmbuild/RPMS/noarch/python3-bodhi-messages-*.rpm
     fi
