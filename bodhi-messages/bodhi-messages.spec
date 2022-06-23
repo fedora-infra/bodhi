@@ -1,6 +1,6 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-messages
-%global pypi_version 6.0.0
+%global pypi_version 6.0.1
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
