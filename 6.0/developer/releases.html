@@ -135,7 +135,8 @@ In a few minutes the new version of bodhi will appear on <a class="reference ext
 <p>If you are making a new major or new minor release:</p>
 <ol class="arabic simple">
 <li><p>Prepare the <code class="docutils literal notranslate"><span class="pre">.mergify.yml</span></code> file for the new <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch as described above.</p></li>
-<li><p>Raise the version to the appropriate value in <code class="docutils literal notranslate"><span class="pre">bodhi-*/pyproject.toml</span></code>.</p></li>
+<li><p>Raise the version to the appropriate value in <code class="docutils literal notranslate"><span class="pre">bodhi-*/pyproject.toml</span></code> and in the spec files
+in <code class="docutils literal notranslate"><span class="pre">bodhi-*/*.spec</span></code>.</p></li>
 <li><p>Add missing authors to the release notes fragments by changing to the <code class="docutils literal notranslate"><span class="pre">news</span></code> directory and
 running the <code class="docutils literal notranslate"><span class="pre">get-authors.py</span></code> script, but check for duplicates and errors</p></li>
 <li><p>Generate the release notes by running <code class="docutils literal notranslate"><span class="pre">towncrier</span> <span class="pre">build</span> <span class="pre">--version</span> <span class="pre">VERSION</span></code>. Be aware that any
