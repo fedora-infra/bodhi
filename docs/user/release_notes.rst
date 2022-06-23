@@ -4,6 +4,45 @@ Release notes
 
 .. towncrier release notes start
 
+v6.0.1
+======
+
+Released on 2022-06-23. This is a bugfix release.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Remove the dependency on WhiteNoise since the documentation has moved to
+  Github (:pr:`4555`).
+* Updated bundled chartJS component to 3.8.0 (:pr:`4561`).
+
+Features
+^^^^^^^^
+
+* Allow disabling autokarma, autotime and close-bugs when editing an update by
+  CLI (:pr:`4564`).
+
+Bug fixes
+^^^^^^^^^
+
+* Fix a small template issue about the karma thumbs display (:pr:`4562`).
+* Autokarma, autotime and close-bugs automatisms may have been accidentally
+  overridden when editing updates by CLI (:issue:`4563`).
+* In very peculiar circumstances, side-tag Rawhide updates may remain stuck if
+  a user posts a negative karma or tries to set a request before Bodhi
+  automatically pushes the update to stable (:issue:`4566`).
+* Don't crash when Ipsilon has no userinfo (:issue:`4569`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Aurélien Bompard
+* Mattia Verga
+
+
 v6.0.0
 ======
 
