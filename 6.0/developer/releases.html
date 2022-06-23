@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Release process &#8212; bodhi 6.0.0 documentation</title>
+    <title>Release process &#8212; bodhi 6.0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -158,6 +158,8 @@ Fedora version that this Bodhi release is going to run on.</p></li>
 <li><p>Adjust <code class="docutils literal notranslate"><span class="pre">diff-cover</span></code> to use the new <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch for comparison in
 <code class="docutils literal notranslate"><span class="pre">devel/ci/bodhi-ci</span></code>. You can find the spot to edit by searching for the <code class="docutils literal notranslate"><span class="pre">--compare-branch</span></code>
 flag being passed to <code class="docutils literal notranslate"><span class="pre">diff-cover</span></code>. This change should remain in that release branch only.</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">.github/workflows/tests.yml</span></code>, add the new <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch in the list of branches
+on which CI is run.</p></li>
 <li><p>Push that new branch to the upstream repository</p></li>
 </ol>
 </section>
@@ -582,7 +584,7 @@ infrastructure mailing list.</p>
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
