@@ -178,6 +178,7 @@ class BodhiClient:
         id_provider: str = IDP,
         staging: bool = False,
         oidc_storage_path: typing.Optional[str] = None,
+        use_kerberos_auth: bool = True,
     ):
         """
         Initialize the Bodhi client.
@@ -188,6 +189,7 @@ class BodhiClient:
             client_id: The OpenID Connect Client ID.
             staging: If True, use the staging server. If False, use base_url.
             oidc_storage_path: Path to a file were OIDC credentials are stored
+            use_kerberos_auth: If True, use Kerberos authentication.
         """
         if staging:
             base_url = STG_BASE_URL
@@ -201,6 +203,7 @@ class BodhiClient:
         self.oidc_storage_path = (
             oidc_storage_path or os.path.join(os.environ["HOME"], ".config", "bodhi", "client.json")
         )
+        self.use_kerberos_auth = use_kerberos_auth
         self._build_oidc_client(client_id, id_provider)
 
     def _build_oidc_client(self, client_id, id_provider):
@@ -245,6 +248,18 @@ class BodhiClient:
                     break
                 if resp.status_code == 401:
                     self.clear_auth()
+                    # by default, when use_kerberos_auth is True, we use Kerberos to authenticate
+                    # and if that fails, fall back to the interactive browser-based OIDC login
+                    try:
+                        # This snippet may look weird, but we want to cover 3 use cases:
+                        # 1. use_kerberos_auth is True and Kerberos succeeds: continue the loop
+                        # 2. use_kerberos_auth is True and Kerberos fails -> normal login follows
+                        # 3. use_kerberos_auth is False -> normal login follows
+                        if self.use_kerberos_auth:
+                            self.oidc.login_with_kerberos()
+                            continue
+                    except OIDCClientError as e:
+                        log.info("Failed to login with Kerberos: %s", e)
                     self.oidc.login()
                 else:
                     resp.raise_for_status()
