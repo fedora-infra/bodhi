@@ -177,6 +177,7 @@ class BodhiClient:
         client_id: str = CLIENT_ID,
         id_provider: str = IDP,
         staging: bool = False,
+        oidc_storage_path: typing.Optional[str] = None,
     ):
         """
         Initialize the Bodhi client.
@@ -186,6 +187,7 @@ class BodhiClient:
                       ```staging``` is True.
             client_id: The OpenID Connect Client ID.
             staging: If True, use the staging server. If False, use base_url.
+            oidc_storage_path: Path to a file were OIDC credentials are stored
         """
         if staging:
             base_url = STG_BASE_URL
@@ -196,15 +198,17 @@ class BodhiClient:
             base_url = base_url + '/'
         self.base_url = base_url
         self.csrf_token = ''
+        self.oidc_storage_path = (
+            oidc_storage_path or os.path.join(os.environ["HOME"], ".config", "bodhi", "client.json")
+        )
         self._build_oidc_client(client_id, id_provider)
 
     def _build_oidc_client(self, client_id, id_provider):
-        storage_path = os.path.join(os.environ["HOME"], ".config", "bodhi", "client.json")
         self.oidc = OIDCClient(
             client_id,
             SCOPE,
             id_provider.rstrip("/"),
-            storage=JSONStorage(storage_path),
+            storage=JSONStorage(self.oidc_storage_path),
         )
 
     def send_request(self, url, verb="GET", **kwargs):
