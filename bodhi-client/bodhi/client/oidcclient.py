@@ -1,5 +1,5 @@
 """A generic OIDC client that can use OOB or not."""
-
+import re
 from functools import partial
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
@@ -11,7 +11,7 @@ from authlib.integrations.requests_client import OAuth2Session
 from authlib.oidc.discovery.well_known import get_well_known_url
 import click
 import requests
-
+from requests_kerberos import HTTPKerberosAuth, OPTIONAL
 
 PORT = 45678  # Hopefully nothing else uses this on the host...
 
@@ -148,6 +148,43 @@ class OIDCClient:
         else:
             self._run_http_server()
         click.secho("Login successful!", fg="green")
+
+    def login_with_kerberos(self):
+        """Login to the OIDC provider using Kerberos.
+
+        How to test:
+        1. obtain a TGT via `kinit` command for your FAS account
+        2. `from bodhi.client.bindings import BodhiClient`
+        3. `bodhi = BodhiClient()`
+        4. `bodhi.login_with_kerberos()`
+        5. A file with tokens should exist: `~/.config/bodhi/client.json`
+
+        Raises:
+            OiDCClientError if there is a problem during the auth process
+        """
+        authorization_endpoint = self.metadata["authorization_endpoint"]
+        uri, state_ = self.client.create_authorization_url(authorization_endpoint)
+        response = requests.get(
+            uri,
+            auth=HTTPKerberosAuth(
+                # REQUIRED is not working with id.fedoraproject.org
+                mutual_authentication=OPTIONAL,
+            ),
+        )
+        try:
+            response.raise_for_status()
+        except requests.RequestException as e:
+            raise OIDCClientError(
+                f"There was an issue while performing Kerberos authentication: {e}")
+        try:
+            value = re.findall(
+                r"<title>\s*(code=[\w\-_=;&]+)\s*</title>", response.text
+            )[0]
+        except IndexError:
+            raise OIDCClientError(
+                f'Unable to locate OIDC code in the response from "{uri}".'
+            )
+        self.auth_callback(f"?{value}")
 
     def _run_http_server(self):
         httpd = HTTPServer(

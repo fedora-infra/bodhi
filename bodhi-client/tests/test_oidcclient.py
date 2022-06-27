@@ -101,6 +101,76 @@ def test_oidcclient_login(mocker, client):
     assert client.tokens == "result-token"
 
 
+def test_oidcclient_login_with_kerberos(mocker, client):
+    oauth2client = mocker.Mock()
+    client.client = oauth2client
+    response = mocker.Mock()
+    sample_code = "code=d37deb2e-5463-1234_5EH4MhV3L&amp;state=k44Rw1"
+    response.text = (
+        '<meta charset="UTF-8">\n<title>' + sample_code + '</title>\n   '
+    )
+    mocker.patch("bodhi.client.oidcclient.requests.get", return_value=response)
+    # Enable OOB
+    client.metadata = {
+        "token_endpoint": "http://id.example.com/token",
+        "authorization_endpoint": "http://id.example.com/auth",
+        "response_modes_supported": ["oob"]
+    }
+    oauth2client.create_authorization_url.return_value = ("auth-url", "state")
+    oauth2client.fetch_token.return_value = "result-token"
+    client.login_with_kerberos()
+    oauth2client.create_authorization_url.assert_called_with("http://id.example.com/auth")
+    oauth2client.fetch_token.assert_called_with(
+        'http://id.example.com/token',
+        authorization_response=f"?{sample_code}",
+        redirect_uri='urn:ietf:wg:oauth:2.0:oob',
+    )
+    assert client.tokens == "result-token"
+
+
+def test_oidcclient_login_with_kerberos_wrong_code(mocker, client):
+    oauth2client = mocker.Mock()
+    client.client = oauth2client
+    response = mocker.Mock()
+    sample_code = "code=NOT_4_VALID=STRING@#*"
+    response.text = (
+        '<meta charset="UTF-8">\n<title>' + sample_code + '</title>\n   '
+    )
+    mocker.patch("bodhi.client.oidcclient.requests.get", return_value=response)
+    # Enable OOB
+    client.metadata = {
+        "token_endpoint": "http://id.example.com/token",
+        "authorization_endpoint": "http://id.example.com/auth",
+        "response_modes_supported": ["oob"]
+    }
+    oauth2client.create_authorization_url.return_value = ("auth-url", "state")
+    oauth2client.fetch_token.return_value = "result-token"
+    with pytest.raises(OIDCClientError) as exc:
+        client.login_with_kerberos()
+    assert str(exc.value) == 'Unable to locate OIDC code in the response from "auth-url".'
+
+
+def test_oidcclient_login_with_kerberos_error_during_auth(mocker, client):
+    oauth2client = mocker.Mock()
+    client.client = oauth2client
+    response = mocker.Mock()
+    response.text = "<response>"
+    mocker.patch("bodhi.client.oidcclient.requests.get", return_value=response)
+    client.metadata = {
+        "token_endpoint": "http://id.example.com/token",
+        "authorization_endpoint": "http://id.example.com/auth",
+        "response_modes_supported": []
+    }
+    oauth2client.create_authorization_url.return_value = ("auth-url", "state")
+
+    def raise_http_error():
+        raise requests.HTTPError("error")
+    response.raise_for_status = raise_http_error
+    with pytest.raises(OIDCClientError) as exc:
+        client.login_with_kerberos()
+    assert str(exc.value) == 'There was an issue while performing Kerberos authentication: error'
+
+
 def test_oidcclient_login_no_oob(mocker, client):
     oauth2client = mocker.Mock()
     client.client = oauth2client
