@@ -470,7 +470,8 @@ def test_updates_request(bodhi_container, ipsilon_container, db_container):
             "SELECT alias",
             "FROM updates u",
             "JOIN releases r ON u.release_id = r.id",
-            "WHERE r.state != 'archived' AND u.locked = FALSE",
+            "WHERE r.state != 'archived' AND r.composed_by_bodhi = TRUE",
+            "AND u.locked = FALSE",
             "ORDER BY u.date_submitted DESC LIMIT 1"
         ]
         db_ip = db_container.get_IPv4s()[0]
