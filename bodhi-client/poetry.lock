@@ -150,7 +150,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "diff-cover"
-version = "6.5.0"
+version = "6.5.1"
 description = "Run coverage and linting reports on diffs"
 category = "dev"
 optional = false
@@ -754,8 +754,8 @@ decorator = [
     {file = "decorator-5.1.1.tar.gz", hash = "sha256:637996211036b6385ef91435e4fae22989472f9d571faba8927ba8253acbc330"},
 ]
 diff-cover = [
-    {file = "diff_cover-6.5.0-py3-none-any.whl", hash = "sha256:fb54e906bf48fd7d4b85950b9dc5b483642213a1b2fb9ba0abcb9103d7c747c4"},
-    {file = "diff_cover-6.5.0.tar.gz", hash = "sha256:3763b4fc2ef91063ba72b50214652224b2d0a9f31544d5504596f5c4a847cd7b"},
+    {file = "diff_cover-6.5.1-py3-none-any.whl", hash = "sha256:ad602868ff14969563216866fc249f068df54892bd6c989201110bbb837dab06"},
+    {file = "diff_cover-6.5.1.tar.gz", hash = "sha256:8c3bb13812e9667bc83f8c7606402511e9c2fe79d6786f129522e79693ee096b"},
 ]
 docutils = [
     {file = "docutils-0.18.1-py2.py3-none-any.whl", hash = "sha256:23010f129180089fbcd3bc08cfefccb3b890b0050e1ca00c867036e9d161b98c"},
