@@ -27,8 +27,8 @@ BuildRequires:  createrepo_c
 BuildRequires:  skopeo
 BuildRequires:  dnf
 
-Requires: bodhi-client == %{version}-%{release}
-Requires: python3-bodhi-messages == %{version}-%{release}
+Requires: bodhi-client = %{version}
+Requires: python3-bodhi-messages = %{version}
 Requires: fedora-messaging
 Requires: git
 Requires: httpd
