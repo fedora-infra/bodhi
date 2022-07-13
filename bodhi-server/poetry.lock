@@ -612,7 +612,7 @@ python-versions = "*"
 
 [[package]]
 name = "koji"
-version = "1.29.0"
+version = "1.29.1"
 description = "Koji is a system for building and tracking RPMS. The base package contains shared libraries and the command-line interface."
 category = "main"
 optional = false
@@ -1852,9 +1852,9 @@ kitchen = [
     {file = "kitchen-1.2.6.tar.gz", hash = "sha256:b84cf582f1bd1556b60ebc7370b9d331eb9247b6b070ce89dfe959cba2c0b03c"},
 ]
 koji = [
-    {file = "koji-1.29.0-py2-none-any.whl", hash = "sha256:df7395dfc4157af4ee8ddb6c6498c762a98adeb77fb43d72cb7ce204857c367d"},
-    {file = "koji-1.29.0-py3-none-any.whl", hash = "sha256:7a24bc9e9c7508ded2e174f243780c57562422b8c7320714cff839b841b79b7a"},
-    {file = "koji-1.29.0.tar.gz", hash = "sha256:7db1ea4f68dd94d556c612e40bbfc2268164bfebc4a4cd08b63971bddaa686bc"},
+    {file = "koji-1.29.1-py2-none-any.whl", hash = "sha256:d9578807cdcc6e993834cfe25f6c57a42b71e9543ac2b420ca8fde47040e4830"},
+    {file = "koji-1.29.1-py3-none-any.whl", hash = "sha256:8ff4ced4f5517a3d32356a15b9ab019d26601a940618568dc86c681b3abcc7f0"},
+    {file = "koji-1.29.1.tar.gz", hash = "sha256:a600ae4e3304ecdaace5c8a5ef8f282a60728943492fc6b3fad4974d7e95ea1b"},
 ]
 kombu = [
     {file = "kombu-5.2.4-py3-none-any.whl", hash = "sha256:8b213b24293d3417bcf0d2f5537b7f756079e3ea232a8386dcc89a59fd2361a4"},
