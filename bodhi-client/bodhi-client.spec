@@ -20,11 +20,16 @@ BuildRequires:  python3-pytest-cov
 BuildRequires:  python3-pytest-mock
 BuildRequires:  python3-sphinx
 
+Requires: koji
+
 Obsoletes: python3-bodhi-client <= 5.7.5
+# Replace the bodhi metapackage
+Obsoletes: bodhi <= 5.7.5
 
 %py_provides python3-bodhi-client
 
 %description
+Command-line client for Bodhi, Fedora's update gating system.
 
 %prep
 %autosetup -n %{pypi_name}-%{pypi_version}
