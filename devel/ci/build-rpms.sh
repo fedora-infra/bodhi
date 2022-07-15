@@ -8,6 +8,7 @@ MODULES=$@
 
 set -x
 
+git --git-dir=~ config --system --add safe.directory $PWD
 mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
 githash=$(git rev-parse --short HEAD)
