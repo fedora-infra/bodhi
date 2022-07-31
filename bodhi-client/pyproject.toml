@@ -28,6 +28,7 @@ packages = [
 include = [
     { path = "docs", format = "sdist" },
     { path = "bodhi-client.bash", format = "sdist" },
+    { path = "COPYING", format = "sdist" },
 ]
 exclude = ["docs/_build"]
 
