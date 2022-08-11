@@ -4809,6 +4809,7 @@ class TestUpdate(ModelTest):
                 "username": "foo", "comment": "this is not true!", "waived": True,
                 "product_version": "{}".format(self.obj.product_version),
                 "testcase": "{}".format(test),
+                "scenario": None,
                 "subject": {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}}
             expected_calls.append(mock.call(
                 '{}/waivers/'.format(config.get('waiverdb_api_url')),
@@ -4847,6 +4848,7 @@ class TestUpdate(ModelTest):
                     'item': {"item": "%s" % update.builds[0].nvr, "type": "koji_build"},
                     'result_id': "123",
                     'testcase': 'dist.depcheck',
+                    'scenario': 'kde',
                     'type': 'test-result-failed'
                 }
             ]
@@ -4860,6 +4862,7 @@ class TestUpdate(ModelTest):
         wdata = {
             'subject': {"item": "%s" % update.builds[0].nvr, "type": "koji_build"},
             'testcase': 'dist.depcheck',
+            'scenario': 'kde',
             'product_version': update.product_version,
             'waived': True,
             'username': 'foo',
