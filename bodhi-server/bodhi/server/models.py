@@ -3189,6 +3189,7 @@ class Update(Base):
             data = {
                 'subject': requirement['item'],
                 'testcase': requirement['testcase'],
+                'scenario': requirement.get('scenario', None),
                 'product_version': self.product_version,
                 'waived': True,
                 'username': username,

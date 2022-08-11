@@ -6179,6 +6179,7 @@ class TestWaiveTestResults(BasePyTestCase):
                 'waived': True,
                 'product_version': 'fedora-17',
                 'testcase': 'dist.rpmdeplint',
+                'scenario': None,
                 'subject': {
                     'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                 }
@@ -6258,6 +6259,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     'waived': True,
                     'product_version': 'fedora-17',
                     'testcase': 'dist.rpmdeplint',
+                    'scenario': None,
                     'subject': {
                         'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                     }
@@ -6271,6 +6273,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     'waived': True,
                     'product_version': 'fedora-17',
                     'testcase': 'atomic_ci_pipeline_results',
+                    'scenario': None,
                     'subject': {
                         'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                     }
@@ -6355,6 +6358,7 @@ class TestWaiveTestResults(BasePyTestCase):
                 'waived': True,
                 'product_version': 'fedora-17',
                 'testcase': 'atomic_ci_pipeline_results',
+                'scenario': None,
                 'subject': {
                     'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                 }
@@ -6438,6 +6442,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     'waived': True,
                     'product_version': 'fedora-17',
                     'testcase': 'dist.rpmdeplint',
+                    'scenario': None,
                     'subject': {
                         'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                     }
@@ -6451,6 +6456,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     'waived': True,
                     'product_version': 'fedora-17',
                     'testcase': 'atomic_ci_pipeline_results',
+                    'scenario': None,
                     'subject': {
                         'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                     }
@@ -6535,6 +6541,7 @@ class TestWaiveTestResults(BasePyTestCase):
                 'waived': True,
                 'product_version': 'fedora-17',
                 'testcase': 'dist.rpmdeplint',
+                'scenario': None,
                 'subject': {
                     'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                 }
