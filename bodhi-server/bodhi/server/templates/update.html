@@ -61,6 +61,7 @@ if can_edit and update.release.composed_by_bodhi:
               <span class="btn btn-sm btn-${self.fragments.status_context(update.status.value)}">
                   ${self.fragments.status_text(update)}
               </span>
+              <a href="https://fedora-infra.github.io/bodhi/6.0/user/update_states.html" target="_blank">?</a>
             % if actions:
               <div class="dropdown d-inline" id="updatebuttons">
                 <button class="btn btn-outline-primary border-0 btn-sm dropdown-toggle" type="button" id="statusActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
