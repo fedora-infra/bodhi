@@ -145,7 +145,7 @@ toml = ["tomli (>=1.2.1)"]
 
 [[package]]
 name = "fedora-messaging"
-version = "3.0.2"
+version = "3.1.0"
 description = "A set of tools for using Fedora's messaging infrastructure"
 category = "main"
 optional = false
@@ -757,8 +757,8 @@ diff-cover = [
     {file = "diff_cover-6.5.1.tar.gz", hash = "sha256:8c3bb13812e9667bc83f8c7606402511e9c2fe79d6786f129522e79693ee096b"},
 ]
 fedora-messaging = [
-    {file = "fedora_messaging-3.0.2-py3-none-any.whl", hash = "sha256:782dc04ba25ebc694324b85d24b7061949402db7dc1ad8e69d55fb623135a184"},
-    {file = "fedora_messaging-3.0.2.tar.gz", hash = "sha256:94ea22c7e7bf78e988b9d2c4bed80d7b422122429f9dd65408a6b8a28dcf13f8"},
+    {file = "fedora_messaging-3.1.0-py3-none-any.whl", hash = "sha256:009555e6b0b084074b54f15f91bb5af5784f8df2be5f611114a788dc4e0aadd3"},
+    {file = "fedora_messaging-3.1.0.tar.gz", hash = "sha256:ce58e2ccbb0b43670fc770314bcedeced8be5c4c860d8465939aa2e646d1e56f"},
 ]
 hyperlink = [
     {file = "hyperlink-21.0.0-py2.py3-none-any.whl", hash = "sha256:e6b14c37ecb73e89c77d78cdb4c2cc8f3fb59a885c5b3f819ff4ed80f25af1b4"},
