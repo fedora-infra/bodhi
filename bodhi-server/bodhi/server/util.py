@@ -207,13 +207,22 @@ def get_critpath_components(collection='master', component_type='rpm', component
     """
     critpath_components = []
     critpath_type = config.get('critpath.type')
-    if critpath_type != 'pdc' and component_type != 'rpm':
+    if critpath_type not in ('pdc', 'json') and component_type != 'rpm':
         log.warning('The critpath.type of "{0}" does not support searching for'
                     ' non-RPM components'.format(component_type))
 
     if critpath_type == 'pdc':
         critpath_components = get_critpath_components_from_pdc(
             collection, component_type, components)
+    elif critpath_type == 'json':
+        try:
+            critpath_components_grouped = read_critpath_json(collection).get(component_type, {})
+            for compgroup in critpath_components_grouped.values():
+                critpath_components.extend(compgroup)
+        except FileNotFoundError:
+            log.warning(f'No JSON file found for collection {collection}')
+        except json.JSONDecodeError:
+            log.warning(f'JSON file for collection {collection} is invalid')
     else:
         critpath_components = config.get('critpath_pkgs')
 
@@ -989,6 +998,24 @@ def get_critpath_components_from_pdc(branch, component_type='rpm', components=No
                 # There are no more results to iterate through
                 break
     return list(critpath_pkgs_set)
+
+
+def read_critpath_json(collection):
+    """
+    Read the JSON format critical path information for the collection.
+
+    Args:
+        collection (str): The collection to read information for.
+    Returns:
+        dict: A dict with critpath groups as keys, and lists of packages as values.
+    Raises:
+        FileNotFoundError: If there is no file for the requested collection.
+        json.JSONDecodeError: If the file is not valid JSON.
+    """
+    jsonpath = config.get('critpath.jsonpath')
+    jsonfile = os.path.join(jsonpath, f'{collection}.json')
+    with open(jsonfile, 'r', encoding='utf-8') as jsonfh:
+        return json.load(jsonfh)
 
 
 def call_api(api_url, service_name, error_key=None, method='GET', data=None, headers=None,
