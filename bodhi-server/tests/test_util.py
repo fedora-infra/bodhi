@@ -18,7 +18,6 @@
 from unittest import mock
 from xml.etree import ElementTree
 import gzip
-import json
 import os
 import shutil
 import subprocess
@@ -768,7 +767,7 @@ class TestUtils(base.BasePyTestCase):
         assert session.get.return_value.json.call_count == 2
 
     @mock.patch('bodhi.server.util.log')
-    def test_get_critpath_components_json_no_file(self, mock_log):
+    def test_get_critpath_components_json_no_file(self, mock_log, critpath_json_config):
         """Ensure we log a warning and return an empty list when
         trying to retrieve critpath info from a non-existent JSON
         file.
@@ -780,17 +779,12 @@ class TestUtils(base.BasePyTestCase):
         mock_log.warning.assert_called_once_with(warning)
 
     @mock.patch('bodhi.server.util.log')
-    def test_get_critpath_components_json_bad_file(self, mock_log):
+    def test_get_critpath_components_json_bad_file(self, mock_log, critpath_json_config):
         """Ensure we log a warning and return an empty list when
         trying to retrieve critpath info from an invalid JSON
         file.
         """
-        # write a dummy JSON file, this is easier and more realistic
-        # than mocking out both `open` and `json.load`
-        tempdir = tempfile.mkdtemp('bodhi')
-        testfile = os.path.join(tempdir, 'f35.json')
-        with open(testfile, 'w', encoding='utf-8') as testfilefh:
-            testfilefh.write("This is not JSON")
+        (tempdir, _) = critpath_json_config
         config.update({
             'critpath.type': 'json',
             'critpath.jsonpath': tempdir
@@ -800,28 +794,11 @@ class TestUtils(base.BasePyTestCase):
         warning = 'JSON file for collection f35 is invalid'
         mock_log.warning.assert_called_once_with(warning)
 
-    def test_get_critpath_components_json_success(self):
+    def test_get_critpath_components_json_success(self, critpath_json_config):
         """Ensure that critpath packages can be found using JSON
         files.
         """
-        # write a dummy JSON file, this is easier and more realistic
-        # than mocking out both `open` and `json.load`
-        tempdir = tempfile.mkdtemp('bodhi')
-        testfile = os.path.join(tempdir, 'f36.json')
-        testdata = {
-            'rpm': {
-                'core': [
-                    'ModemManager-glib',
-                    'NetworkManager',
-                ],
-                'critical-path-apps': [
-                    'abattis-cantarell-fonts',
-                    'adobe-source-code-pro-fonts',
-                ]
-            }
-        }
-        with open(testfile, 'w', encoding='utf-8') as testfilefh:
-            json.dump(testdata, testfilefh)
+        (tempdir, _) = critpath_json_config
         config.update({
             'critpath.type': 'json',
             'critpath.jsonpath': tempdir
@@ -830,9 +807,68 @@ class TestUtils(base.BasePyTestCase):
         assert sorted(pkgs) == [
             'ModemManager-glib',
             'NetworkManager',
+            'TurboGears',
             'abattis-cantarell-fonts',
             'adobe-source-code-pro-fonts'
         ]
+
+    @mock.patch('bodhi.server.util.log')
+    def test_get_grouped_critpath_components_json_no_file(self, mock_log, critpath_json_config):
+        """Ensure we log a warning and return an empty list when
+        trying to retrieve critpath info from a non-existent JSON
+        file (from get_grouped_critpath_components).
+        """
+        config.update({'critpath.type': 'json'})
+        pkgs = util.get_grouped_critpath_components('f34')
+        assert pkgs == {}
+        warning = 'No JSON file found for collection f34'
+        mock_log.warning.assert_called_once_with(warning)
+
+    @mock.patch('bodhi.server.util.log')
+    def test_get_grouped_critpath_components_json_bad_file(self, mock_log, critpath_json_config):
+        """Ensure we log a warning and return an empty list when
+        trying to retrieve critpath info from an invalid JSON
+        file (from get_grouped_critpath_components).
+        """
+        (tempdir, _) = critpath_json_config
+        config.update({
+            'critpath.type': 'json',
+            'critpath.jsonpath': tempdir
+        })
+        pkgs = util.get_grouped_critpath_components('f35')
+        assert pkgs == {}
+        warning = 'JSON file for collection f35 is invalid'
+        mock_log.warning.assert_called_once_with(warning)
+
+    def test_get_grouped_critpath_components_not_supported(self):
+        """Ensure that get_grouped_critpath_components raises
+        ValueError when critpath.type doesn't support groups.
+        """
+        config.update({'critpath.type': 'pdc'})
+        with pytest.raises(ValueError) as exc:
+            util.get_grouped_critpath_components('f36')
+        error = 'critpath.type pdc does not support groups'
+        assert str(exc.value) == error
+
+    def test_get_grouped_critpath_components_success(self, critpath_json_config):
+        """Ensure that get_grouped_critpath_components works when
+        using JSON files.
+        """
+        (tempdir, testdata) = critpath_json_config
+        config.update({
+            'critpath.type': 'json',
+            'critpath.jsonpath': tempdir
+        })
+        grouped = util.get_grouped_critpath_components('f36')
+        assert grouped == testdata['rpm']
+        # now test with components arg
+        filtered = util.get_grouped_critpath_components(
+            'f36', components=['ModemManager-glib'])
+        assert filtered == {'core': ['ModemManager-glib']}
+        # now test against 'f35' to confirm we get an empty dict if
+        # there are no matches
+        grouped = util.get_grouped_critpath_components('f35')
+        assert grouped == {}
 
     @mock.patch('bodhi.server.util.http_session')
     def test_pagure_api_get(self, session):

@@ -17,9 +17,46 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Pytest configuration."""
 
+import json
 import os
+import tempfile
+
+import pytest
 
 
 # Set BODHI_CONFIG to our testing ini file. This is done here before bodhi itself is imported.
 if "BODHI_CONFIG" not in os.environ:
     os.environ["BODHI_CONFIG"] = os.path.join(os.path.dirname(__file__), "testing.ini")
+
+
+@pytest.fixture(scope="session")
+def critpath_json_config(request):
+    """
+    Critpath JSON configuration fixture.
+
+    Set up one valid (f36) and one invalid (f35) configuration file
+    for critpath.type=json and yield the path, file names, and sample
+    data.
+    """
+    tempdir = tempfile.TemporaryDirectory(suffix='bodhi')
+    f35file = os.path.join(tempdir.name, 'f35.json')
+    with open(f35file, 'w', encoding='utf-8') as f35filefh:
+        f35filefh.write("This is not JSON")
+    f36file = os.path.join(tempdir.name, 'f36.json')
+    testdata = {
+        'rpm': {
+            'core': [
+                'ModemManager-glib',
+                'NetworkManager',
+                'TurboGears',
+            ],
+            'critical-path-apps': [
+                'abattis-cantarell-fonts',
+                'adobe-source-code-pro-fonts',
+            ]
+        }
+    }
+    with open(f36file, 'w', encoding='utf-8') as f36filefh:
+        json.dump(testdata, f36filefh)
+    yield (tempdir.name, testdata)
+    tempdir.cleanup()
