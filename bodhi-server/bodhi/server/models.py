@@ -76,10 +76,12 @@ from bodhi.server.util import avatar as get_avatar
 from bodhi.server.util import (
     build_evr,
     get_critpath_components,
+    get_grouped_critpath_components,
     get_rpm_header,
     header,
     pagure_api_get,
     tokenize,
+    build_names_by_type,
 )
 
 
@@ -1883,6 +1885,10 @@ class Update(Base):
             :class:`Package`. Critical path packages are packages that are required for
             basic functionality. For example, the kernel :class:`RpmPackage` is a critical
             path package.
+        critpath_groups (str): Space-separated list of critical path groups the package(s)
+            in this update are members of. More detailed version of critpath. Empty string
+            means "no groups" (same as critpath=False); None/null means "feature not supported"
+            (i.e. the configured critpath.type doesn't give grouped critpath info).
         close_bugs (bool): Indicates whether the Bugzilla bugs that this update is related
             to should be closed automatically when the update is pushed to stable.
         date_submitted (DateTime): The date that the update was created.
@@ -1942,6 +1948,7 @@ class Update(Base):
     locked = Column(Boolean, default=False)
     pushed = Column(Boolean, default=False)
     critpath = Column(Boolean, default=False)
+    critpath_groups = Column(UnicodeText, nullable=True)
 
     # Bug settings
     close_bugs = Column(Boolean, default=True)
@@ -2162,6 +2169,31 @@ class Update(Base):
         return comments_since_karma_reset
 
     @staticmethod
+    def get_critpath_groups(builds, release_branch):
+        """
+        Determine which (if any) critpath groups the builds passed in are part of.
+
+        Args:
+            builds (list): :class:`Builds <Build>` to be considered.
+            release_branch (str): The name of the git branch associated to the release,
+                such as "f25" or "master".
+        Returns:
+            str: A space-separated list of the critpath groups. Will be empty if none.
+        Raises:
+            ValueError: If the configured critpath.type does not list by group.
+        """
+        components = build_names_by_type(builds)
+        groups = []
+
+        for ptype in components:
+            groups.extend(
+                get_grouped_critpath_components(
+                    release_branch, ptype, frozenset(components[ptype])
+                )
+            )
+        return " ".join(groups)
+
+    @staticmethod
     def contains_critpath_component(builds, release_branch):
         """
         Determine if there is a critpath component in the builds passed in.
@@ -2175,12 +2207,7 @@ class Update(Base):
         Raises:
             RuntimeError: If the PDC did not give us a 200 code.
         """
-        components = defaultdict(list)
-        # Get the mess down to a dict of ptype -> [pname]
-        for build in builds:
-            ptype = build.package.type.value
-            pname = build.package.name
-            components[ptype].append(pname)
+        components = build_names_by_type(builds)
 
         for ptype in components:
             if get_critpath_components(release_branch, ptype, frozenset(components[ptype])):
@@ -2416,8 +2443,14 @@ class Update(Base):
         user = User.get(request.user.name)
         data['user'] = user
         caveats = []
-        data['critpath'] = cls.contains_critpath_component(
-            data['builds'], data['release'].branch)
+        try:
+            data['critpath_groups'] = cls.get_critpath_groups(
+                data['builds'], data['release'].branch)
+            data['critpath'] = bool(data['critpath_groups'])
+        except ValueError:
+            data['critpath_groups'] = None
+            data['critpath'] = cls.contains_critpath_component(
+                data['builds'], data['release'].branch)
 
         # Be sure to not add an empty string as alternative title
         # and strip whitespaces from it
@@ -2583,8 +2616,14 @@ class Update(Base):
                     # an override
                     db.delete(b)
 
-        data['critpath'] = cls.contains_critpath_component(
-            up.builds, up.release.branch)
+        try:
+            data['critpath_groups'] = cls.get_critpath_groups(
+                up.builds, up.release.branch)
+            data['critpath'] = bool(data['critpath_groups'])
+        except ValueError:
+            data['critpath_groups'] = None
+            data['critpath'] = cls.contains_critpath_component(
+                up.builds, up.release.branch)
 
         del data['builds']
 

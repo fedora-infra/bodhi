@@ -834,6 +834,34 @@ class TestNewUpdate(BasePyTestCase):
         assert up['request'] == 'testing'
 
     @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.util.read_critpath_json')
+    @mock.patch.dict(config, [('critpath.type', 'json')])
+    def test_new_edit_update_critpath_groups(self, fakejson, *args):
+        """
+        Ensure that creating a new update and editing it on the grouped
+        critpath data path works.
+        """
+        fakejson.return_value = {'rpm': {'core': ['kernel']}}
+        args = self.get_update('kernel-3.11.5-300.fc17')
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            up = self.app.post_json('/updates/', args).json_body
+
+        assert up['critpath']
+        assert up['critpath_groups'] == "core"
+
+        args['edited'] = up['alias']
+        # just edit anything, it doesn't matter, the point here is to
+        # hit the critpath re-discovery code in the edit codepath
+        args['stable_days'] = '50'
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            ed = self.app.post_json('/updates/', args).json_body
+
+        assert ed['critpath']
+        assert ed['critpath_groups'] == "core"
+
+    @mock.patch(**mock_valid_requirements)
     def test_obsoletion(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
