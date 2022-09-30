@@ -2277,16 +2277,27 @@ class Update(Base):
 
     @property
     def _greenwave_decision_contexts(self):
-        # We retrieve updates going to testing (status=pending) and updates
-        # (status=testing) going to stable.
-        # We also query on different contexts for critpath and non-critpath
-        # updates.
+        """
+        Return greenwave contexts that should be queried for this update.
+
+        The base context depends whether the update is going to
+        testing (status=pending) or to stable (status=testing). We
+        also query on additional contexts for critpath updates. If the
+        critpath type provides grouped information, we query on one
+        additional context per critpath group represented in the
+        update's packages. If it does not, we query on the catch-all
+        additional 'critpath' context.
+        """
         # this is correct if update is already in testing...
         contexts = ["bodhi_update_push_stable"]
         if self.request == UpdateRequest.testing and self.status == UpdateStatus.pending:
             # ...but if it is pending, we want to know if it can go to testing
             contexts = ["bodhi_update_push_testing"]
-        if self.critpath:
+        if self.critpath_groups:
+            ocontext = contexts[0]
+            for group in self.critpath_groups.split(" "):
+                contexts.insert(0, f"{ocontext}_{group}_critpath")
+        elif self.critpath:
             contexts.insert(0, contexts[0] + "_critpath")
         return contexts
 
