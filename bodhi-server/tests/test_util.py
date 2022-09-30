@@ -783,10 +783,7 @@ class TestUtils(base.BasePyTestCase):
     def test_get_critpath_components_json_bad_file(self, mock_log):
         """Ensure we log a warning and return an empty list when
         trying to retrieve critpath info from an invalid JSON
-        file. Note: because `get_critpath_components` uses the
-        `memoized` decorator, we *must* use a different collection
-        name from the previous test, or we will get the same
-        cached result and the warning will not be hit.
+        file.
         """
         # write a dummy JSON file, this is easier and more realistic
         # than mocking out both `open` and `json.load`
@@ -805,10 +802,7 @@ class TestUtils(base.BasePyTestCase):
 
     def test_get_critpath_components_json_success(self):
         """Ensure that critpath packages can be found using JSON
-        files. Note: because `get_critpath_components` uses the
-        `memoized` decorator, we *must* use a different collection
-        name from the previous tests, or we will get the same
-        cached result (an empty dict) and the test will fail.
+        files.
         """
         # write a dummy JSON file, this is easier and more realistic
         # than mocking out both `open` and `json.load`
