@@ -189,7 +189,6 @@ class memoized(object):
         return functools.partial(self.__call__, obj)
 
 
-@memoized
 def get_critpath_components(collection='master', component_type='rpm', components=None):
     """
     Return a list of critical path packages for a given collection, filtered by components.
@@ -946,6 +945,7 @@ def severity_updateinfo_str(value):
 PDC_CRITPATH_COMPONENTS_GETALL_LIMIT = 10
 
 
+@memoized
 def get_critpath_components_from_pdc(branch, component_type='rpm', components=None):
     """
     Search PDC for critical path packages based on the specified branch.
