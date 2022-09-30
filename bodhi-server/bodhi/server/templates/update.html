@@ -89,7 +89,9 @@ if can_edit and update.release.composed_by_bodhi:
                 % if update.type:
                   ${self.util.type2icon(update.type) | n}
                 % endif
-                % if update.critpath:
+                % if update.critpath_groups:
+                <br/><span data-bs-toggle="tooltip" title="This update is in critical path groups ${update.critpath_groups}" class="ms-n2 text-muted"><small> <i class="fa fa-fw fa-fire"></i></small></span>
+                % elif update.critpath:
                 <br/><span data-bs-toggle="tooltip" title="This update is in the critical path" class="ms-n2 text-muted"><small> <i class="fa fa-fw fa-fire"></i></small></span>
                 % endif
               </div>
