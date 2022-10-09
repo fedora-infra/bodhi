@@ -1358,7 +1358,7 @@ class TestUpdatesService(BasePyTestCase):
 
         res = self.app.get(f'/updates/{alias}', status=200, headers={'Accept': 'text/html'})
 
-        assert '<div class="col font-weight-bold text-muted">Content Type</div>' in res.text
+        assert '<div class="col fw-bold text-muted">Content Type</div>' in res.text
         assert 'RPM' in res.text
 
     def test_content_type_none(self):
@@ -5639,7 +5639,7 @@ class TestUpdatesService(BasePyTestCase):
         """
         self.assert_severity_html(
             UpdateSeverity.urgent,
-            ['<div class="col font-weight-bold text-muted">Severity', 'urgent']
+            ['<div class="col fw-bold text-muted">Severity', 'urgent']
         )
 
     @mock.patch(**mock_valid_requirements)
@@ -5649,7 +5649,7 @@ class TestUpdatesService(BasePyTestCase):
         """
         self.assert_severity_html(
             UpdateSeverity.high,
-            ['<div class="col font-weight-bold text-muted">Severity', 'high']
+            ['<div class="col fw-bold text-muted">Severity', 'high']
         )
 
     @mock.patch(**mock_valid_requirements)
@@ -5659,7 +5659,7 @@ class TestUpdatesService(BasePyTestCase):
         """
         self.assert_severity_html(
             UpdateSeverity.medium,
-            ['<div class="col font-weight-bold text-muted">Severity', 'medium']
+            ['<div class="col fw-bold text-muted">Severity', 'medium']
         )
 
     @mock.patch(**mock_valid_requirements)
@@ -5669,7 +5669,7 @@ class TestUpdatesService(BasePyTestCase):
         """
         self.assert_severity_html(
             UpdateSeverity.low,
-            ['<div class="col font-weight-bold text-muted">Severity', 'low']
+            ['<div class="col fw-bold text-muted">Severity', 'low']
         )
 
     @mock.patch(**mock_valid_requirements)

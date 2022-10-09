@@ -773,7 +773,7 @@ class TestOverridesWebViews(base.BasePyTestCase):
         """
         resp = self.app.get('/overrides/',
                             status=200, headers={'Accept': 'text/html'})
-        assert '<h3 class="font-weight-bold m-0 d-flex align-items-center">Overrides' in resp
+        assert '<h3 class="fw-bold m-0 d-flex align-items-center">Overrides' in resp
         assert '<a href="http://localhost/overrides/bodhi-2.0-1.fc17">' in resp
 
     @mock.patch('bodhi.server.util.arrow.get')
@@ -793,6 +793,6 @@ class TestOverridesWebViews(base.BasePyTestCase):
         resp = self.app.get('/overrides/bodhi-2.0-1.fc17',
                             status=200, headers={'Accept': 'text/html'})
 
-        assert ("<span class='col-xs-auto pr-2 ml-auto text-danger'><small>"
+        assert ("<span class='col-xs-auto pe-2 ms-auto text-danger'><small>"
                 "expired <strong>82 seconds bro ago</strong></small></span>") in resp
         assert abs((get.mock_calls[0][1][0] - expiration_date).seconds) < 64
