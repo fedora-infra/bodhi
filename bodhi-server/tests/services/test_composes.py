@@ -92,7 +92,7 @@ class TestComposeCollectionGet(base.BasePyTestCase):
         response = self.app.get('/composes/', status=200, headers={'Accept': 'text/html'})
 
         # The Composes header should still appear in the page
-        assert '<h3 class="font-weight-bold m-0">Composes</h3>' in response
+        assert '<h3 class="fw-bold m-0">Composes</h3>' in response
         assert '/composes/{}/{}'.format(compose.release.name, compose.request.value) in response
         assert compose.state.description in response
 
