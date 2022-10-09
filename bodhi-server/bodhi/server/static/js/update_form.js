@@ -114,20 +114,20 @@ $(document).ready(function() {
         },
         render: {
             item: function(item, escape) {
-                return '<div class="w-100 border-bottom m-0 py-1 pl-3">' +
-                '   <span class="font-weight-bold" title="bug description">BZ#' + escape(item.id) + '</span>' +
+                return '<div class="w-100 border-bottom m-0 py-1 ps-3">' +
+                '   <span class="fw-bold" title="bug description">BZ#' + escape(item.id) + '</span>' +
                 '   <span class="name" title="bug description">' + escape(item.summary) + '</span>' +
                 '</div>';
             },
             option: function(item, escape) {
-                return '<div class="w-100 border-bottom m-0 py-1 pl-3">' +
+                return '<div class="w-100 border-bottom m-0 py-1 ps-3">' +
                 '<div>' +
-                '   <span class="font-weight-bold" title="bug description">BZ#' + escape(item.id) + '</span>' +
+                '   <span class="fw-bold" title="bug description">BZ#' + escape(item.id) + '</span>' +
                 '   <span class="name" title="bug description">' + escape(item.summary) + '</span>' +
                 '</div>'+
                 '<div>' +
-                '   <span class="badge badge-light border">' + escape(item.component[0]) + '</span>' +
-                '   <span class="badge badge-light border">' + escape(item.product) + ' '+escape(item.version[0])+'</span>' +
+                '   <span class="badge text-bg-light border">' + escape(item.component[0]) + '</span>' +
+                '   <span class="badge text-bg-light border">' + escape(item.product) + ' '+escape(item.version[0])+'</span>' +
                 '</div>'+
                 '</div>';
             },
@@ -147,15 +147,15 @@ $(document).ready(function() {
             render: {
                 option: function(item, escape) {
                     return '<div class="w-100 border-bottom px-1">' +
-                    '   <h6 class="font-weight-bold mb-0">' + escape(item.nvr) + '</h6>' +
-                    '   <span class="badge badge-light border"><i class="fa fa-tag"></i> '+escape(item.release_name)+'</span> '+
-                    '   <span class="badge badge-light border"><i class="fa fa-user"></i> '+escape(item.owner_name)+'</span> '+
+                    '   <h6 class="fw-bold mb-0">' + escape(item.nvr) + '</h6>' +
+                    '   <span class="badge text-bg-light border"><i class="fa fa-tag"></i> '+escape(item.release_name)+'</span> '+
+                    '   <span class="badge text-bg-light border"><i class="fa fa-user"></i> '+escape(item.owner_name)+'</span> '+
                     '</div>';
                 },
                 item: function(item, escape) {
-                    return '<div class="w-100 border-bottom m-0 py-1 pl-3">' +
+                    return '<div class="w-100 border-bottom m-0 py-1 ps-3">' +
                         '   <span class="name">' + escape(item.nvr) + '</span>' +
-                        '   <span class="badge badge-light border float-right">' + escape(item.release_name) + '</span>' +
+                        '   <span class="badge text-bg-light border float-end">' + escape(item.release_name) + '</span>' +
                         '</div>';
                 },
             },

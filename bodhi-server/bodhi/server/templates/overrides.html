@@ -21,9 +21,9 @@ ${parent.css()}
     <div class="container py-4">
       <div class="row">
         <div class="col">
-            <h3 class="font-weight-bold m-0 d-flex align-items-center">Overrides
+            <h3 class="fw-bold m-0 d-flex align-items-center">Overrides
                 % if request.user:
-                <a class="btn btm-sm font-weight-bold btn-outline-primary ml-auto" href="${request.route_url('new_override')}"><i class="fa fa-plus pr-2"></i>New Override</a>
+                <a class="btn btm-sm fw-bold btn-outline-primary ms-auto" href="${request.route_url('new_override')}"><i class="fa fa-plus pe-2"></i>New Override</a>
                 % endif
             </h3>
         </div>
@@ -36,10 +36,10 @@ ${parent.css()}
 %endif
       <div class="list-group">
         %if chrome:
-          <div class="list-group-item bg-light d-flex font-weight-bold">
+          <div class="list-group-item bg-light d-flex fw-bold">
             ${total} Overrides
             % if page == 1:
-            <a class="ml-1" href="${request.route_url('overrides_rss') + '?' + request.query_string}">
+            <a class="ms-1" href="${request.route_url('overrides_rss') + '?' + request.query_string}">
               <span class="fa fa-rss"></span>
             </a>
             % endif
@@ -59,11 +59,11 @@ ${parent.css()}
               if 'search' in parameters:
                 searchterm = parameters['search'][0]
               %>
-              <div class="ml-auto">
+              <div class="ms-auto">
               <form id="filters-form">
                 <div class="dropdown">
             <div class="input-group input-group-sm" data-toggle="dropdown">
-              <div class="input-group-prepend ml-auto">
+              <div class="input-group-prepend ms-auto">
                   <div class="btn btn-sm btn-outline-secondary border" id="overrides-filterslist">
 
                     % for param, values in request.params.dict_of_lists().items():
@@ -94,9 +94,9 @@ ${parent.css()}
 
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="overrideexpired" class="col-auto align-self-center pl-1 pr-0 m-0">Status:</label>
+                  <label for="overrideexpired" class="col-auto align-self-center ps-1 pe-0 m-0">Status:</label>
                   </div>
-                  <div class="col-8 pl-1">
+                  <div class="col-8 ps-1">
                       <select id="overrideexpired" name="expired" class="custom-select">
                           <option value="">&nbsp;</option>
                           <option value="False"
@@ -111,16 +111,16 @@ ${parent.css()}
                           >expired</option>
                       </select>
                   </div>
-                  <div class="col-1 pl-0 pr-1 pt-1">
+                  <div class="col-1 ps-0 pe-1 pt-1">
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="overrideexpired"></i>
                   </div>
               </div>
 
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="overridereleases" class="col-auto align-self-center pl-1 pr-0 m-0">Releases:</label>
+                  <label for="overridereleases" class="col-auto align-self-center ps-1 pe-0 m-0">Releases:</label>
                   </div>
-                  <div class="col-8 pl-1">
+                  <div class="col-8 ps-1">
                       <select id="overridereleases" name="releases" multiple="multiple">
                           <option value="">&nbsp;</option>
                           <optgroup label="quick filters">
@@ -144,19 +144,19 @@ ${parent.css()}
                           %endfor
                       </select>
                   </div>
-                  <div class="col-1 pl-0 pr-1 pt-1">
+                  <div class="col-1 ps-0 pe-1 pt-1">
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="overridereleases"></i>
                   </div>
               </div>
 
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="overrideuser" class="col-auto align-self-center pl-1 pr-0 m-0">User:</label>
+                  <label for="overrideuser" class="col-auto align-self-center ps-1 pe-0 m-0">User:</label>
                   </div>
-                  <div class="col-8 pl-1">
+                  <div class="col-8 ps-1">
                       <input type="text" id="overrideuser" name="user" class="form-control" value="${parameters['user'][0] if 'user' in parameters else '' | h}"/>
                   </div>
-                  <div class="col-1 pl-0 pr-1 pt-1">
+                  <div class="col-1 ps-0 pe-1 pt-1">
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="overrideuser"></i>
                   </div>
               </div>
