@@ -10,14 +10,14 @@
 <ul class="list-group my-3">
     <li class="list-group-item bg-light">
         <div class="row">
-            <div class="col font-weight-bold">
-                ${release_status.capitalize()} Releases <span class="badge badge-primary badge-pill">${len(request.releases[release_status])}</span>
+            <div class="col fw-bold">
+                ${release_status.capitalize()} Releases <span class="badge rounded-pill text-bg-primary">${len(request.releases[release_status])}</span>
             </div>
             % if not stable_only:
-            <div class="col-1 align-self-right font-weight-bold text-muted text-center">Pending</div>
-            <div class="col-1 align-self-right font-weight-bold text-muted text-center">Testing</div>
+            <div class="col-1 align-self-right fw-bold text-muted text-center">Pending</div>
+            <div class="col-1 align-self-right fw-bold text-muted text-center">Testing</div>
             % endif
-            <div class="col-1 align-self-right font-weight-bold text-muted text-center">Stable</div>
+            <div class="col-1 align-self-right fw-bold text-muted text-center">Stable</div>
 
           </div>
       
@@ -25,7 +25,7 @@
     % for r in request.releases[release_status]:
     <li class="list-group-item">
         <div class="row">
-          <div class="col font-weight-bold">
+          <div class="col fw-bold">
             <a href="${request.route_url('releases')}${r['name']}">${r['long_name']}</a>
           </div>
           % if not stable_only:
@@ -43,7 +43,7 @@
     <div class="container">
       <div class="row">
           <div class="col-md-6 col-md-offset-3">
-              <h3 class="font-weight-bold m-0">Releases</h3>
+              <h3 class="fw-bold m-0">Releases</h3>
           </div>
       </div>
     </div>

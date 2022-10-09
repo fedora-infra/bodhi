@@ -3,7 +3,7 @@
     <div class="container py-4">
       <div class="row">
         <div class="col-md-6 col-md-offset-3">
-            <h3 class="font-weight-bold m-0"><a href="${request.route_url('releases')}">Releases</a>
+            <h3 class="fw-bold m-0"><a href="${request.route_url('releases')}">Releases</a>
               <span class="text-muted">/</span> 
               ${release['long_name']}
             </h3>
@@ -58,7 +58,7 @@
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Pending</td>
+          <td class="col-6 text-end">Pending</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=pending">
               <span class="fa fa-chevron-right">${num_updates_pending}</span>
@@ -66,7 +66,7 @@
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Testing</td>
+          <td class="col-6 text-end">Testing</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=testing">
               <span class="fa fa-chevron-right">${num_updates_testing}</span>
@@ -74,7 +74,7 @@
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Stable</td>
+          <td class="col-6 text-end">Stable</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=stable">
               <span class="fa fa-chevron-right">${num_updates_stable}</span>
@@ -82,7 +82,7 @@
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Unpushed</td>
+          <td class="col-6 text-end">Unpushed</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=unpushed">
               <span class="fa fa-chevron-right">${num_updates_unpushed}</span>
@@ -90,7 +90,7 @@
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Obsolete</td>
+          <td class="col-6 text-end">Obsolete</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=obsolete">
               <span class="fa fa-chevron-right">${num_updates_obsolete}</span>
@@ -109,7 +109,7 @@
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">New Package</td>
+          <td class="col-6 text-end">New Package</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=newpackage">
               <span class="fa fa-chevron-right">${num_updates_newpackage}</span>
@@ -117,7 +117,7 @@
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Bugfix</td>
+          <td class="col-6 text-end">Bugfix</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=bugfix">
               <span class="fa fa-chevron-right">${num_updates_bugfix}</span>
@@ -125,7 +125,7 @@
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Enhancement</td>
+          <td class="col-6 text-end">Enhancement</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=enhancement">
               <span class="fa fa-chevron-right">${num_updates_enhancement}</span>
@@ -133,7 +133,7 @@
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Security</td>
+          <td class="col-6 text-end">Security</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=security">
               <span class="fa fa-chevron-right">${num_updates_security}</span>
@@ -145,7 +145,7 @@
       <table class="table">
         <caption class="caption-top">Updates by gating status</caption>
         <tr class="d-flex">
-          <td class="col-6 text-right">Passed</td>
+          <td class="col-6 text-end">Passed</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&gating=passed">
               <span class="fa fa-chevron-right">${num_gating_passed}</span>
@@ -153,7 +153,7 @@
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Ignored</td>
+          <td class="col-6 text-end">Ignored</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&gating=ignored">
               <span class="fa fa-chevron-right">${num_gating_ignored}</span>
@@ -165,7 +165,7 @@
       <table class="table">
         <caption class="caption-top">Buildroot overrides</caption>
         <tr class="d-flex">
-          <td class="col-6 text-right">Active</td>
+          <td class="col-6 text-end">Active</td>
           <td class="col-6">
             <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=0">
               <span class="fa fa-chevron-right">${num_active_overrides}</span>
@@ -173,7 +173,7 @@
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Expired</td>
+          <td class="col-6 text-end">Expired</td>
           <td class="col-6">
             <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=1">
               <span class="fa fa-chevron-right">${num_expired_overrides}</span>
@@ -190,8 +190,8 @@
       </div>
       <div>
         <div class="panel-heading clearfix">
-          <span class="float-left">Latest ${release['long_name']} updates</span>
-          <span class="float-right">
+          <span class="float-start">Latest ${release['long_name']} updates</span>
+          <span class="float-end">
             <a href="${request.route_url('updates')}?releases=${release['name']}">
               View all
               <span class="fa fa-chevron-right"></span>

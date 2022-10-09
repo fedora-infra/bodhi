@@ -3,7 +3,7 @@
 <div class="container pt-2">
 <div class="row" style="margin-top: 10px;">
   <div class="col-md-12">
-    <div class="float-left">
+    <div class="float-start">
       % if request.user and user['name'] == request.user.name:
         <a href="https://www.libravatar.org/openid/login/?openid_identifier=${request.user.openid}">
           <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}" width="128px" height="128px" alt="User Icon"/>
@@ -12,7 +12,7 @@
         <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}" alt="User Icon"/>
       % endif
     </div>
-    <div class="float-left" style="margin-left: 15px">
+    <div class="float-start" style="margin-left: 15px">
       <h1 class="nomargin nopadding">${user['name']}</h1>
       <h3 id="lastactive" class="spinner nomargin nopadding" style="color: #666;"></h3>
     </div>
@@ -26,8 +26,8 @@
 <div class="row pt-3">
   <div class="col-md-12 onlyjs">
     <div>
-      <h5 class="font-weight-bold d-flex align-items-center">${user['name']}'s latest updates
-        <span class="ml-auto">
+      <h5 class="fw-bold d-flex align-items-center">${user['name']}'s latest updates
+        <span class="ms-auto">
               <a href="${urls['recent_updates']}">
                 All Updates
               </a>
@@ -40,8 +40,8 @@
 
 <div class="row pt-4">
   <div class="col-md-12">
-      <h5 class="font-weight-bold d-flex align-items-center">${user['name']}'s latest buildroot overrides
-          <span class="ml-auto">
+      <h5 class="fw-bold d-flex align-items-center">${user['name']}'s latest buildroot overrides
+          <span class="ms-auto">
                 <a href="${urls['recent_overrides']}">
                   All Overrides
                 </a>
@@ -55,8 +55,8 @@
 <div class="row pt-4">
 
   <div class="col-12">
-    <h5 class="font-weight-bold d-flex align-items-center">${user['name']}'s latest comments & feedback
-        <span class="ml-auto">
+    <h5 class="fw-bold d-flex align-items-center">${user['name']}'s latest comments & feedback
+        <span class="ms-auto">
               <a href="${urls['comments_by']}">
                 All Comments
               </a>

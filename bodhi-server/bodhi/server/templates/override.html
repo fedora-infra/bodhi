@@ -10,7 +10,7 @@ ${parent.css()}
   <div class="container py-4">
     <div class="row">
       <div class="col col-md-offset-3">
-        <h3 class="font-weight-bold m-0"><a href="${request.route_url('overrides')}">Overrides</a>
+        <h3 class="fw-bold m-0"><a href="${request.route_url('overrides')}">Overrides</a>
           <span class="text-muted">/</span> 
           %if override is UNDEFINED:
           Create New Override
@@ -52,7 +52,7 @@ ${parent.css()}
       <div class="col-md-8 mx-auto">
 
         <div>
-          <h5 class="font-weight-bold d-flex align-items-center">
+          <h5 class="fw-bold d-flex align-items-center">
               Candidate Build
           </h5>
           <div class="typeahead__container form-group">
@@ -79,7 +79,7 @@ ${parent.css()}
 
         %if override:
         <div class="mt-4">
-            <h5 class="font-weight-bold d-flex align-items-center">
+            <h5 class="fw-bold d-flex align-items-center">
                 Submitter
             </h5>
           <div class="form-group">
@@ -99,13 +99,13 @@ ${parent.css()}
         %endif
 
         <div class="mt-4">
-          <h5 class="font-weight-bold d-flex align-items-center">
+          <h5 class="fw-bold d-flex align-items-center">
               Expiration date
               %if override:
               % if override['expired_date'] is None:
-              <span class='col-xs-auto pr-2 ml-auto text-success'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></span>
+              <span class='col-xs-auto pe-2 ms-auto text-success'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></span>
               % else:
-              <span class='col-xs-auto pr-2 ml-auto text-danger'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></span>
+              <span class='col-xs-auto pe-2 ms-auto text-danger'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></span>
              % endif
              % endif
           </h5>
@@ -126,14 +126,14 @@ ${parent.css()}
                 >
             %if override and override.expired_date:
             <div>
-              <small><i class="text-muted pl-2 fa fa-exclamation-triangle"></i> This override is expired, set its expiration date into the future to unexpire it</small>
+              <small><i class="text-muted ps-2 fa fa-exclamation-triangle"></i> This override is expired, set its expiration date into the future to unexpire it</small>
             </div>
             %endif
           </div>
         </div>
     
         <div class="mt-4">
-            <h5 class="font-weight-bold d-flex align-items-center">
+            <h5 class="fw-bold d-flex align-items-center">
                 Notes
             </h5>
           <div class="form-group">
@@ -143,11 +143,11 @@ ${parent.css()}
 
         %if override and override.expired_date is None:
         <div class="alert alert-light border bg-light pb-0">
-          <p class="font-size-09 font-weight-bold">Use the following to ensure the override is active:</p>
+          <p class="font-size-09 fw-bold">Use the following to ensure the override is active:</p>
           <%doc>
             FIXME: Add a Release.build_tag column to the model?
           </%doc>
-          <pre class="font-size-09 bg-transparent mb-0 pl-0 pt-0"><code><small>$ koji wait-repo ${override.build.release.dist_tag}-build --build=${override.build.nvr}</small></code></pre>
+          <pre class="font-size-09 bg-transparent mb-0 ps-0 pt-0"><code><small>$ koji wait-repo ${override.build.release.dist_tag}-build --build=${override.build.nvr}</small></code></pre>
         </div>
         %endif
 
@@ -173,7 +173,7 @@ ${parent.css()}
   <div class="row">
     <div class="col-md-8 mx-auto">
       <div>
-          <h5 class="font-weight-bold d-flex align-items-center">
+          <h5 class="fw-bold d-flex align-items-center">
               Candidate Build
           </h5>
           <div>
@@ -182,7 +182,7 @@ ${parent.css()}
         </div>
 
         <div class="mt-4">
-            <h5 class="font-weight-bold d-flex align-items-center">
+            <h5 class="fw-bold d-flex align-items-center">
                 Submitter
             </h5>
           <div>
@@ -194,13 +194,13 @@ ${parent.css()}
         </div>
 
         <div class="mt-4">
-          <h5 class="font-weight-bold d-flex align-items-center">
+          <h5 class="fw-bold d-flex align-items-center">
               Expiration date
               %if override:
               % if override['expired_date'] is None:
-              <span class='col-xs-auto pr-2 ml-auto text-success'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></span>
+              <span class='col-xs-auto pe-2 ms-auto text-success'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></span>
               % else:
-              <span class='col-xs-auto pr-2 ml-auto text-danger'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></span>
+              <span class='col-xs-auto pe-2 ms-auto text-danger'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></span>
              % endif
              % endif
           </h5>
@@ -210,7 +210,7 @@ ${parent.css()}
         </div>
     
         <div class="mt-4">
-            <h5 class="font-weight-bold d-flex align-items-center">
+            <h5 class="fw-bold d-flex align-items-center">
                 Notes
             </h5>
           <div>
