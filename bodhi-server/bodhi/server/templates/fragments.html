@@ -97,7 +97,7 @@ ${statusmap[status]}\
 <%def name="status_text(update)">
   <span class="fw-bold">${update.status.value}</span>
   % if update.request:
-    <span title="this update has been requested to ${update.request.value}" data-toggle="tooltip"><i class="fa fa-arrow-right text-white"></i> ${update.request.value}</span>
+    <span title="this update has been requested to ${update.request.value}" data-bs-toggle="tooltip"><i class="fa fa-arrow-right text-white"></i> ${update.request.value}</span>
   % endif
 </%def>
 
@@ -110,7 +110,7 @@ ${statusmap[status]}\
           <div class="d-flex p-2 align-items-top">
             <i class="fa fa-info-circle pt-2"></i>
             <div class="fw-bold">${util.markup(comment.text, bodhi=False) | n}</div>
-            <a href="${comment.url()}" class="notblue pt-1 ms-auto text-nowrap" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
+            <a href="${comment.url()}" class="notblue pt-1 ms-auto text-nowrap" data-bs-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
               ${util.age(comment.timestamp)}
             </a>
           </div>
@@ -147,7 +147,7 @@ ${statusmap[status]}\
               on ${comment.update.get_title(', ', 1, ", &hellip;") | n}
             </a>
           % endif
-          <a href="${comment.url()}" class="notblue" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
+          <a href="${comment.url()}" class="notblue" data-bs-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
               ${util.age(comment.timestamp)}
             </a>
           </div>

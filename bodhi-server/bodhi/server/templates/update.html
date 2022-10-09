@@ -52,7 +52,7 @@ if can_edit and update.release.composed_by_bodhi:
             % if can_edit and (not update.locked and update.status.value != 'stable'):
               <a id='edit' href="javascript:void(0)" class="btn btn-outline-primary border-0 btn-sm"><span class="fa fa-fw fa-pencil-square-o"></span> Edit</a>
             % elif update.locked and update.date_locked:
-            <a class="btn btn-link text-muted" href="${request.route_url('composes', release_name=update.compose.release.name, request=update.compose.request.value)}" data-toggle="tooltip" title="This update is currently locked since ${(update.date_locked).strftime('%Y-%m-%d %H:%M:%S')} (UTC) and cannot be modified.">
+            <a class="btn btn-link text-muted" href="${request.route_url('composes', release_name=update.compose.release.name, request=update.compose.request.value)}" data-bs-toggle="tooltip" title="This update is currently locked since ${(update.date_locked).strftime('%Y-%m-%d %H:%M:%S')} (UTC) and cannot be modified.">
               <span class="fa fa-fw fa-lock text-muted"></span>
               <span class="sr-only">Locked</span>
             </a>
@@ -90,7 +90,7 @@ if can_edit and update.release.composed_by_bodhi:
                   ${self.util.type2icon(update.type) | n}
                 % endif
                 % if update.critpath:
-                <br/><span data-toggle="tooltip" title="This update is in the critical path" class="ms-n2 text-muted"><small> <i class="fa fa-fw fa-fire"></i></small></span>
+                <br/><span data-bs-toggle="tooltip" title="This update is in the critical path" class="ms-n2 text-muted"><small> <i class="fa fa-fw fa-fire"></i></small></span>
                 % endif
               </div>
               <div class="flex-grow-1 ms-0">
@@ -364,7 +364,7 @@ if can_edit and update.release.composed_by_bodhi:
                   <div class="row">
                     <div class="col fw-bold text-muted">Signed</div>
                     <div class="col-auto fw-bold">
-                        <span class="fa fa-check text-success" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="Update signed"></span>
+                        <span class="fa fa-check text-success" aria-hidden="true" data-bs-toggle="tooltip" data-bs-placement="top" title="Update signed"></span>
                     </div>
                   </div>
               </div>
@@ -399,12 +399,12 @@ if can_edit and update.release.composed_by_bodhi:
                     <i class="spinner fa fa-spinner fa-spin fa-fw"></i>
                   </div>
                   % if can_edit and update.test_gating_status == models.TestGatingStatus.failed and update.status == models.UpdateStatus.testing:
-                  <div id='trigger' class="btn btn-outline-primary btn-sm mt-1" data-toggle="modal" data-target="#trigger_tests">
+                  <div id='trigger' class="btn btn-outline-primary btn-sm mt-1" data-bs-toggle="modal" data-bs-target="#trigger_tests">
                     <span class="fa fa-fw fa-retweet"></span> Re-Trigger Tests
                   </div>
                   % endif
                   % if can_edit and self.util.can_waive_test_results(update):
-                  <div id='waive' class="btn btn-outline-primary btn-sm mt-1" hidden="true" data-toggle="modal" data-target="#waive_test_results">
+                  <div id='waive' class="btn btn-outline-primary btn-sm mt-1" hidden="true" data-bs-toggle="modal" data-bs-target="#waive_test_results">
                     <span class="fa fa-fw fa-thumbs-up"></span> Waive Test Results
                   </div>
                   % endif
@@ -416,7 +416,7 @@ if can_edit and update.release.composed_by_bodhi:
                       <div class="py-2 text-uppercase font-size-09">Builds</div>
                        <span class="badge text-bg-secondary badge-pill ms-1">${len(update.builds)}</span>
                       % if request.user and update.from_tag:
-                      <span class="badge text-bg-light badge-pill ms-auto border" title="Builds from the Side Tag: ${update.from_tag}" data-toggle="tooltip"><i class="fa fa-tag pe-1"></i> ${update.from_tag}</span>
+                      <span class="badge text-bg-light badge-pill ms-auto border" title="Builds from the Side Tag: ${update.from_tag}" data-bs-toggle="tooltip"><i class="fa fa-tag pe-1"></i> ${update.from_tag}</span>
                       % endif
                   </div>
 
@@ -427,7 +427,7 @@ if can_edit and update.release.composed_by_bodhi:
               %>
               <div class="pb-1">
                   <div class="row">
-                    <div class="col text-muted text-truncate" data-toggle="tooltip" title="${build.nvr}"><a href="${build_url}" target="_blank">
+                    <div class="col text-muted text-truncate" data-bs-toggle="tooltip" title="${build.nvr}"><a href="${build_url}" target="_blank">
                         ${build.nvr}</a></div>
                   </div>
               </div>
@@ -444,7 +444,7 @@ if can_edit and update.release.composed_by_bodhi:
                   <div class="row">
                     <div class="col fw-bold text-muted">Unstable by Karma</div>
                     <div class="col-auto fw-bold">
-                          <span class="text-muted fw-bold" data-toggle='tooltip' title='The update will be marked as unstable when karma reaches ${update.unstable_karma} '>
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='The update will be marked as unstable when karma reaches ${update.unstable_karma} '>
                             <i class="fa fa-thumbs-down pe-1"></i>${update.unstable_karma}
                           </span>
                     </div>
@@ -457,11 +457,11 @@ if can_edit and update.release.composed_by_bodhi:
                     <div class="col fw-bold text-muted">Stable by Karma</div>
                     <div class="col-auto fw-bold">
                       % if update.autokarma is True and update.stable_karma:
-                          <span class="text-muted fw-bold" data-toggle='tooltip' title='The update will be automatically pushed to stable when karma reaches ${update.stable_karma}'>
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='The update will be automatically pushed to stable when karma reaches ${update.stable_karma}'>
                             <i class="fa fa-thumbs-up pe-1"></i>${update.stable_karma}
                           </span>
                       % else:
-                          <span class="text-muted fw-bold" data-toggle='tooltip'
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip'
                             title='The update will not be automatically pushed to stable by karma'>
                             disabled
                           </span>
@@ -475,12 +475,12 @@ if can_edit and update.release.composed_by_bodhi:
                   <div class="col fw-bold text-muted">Stable by Time</div>
                   <div class="col-auto fw-bold">
                     % if update.autotime is True and update.stable_days is not None:
-                        <span class="text-muted fw-bold" data-toggle='tooltip'
+                        <span class="text-muted fw-bold" data-bs-toggle='tooltip'
                         title='The update will be automatically pushed to stable after being in testing for ${update.stable_days} days'>
                           ${update.stable_days} days
                         </span>
                     % else:
-                        <span class="text-muted fw-bold" data-toggle='tooltip'
+                        <span class="text-muted fw-bold" data-bs-toggle='tooltip'
                           title='The update will not be automatically pushed to stable by a time frame'>
                           disabled
                         </span>
@@ -497,7 +497,7 @@ if can_edit and update.release.composed_by_bodhi:
                     <div class="row">
                       <div class="col fw-bold text-muted">submitted</div>
                       <div class="col-auto fw-bold">
-                            <span class="text-muted fw-bold" data-toggle='tooltip' title='${(update.date_submitted).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
+                            <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='${(update.date_submitted).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
                                 ${self.util.age(update.date_submitted)}
                             </span>
                       </div>
@@ -507,7 +507,7 @@ if can_edit and update.release.composed_by_bodhi:
                     <div class="row">
                       <div class="col fw-bold text-muted">in testing</div>
                         <div class="col-auto fw-bold">
-                          <span class="text-muted fw-bold" data-toggle='tooltip' title='${(update.date_testing).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='${(update.date_testing).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
                             ${self.util.age(update.date_testing)}
                           </span>
                         </div>
@@ -518,7 +518,7 @@ if can_edit and update.release.composed_by_bodhi:
                     <div class="row">
                       <div class="col fw-bold text-muted">in stable</div>
                         <div class="col-auto fw-bold">
-                          <span class="text-muted fw-bold" data-toggle='tooltip' title='${(update.date_stable).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='${(update.date_stable).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
                             ${self.util.age(update.date_stable)}
                           </span>
                         </div>
@@ -540,7 +540,7 @@ if can_edit and update.release.composed_by_bodhi:
                     <div class="row">
                       <div class="col fw-bold text-muted">modified</div>
                         <div class="col-auto fw-bold">
-                          <span data-toggle='tooltip' title='${(update.date_modified).strftime("%Y-%m-%d %H:%M:%S")} (UTC)' class="text-muted fw-bold">
+                          <span data-bs-toggle='tooltip' title='${(update.date_modified).strftime("%Y-%m-%d %H:%M:%S")} (UTC)' class="text-muted fw-bold">
                               ${self.util.age(update.date_modified)}
                           </span>
                         </div>
@@ -551,7 +551,7 @@ if can_edit and update.release.composed_by_bodhi:
                     <div class="row">
                       <div class="col fw-bold text-muted">approved</div>
                         <div class="col-auto fw-bold">
-                          <span data-toggle='tooltip' title='${(update.date_approved).strftime("%Y-%m-%d %H:%M:%S")} (UTC)' class="text-muted fw-bold">
+                          <span data-bs-toggle='tooltip' title='${(update.date_approved).strftime("%Y-%m-%d %H:%M:%S")} (UTC)' class="text-muted fw-bold">
                               ${self.util.age(update.date_approved)}
                           </span>
                         </div>
@@ -585,7 +585,7 @@ if can_edit and update.release.composed_by_bodhi:
           <div class="d-flex flex-row justify-content-between align-items-center">
             <div class="flex-shrink-0 flex-grow-0">
               % if build.signed:
-              <span class="fa fa-key text-muted me-2" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="Build signed"></span>
+              <span class="fa fa-key text-muted me-2" aria-hidden="true" data-bs-toggle="tooltip" data-placement="top" title="Build signed"></span>
               % endif
             </div>
             <div class="flex-grow-1">
@@ -597,19 +597,19 @@ if can_edit and update.release.composed_by_bodhi:
             </div>
             <div class="flex-shrink-0">
               <a href='${request.route_url("updates_rss") + "?packages="}${build.package.name | u}'>
-                <span class="fa fa-rss ms-1" data-toggle="tooltip" data-placement="top" title="RSS feed for new Bodhi updates containing ${build.package.name}"></span>
+                <span class="fa fa-rss ms-1" data-bs-toggle="tooltip" data-placement="top" title="RSS feed for new Bodhi updates containing ${build.package.name}"></span>
               </a>
               <a href='${request.route_url("updates") + "?packages="}${build.package.name | u}'>
-                <span class="fa fa-list ms-1" data-toggle="tooltip" data-placement="top" title="Show other Bodhi updates for ${build.package.name}"></span>
+                <span class="fa fa-list ms-1" data-bs-toggle="tooltip" data-placement="top" title="Show other Bodhi updates for ${build.package.name}"></span>
               </a>
               % if can_edit:
                 % if build.override:
                 <a href="${request.route_url('override', nvr=build.nvr)}">
-                  <span class="fa fa-pencil ms-1" data-toggle="tooltip" data-placement="top" title="Edit the buildroot override for ${build.nvr}"/>
+                  <span class="fa fa-pencil ms-1" data-bs-toggle="tooltip" data-placement="top" title="Edit the buildroot override for ${build.nvr}"/>
                 </a>
                 % else:
                 <a href='${request.route_url("new_override")}?nvr=${build.nvr}'>
-                  <span class="fa fa-plus ms-1" data-toggle="tooltip" data-placement="top" title="Create a buildroot override for ${build.nvr}"/>
+                  <span class="fa fa-plus ms-1" data-bs-toggle="tooltip" data-placement="top" title="Create a buildroot override for ${build.nvr}"/>
                 </a>
                 % endif
               % endif
@@ -636,8 +636,8 @@ if can_edit and update.release.composed_by_bodhi:
       <colgroup span="1"></colgroup>
       <thead>
         <tr>
-          <th><span data-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="fa fa-times-circle-o"></span></th>
-          <th><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="fa fa-check-circle-o"></span></th>
+          <th><span data-bs-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="fa fa-times-circle-o"></span></th>
+          <th><span data-bs-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="fa fa-check-circle-o"></span></th>
           <th></th>
         </tr>
       </thead>
@@ -798,7 +798,7 @@ ${parent.javascript()}
                  url += '&subject_type=' + data.waivers[0].subject_type;
                  url += '&subject_identifier=' + data.waivers[0].subject_identifier;
                  html += '<a class="notblue" target="_blank" href=' + url + '>';
-                 html += '<span data-toggle="tooltip" data-placement="top" ' +
+                 html += '<span data-bs-toggle="tooltip" data-placement="top" ' +
                  'title="Some tests failures were waived." ' +
                  'class="fa fa-asterisk">' +
                  '</span>';
@@ -846,7 +846,7 @@ ${parent.javascript()}
     };
 
     var make_row = function(outcome, testcase, note, arch, time, url, flavor) {
-      var icon = '<span data-toggle="tooltip" data-placement="top" ' +
+      var icon = '<span data-bs-toggle="tooltip" data-placement="top" ' +
         'title="' + outcome + '" ' +
         'class="fa fa-' + icons[outcome] + ' text-' + classes[outcome] + '">'+
         '</span>';
@@ -860,12 +860,12 @@ ${parent.javascript()}
           comments.push(waiver_details);
         }
 	reason += comments.join(", ")
-        required = '<span style="white-space:pre-line;" data-toggle="tooltip" data-placement="top" ' +
+        required = '<span style="white-space:pre-line;" data-bs-toggle="tooltip" data-placement="top" ' +
           'title="' + reason + '" ' +
           'class="fa fa-thumbs-up">' +
           '</span>';
       } else if ($.inArray(testcase, requirements) != -1) {
-        required = '<span data-toggle="tooltip" data-placement="top" ' +
+        required = '<span data-bs-toggle="tooltip" data-placement="top" ' +
           'title="' + testcase + ' is a required test" ' +
           'class="fa fa-asterisk">' +
           '</span>';
