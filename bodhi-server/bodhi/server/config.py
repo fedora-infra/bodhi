@@ -354,6 +354,9 @@ class BodhiConfig(dict):
         'critpath_pkgs': {
             'value': [],
             'validator': _generate_list_validator()},
+        'critpath.jsonpath': {
+            'value': '/etc/bodhi/critpath',
+            'validator': str},
         'critpath.min_karma': {
             'value': 2,
             'validator': int},
