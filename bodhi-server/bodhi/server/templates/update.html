@@ -970,11 +970,10 @@ ${parent.javascript()}
           }
 
           var flavor;
-          if (scenario.includes("updates-server")) {
-            flavor = "server";
-          }
-          else if (scenario.includes("updates-workstation")) {
-            flavor = "workstation";
+          if (scenario.includes("fedora.updates-")) {
+            // this gets a correct flavor from an openQA scenario, e.g.
+            // 'kde' from 'fedora.updates-kde.x86_64.64bit'
+            flavor = scenario.split(".")[1].slice(8);
           }
 
           table.append(make_row(
