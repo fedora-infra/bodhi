@@ -232,7 +232,7 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "koji"
-version = "1.30.0"
+version = "1.30.1"
 description = "Koji is a system for building and tracking RPMS. The base package contains shared libraries and the command-line interface."
 category = "main"
 optional = false
@@ -817,9 +817,9 @@ jinja2 = [
     {file = "Jinja2-3.1.2.tar.gz", hash = "sha256:31351a702a408a9e7595a8fc6150fc3f43bb6bf7e319770cbc0db9df9437e852"},
 ]
 koji = [
-    {file = "koji-1.30.0-py2-none-any.whl", hash = "sha256:a54e78b097a0da76e5f30eb5fb4ba7e0752b7bd080ffc2f723da67078c2e321e"},
-    {file = "koji-1.30.0-py3-none-any.whl", hash = "sha256:7ceaea01542a1f3d23fc99e893cf3f86cc2b53f2c86c18ba9366d6e3975c312d"},
-    {file = "koji-1.30.0.tar.gz", hash = "sha256:0250d11d10dae9f58ec67318a230f2d5154ced05c0078980ec7ba438dc98bb77"},
+    {file = "koji-1.30.1-py2-none-any.whl", hash = "sha256:4b07530e73815cb059c3e8f4f086f0539c3d06033e572146f320fc7b8d14b9b5"},
+    {file = "koji-1.30.1-py3-none-any.whl", hash = "sha256:0981e848e556c8299678d7eb0cebc6f2f79485414d955d96cc618e86d03aece2"},
+    {file = "koji-1.30.1.tar.gz", hash = "sha256:86e7a50143f2dd4f8b34ee87680a7f49d788bf12ada0c9bc9d827732c0381afc"},
 ]
 markupsafe = [
     {file = "MarkupSafe-2.1.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:86b1f75c4e7c2ac2ccdaec2b9022845dbb81880ca318bb7a0a01fbf7813e3812"},
