@@ -423,7 +423,7 @@ stevedore = ">=3.0.0"
 
 [[package]]
 name = "fedora-messaging"
-version = "3.0.2"
+version = "3.1.0"
 description = "A set of tools for using Fedora's messaging infrastructure"
 category = "main"
 optional = false
@@ -1767,8 +1767,8 @@ diff-cover = [
     {file = "dogpile.cache-1.1.5.tar.gz", hash = "sha256:0f01bdc329329a8289af9705ff40fadb1f82a28c336f3174e12142b70d31c756"},
 ]
 fedora-messaging = [
-    {file = "fedora_messaging-3.0.2-py3-none-any.whl", hash = "sha256:782dc04ba25ebc694324b85d24b7061949402db7dc1ad8e69d55fb623135a184"},
-    {file = "fedora_messaging-3.0.2.tar.gz", hash = "sha256:94ea22c7e7bf78e988b9d2c4bed80d7b422122429f9dd65408a6b8a28dcf13f8"},
+    {file = "fedora_messaging-3.1.0-py3-none-any.whl", hash = "sha256:009555e6b0b084074b54f15f91bb5af5784f8df2be5f611114a788dc4e0aadd3"},
+    {file = "fedora_messaging-3.1.0.tar.gz", hash = "sha256:ce58e2ccbb0b43670fc770314bcedeced8be5c4c860d8465939aa2e646d1e56f"},
 ]
 feedgen = [
     {file = "feedgen-0.9.0.tar.gz", hash = "sha256:8e811bdbbed6570034950db23a4388453628a70e689a6e8303ccec430f5a804a"},
