@@ -1,17 +1,18 @@
 """A generic OIDC client that can use OOB or not."""
-import re
 from functools import partial
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
+import re
 import threading
 
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.integrations.requests_client import OAuth2Session
 from authlib.oidc.discovery.well_known import get_well_known_url
+from requests_kerberos import HTTPKerberosAuth, OPTIONAL
 import click
 import requests
-from requests_kerberos import HTTPKerberosAuth, OPTIONAL
+
 
 PORT = 45678  # Hopefully nothing else uses this on the host...
 
@@ -45,7 +46,7 @@ class OIDCClient:
     """A client for OpenID Connect authentication."""
 
     def __init__(
-        self, client_id, scope, id_provider, storage
+        self, client_id, scope, id_provider, storage,
     ):
         """Initialize OIDCClient.
 
@@ -117,16 +118,46 @@ class OIDCClient:
                 self._username = response.json()["nickname"]
         return self._username
 
-    def login(self):
+    def login(self, use_kerberos=False):
         """Login to the OIDC provider.
 
         If authentication fails, it will be retried.
+
+        Args:
+            use_kerberos (bool): Use Kerberos for authentication.
 
         Raises:
             click.ClickException: When authentication was cancelled.
         """
         authorization_endpoint = self.metadata["authorization_endpoint"]
         uri, state_ = self.client.create_authorization_url(authorization_endpoint)
+        # 1. use_kerberos is True and Kerberos succeeds -> print success
+        # 2. use_kerberos is True and Kerberos fails -> browser login follows
+        # 3. use_kerberos is False -> browser login only
+        if use_kerberos:
+            try:
+                self.login_with_kerberos(uri)
+            except (OIDCClientError, OAuthError) as e:
+                click.secho(
+                    f"Kerberos authentication failed ({e}). "
+                    f"Proceeding with browser-based authentication.",
+                    fg="red"
+                )
+        if not self.is_logged_in:
+            self.login_with_browser(uri)
+        click.secho("Login successful!", fg="green")
+
+    def login_with_browser(self, uri):
+        """Login to the OIDC provider using the browser.
+
+        If authentication failed, it will be retried.
+
+        Args:
+            uri (str): Authentication URL as obtained from ``create_authorization_url()``.
+
+        Raises:
+            click.ClickException: Login has been cancelled.
+        """
         click.secho("Authenticating... Please open your browser to:", fg="yellow")
         click.echo(uri)
         if self._use_oob:
@@ -147,23 +178,13 @@ class OIDCClient:
                     break
         else:
             self._run_http_server()
-        click.secho("Login successful!", fg="green")
 
-    def login_with_kerberos(self):
+    def login_with_kerberos(self, uri):
         """Login to the OIDC provider using Kerberos.
 
-        How to test:
-        1. obtain a TGT via `kinit` command for your FAS account
-        2. `from bodhi.client.bindings import BodhiClient`
-        3. `bodhi = BodhiClient()`
-        4. `bodhi.login_with_kerberos()`
-        5. A file with tokens should exist: `~/.config/bodhi/client.json`
-
         Raises:
-            OiDCClientError if there is a problem during the auth process
+            OIDCClientError: if there is a problem during the auth process.
         """
-        authorization_endpoint = self.metadata["authorization_endpoint"]
-        uri, state_ = self.client.create_authorization_url(authorization_endpoint)
         response = requests.get(
             uri,
             auth=HTTPKerberosAuth(
@@ -216,10 +237,15 @@ class OIDCClient:
             redirect_uri=self.redirect_uri,
         )
 
-    def ensure_auth(self):
+    @property
+    def is_logged_in(self):
+        """Check whether the client is logged in with the provider."""
+        return bool(self.tokens)
+
+    def ensure_auth(self, use_kerberos=False):
         """Make sure the client is authenticated."""
-        if not self.tokens:
-            self.login()
+        if not self.is_logged_in:
+            self.login(use_kerberos=use_kerberos)
 
     @property
     def tokens(self):
