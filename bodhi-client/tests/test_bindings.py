@@ -67,7 +67,7 @@ class TestBodhiClientBase(BodhiClientTestCase):
             "CLIENT_ID",
             constants.SCOPE,
             "https://id.example.com",
-            storage=storage.return_value
+            storage=storage.return_value,
         )
         storage.assert_called_with(os.path.expanduser("~/.config/bodhi/client.json"))
         assert client.csrf_token == ''
@@ -106,7 +106,7 @@ class TestBodhiClientAuth(BodhiClientTestCase):
 
         client.ensure_auth()
 
-        self.oidc.ensure_auth.assert_called_once_with()
+        self.oidc.ensure_auth.assert_called_once_with(use_kerberos=True)
         self.oidc.request.assert_called_once_with(
             "GET", "http://example.com/bodhi/oidc/login-token"
         )
@@ -161,7 +161,7 @@ class TestBodhiClientAuth(BodhiClientTestCase):
         client.send_request("somewhere", "GET", auth=True)
 
         self.oidc.request.assert_called_once_with("GET", "http://example.com/bodhi/somewhere")
-        self.oidc.ensure_auth.assert_called_once_with()
+        self.oidc.ensure_auth.assert_called_once_with(use_kerberos=True)
 
     def test_send_request_error(self, mocker):
         response = build_response(500, "/url", "error")
