@@ -410,8 +410,8 @@ Pygments = ">=2.9.0,<3.0.0"
 toml = ["tomli (>=1.2.1)"]
 
 [[package]]
-name = "dogpile.cache"
-version = "1.1.5"
+name = "dogpile-cache"
+version = "1.1.8"
 description = "A caching front-end based on the Dogpile lock."
 category = "main"
 optional = false
@@ -1762,9 +1762,9 @@ diff-cover = [
     {file = "diff_cover-6.5.1-py3-none-any.whl", hash = "sha256:ad602868ff14969563216866fc249f068df54892bd6c989201110bbb837dab06"},
     {file = "diff_cover-6.5.1.tar.gz", hash = "sha256:8c3bb13812e9667bc83f8c7606402511e9c2fe79d6786f129522e79693ee096b"},
 ]
-"dogpile.cache" = [
-    {file = "dogpile.cache-1.1.5-py3-none-any.whl", hash = "sha256:5f9dcf99087240c7733fad5539b0806b52555917dccad1ef43499eaca8b459d9"},
-    {file = "dogpile.cache-1.1.5.tar.gz", hash = "sha256:0f01bdc329329a8289af9705ff40fadb1f82a28c336f3174e12142b70d31c756"},
+dogpile-cache = [
+    {file = "dogpile.cache-1.1.8-py3-none-any.whl", hash = "sha256:3f0ca10b46b165e0b0e65e0e74b1a4b36187787b69db7c0f7073077adff2f05d"},
+    {file = "dogpile.cache-1.1.8.tar.gz", hash = "sha256:d844e8bb638cc4f544a4c89a834dfd36fe935400b71a16cbd744ebdfb720fd4e"},
 ]
 fedora-messaging = [
     {file = "fedora_messaging-3.1.0-py3-none-any.whl", hash = "sha256:009555e6b0b084074b54f15f91bb5af5784f8df2be5f611114a788dc4e0aadd3"},
