@@ -1165,18 +1165,20 @@ requests = ">=1.1.0"
 
 [[package]]
 name = "responses"
-version = "0.21.0"
+version = "0.22.0"
 description = "A utility library for mocking out the `requests` Python library."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
-requests = ">=2.0,<3.0"
+requests = ">=2.22.0,<3.0"
+toml = "*"
+types-toml = "*"
 urllib3 = ">=1.25.10"
 
 [package.extras]
-tests = ["coverage (>=6.0.0)", "flake8", "mypy", "pytest (>=7.0.0)", "pytest-asyncio", "pytest-cov", "pytest-localserver", "types-mock", "types-requests"]
+tests = ["coverage (>=6.0.0)", "flake8", "mypy", "pytest (>=7.0.0)", "pytest-asyncio", "pytest-cov", "pytest-httpserver", "types-requests"]
 
 [[package]]
 name = "service-identity"
@@ -1349,6 +1351,14 @@ name = "twisted-iocpsupport"
 version = "1.0.2"
 description = "An extension for use in the twisted I/O Completion Ports reactor."
 category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "types-toml"
+version = "0.10.8"
+description = "Typing stubs for toml"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -2241,8 +2251,8 @@ requests-gssapi = [
     {file = "requests-gssapi-1.2.3.tar.gz", hash = "sha256:20784508981401f7153c933eed095338933a40818da65a259dbf2d80dccb150e"},
 ]
 responses = [
-    {file = "responses-0.21.0-py3-none-any.whl", hash = "sha256:2dcc863ba63963c0c3d9ee3fa9507cbe36b7d7b0fccb4f0bdfd9e96c539b1487"},
-    {file = "responses-0.21.0.tar.gz", hash = "sha256:b82502eb5f09a0289d8e209e7bad71ef3978334f56d09b444253d5ad67bf5253"},
+    {file = "responses-0.22.0-py3-none-any.whl", hash = "sha256:dcf294d204d14c436fddcc74caefdbc5764795a40ff4e6a7740ed8ddbf3294be"},
+    {file = "responses-0.22.0.tar.gz", hash = "sha256:396acb2a13d25297789a5866b4881cf4e46ffd49cc26c43ab1117f40b973102e"},
 ]
 service-identity = [
     {file = "service-identity-21.1.0.tar.gz", hash = "sha256:6e6c6086ca271dc11b033d17c3a8bea9f24ebff920c587da090afc9519419d34"},
@@ -2339,6 +2349,10 @@ twisted-iocpsupport = [
     {file = "twisted_iocpsupport-1.0.2-cp39-cp39-win32.whl", hash = "sha256:3c61742cb0bc6c1ac117a7e5f422c129832f0c295af49e01d8a6066df8cfc04d"},
     {file = "twisted_iocpsupport-1.0.2-cp39-cp39-win_amd64.whl", hash = "sha256:b435857b9efcbfc12f8c326ef0383f26416272260455bbca2cd8d8eca470c546"},
     {file = "twisted_iocpsupport-1.0.2-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:7d972cfa8439bdcb35a7be78b7ef86d73b34b808c74be56dfa785c8a93b851bf"},
+]
+types-toml = [
+    {file = "types-toml-0.10.8.tar.gz", hash = "sha256:b7e7ea572308b1030dc86c3ba825c5210814c2825612ec679eb7814f8dd9295a"},
+    {file = "types_toml-0.10.8-py3-none-any.whl", hash = "sha256:8300fd093e5829eb9c1fba69cee38130347d4b74ddf32d0a7df650ae55c2b599"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.4.0-py3-none-any.whl", hash = "sha256:16fa4864408f655d35ec496218b85f79b3437c829e93320c7c9215ccfd92489e"},
