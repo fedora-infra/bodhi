@@ -939,11 +939,11 @@ diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
 name = "pyramid"
-version = "1.10.8"
+version = "2.0"
 description = "The Pyramid Web Framework, a Pylons project"
 category = "main"
 optional = false
-python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
+python-versions = ">=3.6"
 
 [package.dependencies]
 hupper = ">=1.5"
@@ -957,8 +957,8 @@ webob = ">=1.8.3"
 "zope.interface" = ">=3.8.0"
 
 [package.extras]
-docs = ["Sphinx (>=3.0.0)", "docutils", "pylons-sphinx-latesturl", "pylons-sphinx-themes (>=1.0.8)", "repoze.sphinx.autointerface", "sphinxcontrib-autoprogram"]
-testing = ["coverage", "nose", "virtualenv", "webtest (>=1.3.1)", "zope.component (>=4.0)"]
+docs = ["Sphinx (>=3.0.0)", "docutils", "pylons-sphinx-latesturl", "pylons-sphinx-themes (>=1.0.8)", "repoze.sphinx.autointerface", "sphinx-copybutton", "sphinxcontrib-autoprogram"]
+testing = ["coverage", "pytest (>=5.4.2)", "pytest-cov", "webtest (>=1.3.1)", "zope.component (>=4.0)"]
 
 [[package]]
 name = "pyramid-fas-openid"
@@ -2143,8 +2143,8 @@ pyparsing = [
     {file = "pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
 ]
 pyramid = [
-    {file = "pyramid-1.10.8-py2.py3-none-any.whl", hash = "sha256:06e99d3174586921490203288e2cc9cd43d12992306f924ca32a2c59233386a9"},
-    {file = "pyramid-1.10.8.tar.gz", hash = "sha256:b7cd66595bef92f81764b976ddde2b2fa8e4f5f325e02f65f6ec7f3708b29cf6"},
+    {file = "pyramid-2.0-py3-none-any.whl", hash = "sha256:de7f097fa2fa43bead1f690761e56594d24954ae7dc7cbf69a5d84bb75c5a099"},
+    {file = "pyramid-2.0.tar.gz", hash = "sha256:45431b387587ed0fac6213b54d6e9f0936f0cc85238a8f5af7852fc9484c5c77"},
 ]
 pyramid-fas-openid = [
     {file = "pyramid_fas_openid-0.4.0.tar.gz", hash = "sha256:0661151e0245622762817d8c759c8cf1b6ba6f8b2d5fdb063752ce81617ed41a"},
