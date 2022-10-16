@@ -151,14 +151,6 @@
   args:
     creates: /srv/venv/bin/python
 
-# Setuptools update to ensure the celery >=5.2.3 works well
-- name: Update python3-setuptools in the venv
-  command: poetry update setuptools
-  become: yes
-  become_user: vagrant
-  args:
-    chdir: /home/vagrant/bodhi/bodhi-server
-
 - name: Install bodhi with poetry
   command: poetry install
   become: yes

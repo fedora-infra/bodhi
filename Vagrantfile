@@ -37,9 +37,9 @@ end
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
- config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/35/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-35-1.2.x86_64.vagrant-libvirt.box"
- config.vm.box = "f35-cloud-libvirt"
- config.vm.box_download_checksum = "239cbcd6143396e382ed4eafebf5ab870c80042c44a6a7cdb5d041f8fe35b1db"
+ config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-36-1.5.x86_64.vagrant-libvirt.box"
+ config.vm.box = "f36-cloud-libvirt"
+ config.vm.box_download_checksum = "afa6304fddb15aaa1a4877c251ac15482726877c86861ed23385ef9f7750f9c0"
  config.vm.box_download_checksum_type = "sha256"
 
  # Forward traffic on the host to the development server on the guest.
@@ -74,7 +74,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
  # to create and use a dnf cache directory
  #
  # Dir.mkdir('.dnf-cache') unless File.exists?('.dnf-cache')
- # config.vm.synced_folder ".dnf-cache", "/var/cache/dnf", type: "sshfs", sshfs_opts_append: "-o nonempty"
+ # config.vm.synced_folder ".dnf-cache", "/var/cache/dnf", type: "sshfs"
 
  # Comment this line if you would like to disable the automatic update during provisioning
  config.vm.provision "shell", inline: "sudo dnf upgrade -y"
