@@ -11,9 +11,9 @@ get started, simply use these commands::
     $ sudo systemctl enable libvirtd
     $ sudo systemctl start libvirtd
 
-As of 2022, bodhi now uses OpenID Connect (OIDC) for authentication. For the vagrant development environment, 
-this requires a running FreeIPA and Ipsilon instance. Running tinystage 
-(https://github.com/fedora-infra/tiny-stage) will set these up. Ensure that tinystage is running before trying 
+As of 2022, bodhi now uses OpenID Connect (OIDC) for authentication. For the vagrant development environment,
+this requires a running FreeIPA and Ipsilon instance. Running tinystage
+(https://github.com/fedora-infra/tiny-stage) will set these up. Ensure that tinystage is running before trying
 to provision bodhi with vagrant. To set up tinystage::
 
     $ git clone https://github.com/fedora-infra/tiny-stage
@@ -27,10 +27,16 @@ Next, check out the bodhi code and run ``vagrant up``::
     $ cd bodhi
     $ vagrant up
 
-Your newly provisioned bodhi development instance is now available at https://bodhi-dev.example.com/
+Your newly provisioned bodhi development instance is now available at https://bodhi-dev.example.com/.
+Two users are automatically added to the tinystage instance for enabling you to test Bodhi:
+``tinystage_packager`` and ``tinystage_provenpackager``, both with password ``password``. If you want
+to login with your username (or any username of your choice), just edit the ``fas_username`` variable
+in the Vagrantfile and re-provision the VM. Be advised that this will not be a copy of your real
+fas account, it will just have the same username with the default password ``password`` and fake
+complementary data.
 
-The Vagrant guest runs an AMQP message broker (RabbitMQ) which has a web interface for monitoring and 
-administration of the Fedora Messaging queue at http://bodhi-dev.example.com:15672/. The default username 
+The Vagrant guest runs an AMQP message broker (RabbitMQ) which has a web interface for monitoring and
+administration of the Fedora Messaging queue at http://bodhi-dev.example.com:15672/. The default username
 is ``guest`` and the password is ``guest``.
 
 
