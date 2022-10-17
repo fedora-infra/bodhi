@@ -735,18 +735,16 @@ pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"
 
 [[package]]
 name = "pastedeploy"
-version = "2.1.1"
+version = "3.0"
 description = "Load, configure, and compose WSGI applications and servers"
 category = "main"
 optional = false
 python-versions = "*"
 
-[package.dependencies]
-setuptools = "*"
-
 [package.extras]
 docs = ["Sphinx (>=1.7.5)", "pylons-sphinx-themes"]
 paste = ["Paste"]
+testing = ["Paste", "pytest", "pytest-cov"]
 
 [[package]]
 name = "pbr"
@@ -2060,8 +2058,8 @@ packaging = [
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
 ]
 pastedeploy = [
-    {file = "PasteDeploy-2.1.1-py2.py3-none-any.whl", hash = "sha256:14923cfd6ad4281b570693afc278bab5076fbdd4cd15aa9d99b042d694aa4217"},
-    {file = "PasteDeploy-2.1.1.tar.gz", hash = "sha256:6dead6ab9823a85d585ef27f878bc647f787edb9ca8da0716aa9f1261b464817"},
+    {file = "PasteDeploy-3.0-py3-none-any.whl", hash = "sha256:6c792d12ddc1840fa2dbecd8241f8f94da1230032f53fadeb59412de458ecb6e"},
+    {file = "PasteDeploy-3.0.tar.gz", hash = "sha256:6eae9ab573d4619155593157f3bf3b36d1e1873cd8d465a58174ce81bf6faf66"},
 ]
 pbr = [
     {file = "pbr-5.10.0-py2.py3-none-any.whl", hash = "sha256:da3e18aac0a3c003e9eea1a81bd23e5a3a75d745670dcf736317b7d966887fdf"},
