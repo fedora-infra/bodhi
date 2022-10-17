@@ -106,9 +106,9 @@ class TestUsersService(base.BasePyTestCase):
     def test_list_users_rss(self):
         res = self.app.get('/rss/users/',
                            headers=dict(accept='application/atom+xml'))
-        assert'application/rss+xml' in res.headers['Content-Type']
-        assert'bodhi' in res
-        assert'guest' in res
+        assert 'application/rss+xml' in res.headers['Content-Type']
+        assert 'bodhi' in res
+        assert 'guest' in res
 
     def test_like_users(self):
         res = self.app.get('/users/', {'like': 'odh'})

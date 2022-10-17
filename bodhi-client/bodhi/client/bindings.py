@@ -446,7 +446,7 @@ class BodhiClient:
         # bodhi1 compat
         if 'limit' in kwargs:
             kwargs['rows_per_page'] = kwargs['limit']
-            del(kwargs['limit'])
+            del kwargs['limit']
         # 'mine' may be in kwargs, but set False
         if kwargs.get('mine'):
             if self.username is None:
@@ -461,16 +461,16 @@ class BodhiClient:
                 kwargs['updateid'] = kwargs['package']
             else:
                 kwargs['packages'] = kwargs['package']
-            del(kwargs['package'])
+            del kwargs['package']
         if 'release' in kwargs:
             if isinstance(kwargs['release'], list):
                 kwargs['releases'] = kwargs['release']
             else:
                 kwargs['releases'] = [kwargs['release']]
-            del(kwargs['release'])
+            del kwargs['release']
         if 'type_' in kwargs:
             kwargs['type'] = kwargs['type_']
-            del(kwargs['type_'])
+            del kwargs['type_']
         # Old Bodhi CLI set bugs default to "", but new Bodhi API
         # checks for 'if bugs is not None', not 'if not bugs'
         if 'bugs' in kwargs and kwargs['bugs'] == '':

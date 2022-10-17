@@ -1277,7 +1277,7 @@ class TestUpdateStr(BodhiClientTestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        assert(
+        assert (
             '     Waivers: netvor - 2018-06-29 00:20:20\n'
             '              This is fine. See BZ#1566485\n'
             '              build: slop-7.4-1.fc28\n'
