@@ -656,7 +656,7 @@ class TestCompose(BasePyTestCase):
         # If we remove the extra keys from normal_json, the remaining dictionary should be the same
         # as j.
         for k in set(normal_json.keys()) - set(j.keys()):
-            del(normal_json[k])
+            del normal_json[k]
         assert j == normal_json
 
     def test___lt___false_fallthrough(self):

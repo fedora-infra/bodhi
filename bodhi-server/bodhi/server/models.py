@@ -2446,7 +2446,7 @@ class Update(Base):
                     build.package for build in data['builds']
                 ] if pkg.requirements], []))))
 
-        del(data['edited'])
+        del data['edited']
 
         req = data.pop("request", UpdateRequest.testing)
 
@@ -2523,7 +2523,7 @@ class Update(Base):
         db = request.db
         buildinfo = request.buildinfo
         up = db.query(Update).filter_by(alias=data['edited']).first()
-        del(data['edited'])
+        del data['edited']
 
         caveats = []
         edited_builds = [build.nvr for build in up.builds]
@@ -2586,7 +2586,7 @@ class Update(Base):
         data['critpath'] = cls.contains_critpath_component(
             up.builds, up.release.branch)
 
-        del(data['builds'])
+        del data['builds']
 
         # Comment on the update with details of added/removed builds
         # .. enumerate the builds in markdown format so they're pretty.
@@ -2642,7 +2642,7 @@ class Update(Base):
                 tag_update_builds_task.delay(tag=tag, builds=builds_to_tag)
 
         new_bugs = up.update_bugs(data['bugs'], db)
-        del(data['bugs'])
+        del data['bugs']
 
         req = data.pop("request", None)
         if req is not None and up.release.composed_by_bodhi:

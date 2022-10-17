@@ -418,8 +418,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         self.handler(self.sample_message)
 
-        assert(f"Creating bodhi user for '{expected_username}'."
-               in caplog.messages)
+        assert (f"Creating bodhi user for '{expected_username}'."
+                in caplog.messages)
 
     def test_existing_user(self, caplog):
         """Test Koji build user existing in DB."""
@@ -434,8 +434,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
             self.db.add(user)
         self.db.flush()
 
-        assert(f"Creating bodhi user for '{expected_username}'."
-               not in caplog.messages)
+        assert (f"Creating bodhi user for '{expected_username}'."
+                not in caplog.messages)
 
     # Test messages that should be ignored.
 

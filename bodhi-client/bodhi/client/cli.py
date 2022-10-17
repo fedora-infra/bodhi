@@ -535,7 +535,7 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
     try:
         query_param = {'updateid': kwargs['update']}
         resp = client.query(**query_param)
-        del(kwargs['update'])
+        del kwargs['update']
 
         # Convert list of 'Bug' instances in DB to comma separated bug_ids for parsing.
         former_update = resp['updates'][0].copy()
@@ -793,9 +793,9 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
     requested_arch = kwargs['arch']
     debuginfo = kwargs['debuginfo']
 
-    del(kwargs['staging'])
-    del(kwargs['arch'])
-    del(kwargs['debuginfo'])
+    del kwargs['staging']
+    del kwargs['arch']
+    del kwargs['debuginfo']
     # At this point we need to have reduced the kwargs dict to only our
     # query options (updateid or builds)
     if not any(kwargs.values()):
