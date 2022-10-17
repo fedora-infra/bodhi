@@ -700,7 +700,8 @@ EXAMPLE_QUERY_SINGLE_OVERRIDE_MUNCH = Munch({
     'total': 1})
 
 # Expected output when print_resp renders EXAMPLE_QUERY_OVERRIDES_MUNCH
-EXPECTED_QUERY_OVERRIDES_OUTPUT = """bowlofeggs's nodejs-grunt-wrap-0.3.0-2.fc25 override (expires 2017-03-07 14:30:36)
+EXPECTED_QUERY_OVERRIDES_OUTPUT = (
+    """bowlofeggs's nodejs-grunt-wrap-0.3.0-2.fc25 override (expires 2017-03-07 14:30:36)
 bowlofeggs's python-pyramid-1.5.6-3.el7 override (expires 2017-02-17 00:00:00)
 bowlofeggs's erlang-esip-1.0.8-1.fc25 override (expires 2016-11-12 16:59:29)
 bowlofeggs's erlang-stun-1.0.7-1.fc25 override (expires 2016-11-12 00:00:00)
@@ -712,7 +713,7 @@ bowlofeggs's erlang-fast_xml-1.1.15-1.fc25 override (expires 2016-11-12 15:30:10
 bowlofeggs's python-fedmsg-atomic-composer-2016.3-1.el7 override (expires 2017-02-17 00:00:00)
 bowlofeggs's python-fedmsg-atomic-composer-2016.3-1.fc24 override (expires 2016-10-29 00:00:00)
 11 overrides found (11 shown)
-"""
+""")
 
 
 EXAMPLE_UPDATE_MUNCH = Munch({
@@ -842,7 +843,8 @@ EXAMPLE_GET_RELEASE_15 = Munch(
 
 
 # EXAMPLE_UPDATE_MUNCH is expected to generate this output in update_str
-EXPECTED_UPDATE_OUTPUT = """================================================================================
+EXPECTED_UPDATE_OUTPUT = (
+    """================================================================================
      bodhi-2.2.4-1.el7
 ================================================================================
    Update ID: FEDORA-EPEL-2016-3081a94111
@@ -867,7 +869,7 @@ Content Type: rpm
               notes.
 
   http://example.com/tests/updates/FEDORA-EPEL-2016-3081a94111
-"""
+""")
 
 EXPECTED_OVERRIDE_STR_OUTPUT = """============================================================
      js-tag-it-2.0-1.fc25

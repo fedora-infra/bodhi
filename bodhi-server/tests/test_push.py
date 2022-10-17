@@ -242,7 +242,8 @@ Locking updates...
 Requesting a compose
 """
 
-TEST_LOCKED_UPDATES_EXPECTED_OUTPUT = """Existing composes detected: <Compose: F17 testing>. Do you wish to resume them all? [y/N]: y
+TEST_LOCKED_UPDATES_EXPECTED_OUTPUT = (
+    """Existing composes detected: <Compose: F17 testing>. Do you wish to resume them all? [y/N]: y
 
 
 ===== <Compose: F17 testing> =====
@@ -255,9 +256,10 @@ Push these 1 updates? [y/N]: y
 Locking updates...
 
 Requesting a compose
-"""
+""")
 
-TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT = """Existing composes detected: <Compose: F17 testing>. Resuming all.
+TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT = (
+    """Existing composes detected: <Compose: F17 testing>. Resuming all.
 
 
 ===== <Compose: F17 testing> =====
@@ -270,7 +272,7 @@ Pushing 1 updates.
 Locking updates...
 
 Requesting a compose
-"""
+""")
 
 TEST_RELEASES_FLAG_EXPECTED_OUTPUT = """
 
@@ -368,8 +370,9 @@ Locking updates...
 Requesting a compose
 """
 
-TEST_BUILDS_AND_UPDATES_FLAG_EXPECTED_OUTPUT = """ERROR: Must specify only one of --updates or --builds
-"""
+TEST_BUILDS_AND_UPDATES_FLAG_EXPECTED_OUTPUT = (
+    """ERROR: Must specify only one of --updates or --builds
+""")
 
 
 @mock.patch("bodhi.server.push.initialize_db", mock.Mock())
