@@ -1,14 +1,11 @@
-[tool.flake8]
-show-source = true
-max-line-length = 100
-exclude = [".git", ".tox", "dist", "*egg" , "build", "tools", "*.wsgi", "bodhi-ci"]
-ignore = ["E711", "E712", "W503"]
-# Configure flake8-import-order
-application-import-names = "bodhi"
-import-order-style = "pep8"
+[tool.isort]
+profile = "black"
+known_first_party = "bodhi"
+lines_after_imports = 2
+force_alphabetical_sort_within_sections = true
+from_first = true
 
 [tool.mypy]
-files = "bodhi-client/bodhi/client/bindings.py,bodhi-messages/bodhi/messages,bodhi-server/bodhi/server/bugs.py,bodhi-server/bodhi/server/buildsys.py,devel/ci/bodhi_ci"
 mypy_path = "bodhi-client:bodhi-messages:bodhi-server"
 namespace_packages = true
 explicit_package_bases = true

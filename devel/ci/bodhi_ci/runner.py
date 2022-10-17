@@ -80,7 +80,7 @@ class Runner:
 
         processes = [j.run() for j in jobs]
 
-        return_when = asyncio.ALL_COMPLETED
+        return_when: str = asyncio.ALL_COMPLETED
         if self.options["failfast"]:
             return_when = asyncio.FIRST_EXCEPTION
         future = asyncio.wait(processes, return_when=return_when)
