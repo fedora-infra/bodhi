@@ -43,3 +43,4 @@ RUN for pkg in bodhi-client bodhi-messages bodhi-server; do \
     cd $pkg ; pip3 install . || exit $? ; cd -; \
     done
 RUN poetry config virtualenvs.create false
+RUN git config --global --add safe.directory /bodhi
