@@ -1,10 +1,11 @@
-FROM registry.fedoraproject.org/fedora:34
+FROM registry.fedoraproject.org/fedora:36
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
 RUN dnf install -y \
     createrepo_c \
     findutils \
     git \
+    krb5-devel \
     python3-createrepo_c \
     python3-koji \
     createrepo_c \
