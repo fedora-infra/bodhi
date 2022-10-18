@@ -266,7 +266,8 @@ class Job:
 
         Args:
             include_git: If True, also bind mount the .git folder into the /bodhi folder inside
-                the container. This is needed for the diff-cover test. Default: False.
+                the container. This is needed for the diff-cover and pre-commit tests.
+                Default: False.
         """
         args = [self.options["container_runtime"], 'run', '--network', network, '--rm',
                 '--label', CONTAINER_LABEL, '--init']
