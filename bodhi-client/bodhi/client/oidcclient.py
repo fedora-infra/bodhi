@@ -166,7 +166,8 @@ class OIDCClient:
                     value = click.prompt(
                         click.style(
                             "Paste here the code that you got after logging in", fg="yellow"
-                        )
+                        ),
+                        hide_input=True,
                     )
                 except KeyboardInterrupt:
                     raise click.ClickException("Cancelled.")
