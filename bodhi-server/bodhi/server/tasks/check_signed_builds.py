@@ -88,26 +88,26 @@ def main():
                 elif pending_signing_tag in build_tags and pending_testing_tag not in build_tags:
                     # autosign missed the message that the build is waiting to be signed
                     log.debug(f'{build.nvr} is stuck waiting to be signed, let\'s try again')
-                    stuck_builds.append(build.nvr)
+                    stuck_builds.append((build.nvr, pending_signing_tag))
                 elif (pending_signing_tag not in build_tags
                       and pending_testing_tag not in build_tags):
                     # this means that an update has been created but we never tagged the build
                     # as pending-signing
                     log.debug(f'Oh, no! We\'ve never sent {build.nvr} for signing, let\'s fix it')
-                    overlooked_builds.append(build.nvr)
+                    overlooked_builds.append((build.nvr, pending_signing_tag))
             session.flush()
 
         if stuck_builds:
             kc.multicall = True
-            for b in stuck_builds:
-                kc.untagBuild(pending_signing_tag, b, force=True)
+            for b, t in stuck_builds:
+                kc.untagBuild(t, b, force=True)
             kc.multiCall()
-            for b in stuck_builds:
-                kc.tagBuild(pending_signing_tag, b, force=True)
+            for b, t in stuck_builds:
+                kc.tagBuild(t, b, force=True)
             kc.multiCall()
 
         if overlooked_builds:
             kc.multicall = True
-            for b in overlooked_builds:
-                kc.tagBuild(pending_signing_tag, b, force=True)
+            for b, t in overlooked_builds:
+                kc.tagBuild(t, b, force=True)
             kc.multiCall()
