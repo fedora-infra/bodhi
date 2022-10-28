@@ -1407,8 +1407,8 @@ class TestUpdatesService(BasePyTestCase):
 
         res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
 
-        assert '"decision_context": "bodhi_update_push_testing",' not in res
-        assert '"decision_context": "bodhi_update_push_stable",' in res
+        assert '"decision_context": ["bodhi_update_push_testing"],' not in res
+        assert '"decision_context": ["bodhi_update_push_stable"],' in res
 
     def test_decision_context_pending_testing(self):
         """The HTML should include the correct decision context for Pending/Testing updates."""
@@ -1418,8 +1418,8 @@ class TestUpdatesService(BasePyTestCase):
 
         res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
 
-        assert '"decision_context": "bodhi_update_push_stable",' not in res
-        assert '"decision_context": "bodhi_update_push_testing",' in res
+        assert '"decision_context": ["bodhi_update_push_stable"],' not in res
+        assert '"decision_context": ["bodhi_update_push_testing"],' in res
 
     def test_decision_context_testing(self):
         """The HTML should include the correct decision context for Testing updates."""
@@ -1431,8 +1431,8 @@ class TestUpdatesService(BasePyTestCase):
 
         res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
 
-        assert '"decision_context": "bodhi_update_push_testing",' not in res
-        assert '"decision_context": "bodhi_update_push_stable",' in res
+        assert '"decision_context": ["bodhi_update_push_testing"],' not in res
+        assert '"decision_context": ["bodhi_update_push_stable"],' in res
 
     def test_home_html_legal(self):
         """Test the home page HTML when a legal link is configured."""
@@ -6190,7 +6190,7 @@ class TestWaiveTestResults(BasePyTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             {
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
@@ -6269,7 +6269,7 @@ class TestWaiveTestResults(BasePyTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             {
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
@@ -6369,7 +6369,7 @@ class TestWaiveTestResults(BasePyTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             {
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
@@ -6452,7 +6452,7 @@ class TestWaiveTestResults(BasePyTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             {
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
@@ -6552,7 +6552,7 @@ class TestWaiveTestResults(BasePyTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             {
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
@@ -6696,7 +6696,7 @@ class TestGetTestResults(BasePyTestCase):
             'https://greenwave.api/decision',
             data={
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': update.alias, 'type': 'bodhi_update'}
@@ -6736,7 +6736,7 @@ class TestGetTestResults(BasePyTestCase):
             'https://greenwave.api/decision',
             data={
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': update.alias, 'type': 'bodhi_update'}
@@ -6778,7 +6778,7 @@ class TestGetTestResults(BasePyTestCase):
             'https://greenwave.api/decision',
             data={
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': update.alias, 'type': 'bodhi_update'}
@@ -6806,25 +6806,26 @@ class TestGetTestResults(BasePyTestCase):
 
         res = self.app.get(f'/updates/{update.alias}/get-test-results')
 
-        assert call_api.call_args_list == [
-            mock.call(
-                'https://greenwave.api/decision',
-                data={
-                    'product_version': 'fedora-17',
-                    'decision_context': context,
-                    'subject': [
-                        {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                        {'item': update.alias, 'type': 'bodhi_update'}
-                    ],
-                    'verbose': True,
-                },
-                method='POST',
-                retries=3,
-                service_name='Greenwave'
-            ) for context in ('bodhi_update_push_testing_critpath', 'bodhi_update_push_testing')
-        ]
+        call_api.assert_called_once_with(
+            'https://greenwave.api/decision',
+            data={
+                'product_version': 'fedora-17',
+                'decision_context': [
+                    'bodhi_update_push_testing_critpath',
+                    'bodhi_update_push_testing'
+                ],
+                'subject': [
+                    {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'item': update.alias, 'type': 'bodhi_update'}
+                ],
+                'verbose': True,
+            },
+            method='POST',
+            retries=3,
+            service_name='Greenwave'
+        )
 
-        assert res.json_body == {'decisions': [{'foo': 'bar'}, {'foo': 'bar'}]}
+        assert res.json_body == {'decisions': [{'foo': 'bar'}]}
 
     @mock.patch.dict(config, [('greenwave_api_url', 'https://greenwave.api')])
     @mock.patch('bodhi.server.util.call_api')
@@ -6841,29 +6842,27 @@ class TestGetTestResults(BasePyTestCase):
 
         res = self.app.get(f'/updates/{update.alias}/get-test-results')
 
-        assert call_api.call_args_list == [
-            mock.call(
-                'https://greenwave.api/decision',
-                data={
-                    'product_version': 'fedora-17',
-                    'decision_context': context,
-                    'subject': [
-                        {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                        {'item': update.alias, 'type': 'bodhi_update'}
-                    ],
-                    'verbose': True,
-                },
-                method='POST',
-                retries=3,
-                service_name='Greenwave'
-            ) for context in (
-                'bodhi_update_push_testing_critical-path-apps_critpath',
-                'bodhi_update_push_testing_core_critpath',
-                'bodhi_update_push_testing',
-            )
-        ]
+        call_api.assert_called_once_with(
+            'https://greenwave.api/decision',
+            data={
+                'product_version': 'fedora-17',
+                'decision_context': [
+                    'bodhi_update_push_testing_critical-path-apps_critpath',
+                    'bodhi_update_push_testing_core_critpath',
+                    'bodhi_update_push_testing'
+                ],
+                'subject': [
+                    {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'item': update.alias, 'type': 'bodhi_update'}
+                ],
+                'verbose': True,
+            },
+            method='POST',
+            retries=3,
+            service_name='Greenwave'
+        )
 
-        assert res.json_body == {'decisions': [{'foo': 'bar'}, {'foo': 'bar'}, {'foo': 'bar'}]}
+        assert res.json_body == {'decisions': [{'foo': 'bar'}]}
 
     @mock.patch.dict(config, [('greenwave_api_url', 'https://greenwave.api')])
     @mock.patch('bodhi.server.util.call_api')
@@ -6884,7 +6883,7 @@ class TestGetTestResults(BasePyTestCase):
             'https://greenwave.api/decision',
             data={
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': update.alias, 'type': 'bodhi_update'}
@@ -6917,7 +6916,7 @@ class TestGetTestResults(BasePyTestCase):
             'https://greenwave.api/decision',
             data={
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': update.alias, 'type': 'bodhi_update'}
