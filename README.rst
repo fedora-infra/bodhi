@@ -44,3 +44,12 @@ Come join us on `Libera <https://www.libera.chat/>`_! We've got two channels:
 * #bodhi - We use this channel to discuss upstream bodhi development
 * #fedora-apps - We use this channel to discuss Fedora's Bodhi deployment (it is more generally
   about all of Fedora's infrastructure applications.)
+  
+
+Contributing
+============
+ 
+You need to be legally allowed to submit any contribution to this project. What this
+means in detail is laid out in the file ``DCO.txt`` next to this file. The mechanism by which you
+certify this is adding a ``Signed-off-by`` trailer to git commit log messages, you can do this by
+using the ``--signoff/-s`` option to ``git commit``.
