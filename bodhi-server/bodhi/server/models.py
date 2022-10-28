@@ -2242,13 +2242,12 @@ class Update(Base):
         subjects = self.greenwave_subject
         data = []
         while count < len(subjects):
-            for context in self._greenwave_decision_contexts:
-                data.append({
-                    'product_version': self.product_version,
-                    'decision_context': context,
-                    'subject': subjects[count:count + batch_size],
-                    'verbose': verbose,
-                })
+            data.append({
+                'product_version': self.product_version,
+                'decision_context': self._greenwave_decision_contexts,
+                'subject': subjects[count:count + batch_size],
+                'verbose': verbose,
+            })
             count += batch_size
         return data
 
