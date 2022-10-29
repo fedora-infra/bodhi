@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>Update &#8212; bodhi 6.0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Python bindings" href="../../python_bindings.html" />
@@ -46,6 +47,11 @@ messages.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateCommentV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateCommentV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCommentV1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when a comment is made on an update.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCommentV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCommentV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCommentV1.__str__">
 <span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateCommentV1.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCommentV1.__str__" title="Permalink to this definition">¶</a></dt>
@@ -107,6 +113,11 @@ of an email.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateCompleteStableV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateCompleteStableV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCompleteStableV1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update is available in the stable repository.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCompleteStableV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCompleteStableV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCompleteStableV1.summary">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">summary</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCompleteStableV1.summary" title="Permalink to this definition">¶</a></dt>
@@ -132,6 +143,11 @@ of an email.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateCompleteTestingV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateCompleteTestingV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCompleteTestingV1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update is available in the testing repository.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCompleteTestingV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCompleteTestingV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateCompleteTestingV1.summary">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">summary</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateCompleteTestingV1.summary" title="Permalink to this definition">¶</a></dt>
@@ -157,6 +173,11 @@ of an email.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateEditV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateEditV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateEditV1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update is edited.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateEditV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateEditV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateEditV1.new_bugs">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">new_bugs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateEditV1.new_bugs" title="Permalink to this definition">¶</a></dt>
@@ -193,6 +214,11 @@ of an email.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateEjectV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateEjectV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateEjectV1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update is ejected from the push.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateEjectV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateEjectV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateEjectV1.reason">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reason</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateEjectV1.reason" title="Permalink to this definition">¶</a></dt>
@@ -230,6 +256,11 @@ of an email.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateKarmaThresholdV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateKarmaThresholdV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateKarmaThresholdV1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update reaches its karma threshold.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateKarmaThresholdV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateKarmaThresholdV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateKarmaThresholdV1.status">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateKarmaThresholdV1.status" title="Permalink to this definition">¶</a></dt>
@@ -261,6 +292,11 @@ of an email.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateMessage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateMessage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BodhiMessage</span></code></p>
 <p>Base class for update messages.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateMessage.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateMessage.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateMessage.packages">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">packages</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateMessage.packages" title="Permalink to this definition">¶</a></dt>
@@ -308,6 +344,11 @@ of an email.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BodhiMessage</span></code></p>
 <p>Sent when an update is ready to be tested. Original version.</p>
 <p>Does not have ‘update’ property or inherit from UpdateMessage.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV1.agent">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">agent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV1.agent" title="Permalink to this definition">¶</a></dt>
@@ -395,6 +436,11 @@ of an email.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateRequestMessage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateRequestMessage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when an update’s request is changed.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestMessage.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestMessage.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestMessage.summary">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">summary</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestMessage.summary" title="Permalink to this definition">¶</a></dt>
@@ -416,6 +462,11 @@ of an email.</p>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateRequestMessage</span></code></a></p>
 <p>Sent when an update is requested to be obsoleted.</p>
 <dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestObsoleteV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestObsoleteV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestObsoleteV1.topic">
 <span class="sig-name descname"><span class="pre">topic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bodhi.update.request.obsolete'</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestObsoleteV1.topic" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -427,6 +478,11 @@ of an email.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateRequestRevokeV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateRequestRevokeV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestRevokeV1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateRequestMessage</span></code></a></p>
 <p>Sent when an update is revoked.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestRevokeV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestRevokeV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestRevokeV1.topic">
 <span class="sig-name descname"><span class="pre">topic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bodhi.update.request.revoke'</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestRevokeV1.topic" title="Permalink to this definition">¶</a></dt>
@@ -440,6 +496,11 @@ of an email.</p>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateRequestMessage</span></code></a></p>
 <p>Sent when an update is submitted as a stable candidate.</p>
 <dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestStableV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestStableV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestStableV1.topic">
 <span class="sig-name descname"><span class="pre">topic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bodhi.update.request.stable'</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestStableV1.topic" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -451,6 +512,11 @@ of an email.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateRequestTestingV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateRequestTestingV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestTestingV1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateRequestMessage</span></code></a></p>
 <p>Sent when an update is submitted as a testing candidate.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestTestingV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestTestingV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestTestingV1.topic">
 <span class="sig-name descname"><span class="pre">topic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bodhi.update.request.testing'</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestTestingV1.topic" title="Permalink to this definition">¶</a></dt>
@@ -464,6 +530,11 @@ of an email.</p>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateRequestMessage" title="bodhi.messages.schemas.update.UpdateRequestMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateRequestMessage</span></code></a></p>
 <p>Sent when an update is requested to be unpushed.</p>
 <dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestUnpushV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestUnpushV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequestUnpushV1.topic">
 <span class="sig-name descname"><span class="pre">topic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bodhi.update.request.unpush'</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequestUnpushV1.topic" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -475,6 +546,11 @@ of an email.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateRequirementsMetStableV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateRequirementsMetStableV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequirementsMetStableV1" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
 <p>Sent when all the update requirements are meant for stable.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequirementsMetStableV1.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequirementsMetStableV1.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateRequirementsMetStableV1.summary">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">summary</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateRequirementsMetStableV1.summary" title="Permalink to this definition">¶</a></dt>
@@ -2416,7 +2492,7 @@ of an email.</p>
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

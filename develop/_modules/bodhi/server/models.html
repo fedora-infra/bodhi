@@ -13,6 +13,7 @@
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -2480,7 +2481,7 @@
                     <span class="n">build</span><span class="o">.</span><span class="n">package</span> <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;builds&#39;</span><span class="p">]</span>
                 <span class="p">]</span> <span class="k">if</span> <span class="n">pkg</span><span class="o">.</span><span class="n">requirements</span><span class="p">],</span> <span class="p">[]))))</span>
 
-        <span class="k">del</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;edited&#39;</span><span class="p">])</span>
+        <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;edited&#39;</span><span class="p">]</span>
 
         <span class="n">req</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;request&quot;</span><span class="p">,</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span><span class="p">)</span>
 
@@ -2557,7 +2558,7 @@
         <span class="n">db</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">db</span>
         <span class="n">buildinfo</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">buildinfo</span>
         <span class="n">up</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Update</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">alias</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;edited&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-        <span class="k">del</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;edited&#39;</span><span class="p">])</span>
+        <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;edited&#39;</span><span class="p">]</span>
 
         <span class="n">caveats</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">edited_builds</span> <span class="o">=</span> <span class="p">[</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span> <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="n">up</span><span class="o">.</span><span class="n">builds</span><span class="p">]</span>
@@ -2620,7 +2621,7 @@
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">contains_critpath_component</span><span class="p">(</span>
             <span class="n">up</span><span class="o">.</span><span class="n">builds</span><span class="p">,</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">branch</span><span class="p">)</span>
 
-        <span class="k">del</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;builds&#39;</span><span class="p">])</span>
+        <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;builds&#39;</span><span class="p">]</span>
 
         <span class="c1"># Comment on the update with details of added/removed builds</span>
         <span class="c1"># .. enumerate the builds in markdown format so they&#39;re pretty.</span>
@@ -2676,7 +2677,7 @@
                 <span class="n">tag_update_builds_task</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span> <span class="n">builds</span><span class="o">=</span><span class="n">builds_to_tag</span><span class="p">)</span>
 
         <span class="n">new_bugs</span> <span class="o">=</span> <span class="n">up</span><span class="o">.</span><span class="n">update_bugs</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;bugs&#39;</span><span class="p">],</span> <span class="n">db</span><span class="p">)</span>
-        <span class="k">del</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;bugs&#39;</span><span class="p">])</span>
+        <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;bugs&#39;</span><span class="p">]</span>
 
         <span class="n">req</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;request&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">req</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span><span class="p">:</span>
@@ -3223,6 +3224,7 @@
             <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s1">&#39;subject&#39;</span><span class="p">:</span> <span class="n">requirement</span><span class="p">[</span><span class="s1">&#39;item&#39;</span><span class="p">],</span>
                 <span class="s1">&#39;testcase&#39;</span><span class="p">:</span> <span class="n">requirement</span><span class="p">[</span><span class="s1">&#39;testcase&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;scenario&#39;</span><span class="p">:</span> <span class="n">requirement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scenario&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
                 <span class="s1">&#39;product_version&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_version</span><span class="p">,</span>
                 <span class="s1">&#39;waived&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="n">username</span><span class="p">,</span>
@@ -5136,7 +5138,7 @@
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

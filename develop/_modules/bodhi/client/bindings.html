@@ -13,6 +13,7 @@
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -75,9 +76,9 @@
     <span class="c1"># dnf is not available on EL 7.</span>
     <span class="n">dnf</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># pragma: no cover</span>
 <span class="kn">from</span> <span class="nn">munch</span> <span class="kn">import</span> <span class="n">munchify</span>
-<span class="kn">from</span> <span class="nn">requests.exceptions</span> <span class="kn">import</span> <span class="n">RequestException</span><span class="p">,</span> <span class="ne">ConnectionError</span>
-<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">requests.exceptions</span> <span class="kn">import</span> <span class="ne">ConnectionError</span><span class="p">,</span> <span class="n">RequestException</span>
 <span class="kn">import</span> <span class="nn">koji</span>
+<span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="kn">from</span> <span class="nn">.constants</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">BASE_URL</span><span class="p">,</span>
@@ -211,6 +212,7 @@
         <span class="n">client_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CLIENT_ID</span><span class="p">,</span>
         <span class="n">id_provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">IDP</span><span class="p">,</span>
         <span class="n">staging</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">oidc_storage_path</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the Bodhi client.</span>
@@ -220,6 +222,7 @@
 <span class="sd">                      ```staging``` is True.</span>
 <span class="sd">            client_id: The OpenID Connect Client ID.</span>
 <span class="sd">            staging: If True, use the staging server. If False, use base_url.</span>
+<span class="sd">            oidc_storage_path: Path to a file were OIDC credentials are stored</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">staging</span><span class="p">:</span>
             <span class="n">base_url</span> <span class="o">=</span> <span class="n">STG_BASE_URL</span>
@@ -230,15 +233,17 @@
             <span class="n">base_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="n">base_url</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">csrf_token</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oidc_storage_path</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">oidc_storage_path</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HOME&quot;</span><span class="p">],</span> <span class="s2">&quot;.config&quot;</span><span class="p">,</span> <span class="s2">&quot;bodhi&quot;</span><span class="p">,</span> <span class="s2">&quot;client.json&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_build_oidc_client</span><span class="p">(</span><span class="n">client_id</span><span class="p">,</span> <span class="n">id_provider</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_build_oidc_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client_id</span><span class="p">,</span> <span class="n">id_provider</span><span class="p">):</span>
-        <span class="n">storage_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HOME&quot;</span><span class="p">],</span> <span class="s2">&quot;.config&quot;</span><span class="p">,</span> <span class="s2">&quot;bodhi&quot;</span><span class="p">,</span> <span class="s2">&quot;client.json&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oidc</span> <span class="o">=</span> <span class="n">OIDCClient</span><span class="p">(</span>
             <span class="n">client_id</span><span class="p">,</span>
             <span class="n">SCOPE</span><span class="p">,</span>
             <span class="n">id_provider</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">),</span>
-            <span class="n">storage</span><span class="o">=</span><span class="n">JSONStorage</span><span class="p">(</span><span class="n">storage_path</span><span class="p">),</span>
+            <span class="n">storage</span><span class="o">=</span><span class="n">JSONStorage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oidc_storage_path</span><span class="p">),</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="BodhiClient.send_request"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.send_request">[docs]</a>    <span class="k">def</span> <span class="nf">send_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -267,7 +272,7 @@
 
 <div class="viewcode-block" id="BodhiClient.ensure_auth"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.ensure_auth">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Make sure we are authenticated.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oidc</span><span class="o">.</span><span class="n">ensure_auth</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oidc</span><span class="o">.</span><span class="n">ensure_auth</span><span class="p">(</span><span class="n">use_kerberos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">oidc</span><span class="o">.</span><span class="n">has_cookie</span><span class="p">(</span><span class="s2">&quot;auth_tkt&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="n">urlparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span><span class="o">.</span><span class="n">hostname</span><span class="p">):</span>
             <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
                 <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oidc</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">oidc/login-token&quot;</span><span class="p">)</span>
@@ -275,7 +280,7 @@
                     <span class="k">break</span>
                 <span class="k">if</span> <span class="n">resp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">clear_auth</span><span class="p">()</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">oidc</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">oidc</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">use_kerberos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">resp</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span></div>
 
@@ -476,7 +481,7 @@
         <span class="c1"># bodhi1 compat</span>
         <span class="k">if</span> <span class="s1">&#39;limit&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;rows_per_page&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;limit&#39;</span><span class="p">]</span>
-            <span class="k">del</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;limit&#39;</span><span class="p">])</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;limit&#39;</span><span class="p">]</span>
         <span class="c1"># &#39;mine&#39; may be in kwargs, but set False</span>
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mine&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -491,16 +496,16 @@
                 <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;updateid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;package&#39;</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;packages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;package&#39;</span><span class="p">]</span>
-            <span class="k">del</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;package&#39;</span><span class="p">])</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;package&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="s1">&#39;release&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;release&#39;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;releases&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;release&#39;</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;releases&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;release&#39;</span><span class="p">]]</span>
-            <span class="k">del</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;release&#39;</span><span class="p">])</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;release&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="s1">&#39;type_&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;type_&#39;</span><span class="p">]</span>
-            <span class="k">del</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;type_&#39;</span><span class="p">])</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;type_&#39;</span><span class="p">]</span>
         <span class="c1"># Old Bodhi CLI set bugs default to &quot;&quot;, but new Bodhi API</span>
         <span class="c1"># checks for &#39;if bugs is not None&#39;, not &#39;if not bugs&#39;</span>
         <span class="k">if</span> <span class="s1">&#39;bugs&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;bugs&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
@@ -1133,7 +1138,7 @@
       &copy;2007-2022, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
