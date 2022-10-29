@@ -36,7 +36,7 @@ def get_bodhi_shell():
     """Run python shell initialized with Bodhi models."""
     configfile = get_configfile()
     if configfile is not None:
-        call(['pshell-3', configfile])
+        call(['pshell', configfile])
     else:
         click.echo("Config file not found!", err=True)
         sys.exit(1)
