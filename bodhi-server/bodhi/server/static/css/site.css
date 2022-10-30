@@ -6,7 +6,7 @@ a {
     outline: 0 !important;
 }
 
-a:hover {
+a {
     text-decoration: none;
 }
 
@@ -61,6 +61,11 @@ hr {
 /* Search-y stuff */
 .typeahead__result {
     font-size: .9rem;
+}
+
+pre {
+    background-color: #fdf6e3;
+    padding: 1rem;
 }
 
 #bodhi-searchbar .typeahead__list {
@@ -358,4 +363,12 @@ padding-bottom: 2em;
 .caption-top {
     caption-side: top;
     font-weight: bold;
+}
+
+.list-group-item {
+    padding: .75rem 1.25rem;
+}
+
+.text-bg-warning, .text-bg-info {
+    color: #fff!important;
 }

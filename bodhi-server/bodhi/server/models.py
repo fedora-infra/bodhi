@@ -2612,7 +2612,11 @@ class Update(Base):
             data['karma_critipath'] = 0
             up.date_testing = None
 
-            if up.status != UpdateStatus.pending:
+            if (
+                (up.status != UpdateStatus.pending and not up.from_tag)
+                or (up.status != UpdateStatus.pending and up.from_tag
+                    and up.release.composed_by_bodhi)
+            ):
                 # Remove all koji tags and change the status back to pending
                 up.unpush(db)
                 caveats.append({

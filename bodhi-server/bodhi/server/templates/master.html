@@ -42,9 +42,9 @@
   <body>
     <div class="masthead py-2">
       <div class="container px-0">
-        <nav class="navbar navbar-light navbar-expand-md pt-0 pb-0">
-
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#bodhi-navbar">
+        <nav class="navbar navbar-expand-md pt-0 pb-0">
+          <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#bodhi-navbar" aria-controls="bodhi-navbar" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
@@ -53,31 +53,31 @@
             </a>
 
             <div id="bodhi-navbar" class="navbar-collapse collapse">
-                <ul class="navbar-nav ml-auto">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item fw-bold">
                     % if request.matched_route and request.matched_route.name in ('releases', 'release'):
-                    <li class="nav-item active font-weight-bold">
+                        <a class="nav-link active" aria-current="page" href="${request.route_url('releases')}">
                     % else:
-                    <li class="nav-item font-weight-bold">
-                    % endif
                         <a class="nav-link" href="${request.route_url('releases')}">
+                    % endif
                             Releases
                         </a>
                     </li>
+                    <li class="nav-item fw-bold">
                     % if request.matched_route and request.matched_route.name in ('update', 'updates'):
-                    <li class="nav-item active font-weight-bold">
+                        <a class="nav-link active" aria-current="page" href="${request.route_url('updates')}?releases=__current__&releases=__pending__">
                     % else:
-                    <li class="nav-item font-weight-bold">
-                    % endif
                         <a class="nav-link" href="${request.route_url('updates')}?releases=__current__&releases=__pending__">
+                    % endif
                             Updates
                         </a>
                     </li>
+                    <li class="nav-item fw-bold">
                     % if request.matched_route and request.matched_route.name in ('override', 'overrides'):
-                    <li class="nav-item active font-weight-bold">
+                        <a class="nav-link active" aria-current="page" href="${request.route_url('overrides')}?expired=False">
                     % else:
-                    <li class="nav-item font-weight-bold">
-                    % endif
                         <a class="nav-link" href="${request.route_url('overrides')}?expired=False">
+                    % endif
                             Overrides
                         </a>
                     </li>
@@ -94,7 +94,7 @@
 
                     % if request.user:
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false">
                             <span class="glyphicon glyphicon-user"></span>
                             <img src="${self.util.avatar(request.user.name, size=24)}" alt="User Icon"/>
                         </a>
@@ -124,7 +124,7 @@
                     % endif
 
                     % if not request.user:
-                    <li class="nav-item ml-3">
+                    <li class="nav-item ms-3">
                         % if request.matched_route:
                         <a class="btn btn-primary" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">Login</a>
                         % else:
@@ -134,7 +134,7 @@
                     % endif
                 </ul>
             </div>
-
+          </div>
         </nav>
       </div>
     </div>
@@ -202,7 +202,7 @@
       };
     </script>
     <%block name="javascript">
-    <script src="${request.static_url('bodhi.server:static/vendor/jquery/jquery-1.10.2.min.js')}"></script>
+    <script src="${request.static_url('bodhi.server:static/vendor/jquery/jquery-3.6.0.min.js')}"></script>
     <script>
       $('#alertModal').on('hidden.bs.modal', function (e) {
           document.location.href = document.baseURI;

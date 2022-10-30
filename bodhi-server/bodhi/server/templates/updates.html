@@ -19,9 +19,9 @@ ${parent.css()}
     <div class="container py-4">
       <div class="row">
         <div class="col">
-            <h3 class="font-weight-bold m-0 d-flex align-items-center">Updates
+            <h3 class="fw-bold m-0 d-flex align-items-center">Updates
                 % if request.user:
-                <a class="btn btm-sm font-weight-bold btn-outline-primary ml-auto" href="${request.route_url('new_update')}"><i class="fa fa-plus pr-2"></i>New Update</a>
+                <a class="btn btm-sm fw-bold btn-outline-primary ms-auto" href="${request.route_url('new_update')}"><i class="fa fa-plus pe-2"></i>New Update</a>
                 % endif
             </h3>
         </div>
@@ -34,10 +34,10 @@ ${parent.css()}
   % endif
           <div class="list-group">
             % if chrome:
-            <div class="list-group-item bg-light d-flex font-weight-bold">
+            <div class="list-group-item bg-light d-flex fw-bold">
               ${total} Updates
               % if page == 1:
-              <a class="ml-1" href="${request.route_url('updates_rss') + '?' + request.query_string}">
+              <a class="ms-1" href="${request.route_url('updates_rss') + '?' + request.query_string}">
                 <span class="fa fa-rss"></span>
               </a>
               % endif
@@ -80,11 +80,11 @@ ${parent.css()}
               if 'search' in parameters:
                 searchterm = parameters['search'][0]
               %>
-              <div class="ml-auto">
+              <div class="ms-auto">
               <form id="filters-form">
                 <div class="dropdown">
-            <div class="input-group input-group-sm" data-toggle="dropdown">
-              <div class="input-group-prepend ml-auto">
+            <div class="input-group input-group-sm" data-bs-toggle="dropdown">
+              <div class="input-group-prepend ms-auto">
                   <div class="btn btn-sm btn-outline-secondary border" id="updates-filterslist">
 
                     % for param, values in request.params.dict_of_lists().items():
@@ -114,9 +114,9 @@ ${parent.css()}
               % endfor
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="updatestatus" class="col-auto align-self-center pl-1 pr-0 m-0">Status:</label>
+                  <label for="updatestatus" class="col-auto align-self-center ps-1 pe-0 m-0">Status:</label>
                   </div>
-                  <div class="col-8 pl-1">
+                  <div class="col-8 ps-1">
                       <select id="updatestatus" name="status" multiple="multiple">
                           <option value="">&nbsp;</option>
                           % for value in statuses:
@@ -128,16 +128,16 @@ ${parent.css()}
                           % endfor
                       </select>
                   </div>
-                  <div class="col-1 pl-0 pr-1 pt-1">
+                  <div class="col-1 ps-0 pe-1 pt-1">
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updatestatus"></i>
                   </div>
               </div>
 
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="updatereleases" class="col-auto align-self-center pl-1 pr-0 m-0">Releases:</label>
+                  <label for="updatereleases" class="col-auto align-self-center ps-1 pe-0 m-0">Releases:</label>
                   </div>
-                  <div class="col-8 pl-1">
+                  <div class="col-8 ps-1">
                       <select id="updatereleases" name="releases" multiple="multiple">
                           <option value="">&nbsp;</option>
                           <optgroup label="quick filters">
@@ -161,17 +161,17 @@ ${parent.css()}
                           %endfor
                       </select>
                   </div>
-                  <div class="col-1 pl-0 pr-1 pt-1">
+                  <div class="col-1 ps-0 pe-1 pt-1">
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updatereleases"></i>
                   </div>
               </div>
 
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="updatetypes" class="col-auto align-self-center pl-1 pr-0 m-0">Type:</label>
+                  <label for="updatetypes" class="col-auto align-self-center ps-1 pe-0 m-0">Type:</label>
                   </div>
-                  <div class="col-8 pl-1">
-                      <select id="updatetypes" name="type" class="custom-select">
+                  <div class="col-8 ps-1">
+                      <select id="updatetypes" name="type" class="form-select">
                           <option value="">&nbsp;</option>
                           % for value in types:
                           <option value="${value}"
@@ -182,16 +182,16 @@ ${parent.css()}
                           % endfor
                       </select>
                   </div>
-                  <div class="col-1 pl-0 pr-1 pt-1">
+                  <div class="col-1 ps-0 pe-1 pt-1">
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updatetypes"></i>
                   </div>
               </div>
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="updateseverity" class="col-auto align-self-center pl-1 pr-0 m-0">Severity:</label>
+                  <label for="updateseverity" class="col-auto align-self-center ps-1 pe-0 m-0">Severity:</label>
                   </div>
-                  <div class="col-8 pl-1">
-                      <select id="updateseverity" name="severity" class="custom-select">
+                  <div class="col-8 ps-1">
+                      <select id="updateseverity" name="severity" class="form-select">
                           <option value="">&nbsp;</option>
                           % for value in severities:
                           <option value="${value}"
@@ -202,16 +202,16 @@ ${parent.css()}
                           % endfor
                       </select>
                   </div>
-                  <div class="col-1 pl-0 pr-1 pt-1">
+                  <div class="col-1 ps-0 pe-1 pt-1">
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updateseverity"></i>
                   </div>
               </div>
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="isfromsidetag" class="col-auto align-self-center pl-1 pr-0 m-0">From side-tag:</label>
+                  <label for="isfromsidetag" class="col-auto align-self-center ps-1 pe-0 m-0">From side-tag:</label>
                   </div>
-                  <div class="col-8 pl-1">
-                      <select id="isfromsidetag" name="from_side_tag" class="custom-select">
+                  <div class="col-8 ps-1">
+                      <select id="isfromsidetag" name="from_side_tag" class="form-select">
                           <option value="">&nbsp;</option>
                           <option value="False"
                           % if 'from_side_tag' in parameters and 'False' in parameters['from_side_tag']:
@@ -225,16 +225,16 @@ ${parent.css()}
                           >True</option>
                       </select>
                   </div>
-                  <div class="col-1 pl-0 pr-1 pt-1">
+                  <div class="col-1 ps-0 pe-1 pt-1">
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="isfromsidetag"></i>
                   </div>
               </div>
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="gatingstatus" class="col-auto align-self-center pl-1 pr-0 m-0">Gating status:</label>
+                  <label for="gatingstatus" class="col-auto align-self-center ps-1 pe-0 m-0">Gating status:</label>
                   </div>
-                  <div class="col-8 pl-1">
-                      <select id="gatingstatus" name="gating" class="custom-select">
+                  <div class="col-8 ps-1">
+                      <select id="gatingstatus" name="gating" class="form-select">
                           <option value="">&nbsp;</option>
                           % for value in gating_statuses:
                           <option value="${value}"
@@ -245,25 +245,26 @@ ${parent.css()}
                           % endfor
                       </select>
                   </div>
-                  <div class="col-1 pl-0 pr-1 pt-1">
+                  <div class="col-1 ps-0 pe-1 pt-1">
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="gatingstatus"></i>
                   </div>
               </div>
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="updateuser" class="col-auto align-self-center pl-1 pr-0 m-0">User:</label>
+                  <label for="updateuser" class="col-auto align-self-center ps-1 pe-0 m-0">User:</label>
                   </div>
-                  <div class="col-8 pl-1">
+                  <div class="col-8 ps-1">
                       <input type="text" id="updateuser" name="user" class="form-control" value="${parameters['user'][0] if 'user' in parameters else '' | h}"/>
                   </div>
-                  <div class="col-1 pl-0 pr-1 pt-1">
+                  <div class="col-1 ps-0 pe-1 pt-1">
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updateuser"></i>
                   </div>
               </div>
 
-              <input type="submit" class="btn btn-block btn-primary" value="Apply Filters" />
-
-              <a href="${request.route_url('updates')}" class="btn btn-link btn-block">Clear Filters</a>
+              <div class="d-grid gap-2 mt-2">
+                <input type="submit" class="btn btn-primary" value="Apply Filters" />
+                <a href="${request.route_url('updates')}" class="btn btn-link">Clear Filters</a>
+              </div>
               </div>
           </div>
               </form></div>

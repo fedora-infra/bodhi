@@ -3,7 +3,7 @@
   <div class="container py-4">
     <div class="row">
       <div class="col-md-6 col-md-offset-3">
-        <h3 class="font-weight-bold m-0">Composes</h3>
+        <h3 class="fw-bold m-0">Composes</h3>
       </div>
     </div>
   </div>
@@ -15,13 +15,13 @@
       % if composes:
         % for compose in composes:
           <a class="list-group-item d-flex" href="${request.route_url('composes', release_name=compose.release.name, request=compose.request.value)}">
-                <div class="font-weight-bold">
+                <div class="fw-bold">
                     ${ compose.release.long_name } ${ compose.request.description } compose
                     % if compose.security:
                         <span class="fa fa-shield text-danger" title="This compose contains security updates." data-toggle="tooltip"></span>
                     % endif
                 </div>
-                <div class="ml-auto font-weight-bold text-${self.fragments.compose_status_context(compose.state.value)}"> ${compose.state.description}</div>
+                <div class="ms-auto fw-bold text-${self.fragments.compose_status_context(compose.state.value)}"> ${compose.state.description}</div>
             </a>
         % endfor
       % else:
