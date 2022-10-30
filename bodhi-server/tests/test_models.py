@@ -3272,20 +3272,6 @@ class TestUpdate(ModelTest):
 
         assert self.obj.requested_tag == self.obj.release.candidate_tag
 
-    def test_side_tag_locked_false(self):
-        """Test the side_tag_locked property when it is false."""
-        self.obj.status = model.UpdateStatus.side_tag_active
-        self.obj.request = None
-
-        assert not self.obj.side_tag_locked
-
-    def test_side_tag_locked_true(self):
-        """Test the side_tag_locked property when it is true."""
-        self.obj.status = model.UpdateStatus.side_tag_active
-        self.obj.request = model.UpdateRequest.stable
-
-        assert self.obj.side_tag_locked
-
     @mock.patch('bodhi.server.models.bugs.bugtracker.close')
     @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
     def test_modify_bugs_stable_close(self, comment, close):

@@ -612,8 +612,6 @@ class UpdateStatus(DeclEnum):
         stable (EnumSymbol): The update is in the stable repository.
         unpushed (EnumSymbol): The update had been in a testing repository, but has been removed.
         obsolete (EnumSymbol): The update has been obsoleted by another update.
-        side_tag_active (EnumSymbol): The update's side tag is currently active.
-        side_tag_expired (EnumSymbol): The update's side tag has expired.
     """
 
     pending = 'pending', 'pending'
@@ -621,8 +619,6 @@ class UpdateStatus(DeclEnum):
     stable = 'stable', 'stable'
     unpushed = 'unpushed', 'unpushed'
     obsolete = 'obsolete', 'obsolete'
-    side_tag_active = 'side_tag_active', 'Side tag active'
-    side_tag_expired = 'side_tag_expired', 'Side tag expired'
 
 
 class TestGatingStatus(DeclEnum):
@@ -2031,16 +2027,6 @@ class Update(Base):
         nvrs = [x.nvr for x in self.builds]
         builds = " ".join(sorted(nvrs))
         return hashlib.sha1(str(builds).encode('utf-8')).hexdigest()
-
-    @property
-    def side_tag_locked(self):
-        """
-        Return the lock state of the side tag.
-
-        Returns:
-            bool: True if sidetag is locked, False otherwise.
-        """
-        return self.status == UpdateStatus.side_tag_active and self.request is not None
 
     # WARNING: consumers/composer.py assumes that this validation is performed!
     @validates('builds')

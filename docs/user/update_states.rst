@@ -14,14 +14,6 @@ Once submitted to Bodhi, updates move through the following states:
 
 :ref:`stable`: The package has been released to the main updates repository.
 
-:ref:`sidetag-active`: This update represents a side tag whose content can still be modified; i.e. in which packages can still be built.
-
-:ref:`sidetag-active-testing`: This update represents a side tag that has been requested to merge for testing.
-
-:ref:`sidetag-active-stable`: This update represents a side tag that has been requested to go stable.
-
-:ref:`sidetag-expired`: This update represents a side tag whose lifetime has expired and can no longer be modified.
-
 :ref:`obsolete`: The package has been obsoleted by a different update
 
 :ref:`revoked`: The update was removed before it reached the testing or stable repository.
@@ -98,48 +90,6 @@ Stable
 After an update is pushed to the stable repository, it is marked as stable in Bodhi. At this point,
 Bodhi will close associated bugs, and will send out update notices to the appropriate e-mail
 addresses.
-
-
-.. _sidetag-active:
-
-Side_tag_active
-===============
-
-An update can be created as a side tag. This corresponds to the request for a Koji side tag, which is
-a build target used to collect and iterate builds temporarily. This allows builds to be iterated without
-interfering with content in tags that ship to consumers. Once the builds are complete and correct, the
-side tag can then be merged into an existing tag.
-
-
-.. _sidetag-active-testing:
-
-Side_tag_active/Testing
-=======================
-
-The side tag enters this state when it is requested to merge. This happens for example when the
-release requires human feedback and the appropriate waiting period or karma threshold has been
-reached. When the merge completes, the side tag update's state passes to pending testing as with
-any other update.
-
-
-.. _sidetag-active-stable:
-
-Side_tag_active/Stable
-======================
-
-The side tag enters this state when requested to push to stable, for example, when it requests tests
-to be run on builds without human feedback. If the tests pass, Bodhi tries to merge the side tag. If
-that is successful, the update passes to the stable state.
-
-
-.. _sidetag-expired:
-
-Side_tag_expired
-================
-
-A side tag update has a specific lifetime that is set in Bodhi configuration.  After this update's
-lifetime has passed, its state is moved to expired, the underlying update object and all content is
-deleted, and the koji side tag is also deleted.
 
 
 .. _obsolete:
