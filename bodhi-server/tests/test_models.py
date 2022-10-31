@@ -3083,13 +3083,21 @@ class TestUpdate(ModelTest):
         for critpath update with multiple batches.
         """
         with mock.patch.dict('bodhi.server.models.config', {'greenwave_batch_size': 1}):
-            self.obj.critpath = True
+            self.obj.critpath_groups = "core critical-path-apps"
             assert self.obj.greenwave_subject_batch_size == 1
             assert self.obj.greenwave_request_batches(verbose=True) == (
                 [
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing_critpath',
+                        'decision_context': 'bodhi_update_push_testing_critical-path-apps_critpath',
+                        'verbose': True,
+                        'subject': [
+                            {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
+                        ]
+                    },
+                    {
+                        'product_version': 'fedora-11',
+                        'decision_context': 'bodhi_update_push_testing_core_critpath',
                         'verbose': True,
                         'subject': [
                             {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
@@ -3105,7 +3113,15 @@ class TestUpdate(ModelTest):
                     },
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing_critpath',
+                        'decision_context': 'bodhi_update_push_testing_critical-path-apps_critpath',
+                        'verbose': True,
+                        'subject': [
+                            {'item': self.obj.alias, 'type': 'bodhi_update'},
+                        ]
+                    },
+                    {
+                        'product_version': 'fedora-11',
+                        'decision_context': 'bodhi_update_push_testing_core_critpath',
                         'verbose': True,
                         'subject': [
                             {'item': self.obj.alias, 'type': 'bodhi_update'},
@@ -3431,6 +3447,27 @@ class TestUpdate(ModelTest):
             override_tag='dist-fc25-override',
             branch='fc25', version='25')
         assert not update.contains_critpath_component(update.builds, update.release.name)
+
+    def test_critpath_groups(self, critpath_json_config):
+        (tempdir, _) = critpath_json_config
+        config.update({
+            'critpath.type': 'json',
+            'critpath.jsonpath': tempdir
+        })
+        update = self.get_update()
+        update.release = model.Release(
+            name='F36', long_name='Fedora 36',
+            id_prefix='FEDORA', dist_tag='f36',
+            stable_tag='f36-updates',
+            testing_tag='f36-updates-testing',
+            candidate_tag='f36-updates-candidate',
+            pending_signing_tag='f36-updates-testing-signing',
+            pending_testing_tag='f36-updates-testing-pending',
+            pending_stable_tag='f36-updates-pending',
+            override_tag='f36-override',
+            branch='f36', version='36')
+        groups = update.get_critpath_groups(update.builds, update.release.branch)
+        assert groups == "core"
 
     def test_unpush_build(self):
         assert len(self.obj.builds) == 1

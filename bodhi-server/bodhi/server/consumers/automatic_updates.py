@@ -183,6 +183,12 @@ class AutomaticUpdateHandler:
                             closing_bugs.append(bug)
             else:
                 notes = f"Automatic update for {bnvr}."
+            try:
+                critpath_groups = Update.get_critpath_groups([build], rel.branch)
+                critpath = bool(critpath_groups)
+            except ValueError:
+                critpath_groups = None
+                critpath = Update.contains_critpath_component([build], rel.branch)
             update = Update(
                 release=rel,
                 builds=[build],
@@ -194,7 +200,8 @@ class AutomaticUpdateHandler:
                 autokarma=False,
                 user=user,
                 status=UpdateStatus.pending,
-                critpath=Update.contains_critpath_component([build], rel.branch),
+                critpath_groups=critpath_groups,
+                critpath=critpath,
             )
 
             # Comment on the update that it was automatically created.

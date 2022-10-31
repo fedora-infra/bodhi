@@ -834,6 +834,34 @@ class TestNewUpdate(BasePyTestCase):
         assert up['request'] == 'testing'
 
     @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.util.read_critpath_json')
+    @mock.patch.dict(config, [('critpath.type', 'json')])
+    def test_new_edit_update_critpath_groups(self, fakejson, *args):
+        """
+        Ensure that creating a new update and editing it on the grouped
+        critpath data path works.
+        """
+        fakejson.return_value = {'rpm': {'core': ['kernel']}}
+        args = self.get_update('kernel-3.11.5-300.fc17')
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            up = self.app.post_json('/updates/', args).json_body
+
+        assert up['critpath']
+        assert up['critpath_groups'] == "core"
+
+        args['edited'] = up['alias']
+        # just edit anything, it doesn't matter, the point here is to
+        # hit the critpath re-discovery code in the edit codepath
+        args['stable_days'] = '50'
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            ed = self.app.post_json('/updates/', args).json_body
+
+        assert ed['critpath']
+        assert ed['critpath_groups'] == "core"
+
+    @mock.patch(**mock_valid_requirements)
     def test_obsoletion(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -6736,9 +6764,12 @@ class TestGetTestResults(BasePyTestCase):
     def test_get_test_results_calling_greenwave(self, call_api, *args):
         """
         Ensure if all conditions are met we do try to call greenwave with the proper
-        argument.
+        argument for a non-critical-path update, without critical path group
+        support.
         """
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.critpath = False
+        update.critpath_groups = None
         call_api.return_value = {"foo": "bar"}
 
         res = self.app.get(f'/updates/{update.alias}/get-test-results')
@@ -6770,6 +6801,7 @@ class TestGetTestResults(BasePyTestCase):
         """
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         update.critpath = True
+        update.critpath_groups = None
         call_api.return_value = {"foo": "bar"}
 
         res = self.app.get(f'/updates/{update.alias}/get-test-results')
@@ -6793,6 +6825,78 @@ class TestGetTestResults(BasePyTestCase):
         ]
 
         assert res.json_body == {'decisions': [{'foo': 'bar'}, {'foo': 'bar'}]}
+
+    @mock.patch.dict(config, [('greenwave_api_url', 'https://greenwave.api')])
+    @mock.patch('bodhi.server.util.call_api')
+    def test_get_test_results_calling_greenwave_critpath_groups(self, call_api, *args):
+        """
+        Ensure if all conditions are met we do try to call greenwave with the proper
+        arguments for a critical path update when critical path group support
+        is present.
+        """
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.critpath = True
+        update.critpath_groups = 'core critical-path-apps'
+        call_api.return_value = {"foo": "bar"}
+
+        res = self.app.get(f'/updates/{update.alias}/get-test-results')
+
+        assert call_api.call_args_list == [
+            mock.call(
+                'https://greenwave.api/decision',
+                data={
+                    'product_version': 'fedora-17',
+                    'decision_context': context,
+                    'subject': [
+                        {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                        {'item': update.alias, 'type': 'bodhi_update'}
+                    ],
+                    'verbose': True,
+                },
+                method='POST',
+                retries=3,
+                service_name='Greenwave'
+            ) for context in (
+                'bodhi_update_push_testing_critical-path-apps_critpath',
+                'bodhi_update_push_testing_core_critpath',
+                'bodhi_update_push_testing',
+            )
+        ]
+
+        assert res.json_body == {'decisions': [{'foo': 'bar'}, {'foo': 'bar'}, {'foo': 'bar'}]}
+
+    @mock.patch.dict(config, [('greenwave_api_url', 'https://greenwave.api')])
+    @mock.patch('bodhi.server.util.call_api')
+    def test_get_test_results_calling_greenwave_critpath_groups_empty(self, call_api, *args):
+        """
+        Ensure if all conditions are met we do try to call greenwave with the proper
+        arguments for a critical path update when critical path group support
+        is present, but the update is not in any groups.
+        """
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.critpath = False
+        update.critpath_groups = ''
+        call_api.return_value = {"foo": "bar"}
+
+        res = self.app.get(f'/updates/{update.alias}/get-test-results')
+
+        call_api.assert_called_once_with(
+            'https://greenwave.api/decision',
+            data={
+                'product_version': 'fedora-17',
+                'decision_context': 'bodhi_update_push_testing',
+                'subject': [
+                    {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'item': update.alias, 'type': 'bodhi_update'}
+                ],
+                'verbose': True,
+            },
+            method='POST',
+            retries=3,
+            service_name='Greenwave'
+        )
+
+        assert res.json_body == {'decisions': [{'foo': 'bar'}]}
 
     @mock.patch('bodhi.server.util.call_api')
     def test_get_test_results_calling_greenwave_no_session(self, call_api, *args):
