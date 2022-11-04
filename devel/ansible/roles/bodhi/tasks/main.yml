@@ -176,19 +176,21 @@
   args:
       creates: /home/vagrant/.db-imported
 
-- command: cp /home/vagrant/bodhi/devel/development.ini.example /home/vagrant/development.ini
+- command: cp /home/vagrant/bodhi/devel/development.ini.example /home/vagrant/bodhi/bodhi-server/development.ini
   args:
       creates: /home/vagrant/development.ini
 
 - name: adjust the paths in the config
   ini_file:
-    path: /home/vagrant/development.ini
+    path: /home/vagrant/bodhi/bodhi-server/development.ini
     section: app:main
     option: "{{ item.key }}"
     value: "{{ item.value }}"
   loop:
-    - {key: "celery_config", value: "%(here)s/bodhi/bodhi-server/celeryconfig.py"}
-    - {key: "pungi.basepath", value: "%(here)s/bodhi/devel/ci/integration/bodhi/"}
+    - {key: "pungi.basepath", value: "/home/vagrant/bodhi/devel/ci/integration/bodhi/"}
+    - {key: "session.data_dir", value: "/home/vagrant/data/sessions/data"}
+    - {key: "session.lock_dir", value: "/home/vagrant/data/sessions/lock"}
+    - {key: "smtp_server", value: "mail.tinystage.test:1025"}
 
 - name: Creates /etc/bodhi directory
   file:
@@ -203,7 +205,6 @@
       chdir: /home/vagrant/bodhi/bodhi-server
   environment:
       VIRTUAL_ENV: /srv/venv
-
 
 - name: Install the systemd unit files
   copy:

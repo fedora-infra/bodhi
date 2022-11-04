@@ -7,7 +7,7 @@ Wants=network-online.target
 Environment=PYTHONWARNINGS=once VIRTUAL_ENV=/srv/venv
 User=vagrant
 WorkingDirectory=/home/vagrant/bodhi/bodhi-server
-ExecStart=/usr/bin/poetry run pserve /home/vagrant/development.ini --reload
+ExecStart=/usr/bin/poetry run pserve /home/vagrant/bodhi/bodhi-server/development.ini --reload
 
 [Install]
 WantedBy=multi-user.target
