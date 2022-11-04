@@ -53,7 +53,7 @@ class TestCheckPolicies(BaseTaskTestCase):
         """Assert correct behavior when the policies enforced by Greenwave are satisfied"""
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
-        update.critpath = True
+        update.critpath_groups = "core"
         # Clear pending messages
         self.db.info['messages'] = []
         self.db.commit()
@@ -103,7 +103,7 @@ class TestCheckPolicies(BaseTaskTestCase):
                     {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                      'type': 'bodhi_update'}],
                 'verbose': False
-            } for context in ('bodhi_update_push_stable_critpath', 'bodhi_update_push_stable')
+            } for context in ('bodhi_update_push_stable_core_critpath', 'bodhi_update_push_stable')
         ]
         expected_calls = [
             call(config['greenwave_api_url'] + '/decision', query) for query in expected_queries
@@ -116,7 +116,7 @@ class TestCheckPolicies(BaseTaskTestCase):
         greenwave with the ``bodhi_update_push_testing`` decision context. """
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.pending
-        update.critpath = True
+        update.critpath_groups = "core"
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_responses = [
@@ -165,7 +165,9 @@ class TestCheckPolicies(BaseTaskTestCase):
                     {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                      'type': 'bodhi_update'}],
                 'verbose': False,
-            } for context in ('bodhi_update_push_testing_critpath', 'bodhi_update_push_testing')
+            } for context in (
+                'bodhi_update_push_testing_core_critpath', 'bodhi_update_push_testing'
+            )
         ]
         expected_calls = [
             call(config['greenwave_api_url'] + '/decision', query) for query in expected_queries
@@ -180,7 +182,7 @@ class TestCheckPolicies(BaseTaskTestCase):
         """
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
-        update.critpath = True
+        update.critpath_groups = "core"
         # Clear pending messages
         self.db.info['messages'] = []
         update.date_submitted = datetime.datetime.utcnow()
@@ -249,7 +251,7 @@ class TestCheckPolicies(BaseTaskTestCase):
                     {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                      'type': 'bodhi_update'}],
                 'verbose': False
-            } for context in ('bodhi_update_push_stable_critpath', 'bodhi_update_push_stable')
+            } for context in ('bodhi_update_push_stable_core_critpath', 'bodhi_update_push_stable')
         ]
         expected_calls = [
             call(config['greenwave_api_url'] + '/decision', query) for query in expected_queries
@@ -264,7 +266,7 @@ class TestCheckPolicies(BaseTaskTestCase):
         """
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
-        update.critpath = True
+        update.critpath_groups = "core"
         # Clear pending messages
         self.db.info['messages'] = []
         update.date_submitted = datetime.datetime.utcnow() - datetime.timedelta(days=1)
@@ -326,7 +328,8 @@ class TestCheckPolicies(BaseTaskTestCase):
             assert update.comments[-1].text == expected_comment
 
         expected_query = {
-            'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable_critpath',
+            'product_version': 'fedora-17',
+            'decision_context': 'bodhi_update_push_stable_core_critpath',
             'subject': [
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
@@ -350,7 +353,7 @@ class TestCheckPolicies(BaseTaskTestCase):
         """
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
-        update.critpath = True
+        update.critpath_groups = "core"
         update.date_submitted = datetime.datetime.utcnow()
         # Clear pending messages
         self.db.info['messages'] = []
@@ -421,7 +424,7 @@ class TestCheckPolicies(BaseTaskTestCase):
                     {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                      'type': 'bodhi_update'}],
                 'verbose': False
-            } for context in ('bodhi_update_push_stable_critpath', 'bodhi_update_push_stable')
+            } for context in ('bodhi_update_push_stable_core_critpath', 'bodhi_update_push_stable')
         ]
         expected_calls = [
             call(config['greenwave_api_url'] + '/decision', query) for query in expected_queries
@@ -467,6 +470,9 @@ class TestCheckPolicies(BaseTaskTestCase):
         update.status = models.UpdateStatus.testing
         # Clear pending messages
         self.db.info['messages'] = []
+        # note: this test is intentionally on the 'older' codepath using
+        # non-grouped critpath info to ensure that path works.
+        update.critpath_groups = None
         update.critpath = True
         update.pushed = True
         self.db.commit()

@@ -2,10 +2,7 @@
 branch = True
 source = bodhi
 omit =
-    bodhi/scripts/*
-    bodhi/server/static/__init__.py
-    bodhi/tests/*
-    bodhi/server/migrations/*
+    tests/*
 
 [report]
 precision = 2

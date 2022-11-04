@@ -76,19 +76,21 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
     # Test the main code paths.
 
-    @pytest.mark.parametrize('critpath', (True, False))
-    @mock.patch('bodhi.server.models.Update.contains_critpath_component')
-    def test_consume(self, contains, critpath, caplog):
+    @pytest.mark.parametrize('critpath', (True, False, "groups"))
+    def test_consume(self, critpath, caplog):
         """Assert that messages about tagged builds create an update."""
         caplog.set_level(logging.DEBUG)
 
-        # The following is a really dirty hack
-        # We can't better mock things because 'util.get_critpath_components' uses a custom
-        # wrapper to "memoize" values that causes leakage between tests
-        contains.return_value = critpath
-
-        # process the message
-        self.handler(self.sample_message)
+        if critpath is True:
+            with mock.patch.dict(config, [('critpath_pkgs', ['colord'])]):
+                self.handler(self.sample_message)
+        elif critpath is False:
+            self.handler(self.sample_message)
+        elif critpath == "groups":
+            with mock.patch.dict(config, [('critpath.type', 'json')]):
+                with mock.patch('bodhi.server.util.read_critpath_json') as fakejson:
+                    fakejson.return_value = {'rpm': {'core': ['colord']}}
+                    self.handler(self.sample_message)
 
         # check if the update exists...
         update = self.db.query(Update).join(Build).filter(
@@ -106,6 +108,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
             assert update.critpath == True
         else:
             assert update.critpath == False
+        if critpath == "groups":
+            assert update.critpath_groups == "core"
 
         expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
         assert update.user and update.user.name == expected_username

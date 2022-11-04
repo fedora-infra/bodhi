@@ -189,6 +189,41 @@ class memoized(object):
         return functools.partial(self.__call__, obj)
 
 
+def get_grouped_critpath_components(collection='master', component_type='rpm', components=None):
+    """
+    Return a dictionary of critical path components by group for a given collection.
+
+    Args:
+        collection (str): The collection/branch to search. Defaults to 'master'.
+        component_type (str): The component type to search for. This only affects PDC
+            queries. Defaults to 'rpm'.
+        components (frozenset or None): The list of components we are interested in. If None (the
+            default), all components for the given collection and type are returned.
+    Returns:
+        dict: The critpath components for the given collection and type, by group.
+    Raises:
+        ValueError: if the configured critpath.type does not support groups.
+    """
+    critpath_type = config.get('critpath.type')
+    if critpath_type != 'json':
+        raise ValueError(f'critpath.type {critpath_type} does not support groups')
+    critpath_components = {}
+    try:
+        critpath_components = read_critpath_json(collection).get(component_type, {})
+    except FileNotFoundError:
+        log.warning(f'No JSON file found for collection {collection}')
+    except json.JSONDecodeError:
+        log.warning(f'JSON file for collection {collection} is invalid')
+    if components and critpath_components:
+        filtered_dict = defaultdict(list)
+        for (group, groupcomps) in critpath_components.items():
+            filteredcomps = [gcomp for gcomp in groupcomps if gcomp in components]
+            if filteredcomps:
+                filtered_dict[group].extend(filteredcomps)
+        critpath_components = dict(filtered_dict)
+    return critpath_components
+
+
 def get_critpath_components(collection='master', component_type='rpm', components=None):
     """
     Return a list of critical path packages for a given collection, filtered by components.
@@ -1315,3 +1350,19 @@ def json_escape(text: str) -> str:
         Escaped text.
     """
     return text.replace('"', '\\"')
+
+
+def build_names_by_type(builds: list) -> defaultdict:
+    """Produce a dict of package names by type from a list of builds.
+
+    Args:
+        builds (list): The list of builds to parse.
+    Returns:
+        defaultdict: A dict with package types as keys and lists of names as values.
+    """
+    components = defaultdict(list)
+    for build in builds:
+        ptype = build.package.type.value
+        pname = build.package.name
+        components[ptype].append(pname)
+    return components

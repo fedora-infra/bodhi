@@ -3,7 +3,7 @@
 
 
 % if not request.user:
-<div class="jumbotron jumbotron-fluid subheader">
+<div class="subheader py-5 mb-2">
     <div class="container">
       <div class="row">
           <div class="col">
@@ -13,7 +13,7 @@
         </div>
       </div>
       <div class="row mt-4">
-        <div class="col text-right">
+        <div class="col text-end">
             <div class="btn-group">
                 <a href="${request.route_url('releases')}" class="btn btn-outline-primary">Browse Releases</a>
                 <a href="${request.route_url('updates')}" class="btn btn-outline-primary">Browse Updates</a>
@@ -33,10 +33,10 @@
     <div class="container">
         <div class="row py-4">
             <div class="col-12">
-                <h5 class="font-weight-bold d-flex align-items-center">My Active Updates<a class="btn btn-outline-primary btn-sm ml-auto py-0" href="${request.route_url('new_update')}"><i class="fa fa-plus pr-2"></i>New Update</a></h5>
+                <h6 class="fw-bold d-flex justify-content-between">My Active Updates<a class="btn btn-outline-primary btn-sm ms-auto py-0" href="${request.route_url('new_update')}"><i class="fa fa-plus pe-2"></i>New Update</a></h5>
                     <div class="list-group">
                         %if not active_updates:
-                        <div class="list-group-item py-4 text-center text-muted font-weight-bold">
+                        <div class="list-group-item py-4 text-center text-muted fw-bold">
                           <p>You have no updates in pending or testing</p>
                           <p><a href="${request.route_url('updates')}?user=${request.user.name}" class="font-size-09">view all your updates</a></p>
                         </div>
@@ -50,10 +50,10 @@
         </div>
         <div class="row py-4">
             <div class="col-12">
-                <h5 class="font-weight-bold d-flex align-items-center">My Active Overrides<a class="btn btn-outline-primary btn-sm ml-auto py-0" href="${request.route_url('new_override')}"><i class="fa fa-plus pr-2"></i>New Override</a></h5>
+                <h6 class="fw-bold d-flex justify-content-between">My Active Overrides<a class="btn btn-outline-primary btn-sm ms-auto py-0" href="${request.route_url('new_override')}"><i class="fa fa-plus pe-2"></i>New Override</a></h5>
                     <div class="list-group">
                       %if not active_overrides:
-                      <div class="list-group-item py-4 text-center text-muted font-weight-bold">
+                      <div class="list-group-item py-4 text-center text-muted fw-bold">
                           <p>You have no active buildroot overrides</p>
                           <p><a href="${request.route_url('overrides')}?user=${request.user.name}" class="font-size-09">view all your overrides</a></p>
                         
@@ -87,7 +87,7 @@
 <hr class="my-4"/>
   <div class="row py-4">
     <div class="col-6">
-        <h5 class="font-weight-bold">Active Testers</h5>
+        <h6 class="fw-bold">Active Testers</h5>
             <div class="list-group">
                 % for tester, count in top_testers:
                 <div class="list-group-item">
@@ -95,13 +95,13 @@
                       <img class="rounded-circle" src="${self.util.avatar(tester['name'], size=24)}" alt="User Icon"/>
                       ${tester['name']}
                     </a>
-                  <div class="float-right">${str(count)} comments</div>
+                  <div class="float-end">${str(count)} comments</div>
                 </div>
                 % endfor
             </div>
     </div>
     <div class="col-6">
-          <h5 class="font-weight-bold">Active Packagers</h5>
+          <h6 class="fw-bold">Active Packagers</h5>
           <div class="list-group">
               % for tester, count in top_packagers:
               <div class="list-group-item">
@@ -109,7 +109,7 @@
                     <img class="rounded-circle" src="${self.util.avatar(tester['name'], size=24)}" alt="User Icon"/>
                     ${tester['name']}
                   </a>
-                <div class="float-right">${str(count)} updates</div>
+                <div class="float-end">${str(count)} updates</div>
               </div>
               % endfor
           </div>

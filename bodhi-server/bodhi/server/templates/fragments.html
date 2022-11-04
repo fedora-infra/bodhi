@@ -5,7 +5,7 @@
   Return a span with the karma thumbsup icon, and an optional count of the karma.
 
   Example:
-  <span><i class="fa fa-thumbs-o-up text-success pr-1"></i>3</span>
+  <span><i class="fa fa-thumbs-o-up text-success pe-1"></i>3</span>
 
   Args:
       karma (int): The amount of karma
@@ -25,19 +25,19 @@
       <sup class="text-success"><i class="fa fa-thumbs-up"></i></sup>
       % endif
     % endif
-    <i class="fa fa-thumbs-down pr-1"></i>
+    <i class="fa fa-thumbs-down pe-1"></i>
   % elif karma > 0:
   <span class="text-success">
     % if show_details:
     <span class="min-width-3 d-inline-block text-center">
       % if show_details[1] < 0:
       <i class="fa fa-thumbs-up"></i>
-      <sub class="text-danger"><i class="fa fa-thumbs-down pr-1"></i></sub>
+      <sub class="text-danger"><i class="fa fa-thumbs-down pe-1"></i></sub>
       % else:
-      <i class="fa fa-thumbs-up pr-1"></i>
+      <i class="fa fa-thumbs-up pe-1"></i>
       % endif
     % else:
-    <i class="fa fa-thumbs-up pr-1"></i>
+    <i class="fa fa-thumbs-up pe-1"></i>
     % endif
   % else:
   <span class="text-muted">
@@ -46,11 +46,11 @@
     % endif
     % if show_details and show_details != (0,0):
       <sup class="text-success"><i class="fa fa-thumbs-up"></i></sup>
-      <sub class="text-danger"><i class="fa fa-thumbs-down pr-1"></i></sub>
+      <sub class="text-danger"><i class="fa fa-thumbs-down pe-1"></i></sub>
     % elif zero_thumbsup:
-      <i class="fa fa-thumbs-up text-muted pr-1"></i>
+      <i class="fa fa-thumbs-up text-muted pe-1"></i>
     % else:
-      <i class="fa fa-thumbs-down text-muted pr-1"></i>
+      <i class="fa fa-thumbs-down text-muted pe-1"></i>
     % endif
   %endif
     % if show_details:
@@ -95,9 +95,9 @@ ${statusmap[status]}\
 </%def>
 
 <%def name="status_text(update)">
-  <span class="font-weight-bold">${update.status.value}</span>
+  <span class="fw-bold">${update.status.value}</span>
   % if update.request:
-    <span title="this update has been requested to ${update.request.value}" data-toggle="tooltip"><i class="fa fa-arrow-right text-white"></i> ${update.request.value}</span>
+    <span title="this update has been requested to ${update.request.value}" data-bs-toggle="tooltip"><i class="fa fa-arrow-right text-white"></i> ${update.request.value}</span>
   % endif
 </%def>
 
@@ -109,8 +109,8 @@ ${statusmap[status]}\
         <div class="col-12 text-muted font-size-09">
           <div class="d-flex p-2 align-items-top">
             <i class="fa fa-info-circle pt-2"></i>
-            <div class="font-weight-bold">${util.markup(comment.text, bodhi=False) | n}</div>
-            <a href="${comment.url()}" class="notblue pt-1 ml-auto text-nowrap" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
+            <div class="fw-bold">${util.markup(comment.text, bodhi=False) | n}</div>
+            <a href="${comment.url()}" class="notblue pt-1 ms-auto text-nowrap" data-bs-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
               ${util.age(comment.timestamp)}
             </a>
           </div>
@@ -128,7 +128,7 @@ ${statusmap[status]}\
         <div class="row no-gutters">
           <div class="col font-size-09">
           % if comment.user:
-          <a href="${request.route_url('user', name=comment.user.name)}" class="font-weight-bold notblue">
+          <a href="${request.route_url('user', name=comment.user.name)}" class="fw-bold notblue">
             <img src="${util.avatar(comment.user.name, size=16)}" alt="User Icon"/>
             ${comment.user.name}
           </a>
@@ -147,13 +147,13 @@ ${statusmap[status]}\
               on ${comment.update.get_title(', ', 1, ", &hellip;") | n}
             </a>
           % endif
-          <a href="${comment.url()}" class="notblue" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
+          <a href="${comment.url()}" class="notblue" data-bs-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
               ${util.age(comment.timestamp)}
             </a>
           </div>
           <div class="col-auto">
         % if comment.karma:
-        <span class="font-size-09 font-weight-bold"> ${karma(comment.karma, optional_text="karma")}</span>
+        <span class="font-size-09 fw-bold"> ${karma(comment.karma, optional_text="karma")}</span>
         % endif
           </div>
       </div>
@@ -182,14 +182,14 @@ ${statusmap[status]}\
         <div class="list-group list-group-flush font-size-09 border-top">
           % for feedback in comment.bug_feedback:
           % if feedback.karma:
-          <div class="list-group-item border-0 p-1 pl-2 bg-light ${'list-group-item-success' if feedback.karma == 1 else 'list-group-item-danger'}">${karma(feedback.karma)} ${util.bug_link(feedback.bug) | n}</div>
+          <div class="list-group-item border-0 p-1 ps-2 bg-light ${'list-group-item-success' if feedback.karma == 1 else 'list-group-item-danger'}">${karma(feedback.karma)} ${util.bug_link(feedback.bug) | n}</div>
           % endif
           % endfor
 
           % if comment.testcase_feedback:
             % for feedback in comment.unique_testcase_feedback:
             % if feedback.karma:
-            <div class="list-group-item border-0 p-1 pl-2 bg-light ${'list-group-item-success' if feedback.karma == 1 else 'list-group-item-danger'}">${karma(feedback.karma)} ${util.testcase_link(feedback.testcase) | n}</div>
+            <div class="list-group-item border-0 p-1 ps-2 bg-light ${'list-group-item-success' if feedback.karma == 1 else 'list-group-item-danger'}">${karma(feedback.karma)} ${util.testcase_link(feedback.testcase) | n}</div>
             % endif
             % endfor
           % endif
@@ -208,10 +208,12 @@ ${statusmap[status]}\
   <div class="list-group-item p-1">
       <div class="row align-items-center no-gutters">
           <div class="col-md mb-1 mb-md-0">
-              <div class="media">
-                  ${util.type2icon(update['type'])|n}
-                  <div class="media-body ml-2">
-                      <div class="font-weight-bold">
+              <div class="d-flex align-items-center">
+                  <div class="flex-shrink-0">
+                    ${util.type2icon(update['type'])|n}
+                  </div>
+                  <div class="flex-grow-1 ms-2">
+                      <div class="fw-bold">
                         <a href="${request.route_url('update', id=update['alias'])}">
                         ${update.get_title(amp=True,nvr=True,beautify=True) | h}
                         </a>
@@ -230,18 +232,18 @@ ${statusmap[status]}\
                   </div>
               </div>
             </div>
-            <div class="col-auto mr-3 mr-md-0">
+            <div class="col-auto me-3 me-md-0">
                 <div>
-                  <span class="mr-3 font-size-09 p-1 font-weight-normal badge badge-${status_context(update.status.value)}">${status_text(update)}</span>
+                  <span class="me-3 font-size-09 p-1 fw-normal badge text-bg-${status_context(update.status.value)}">${status_text(update)}</span>
                 </div>
             </div>
             %if display_commentcount:
-              <div class="col-auto text-muted min-width-3 font-weight-bold mr-3">
-                  <div><i class="fa fa-comment-o pr-1"></i> ${sum(1 for c in update.comments if c.user.name != 'bodhi')}</div>
+              <div class="col-auto text-muted min-width-3 fw-bold me-3">
+                  <div><i class="fa fa-comment-o pe-1"></i> ${sum(1 for c in update.comments if c.user.name != 'bodhi')}</div>
               </div>
             %endif
             %if display_karma:
-            <div class="col-auto min-width-5 font-weight-bold mr-3">
+            <div class="col-auto min-width-5 fw-bold me-3">
                 <div>${karma(update.karma, show_digit=True, show_details=update._composite_karma)}</div>
             </div>
             %endif
@@ -250,32 +252,34 @@ ${statusmap[status]}\
 </%def>
 
 <%def name="override(override, display_user=True)">
-<div class="list-group-item p-1">
-  <div class="row align-items-center no-gutters">
-    <div class="col pl-2">
-        <div class="font-weight-bold">
-            <a href="${request.route_url('override', nvr=override['build']['nvr'])}">
-                ${override['build']['nvr']}
-              </a>
-          </div>
-          <div>
-            <small>created 
+<div class="list-group-item">
+  <div class="d-flex flex-row flex-wrap justify-content-between align-items-center">
+    <div class="flex-grow-1 me-2">
+        <div class="fw-bold">
+          <a href="${request.route_url('override', nvr=override['build']['nvr'])}">
+            ${override['build']['nvr']}
+          </a>
+        </div>
+        <div>
+          <small>created
               %if display_user:
               by
                 <a href="${request.route_url('user', name=override['submitter']['name'])}">
                   ${override['submitter']['name']}
                 </a>
               %endif
-              <span title="${override['submission_date']} UTC"> ${util.age(override['submission_date'])} </span>
-              for <a href="${request.route_url('release', name=override['build']['release']['name'])}">${override['build']['release']['long_name']}
-              </a></small>
-          </div>
-      </div>
-    % if override['expired_date'] is None:
-          <div class='col-xs-auto pr-2 text-muted'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></div>
-    % else:
-          <div class='col-xs-auto pr-2 text-muted'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></div>
-    % endif
+            <span title="${override['submission_date']} UTC"> ${util.age(override['submission_date'])} </span>
+              for <a href="${request.route_url('release', name=override['build']['release']['name'])}">${override['build']['release']['long_name']}</a>
+          </small>
+        </div>
+    </div>
+    <div class="flex-shrink-0">
+      % if override['expired_date'] is None:
+      <div class='col-xs-auto pe-2 text-muted'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></div>
+      % else:
+      <div class='col-xs-auto pe-2 text-muted'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></div>
+      % endif
+    </div>
   </div>
 </div>
 </%def>
@@ -285,7 +289,7 @@ ${statusmap[status]}\
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           <h4 class="modal-title" id="markdown-help-label">Fedora-Flavored Markdown</h4>
         </div>
         <div class="modal-body">

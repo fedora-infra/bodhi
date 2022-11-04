@@ -1,0 +1,19 @@
+[run]
+branch = True
+source = bodhi
+omit =
+    bodhi/server/scripts/*
+    bodhi/server/static/__init__.py
+    tests/*
+    bodhi/server/migrations/*
+
+[report]
+precision = 2
+fail_under = 98
+exclude_lines =
+    pragma: no cover
+    class DevBuildsys
+    def __repr__
+    def multicall_enabled
+    if __name__ == .__main__.:
+show_missing = True
