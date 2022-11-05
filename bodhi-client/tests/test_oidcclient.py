@@ -3,6 +3,7 @@ import time
 
 from authlib.integrations.base_client.errors import OAuthError
 from click import ClickException
+from click.exceptions import Abort
 import pytest
 import requests
 
@@ -250,7 +251,7 @@ def test_oidcclient_login_no_oob_failure(mocker, client):
 def test_oidcclient_login_interrupted(mocker, client):
     oauth2client = mocker.Mock()
     client.client = oauth2client
-    mocker.patch("bodhi.client.oidcclient.click.prompt", side_effect=KeyboardInterrupt)
+    mocker.patch("bodhi.client.oidcclient.click.prompt", side_effect=Abort)
     # Enable OOB
     client.metadata = {
         "token_endpoint": "http://id.example.com/token",
@@ -258,7 +259,7 @@ def test_oidcclient_login_interrupted(mocker, client):
         "response_modes_supported": ["oob"]
     }
     oauth2client.create_authorization_url.return_value = ("auth-url", "state")
-    with pytest.raises(ClickException) as exc:
+    with pytest.raises(SystemExit) as exc:
         client.login()
     oauth2client.fetch_token.assert_not_called()
     assert str(exc.value) == "Cancelled."

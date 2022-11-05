@@ -168,8 +168,10 @@ class OIDCClient:
                             "Paste here the code that you got after logging in", fg="yellow"
                         )
                     )
-                except KeyboardInterrupt:
-                    raise click.ClickException("Cancelled.")
+                except click.exceptions.Abort:
+                    # Raise a generic exception for friendliness to outside scripts
+                    # that don't want to import click
+                    raise SystemExit("Cancelled.")
                 try:
                     self.auth_callback(f"?{value}")
                 except OAuthError as e:
