@@ -1,0 +1,1 @@
+Bodhi-client now raises a generic `SysExit` exception instead of `click.exceptions.Abort` when a user aborts authentication, so external scripts can avoid importing Click in their code

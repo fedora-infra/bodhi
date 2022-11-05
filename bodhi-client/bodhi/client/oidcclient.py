@@ -169,8 +169,10 @@ class OIDCClient:
                         ),
                         hide_input=True,
                     )
-                except KeyboardInterrupt:
-                    raise click.ClickException("Cancelled.")
+                except click.exceptions.Abort:
+                    # Raise a generic exception for friendliness to outside scripts
+                    # that don't want to import click
+                    raise SystemExit("Cancelled.")
                 try:
                     self.auth_callback(f"?{value}")
                 except OAuthError as e:
