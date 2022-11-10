@@ -6,6 +6,9 @@
             <h3 class="fw-bold m-0"><a href="${request.route_url('releases')}">Releases</a>
               <span class="text-muted">/</span> 
               ${release['long_name']}
+              % if release.state.value == 'frozen':
+              ${self.fragments.frozen_badge()}
+              % endif
             </h3>
         </div>
       </div>
@@ -213,6 +216,13 @@
 <%block name="javascript">
 ${parent.javascript()}
 <script src="${request.static_url('bodhi.server:static/vendor/chartjs/chart.min.js')}"></script>
+
+<script>
+  $(document).ready(function() {
+    // Initialize tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip()
+  });
+</script>
 
 <script type="text/javascript">
   $(document).ready(function() {

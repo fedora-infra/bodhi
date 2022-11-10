@@ -265,7 +265,8 @@ def query_releases_html(request):
 
     release_updates_counts = {}
     releases = Release.all_releases()
-    for release in releases['current'] + releases['pending'] + releases['archived']:
+    for release in (releases['current'] + releases['pending'] + releases['archived']
+                    + releases['frozen']):
         release_updates_counts[release["name"]] = get_update_counts(release["name"])
 
     return {"release_updates_counts": release_updates_counts}
