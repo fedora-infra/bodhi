@@ -212,7 +212,7 @@ if can_edit and update.release.composed_by_bodhi:
           <div id="new_comment">
           <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
           <input type="hidden" name="update" value="${update.alias}"/>
-          <div class="card mt-5">
+          <div class="card mt-5 mb-3">
               <div class="card-header pb-0 pt-1 pe-0 bg-light">
                 <div class="row">
                   <div class="col pe-0">
@@ -313,7 +313,7 @@ if can_edit and update.release.composed_by_bodhi:
             </div>
           </div>
           % else:
-          <div class="alert alert-secondary bg-light mt-5 text-center text-muted">
+          <div class="alert alert-secondary bg-light mt-5 mb-3 text-center text-muted">
             <p>
             % if request.matched_route:
               Please <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
@@ -325,7 +325,18 @@ if can_edit and update.release.composed_by_bodhi:
           %endif
         </div>
         <div class="col-md-3 font-size-09">
-            <div class="mt-3">
+            <div>
+              % if update.release.state == models.ReleaseState.frozen and (update.status == models.UpdateStatus.pending or update.status == models.UpdateStatus.testing):
+              <div class="card border-info mb-1">
+                <div class="card-header text-bg-info h5 fw-bold">
+                  Frozen release
+                </div>
+                <div class="card-body">
+                  This update will not be pushed to stable until freeze is lifted from ${update.release.long_name}.
+                </div>
+              </div>
+              % endif
+
               <div class="h5 d-flex align-items-center fw-bold border-bottom">
                   <div class="py-2 text-uppercase font-size-09">Metadata</div>
               </div>

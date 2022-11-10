@@ -6037,6 +6037,42 @@ class TestUpdatesService(BasePyTestCase):
         assert update.days_to_stable == 0
         assert update.meets_testing_requirements is True
 
+    @unused_mock_patch(**mock_valid_requirements)
+    @pytest.mark.parametrize('update_status',
+                             [pytest.param(UpdateStatus.pending, id='pending_update'),
+                              pytest.param(UpdateStatus.testing, id='testing_update'),
+                              pytest.param(UpdateStatus.stable, id='stable_update')])
+    @pytest.mark.parametrize('release_state',
+                             [pytest.param(ReleaseState.frozen, id='frozen_release'),
+                              pytest.param(ReleaseState.pending, id='pending_release')])
+    def test_frozen_release_html(self, update_status, release_state):
+        """
+        Assert that the "Frozen release" warning is showed when appropriate.
+        """
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
+        update = Update.get(resp.json['alias'])
+        update.status = update_status
+        release = update.release
+        release.state = release_state
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
+
+        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
+
+        assert 'text/html' in resp.headers['Content-Type']
+        assert nvr in resp
+        if update_status != UpdateStatus.stable and release_state == ReleaseState.frozen:
+            assert ('This update will not be pushed to stable until freeze is lifted '
+                    f'from {release.long_name}.') in resp
+        else:
+            assert ('This update will not be pushed to stable until freeze is lifted '
+                    f'from {release.long_name}.') not in resp
+
 
 class TestWaiveTestResults(BasePyTestCase):
     """
