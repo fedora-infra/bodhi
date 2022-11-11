@@ -3565,6 +3565,20 @@ path package.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.server.models.Update.critpath_groups">
+<span class="sig-name descname"><span class="pre">critpath_groups</span></span><a class="headerlink" href="#bodhi.server.models.Update.critpath_groups" title="Permalink to this definition">¶</a></dt>
+<dd><p>Space-separated list of critical path groups the package(s)
+in this update are members of. More detailed version of critpath. Empty string
+means “no groups” (same as critpath=False); None/null means “feature not supported”
+(i.e. the configured critpath.type doesn’t give grouped critpath info).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.server.models.Update.close_bugs">
 <span class="sig-name descname"><span class="pre">close_bugs</span></span><a class="headerlink" href="#bodhi.server.models.Update.close_bugs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Indicates whether the Bugzilla bugs that this update is related
@@ -4113,6 +4127,30 @@ only bug ids.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="bodhi.server.models.Update.get_critpath_groups">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_critpath_groups</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">builds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">release_branch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.get_critpath_groups"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.get_critpath_groups" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine which (if any) critpath groups the builds passed in are part of.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>builds</strong> (<em>list</em>) – <a class="reference internal" href="#bodhi.server.models.Build" title="bodhi.server.models.Build"><code class="xref py py-class docutils literal notranslate"><span class="pre">Builds</span></code></a> to be considered.</p></li>
+<li><p><strong>release_branch</strong> (<em>str</em>) – The name of the git branch associated to the release,
+such as “f25” or “master”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A space-separated list of the critpath groups. Will be empty if none.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the configured critpath.type does not list by group.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="bodhi.server.models.Update.get_maintainers">
 <span class="sig-name descname"><span class="pre">get_maintainers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.get_maintainers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.get_maintainers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of maintainers who have commit access on the packages in this update.</p>
@@ -4600,20 +4638,6 @@ UpdateRequest instance, or as a string describing the desired request.</p></li>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="bodhi.server.models.Update.side_tag_locked">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">side_tag_locked</span></span><a class="headerlink" href="#bodhi.server.models.Update.side_tag_locked" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the lock state of the side tag.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True if sidetag is locked, False otherwise.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
 <dt class="sig sig-object py" id="bodhi.server.models.Update.signed">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">signed</span></span><a class="headerlink" href="#bodhi.server.models.Update.signed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether the update is considered signed or not.</p>
@@ -5002,28 +5026,6 @@ will be waived, otherwise only the testcase found in both list will be waived.</
 <dt class="sig sig-object py" id="bodhi.server.models.UpdateStatus.obsolete">
 <span class="sig-name descname"><span class="pre">obsolete</span></span><a class="headerlink" href="#bodhi.server.models.UpdateStatus.obsolete" title="Permalink to this definition">¶</a></dt>
 <dd><p>The update has been obsoleted by another update.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#bodhi.server.models.EnumSymbol" title="bodhi.server.models.EnumSymbol">EnumSymbol</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="bodhi.server.models.UpdateStatus.side_tag_active">
-<span class="sig-name descname"><span class="pre">side_tag_active</span></span><a class="headerlink" href="#bodhi.server.models.UpdateStatus.side_tag_active" title="Permalink to this definition">¶</a></dt>
-<dd><p>The update’s side tag is currently active.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#bodhi.server.models.EnumSymbol" title="bodhi.server.models.EnumSymbol">EnumSymbol</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="bodhi.server.models.UpdateStatus.side_tag_expired">
-<span class="sig-name descname"><span class="pre">side_tag_expired</span></span><a class="headerlink" href="#bodhi.server.models.UpdateStatus.side_tag_expired" title="Permalink to this definition">¶</a></dt>
-<dd><p>The update’s side tag has expired.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#bodhi.server.models.EnumSymbol" title="bodhi.server.models.EnumSymbol">EnumSymbol</a></p>

@@ -111,10 +111,12 @@
 <span class="kn">from</span> <span class="nn">bodhi.server.util</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">build_evr</span><span class="p">,</span>
     <span class="n">get_critpath_components</span><span class="p">,</span>
+    <span class="n">get_grouped_critpath_components</span><span class="p">,</span>
     <span class="n">get_rpm_header</span><span class="p">,</span>
     <span class="n">header</span><span class="p">,</span>
     <span class="n">pagure_api_get</span><span class="p">,</span>
     <span class="n">tokenize</span><span class="p">,</span>
+    <span class="n">build_names_by_type</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -645,17 +647,13 @@
 <span class="sd">        stable (EnumSymbol): The update is in the stable repository.</span>
 <span class="sd">        unpushed (EnumSymbol): The update had been in a testing repository, but has been removed.</span>
 <span class="sd">        obsolete (EnumSymbol): The update has been obsoleted by another update.</span>
-<span class="sd">        side_tag_active (EnumSymbol): The update&#39;s side tag is currently active.</span>
-<span class="sd">        side_tag_expired (EnumSymbol): The update&#39;s side tag has expired.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">pending</span> <span class="o">=</span> <span class="s1">&#39;pending&#39;</span><span class="p">,</span> <span class="s1">&#39;pending&#39;</span>
     <span class="n">testing</span> <span class="o">=</span> <span class="s1">&#39;testing&#39;</span><span class="p">,</span> <span class="s1">&#39;testing&#39;</span>
     <span class="n">stable</span> <span class="o">=</span> <span class="s1">&#39;stable&#39;</span><span class="p">,</span> <span class="s1">&#39;stable&#39;</span>
     <span class="n">unpushed</span> <span class="o">=</span> <span class="s1">&#39;unpushed&#39;</span><span class="p">,</span> <span class="s1">&#39;unpushed&#39;</span>
-    <span class="n">obsolete</span> <span class="o">=</span> <span class="s1">&#39;obsolete&#39;</span><span class="p">,</span> <span class="s1">&#39;obsolete&#39;</span>
-    <span class="n">side_tag_active</span> <span class="o">=</span> <span class="s1">&#39;side_tag_active&#39;</span><span class="p">,</span> <span class="s1">&#39;Side tag active&#39;</span>
-    <span class="n">side_tag_expired</span> <span class="o">=</span> <span class="s1">&#39;side_tag_expired&#39;</span><span class="p">,</span> <span class="s1">&#39;Side tag expired&#39;</span></div>
+    <span class="n">obsolete</span> <span class="o">=</span> <span class="s1">&#39;obsolete&#39;</span><span class="p">,</span> <span class="s1">&#39;obsolete&#39;</span></div>
 
 
 <div class="viewcode-block" id="TestGatingStatus"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestGatingStatus">[docs]</a><span class="k">class</span> <span class="nc">TestGatingStatus</span><span class="p">(</span><span class="n">DeclEnum</span><span class="p">):</span>
@@ -1918,6 +1916,10 @@
 <span class="sd">            :class:`Package`. Critical path packages are packages that are required for</span>
 <span class="sd">            basic functionality. For example, the kernel :class:`RpmPackage` is a critical</span>
 <span class="sd">            path package.</span>
+<span class="sd">        critpath_groups (str): Space-separated list of critical path groups the package(s)</span>
+<span class="sd">            in this update are members of. More detailed version of critpath. Empty string</span>
+<span class="sd">            means &quot;no groups&quot; (same as critpath=False); None/null means &quot;feature not supported&quot;</span>
+<span class="sd">            (i.e. the configured critpath.type doesn&#39;t give grouped critpath info).</span>
 <span class="sd">        close_bugs (bool): Indicates whether the Bugzilla bugs that this update is related</span>
 <span class="sd">            to should be closed automatically when the update is pushed to stable.</span>
 <span class="sd">        date_submitted (DateTime): The date that the update was created.</span>
@@ -1977,6 +1979,7 @@
     <span class="n">locked</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">pushed</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">critpath</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">critpath_groups</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Bug settings</span>
     <span class="n">close_bugs</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -2059,16 +2062,6 @@
         <span class="n">nvrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">nvr</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">builds</span><span class="p">]</span>
         <span class="n">builds</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">nvrs</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">builds</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">side_tag_locked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the lock state of the side tag.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            bool: True if sidetag is locked, False otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">side_tag_active</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
     <span class="c1"># WARNING: consumers/composer.py assumes that this validation is performed!</span>
 <div class="viewcode-block" id="Update.validate_builds"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.validate_builds">[docs]</a>    <span class="nd">@validates</span><span class="p">(</span><span class="s1">&#39;builds&#39;</span><span class="p">)</span>
@@ -2196,6 +2189,31 @@
 
         <span class="k">return</span> <span class="n">comments_since_karma_reset</span>
 
+<div class="viewcode-block" id="Update.get_critpath_groups"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_critpath_groups">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_critpath_groups</span><span class="p">(</span><span class="n">builds</span><span class="p">,</span> <span class="n">release_branch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determine which (if any) critpath groups the builds passed in are part of.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            builds (list): :class:`Builds &lt;Build&gt;` to be considered.</span>
+<span class="sd">            release_branch (str): The name of the git branch associated to the release,</span>
+<span class="sd">                such as &quot;f25&quot; or &quot;master&quot;.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: A space-separated list of the critpath groups. Will be empty if none.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the configured critpath.type does not list by group.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="n">build_names_by_type</span><span class="p">(</span><span class="n">builds</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">ptype</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
+            <span class="n">groups</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="n">get_grouped_critpath_components</span><span class="p">(</span>
+                    <span class="n">release_branch</span><span class="p">,</span> <span class="n">ptype</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">components</span><span class="p">[</span><span class="n">ptype</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Update.contains_critpath_component"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.contains_critpath_component">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">contains_critpath_component</span><span class="p">(</span><span class="n">builds</span><span class="p">,</span> <span class="n">release_branch</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2210,12 +2228,7 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            RuntimeError: If the PDC did not give us a 200 code.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">components</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
-        <span class="c1"># Get the mess down to a dict of ptype -&gt; [pname]</span>
-        <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="n">builds</span><span class="p">:</span>
-            <span class="n">ptype</span> <span class="o">=</span> <span class="n">build</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">value</span>
-            <span class="n">pname</span> <span class="o">=</span> <span class="n">build</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">name</span>
-            <span class="n">components</span><span class="p">[</span><span class="n">ptype</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pname</span><span class="p">)</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="n">build_names_by_type</span><span class="p">(</span><span class="n">builds</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">ptype</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">get_critpath_components</span><span class="p">(</span><span class="n">release_branch</span><span class="p">,</span> <span class="n">ptype</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">components</span><span class="p">[</span><span class="n">ptype</span><span class="p">])):</span>
@@ -2250,13 +2263,12 @@
         <span class="n">subjects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">greenwave_subject</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">while</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">subjects</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">context</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_greenwave_decision_contexts</span><span class="p">:</span>
-                <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-                    <span class="s1">&#39;product_version&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_version</span><span class="p">,</span>
-                    <span class="s1">&#39;decision_context&#39;</span><span class="p">:</span> <span class="n">context</span><span class="p">,</span>
-                    <span class="s1">&#39;subject&#39;</span><span class="p">:</span> <span class="n">subjects</span><span class="p">[</span><span class="n">count</span><span class="p">:</span><span class="n">count</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">],</span>
-                    <span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="n">verbose</span><span class="p">,</span>
-                <span class="p">})</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;product_version&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_version</span><span class="p">,</span>
+                <span class="s1">&#39;decision_context&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_greenwave_decision_contexts</span><span class="p">,</span>
+                <span class="s1">&#39;subject&#39;</span><span class="p">:</span> <span class="n">subjects</span><span class="p">[</span><span class="n">count</span><span class="p">:</span><span class="n">count</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">],</span>
+                <span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="n">verbose</span><span class="p">,</span>
+            <span class="p">})</span>
             <span class="n">count</span> <span class="o">+=</span> <span class="n">batch_size</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
@@ -2285,16 +2297,27 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_greenwave_decision_contexts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># We retrieve updates going to testing (status=pending) and updates</span>
-        <span class="c1"># (status=testing) going to stable.</span>
-        <span class="c1"># We also query on different contexts for critpath and non-critpath</span>
-        <span class="c1"># updates.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return greenwave contexts that should be queried for this update.</span>
+
+<span class="sd">        The base context depends whether the update is going to</span>
+<span class="sd">        testing (status=pending) or to stable (status=testing). We</span>
+<span class="sd">        also query on additional contexts for critpath updates. If the</span>
+<span class="sd">        critpath type provides grouped information, we query on one</span>
+<span class="sd">        additional context per critpath group represented in the</span>
+<span class="sd">        update&#39;s packages. If it does not, we query on the catch-all</span>
+<span class="sd">        additional &#39;critpath&#39; context.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># this is correct if update is already in testing...</span>
         <span class="n">contexts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;bodhi_update_push_stable&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">==</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span><span class="p">:</span>
             <span class="c1"># ...but if it is pending, we want to know if it can go to testing</span>
             <span class="n">contexts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;bodhi_update_push_testing&quot;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath_groups</span><span class="p">:</span>
+            <span class="n">ocontext</span> <span class="o">=</span> <span class="n">contexts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath_groups</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">):</span>
+                <span class="n">contexts</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ocontext</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">group</span><span class="si">}</span><span class="s2">_critpath&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath</span><span class="p">:</span>
             <span class="n">contexts</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">contexts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_critpath&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">contexts</span>
 
@@ -2451,8 +2474,14 @@
         <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span>
         <span class="n">caveats</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">contains_critpath_component</span><span class="p">(</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;builds&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;release&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">branch</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath_groups&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_critpath_groups</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;builds&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;release&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">branch</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath_groups&#39;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath_groups&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">contains_critpath_component</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;builds&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;release&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">branch</span><span class="p">)</span>
 
         <span class="c1"># Be sure to not add an empty string as alternative title</span>
         <span class="c1"># and strip whitespaces from it</span>
@@ -2618,8 +2647,14 @@
                     <span class="c1"># an override</span>
                     <span class="n">db</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
 
-        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">contains_critpath_component</span><span class="p">(</span>
-            <span class="n">up</span><span class="o">.</span><span class="n">builds</span><span class="p">,</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">branch</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath_groups&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_critpath_groups</span><span class="p">(</span>
+                <span class="n">up</span><span class="o">.</span><span class="n">builds</span><span class="p">,</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">branch</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath_groups&#39;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath_groups&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;critpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">contains_critpath_component</span><span class="p">(</span>
+                <span class="n">up</span><span class="o">.</span><span class="n">builds</span><span class="p">,</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">branch</span><span class="p">)</span>
 
         <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;builds&#39;</span><span class="p">]</span>
 
@@ -2647,7 +2682,11 @@
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;karma_critipath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">up</span><span class="o">.</span><span class="n">date_testing</span> <span class="o">=</span> <span class="kc">None</span>
 
-            <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">up</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">up</span><span class="o">.</span><span class="n">from_tag</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">(</span><span class="n">up</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span> <span class="ow">and</span> <span class="n">up</span><span class="o">.</span><span class="n">from_tag</span>
+                    <span class="ow">and</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span><span class="p">)</span>
+            <span class="p">):</span>
                 <span class="c1"># Remove all koji tags and change the status back to pending</span>
                 <span class="n">up</span><span class="o">.</span><span class="n">unpush</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
                 <span class="n">caveats</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>

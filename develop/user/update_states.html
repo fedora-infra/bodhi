@@ -43,10 +43,6 @@
 <p><a class="reference internal" href="#testing-stable"><span class="std std-ref">Testing/Stable</span></a>: The package is ready to go stable, and will wait until the next update push.</p>
 <p><a class="reference internal" href="#frozen"><span class="std std-ref">Frozen</span></a>: The package is held back in the testing repository for additional checks.</p>
 <p><a class="reference internal" href="#stable"><span class="std std-ref">Stable</span></a>: The package has been released to the main updates repository.</p>
-<p><a class="reference internal" href="#sidetag-active"><span class="std std-ref">Side_tag_active</span></a>: This update represents a side tag whose content can still be modified; i.e. in which packages can still be built.</p>
-<p><a class="reference internal" href="#sidetag-active-testing"><span class="std std-ref">Side_tag_active/Testing</span></a>: This update represents a side tag that has been requested to merge for testing.</p>
-<p><a class="reference internal" href="#sidetag-active-stable"><span class="std std-ref">Side_tag_active/Stable</span></a>: This update represents a side tag that has been requested to go stable.</p>
-<p><a class="reference internal" href="#sidetag-expired"><span class="std std-ref">Side_tag_expired</span></a>: This update represents a side tag whose lifetime has expired and can no longer be modified.</p>
 <p><a class="reference internal" href="#obsolete"><span class="std std-ref">Obsolete</span></a>: The package has been obsoleted by a different update</p>
 <p><a class="reference internal" href="#revoked"><span class="std std-ref">Revoked</span></a>: The update was removed before it reached the testing or stable repository.</p>
 <p><a class="reference internal" href="#unpushed"><span class="std std-ref">Unpushed</span></a>: The update has been removed from testing.</p>
@@ -102,32 +98,6 @@ push the updates that have been given a freeze break exception to fix a bug.</p>
 <p>After an update is pushed to the stable repository, it is marked as stable in Bodhi. At this point,
 Bodhi will close associated bugs, and will send out update notices to the appropriate e-mail
 addresses.</p>
-</section>
-<section id="side-tag-active">
-<span id="sidetag-active"></span><h2>Side_tag_active<a class="headerlink" href="#side-tag-active" title="Permalink to this heading">¶</a></h2>
-<p>An update can be created as a side tag. This corresponds to the request for a Koji side tag, which is
-a build target used to collect and iterate builds temporarily. This allows builds to be iterated without
-interfering with content in tags that ship to consumers. Once the builds are complete and correct, the
-side tag can then be merged into an existing tag.</p>
-</section>
-<section id="side-tag-active-testing">
-<span id="sidetag-active-testing"></span><h2>Side_tag_active/Testing<a class="headerlink" href="#side-tag-active-testing" title="Permalink to this heading">¶</a></h2>
-<p>The side tag enters this state when it is requested to merge. This happens for example when the
-release requires human feedback and the appropriate waiting period or karma threshold has been
-reached. When the merge completes, the side tag update’s state passes to pending testing as with
-any other update.</p>
-</section>
-<section id="side-tag-active-stable">
-<span id="sidetag-active-stable"></span><h2>Side_tag_active/Stable<a class="headerlink" href="#side-tag-active-stable" title="Permalink to this heading">¶</a></h2>
-<p>The side tag enters this state when requested to push to stable, for example, when it requests tests
-to be run on builds without human feedback. If the tests pass, Bodhi tries to merge the side tag. If
-that is successful, the update passes to the stable state.</p>
-</section>
-<section id="side-tag-expired">
-<span id="sidetag-expired"></span><h2>Side_tag_expired<a class="headerlink" href="#side-tag-expired" title="Permalink to this heading">¶</a></h2>
-<p>A side tag update has a specific lifetime that is set in Bodhi configuration.  After this update’s
-lifetime has passed, its state is moved to expired, the underlying update object and all content is
-deleted, and the koji side tag is also deleted.</p>
 </section>
 <section id="obsolete">
 <span id="id6"></span><h2>Obsolete<a class="headerlink" href="#obsolete" title="Permalink to this heading">¶</a></h2>
@@ -187,10 +157,6 @@ reached if the update is in the testing state.</p>
 <li class="toctree-l2"><a class="reference internal" href="#testing-stable">Testing/Stable</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#frozen">Frozen</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#stable">Stable</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#side-tag-active">Side_tag_active</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#side-tag-active-testing">Side_tag_active/Testing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#side-tag-active-stable">Side_tag_active/Stable</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#side-tag-expired">Side_tag_expired</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#obsolete">Obsolete</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#revoked">Revoked</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#unpushed">Unpushed</a></li>
