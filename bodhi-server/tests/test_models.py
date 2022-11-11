@@ -2502,7 +2502,7 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
         expected_post = mock.call(
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
-            data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
+            data={"product_version": "fedora-17", "decision_context": ["bodhi_update_push_testing"],
                   "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
                               {"item": f"{update.alias}", "type": "bodhi_update"}],
                   "verbose": False},
@@ -2545,7 +2545,7 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
         assert sleep.mock_calls == []
         expected_post = mock.call(
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
-            data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
+            data={"product_version": "fedora-17", "decision_context": ["bodhi_update_push_testing"],
                   "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
                               {"item": f"{update.alias}", "type": "bodhi_update"}],
                   "verbose": False},
@@ -3042,7 +3042,7 @@ class TestUpdate(ModelTest):
                 [
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing',
+                        'decision_context': ['bodhi_update_push_testing'],
                         'verbose': False,
                         'subject': [
                             {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
@@ -3060,7 +3060,7 @@ class TestUpdate(ModelTest):
                 [
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing',
+                        'decision_context': ['bodhi_update_push_testing'],
                         'verbose': True,
                         'subject': [
                             {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
@@ -3068,7 +3068,7 @@ class TestUpdate(ModelTest):
                     },
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing',
+                        'decision_context': ['bodhi_update_push_testing'],
                         'verbose': True,
                         'subject': [
                             {'item': self.obj.alias, 'type': 'bodhi_update'},
@@ -3089,7 +3089,11 @@ class TestUpdate(ModelTest):
                 [
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing_critical-path-apps_critpath',
+                        'decision_context': [
+                            'bodhi_update_push_testing_critical-path-apps_critpath',
+                            'bodhi_update_push_testing_core_critpath',
+                            'bodhi_update_push_testing'
+                        ],
                         'verbose': True,
                         'subject': [
                             {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
@@ -3097,45 +3101,16 @@ class TestUpdate(ModelTest):
                     },
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing_core_critpath',
-                        'verbose': True,
-                        'subject': [
-                            {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-                        ]
-                    },
-                    {
-                        'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing',
-                        'verbose': True,
-                        'subject': [
-                            {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-                        ]
-                    },
-                    {
-                        'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing_critical-path-apps_critpath',
+                        'decision_context': [
+                            'bodhi_update_push_testing_critical-path-apps_critpath',
+                            'bodhi_update_push_testing_core_critpath',
+                            'bodhi_update_push_testing'
+                        ],
                         'verbose': True,
                         'subject': [
                             {'item': self.obj.alias, 'type': 'bodhi_update'},
                         ]
-                    },
-                    {
-                        'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing_core_critpath',
-                        'verbose': True,
-                        'subject': [
-                            {'item': self.obj.alias, 'type': 'bodhi_update'},
-                        ]
-                    },
-                    {
-                        'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing',
-                        'verbose': True,
-                        'subject': [
-                            {'item': self.obj.alias, 'type': 'bodhi_update'},
-                        ]
-                    },
-
+                    }
                 ]
             )
 
@@ -3148,7 +3123,7 @@ class TestUpdate(ModelTest):
             [
                 {
                     'product_version': 'fedora-11',
-                    'decision_context': 'bodhi_update_push_testing',
+                    'decision_context': ['bodhi_update_push_testing'],
                     'verbose': True,
                     'subject': [
                         {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
@@ -3296,20 +3271,6 @@ class TestUpdate(ModelTest):
         self.obj.request = UpdateRequest.obsolete
 
         assert self.obj.requested_tag == self.obj.release.candidate_tag
-
-    def test_side_tag_locked_false(self):
-        """Test the side_tag_locked property when it is false."""
-        self.obj.status = model.UpdateStatus.side_tag_active
-        self.obj.request = None
-
-        assert not self.obj.side_tag_locked
-
-    def test_side_tag_locked_true(self):
-        """Test the side_tag_locked property when it is true."""
-        self.obj.status = model.UpdateStatus.side_tag_active
-        self.obj.request = model.UpdateRequest.stable
-
-        assert self.obj.side_tag_locked
 
     @mock.patch('bodhi.server.models.bugs.bugtracker.close')
     @mock.patch('bodhi.server.models.bugs.bugtracker.comment')

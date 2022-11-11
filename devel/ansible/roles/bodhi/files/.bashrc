@@ -24,8 +24,11 @@ function bresetdb {
     bstop;
     sudo runuser -l postgres -c "psql -c \"DROP DATABASE bodhi2\"";
     sudo runuser -l postgres -c 'createdb bodhi2';
+    if [ ! -f "/tmp/bodhi2.dump.xz" ] ; then
+        curl -o /tmp/bodhi2.dump.xz https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz
+    fi
     xzcat /tmp/bodhi2.dump.xz | sudo runuser -l postgres -c 'psql bodhi2';
-    pushd /home/vagrant/bodhi;
+    pushd /home/vagrant/bodhi/bodhi-server;
     alembic upgrade head;
     popd;
     bstart;

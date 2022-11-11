@@ -1,0 +1,1 @@
+For gating, Bodhi now queries all Greenwave 'decision contexts' together, reducing the number of queries needed.

@@ -398,6 +398,7 @@ if can_edit and update.release.composed_by_bodhi:
                     </div>
                 <div class="pb-1">
                   <div id="test_status_badge">
+                    <a class="gating-summary notblue" href="#automatedtests">${update.test_gating_status}</a>
                     <i class="spinner fa fa-spinner fa-spin fa-fw"></i>
                   </div>
                   % if can_edit and update.test_gating_status == models.TestGatingStatus.failed and update.status == models.UpdateStatus.testing:
@@ -625,6 +626,7 @@ if can_edit and update.release.composed_by_bodhi:
     <div class="tab-pane" id="automatedtests-tab-pane" role="tabpanel" aria-labelledby="automatedtests-tab" tabindex="0">
       <div id="resultsdb">
       <h3>Automated Test Results</h3>
+      <a class="gating-summary notblue">${update.test_gating_status}</a>
       <i class="fa spinner fa-spinner fa-spin fa-fw"></i>
       </div>
     </div>
@@ -757,11 +759,17 @@ ${parent.javascript()}
     // show the Greenwave decision
     var greenwave_api_url = '${request.registry.settings["greenwave_api_url"]}';
     var missing_tests = {};
+    var reqs_counter = 0;
+    var unsatisfied_reqs_counter = 0;
+    var missing_reqs_counter = 0;
+    var greenwave_errors = 0;
 
     // handle Greenwave decision
     var handle_unsatisfied_requirements = function(data){
         $.each(data['unsatisfied_requirements'], function(i, requirement) {
+            unsatisfied_reqs_counter++;
             if (requirement.type == 'test-result-missing') {
+                missing_reqs_counter++;
                 if (missing_tests[requirement.subject_identifier] === undefined)
                     missing_tests[requirement.subject_identifier] = [];
                 missing_tests[requirement.subject_identifier].push(requirement);
@@ -775,45 +783,69 @@ ${parent.javascript()}
             // there is at least one unsatisfied requirement, so show the button to be able to waive.
             $('#waive').removeAttr('hidden');
         });
-        % if request.registry.settings.get("test_gating.required") is True:
-            if (data['policies_satisfied']) {
-              label_class = classes['PASSED'];
-              icon_class = icons['PASSED'];
-            } else if (missing_tests.length != 0) {
-              label_class = classes['ABSENT'];
-              icon_class = icons['ABSENT'];
-            } else {
-              label_class = classes['FAILED'];
-              icon_class = icons['FAILED'];
-            }
+    };
 
-            var html = '<span class="badge text-bg-' + label_class + '">' +
-              '<span class="fa fa-' + icon_class + '">' +
-              '</span></span> ';
-            html += '<a class="gating-summary notblue" href="#automatedtests">' + data['summary'];
-            html += '</a>';
-            if (data.waivers.length != 0) {
-                 // Create url to waiverdb with waivers for this update
-                 var url = '${request.registry.settings["waiverdb_api_url"]}';
-                 url += '/waivers'
-                 url += '/?product_version=' + data.waivers[0].product_version;
-                 url += '&subject_type=' + data.waivers[0].subject_type;
-                 url += '&subject_identifier=' + data.waivers[0].subject_identifier;
-                 html += '<a class="notblue" target="_blank" href=' + url + '>';
-                 html += '<span data-bs-toggle="tooltip" data-placement="top" ' +
-                 'title="Some tests failures were waived." ' +
-                 'class="fa fa-asterisk">' +
-                 '</span>';
-                 html += '</a>';
-            }
-            $('#test_status_badge').append(html);
-            $('#resultsdb h3').after(html);
+    var generate_requirements_summary = function() {
+        if (missing_reqs_counter > 0) {
+          label_class = classes['ABSENT'];
+          icon_class = icons['ABSENT'];
+        } else if (unsatisfied_reqs_counter > 0) {
+          label_class = classes['FAILED'];
+          icon_class = icons['FAILED'];
+        } else {
+          label_class = classes['PASSED'];
+          icon_class = icons['PASSED'];
+        }
+        var summary = '';
+        failed_reqs_counter = unsatisfied_reqs_counter - missing_reqs_counter;
+        if (reqs_counter == 0) {
+            summary = 'no tests are required';
+        } else if (failed_reqs_counter > 0 && missing_reqs_counter > 0) {
+            summary = failed_reqs_counter + ' of ' + reqs_counter + ' required tests failed, ' + missing_reqs_counter + ' results missing';
+        } else if (missing_reqs_counter > 0) {
+            summary = missing_reqs_counter + ' of ' + reqs_counter + ' required test results missing';
+        }
+        else if (failed_reqs_counter > 0) {
+            summary = failed_reqs_counter + ' of ' + reqs_counter + ' required tests failed';
+        }
+        else {
+            summary = 'All required tests passed';
+        }
 
-            $('.gating-summary').click(function(e){
-              e.preventDefault();
-              $('.nav-tabs a[href="#automatedtests"]').tab('show');
+        var html = '<span class="badge text-bg-' + label_class + '">' +
+          '<span class="fa fa-' + icon_class + '">' +
+          '</span></span> ';
+        html += '<a class="gating-summary notblue" href="#automatedtests">' + summary;
+        html += '</a>';
+        if (Object.keys(waivers).length != 0) {
+            var seensubjects = [];
+            // Create urls to waiverdb with waivers for this update
+            $.each(Object.keys(waivers), function(i, testcase) {
+                $.each(waivers[testcase], function(j, waiver) {
+                    if (!seensubjects.includes(waiver.subject_identifier)) {
+                        seensubjects.push(waiver.subject_identifier);
+                        var url = '${request.registry.settings["waiverdb_api_url"]}';
+                        url += '/waivers'
+                        url += '/?product_version=' + waiver.product_version;
+                        url += '&subject_type=' + waiver.subject_type;
+                        url += '&subject_identifier=' + waiver.subject_identifier;
+                        html += '<a class="notblue" target="_blank" href=' + url + '>';
+                        html += '<span data-toggle="tooltip" data-placement="top" ' +
+                        'title="Some test failures or missing tests were waived." ' +
+                        'class="fa fa-asterisk">' +
+                        '</span>';
+                        html += '</a>';
+                    }
+                });
             });
-        % endif
+        }
+        $('#test_status_badge .gating-summary').replaceWith(html);
+        $('#resultsdb .gating-summary').replaceWith(html);
+
+        $('.gating-summary').click(function(e){
+          e.preventDefault();
+          $('.nav-tabs a[href="#automatedtests"]').tab('show');
+        });
     };
 
     var get_greenwave_information = function(request, after_success) {
@@ -829,20 +861,14 @@ ${parent.javascript()}
                   waivers[waiver.testcase].push(waiver);
                 });
                 handle_unsatisfied_requirements(data);
-                // we don't want to generate result rows for both the
-                // critpath and non-critpath decision contexts, as both
-                // queries return the same set of test results
-                if (!(request.decision_context.endsWith("critpath"))) {
-                    handle_results(data.results, request.subject);
-                }
+                reqs_counter += data['unsatisfied_requirements'].length;
+                reqs_counter += data['satisfied_requirements'].length;
+                handle_results(data.results, request.subject);
                 after_success();
             },
             error: function (jqxhr, status, error) {
+               greenwave_errors = 1;
                finish();
-               $('#resultsdb h3').after(
-                  '<h4 class="text-danger">Failed to talk to Greenwave.</h4>');
-               $('#test_status_badge').append(
-                  '<span class="text-danger">Failed to talk to Greenwave.</span>');
             },
         });
     };
@@ -1039,6 +1065,9 @@ ${parent.javascript()}
       update()
 
       if (current_batch >= request_batches.length) {
+        % if request.registry.settings.get("test_gating.required") is True:
+        if (!greenwave_errors) { generate_requirements_summary(); }
+        % endif
         progress.remove()
         finish();
         return;

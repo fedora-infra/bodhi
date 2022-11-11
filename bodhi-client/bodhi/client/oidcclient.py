@@ -166,7 +166,8 @@ class OIDCClient:
                     value = click.prompt(
                         click.style(
                             "Paste here the code that you got after logging in", fg="yellow"
-                        )
+                        ),
+                        hide_input=True,
                     )
                 except click.exceptions.Abort:
                     # Raise a generic exception for friendliness to outside scripts
