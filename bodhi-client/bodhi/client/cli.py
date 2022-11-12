@@ -194,7 +194,7 @@ release_options = [
                  help='Koji pending signing tag (eg: f20-updates-pending-signing)'),
     click.option('--override-tag', help='Koji override tag (eg: f20-override)'),
     click.option('--state', type=click.Choice(['disabled', 'pending', 'current',
-                                               'archived']),
+                                               'frozen', 'archived']),
                  help='The state of the release'),
     click.option('--mail-template', help='Name of the email template for this release'),
     click.option('--composed-by-bodhi/--not-composed-by-bodhi', is_flag=True, default=None,
