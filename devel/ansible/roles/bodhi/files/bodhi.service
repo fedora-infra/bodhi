@@ -4,7 +4,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-Environment=PYTHONWARNINGS=once VIRTUAL_ENV=/srv/venv
+Environment=PYTHONWARNINGS=once VIRTUAL_ENV=/srv/venv BODHI_CONFIG=/home/vagrant/development.ini
 User=vagrant
 WorkingDirectory=/home/vagrant/bodhi/bodhi-server
 ExecStart=/usr/bin/poetry run pserve /home/vagrant/development.ini --reload

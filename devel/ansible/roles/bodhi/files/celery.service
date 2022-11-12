@@ -4,7 +4,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-Environment=VIRTUAL_ENV=/srv/venv
+Environment=VIRTUAL_ENV=/srv/venv BODHI_CONFIG=/home/vagrant/development.ini
 User=vagrant
 WorkingDirectory=/home/vagrant/bodhi/bodhi-server
 ExecStart=/usr/bin/poetry run celery -A bodhi.server.tasks.app worker -l info -Q celery,has_koji_mount -B
