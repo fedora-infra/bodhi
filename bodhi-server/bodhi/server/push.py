@@ -76,7 +76,7 @@ def check_if_updates_and_builds_set(
 @click.option('--updates', help='Push updates for a comma-separated list of update aliases',
               callback=check_if_updates_and_builds_set)
 @click.option('--releases', help=('Push updates for a comma-separated list of releases (default: '
-                                  'current and pending releases)'))
+                                  'current, pending and frozen releases)'))
 @click.option('--request', default='testing,stable',
               help='Push updates with a specific request (default: testing,stable)')
 @click.option('--resume', help='Resume one or more previously failed pushes',
@@ -136,19 +136,44 @@ def push(username, yes, **kwargs):
             # Accept both comma and space separated request list
             requests = kwargs['request'].replace(',', ' ').split(' ')
             requests = [UpdateRequest.from_string(val) for val in requests]
+            compose_testing = False
+            compose_stable = False
 
-            query = session.query(Update).filter(Update.request.in_(requests))
+            if UpdateRequest.testing in requests:
+                compose_testing = True
+                query_testing = session.query(Update).filter(
+                    Update.request == UpdateRequest.testing)
+                query_testing = _filter_releases(session, query_testing, kwargs.get('releases'),
+                                                 states=[ReleaseState.current,
+                                                         ReleaseState.pending,
+                                                         ReleaseState.frozen])
+
+            if UpdateRequest.stable in requests:
+                compose_stable = True
+                query_stable = session.query(Update).filter(
+                    Update.request == UpdateRequest.stable)
+                if not kwargs.get('builds') and not kwargs.get('updates'):
+                    query_stable = _filter_releases(session, query_stable, kwargs.get('releases'))
+                else:
+                    # Compose stable request for frozen release too for specific builds/updates
+                    query_stable = _filter_releases(session, query_stable, kwargs.get('releases'),
+                                                    states=[ReleaseState.current,
+                                                            ReleaseState.pending,
+                                                            ReleaseState.frozen])
+
+            if all([compose_testing, compose_stable]):
+                query = query_testing.union(query_stable)
+            elif compose_testing:
+                query = query_testing
+            elif compose_stable:
+                query = query_stable
 
             if kwargs.get('builds'):
                 query = query.join(Update.builds)
-                query = query.filter(
-                    or_(*[Build.nvr == build for build in kwargs['builds'].split(',')]))
+                query = query.filter(Build.nvr.in_(kwargs['builds'].split(',')))
 
             if kwargs.get('updates'):
-                query = query.filter(
-                    or_(*[Update.alias == alias for alias in kwargs['updates'].split(',')]))
-
-            query = _filter_releases(session, query, kwargs.get('releases'))
+                query = query.filter(Update.alias.in_(kwargs['updates'].split(',')))
 
             for update in query.all():
                 # Skip unsigned updates (this checks that all builds in the update are signed)
@@ -203,7 +228,8 @@ def push(username, yes, **kwargs):
         compose_task.delay(api_version=2, composes=composes, resume=resume, agent=username)
 
 
-def _filter_releases(session, query, releases=None):
+def _filter_releases(session, query, releases=None,
+                     states=[ReleaseState.current, ReleaseState.pending]):
     """
     Filter the given query by releases.
 
@@ -214,18 +240,16 @@ def _filter_releases(session, query, releases=None):
     :param session:  The database session
     :param query:    An Update query that we want to modify by filtering based on Releases
     :param releases: A comma-separated string of release names
+    :param states:   A list of ReleaseState
 
     :returns:        A filtered version of query with an additional filter based on releases.
     """
-    # We will store models.Release object here that we want to filter by
     _releases = []
 
     # Filter only releases composed by Bodhi.
-    releases_query = session.query(Release).filter(Release.composed_by_bodhi == True)
+    releases_query = session.query(Release.name).filter(Release.composed_by_bodhi == True)
 
-    # Filter only releases that are current or pending.
-    releases_query = releases_query.filter(or_(Release.state == ReleaseState.current,
-                                               Release.state == ReleaseState.pending))
+    releases_query = releases_query.filter(Release.state.in_(states))
 
     if releases:
         for r in releases.split(','):
@@ -238,13 +262,11 @@ def _filter_releases(session, query, releases=None):
                     'Unknown release, or release not allowed to be composed: %s' % r
                 )
             else:
-                _releases.append(release)
+                _releases.append(release.name)
     else:
-        # Since the user didn't ask for specific Releases, let's just filter for releases that are
-        # current or pending.
         _releases = releases_query
 
-    return query.filter(or_(*[Update.release == r for r in _releases]))
+    return query.join(Update.release).filter(Release.name.in_(_releases))
 
 
 if __name__ == '__main__':
