@@ -5633,6 +5633,37 @@ class TestUpdatesService(BasePyTestCase):
         assert 'Push to Stable' in resp
         assert 'Edit' in resp
 
+    @mock.patch(**mock_valid_requirements)
+    def test_push_to_stable_button_not_present_when_karma_reached_and_frozen_release(self, *args):
+        """
+        Assert that the "Push to Stable" button is not displayed when the required karma is
+        reached, but the release is frozen and the update is still pending.
+        """
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
+        update = Update.get(resp.json['alias'])
+        update.status = UpdateStatus.pending
+        update.request = UpdateRequest.testing
+        update.pushed = False
+        update.autokarma = False
+        update.stable_karma = 1
+        update.release.state = ReleaseState.frozen
+        update.comment(self.db, 'works', 1, 'bowlofeggs')
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
+
+        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
+
+        # Checks Push to Stable text in the html page for this update
+        assert 'text/html' in resp.headers['Content-Type']
+        assert nvr in resp
+        assert 'Push to Stable' not in resp
+        assert 'Edit' in resp
+
     def assert_severity_html(self, severity, text=()):
         """
         Assert that the "Update Severity" label appears correctly given specific 'severity'.
