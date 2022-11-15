@@ -3082,6 +3082,15 @@ class Update(Base):
                 update=self, agent=username)))
             return
 
+        # Disable pushing updates from pending directly to stable when the release is frozen
+        if (
+            action == UpdateRequest.stable and self.status == UpdateStatus.pending
+            and self.release.state == ReleaseState.frozen
+        ):
+            raise BodhiException(
+                'The release of this update is frozen and the update has not yet been '
+                'pushed to testing. It is currently not possible to push it to stable.')
+
         # Disable pushing critical path updates for pending releases directly to stable
         if action == UpdateRequest.stable and self.critpath:
             if config.get('critpath.num_admin_approvals') is not None:
@@ -3844,6 +3853,9 @@ class Update(Base):
             raise LockedUpdateException
         # Return if the status of the update is not in testing or pending
         if self.status not in (UpdateStatus.testing, UpdateStatus.pending):
+            return
+        # Also return if the status of the update is not in testing and the release is frozen
+        if self.status != UpdateStatus.testing and self.release.state == ReleaseState.frozen:
             return
         # If an update receives negative karma disable autopush
         # exclude rawhide updates see #4566

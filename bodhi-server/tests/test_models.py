@@ -3736,6 +3736,22 @@ class TestUpdate(ModelTest):
         assert self.obj.request is None
         assert self.obj.status == UpdateStatus.testing
 
+    def test_check_karma_thresholds_frozen_release(self):
+        """check_karma_thresholds should no-op on an update those
+        release is in frozen state.
+        """
+        self.obj.status = UpdateStatus.pending
+        self.obj.request = UpdateRequest.testing
+        self.obj.autokarma = True
+        self.obj.comment(self.db, "foo", 1, 'biz')
+        self.obj.stable_karma = 1
+        self.obj.release.state = ReleaseState.frozen
+
+        self.obj.check_karma_thresholds(self.db, 'bowlofeggs')
+
+        assert self.obj.request is UpdateRequest.testing
+        assert self.obj.status == UpdateStatus.pending
+
     def test_critpath_approved_no_release_requirements(self):
         """critpath_approved() should use the broad requirements if the release doesn't have any."""
         self.obj.critpath = True
@@ -3996,6 +4012,32 @@ class TestUpdate(ModelTest):
         self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
 
         assert self.obj.request == UpdateRequest.stable
+        assert self.obj.status == UpdateStatus.pending
+
+        self.obj = mock.Mock()
+        self.obj.remove_tag(self.obj.release.pending_testing_tag)
+        self.obj.remove_tag.assert_called_once_with(self.obj.release.pending_testing_tag)
+
+    def test_set_request_pending_stable_frozen_release(self):
+        """
+        Ensure that it's not possible to submit an update to stable if it is still pending and
+        the release is frozen.
+        """
+        req = DummyRequest(user=DummyUser())
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        assert self.obj.status == UpdateStatus.pending
+        self.obj.stable_karma = 1
+        self.obj.release.state = ReleaseState.frozen
+
+        with pytest.raises(BodhiException) as exc:
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+        assert str(exc.value) == (
+            'The release of this update is frozen and the update has not yet been '
+            'pushed to testing. It is currently not possible to push it to stable.'
+        )
+
+        assert self.obj.request is UpdateRequest.testing
         assert self.obj.status == UpdateStatus.pending
 
         self.obj = mock.Mock()
