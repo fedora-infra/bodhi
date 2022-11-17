@@ -1,6 +1,8 @@
 <%inherit file="master.html"/>
 <%
-  from bodhi.server.util import json_escape
+  from bodhi.server.util import json_escape, eol_releases
+
+  eol_list = eol_releases()
 %>
 
 <%block name="css">
@@ -45,6 +47,21 @@ ${parent.css()}
         interface tool</a>.</p>
     </div>
   </div>
+
+  % if eol_list:
+    <div class="row justify-content-center">
+      <div class="col-10 alert alert-info" role="alert">
+        <p>The following releases are appoaching End-Of-Life:<br/>
+        <ul>
+        % for release in eol_list:
+        <li><strong>${release[0] | n}</strong> will go EOL on ${release[1]}
+        % endfor
+        </ul>
+        Consider that before submitting any update for those releases!
+        </p>
+      </div>
+    </div>
+  % endif
 
   <div id="new-update-form" class="pt-3" style="display:none;">
     <div class="row justify-content-center">
