@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Pytest configuration."""
 
+from unittest import mock
 import json
 import os
 import tempfile
@@ -24,9 +25,12 @@ import tempfile
 import pytest
 
 
-# Set BODHI_CONFIG to our testing ini file. This is done here before bodhi itself is imported.
-if "BODHI_CONFIG" not in os.environ:
-    os.environ["BODHI_CONFIG"] = os.path.join(os.path.dirname(__file__), "testing.ini")
+# Set BODHI_CONFIG to our testing ini file.
+@pytest.fixture(autouse=True)
+def mock_settings_env_vars():
+    with mock.patch.dict(os.environ, {"BODHI_CONFIG": os.path.join(os.path.dirname(__file__),
+                                                                   "testing.ini")}):
+        yield
 
 
 @pytest.fixture(scope="session")
