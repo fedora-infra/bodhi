@@ -5,8 +5,15 @@ Fedora-Flavored Markdown
 Description
 ===========
 
-Text fields in Bodhi2 support an `enhanced`_ version of `markdown`_. This is a cheat
+Text fields in Bodhi2 support an enhanced version of `markdown`_. This is a cheat
 sheet for your reference.
+
+Be advised that, even if Bodhi supports a wide set of markups, the update notes
+will be used for the description field in appstream tag, which instead supports
+only a `reduced set
+<https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description>`_
+of markups. Unsupported markup may be showed as plain text
+or lead to unexpected beahvior in package managers GUI!
 
 You can do **HEADERS** by underlining or by prefixing with the ``#`` character:
 
