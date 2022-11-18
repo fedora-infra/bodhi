@@ -172,15 +172,26 @@
       dest: /tmp/bodhi2.dump.xz
       timeout: 1000
 
-- shell: xzcat /tmp/bodhi2.dump.xz | runuser -l postgres -c 'psql bodhi2' && touch /home/vagrant/.db-imported
+- name: Import database
+  shell: xzcat /tmp/bodhi2.dump.xz | runuser -l postgres -c 'psql bodhi2' && touch /home/vagrant/.db-imported
   args:
       creates: /home/vagrant/.db-imported
 
-- command: cp /home/vagrant/bodhi/devel/development.ini.example /home/vagrant/development.ini
+- name: Copy bodhi config file to vagrant home
+  command: cp /home/vagrant/bodhi/devel/development.ini.example /home/vagrant/development.ini
   args:
       creates: /home/vagrant/development.ini
 
-- name: adjust the paths in the config
+- name: Set bodhi config path in system env
+  lineinfile:
+    path: /etc/environment
+    state: present
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value}}"
+  with_items:
+    - {key: "BODHI_CONFIG", value: "/home/vagrant/development.ini"}
+
+- name: Adjust settings in the config
   ini_file:
     path: /home/vagrant/development.ini
     section: app:main
@@ -189,6 +200,7 @@
   loop:
     - {key: "celery_config", value: "%(here)s/bodhi/bodhi-server/celeryconfig.py"}
     - {key: "pungi.basepath", value: "%(here)s/bodhi/devel/ci/integration/bodhi/"}
+    - {key: "smtp_server", value: "tinystage.tinystage.test:1025"}
 
 - name: Creates /etc/bodhi directory
   file:
@@ -203,7 +215,7 @@
       chdir: /home/vagrant/bodhi/bodhi-server
   environment:
       VIRTUAL_ENV: /srv/venv
-
+      BODHI_CONFIG: /home/vagrant/development.ini
 
 - name: Install the systemd unit files
   copy:

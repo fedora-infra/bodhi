@@ -19,6 +19,7 @@
 
 from collections import defaultdict, OrderedDict
 from contextlib import contextmanager
+from datetime import datetime, timedelta
 from importlib import import_module
 from urllib.parse import urlencode
 import errno
@@ -1366,3 +1367,30 @@ def build_names_by_type(builds: list) -> defaultdict:
         pname = build.package.name
         components[ptype].append(pname)
     return components
+
+
+def eol_releases(days: int = 30) -> list:
+    """
+    Return a list of releases that are approaching EOL.
+
+    Args:
+        days: days before EOL
+    Returns:
+        A list of tuples in the format (release.long_name, release.eol).
+    """
+    from bodhi.server.models import Release, ReleaseState
+    active_releases = Release.query.filter(
+        Release.state.not_in(
+            [ReleaseState.disabled, ReleaseState.archived])
+    ).filter(
+        Release.eol != None
+    ).order_by(
+        Release.eol.asc()
+    )
+
+    eol_releases = []
+    for release in active_releases:
+        if release.eol - datetime.utcnow().date() < timedelta(days=days):
+            eol_releases.append((release.long_name, release.eol))
+
+    return eol_releases

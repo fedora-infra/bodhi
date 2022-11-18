@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+from datetime import datetime, timedelta
 from unittest import mock
 from xml.etree import ElementTree
 import gzip
@@ -31,7 +32,7 @@ import pytest
 from bodhi.server import models, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
-from bodhi.server.models import TestGatingStatus, Update
+from bodhi.server.models import ReleaseState, TestGatingStatus, Update
 
 from . import base
 
@@ -1670,3 +1671,30 @@ class TestPageUrl:
         page = 2
         expected_url = 'http://localhost:6543?search=&status=pending&status=testing&page=2'
         assert util.page_url(context, page) == expected_url
+
+
+class TestEOLReleases(base.BasePyTestCase):
+    """Tests for the eol_releases() function."""
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        self.f37 = self.create_release('37')
+
+    def test_approaching_eol(self):
+        """Test that a release approaching EOL is reported."""
+        self.f37.eol = datetime.utcnow().date() + timedelta(days=20)
+        self.db.commit()
+        assert util.eol_releases() == [('Fedora 37', self.f37.eol)]
+
+    def test_eol_far_away(self):
+        """Test that a release not approaching EOL is not reported."""
+        self.f37.eol = datetime.utcnow().date() + timedelta(days=31)
+        self.db.commit()
+        assert util.eol_releases() == []
+
+    def test_archived_release(self):
+        """Test that an archived release past EOL is not reported."""
+        self.f37.state = ReleaseState.archived
+        self.f37.eol = datetime.utcnow().date() - timedelta(days=20)
+        self.db.commit()
+        assert util.eol_releases() == []
