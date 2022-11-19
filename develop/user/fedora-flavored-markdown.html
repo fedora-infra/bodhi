@@ -39,8 +39,13 @@
 <h1>Fedora-Flavored Markdown<a class="headerlink" href="#fedora-flavored-markdown" title="Permalink to this heading">¶</a></h1>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
-<p>Text fields in Bodhi2 support an <a class="reference external" href="https://github.com/fedora-infra/bodhi/blob/develop/bodhi/server/ffmarkdown.py">enhanced</a> version of <a class="reference external" href="http://daringfireball.net/projects/markdown/syntax">markdown</a>. This is a cheat
+<p>Text fields in Bodhi2 support an enhanced version of <a class="reference external" href="http://daringfireball.net/projects/markdown/syntax">markdown</a>. This is a cheat
 sheet for your reference.</p>
+<p>Be advised that, even if Bodhi supports a wide set of markups, the update notes
+will be used for the description field in appstream tag, which instead supports
+only a <a class="reference external" href="https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description">reduced set</a>
+of markups. Unsupported markup may be showed as plain text
+or lead to unexpected beahvior in package managers GUI!</p>
 <p>You can do <strong>HEADERS</strong> by underlining or by prefixing with the <code class="docutils literal notranslate"><span class="pre">#</span></code> character:</p>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span>This is an H1
 =============

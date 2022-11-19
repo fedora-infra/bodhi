@@ -3117,6 +3117,15 @@
                 <span class="n">update</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="o">=</span><span class="n">username</span><span class="p">)))</span>
             <span class="k">return</span>
 
+        <span class="c1"># Disable pushing updates from pending directly to stable when the release is frozen</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">action</span> <span class="o">==</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">ReleaseState</span><span class="o">.</span><span class="n">frozen</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="n">BodhiException</span><span class="p">(</span>
+                <span class="s1">&#39;The release of this update is frozen and the update has not yet been &#39;</span>
+                <span class="s1">&#39;pushed to testing. It is currently not possible to push it to stable.&#39;</span><span class="p">)</span>
+
         <span class="c1"># Disable pushing critical path updates for pending releases directly to stable</span>
         <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.num_admin_approvals&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -3879,6 +3888,9 @@
             <span class="k">raise</span> <span class="n">LockedUpdateException</span>
         <span class="c1"># Return if the status of the update is not in testing or pending</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span><span class="p">,</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="c1"># Also return if the status of the update is not in testing and the release is frozen</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">ReleaseState</span><span class="o">.</span><span class="n">frozen</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="c1"># If an update receives negative karma disable autopush</span>
         <span class="c1"># exclude rawhide updates see #4566</span>

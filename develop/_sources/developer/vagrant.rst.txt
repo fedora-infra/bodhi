@@ -28,12 +28,6 @@ Next, check out the bodhi code and run ``vagrant up``::
     $ vagrant up
 
 Your newly provisioned bodhi development instance is now available at https://bodhi-dev.example.com/.
-Two users are automatically added to the tinystage instance for enabling you to test Bodhi:
-``tinystage_packager`` and ``tinystage_provenpackager``, both with password ``password``. If you want
-to login with your username (or any username of your choice), just edit the ``fas_username`` variable
-in the Vagrantfile and re-provision the VM. Be advised that this will not be a copy of your real
-fas account, it will just have the same username with the default password ``password`` and fake
-complementary data.
 
 The Vagrant guest runs an AMQP message broker (RabbitMQ) which has a web interface for monitoring and
 administration of the Fedora Messaging queue at http://bodhi-dev.example.com:15672/. The default username
@@ -46,9 +40,17 @@ is ``guest`` and the password is ``guest``.
 Authentication
 ^^^^^^^^^^^^^^
 
-The Vagrant environment will configure Bodhi server and Bodhi's CLI to use the tiny-stage Ipsilon (https://ipsilon.tinystage.test) 
-for authentication. The users are defined in the tiny-stage FreeIPA instance (https://ipa.tinystage.test). There are many test users
-defined by default in the tinystage FreeIPA instance, and the admin user is ``admin`` with a password ``password``
+The Vagrant environment will configure Bodhi server and Bodhi's CLI to use the tiny-stage Ipsilon
+(https://ipsilon.tinystage.test) for authentication. The users are defined in the tiny-stage FreeIPA
+instance (https://ipa.tinystage.test). There are many test users defined by default in the tinystage
+FreeIPA instance, and the admin user is ``admin`` with a password ``password``.
+
+During the Vagrant provisioning, two users are automatically added to the tinystage instance specifically
+for enabling you to test Bodhi: ``tinystage_packager`` and ``tinystage_provenpackager``, both with
+password ``password``. If you want to login with your username (or any username of your choice), just
+edit the ``fas_username`` variable in the Vagrantfile and re-provision the VM. Be advised that this will
+not be a copy of your real fas account, it will just have the same username with the default password
+``password`` and fake complementary data.
 
 
 Quick tips about the Bodhi Vagrant environment

@@ -62,21 +62,22 @@ $ cd bodhi
 $ vagrant up
 </pre></div>
 </div>
-<p>Your newly provisioned bodhi development instance is now available at <a class="reference external" href="https://bodhi-dev.example.com/">https://bodhi-dev.example.com/</a>.
-Two users are automatically added to the tinystage instance for enabling you to test Bodhi:
-<code class="docutils literal notranslate"><span class="pre">tinystage_packager</span></code> and <code class="docutils literal notranslate"><span class="pre">tinystage_provenpackager</span></code>, both with password <code class="docutils literal notranslate"><span class="pre">password</span></code>. If you want
-to login with your username (or any username of your choice), just edit the <code class="docutils literal notranslate"><span class="pre">fas_username</span></code> variable
-in the Vagrantfile and re-provision the VM. Be advised that this will not be a copy of your real
-fas account, it will just have the same username with the default password <code class="docutils literal notranslate"><span class="pre">password</span></code> and fake
-complementary data.</p>
+<p>Your newly provisioned bodhi development instance is now available at <a class="reference external" href="https://bodhi-dev.example.com/">https://bodhi-dev.example.com/</a>.</p>
 <p>The Vagrant guest runs an AMQP message broker (RabbitMQ) which has a web interface for monitoring and
 administration of the Fedora Messaging queue at <a class="reference external" href="http://bodhi-dev.example.com:15672/">http://bodhi-dev.example.com:15672/</a>. The default username
 is <code class="docutils literal notranslate"><span class="pre">guest</span></code> and the password is <code class="docutils literal notranslate"><span class="pre">guest</span></code>.</p>
 <section id="authentication">
 <h2>Authentication<a class="headerlink" href="#authentication" title="Permalink to this heading">¶</a></h2>
-<p>The Vagrant environment will configure Bodhi server and Bodhi’s CLI to use the tiny-stage Ipsilon (<a class="reference external" href="https://ipsilon.tinystage.test">https://ipsilon.tinystage.test</a>)
-for authentication. The users are defined in the tiny-stage FreeIPA instance (<a class="reference external" href="https://ipa.tinystage.test">https://ipa.tinystage.test</a>). There are many test users
-defined by default in the tinystage FreeIPA instance, and the admin user is <code class="docutils literal notranslate"><span class="pre">admin</span></code> with a password <code class="docutils literal notranslate"><span class="pre">password</span></code></p>
+<p>The Vagrant environment will configure Bodhi server and Bodhi’s CLI to use the tiny-stage Ipsilon
+(<a class="reference external" href="https://ipsilon.tinystage.test">https://ipsilon.tinystage.test</a>) for authentication. The users are defined in the tiny-stage FreeIPA
+instance (<a class="reference external" href="https://ipa.tinystage.test">https://ipa.tinystage.test</a>). There are many test users defined by default in the tinystage
+FreeIPA instance, and the admin user is <code class="docutils literal notranslate"><span class="pre">admin</span></code> with a password <code class="docutils literal notranslate"><span class="pre">password</span></code>.</p>
+<p>During the Vagrant provisioning, two users are automatically added to the tinystage instance specifically
+for enabling you to test Bodhi: <code class="docutils literal notranslate"><span class="pre">tinystage_packager</span></code> and <code class="docutils literal notranslate"><span class="pre">tinystage_provenpackager</span></code>, both with
+password <code class="docutils literal notranslate"><span class="pre">password</span></code>. If you want to login with your username (or any username of your choice), just
+edit the <code class="docutils literal notranslate"><span class="pre">fas_username</span></code> variable in the Vagrantfile and re-provision the VM. Be advised that this will
+not be a copy of your real fas account, it will just have the same username with the default password
+<code class="docutils literal notranslate"><span class="pre">password</span></code> and fake complementary data.</p>
 </section>
 <section id="quick-tips-about-the-bodhi-vagrant-environment">
 <h2>Quick tips about the Bodhi Vagrant environment<a class="headerlink" href="#quick-tips-about-the-bodhi-vagrant-environment" title="Permalink to this heading">¶</a></h2>
