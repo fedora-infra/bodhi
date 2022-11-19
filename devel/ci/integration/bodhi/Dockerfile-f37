@@ -1,9 +1,10 @@
-FROM bodhi-ci/f35
+FROM bodhi-ci/f37
 LABEL \
   name="bodhi-web" \
   vendor="Fedora Infrastructure" \
-  maintainer="Mattia Verga <mattia.verga@fedoraproject.org>" \
+  maintainer="Mattia Verga <mattia.verga@tiscali.it>" \
   license="MIT"
+
 # For integration testing we're using the infrastructure repo
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/main/f/files/common/fedora-infra-tags.repo
 
