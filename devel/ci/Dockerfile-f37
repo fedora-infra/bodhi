@@ -1,5 +1,5 @@
-FROM registry.fedoraproject.org/fedora:35
-LABEL maintainer="Mattia Verga <mattia.verga@fedoraproject.org>"
+FROM fedora:37
+LABEL maintainer="Mattia Verga <mattia.verga@tiscali.it>"
 
 # RUN echo "fastestmirror=False" >> /etc/dnf/dnf.conf
 # RUN echo "zchunk = False" >> /etc/dnf/dnf.conf
@@ -61,7 +61,6 @@ RUN dnf install -y \
     rpmdevtools \
     skopeo
 
-ENV VIRTUAL_ENV=/srv/venv
 VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
