@@ -215,7 +215,14 @@ class UpdateInfoMetadata(object):
         rec = cr.UpdateRecord()
         rec.version = __version__
         rec.fromstr = config.get('bodhi_email')
-        rec.status = update.status.value
+        # Metadata is generated before the Update status is saved, therefore
+        # we have to check the request status
+        if update.request is None:
+            rec.status = update.status.value
+        elif update.request == UpdateRequest.stable:
+            rec.status = UpdateStatus.stable.value
+        else:
+            rec.status = UpdateStatus.testing.value
         rec.type = update.type.value
         rec.id = update.alias.encode('utf-8')
         rec.title = update.title.encode('utf-8')
@@ -226,18 +233,22 @@ class UpdateInfoMetadata(object):
         rec.release = update.release.long_name.encode('utf-8')
         rec.rights = config.get('updateinfo_rights')
 
-        if update.date_pushed:
-            rec.issued_date = update.date_pushed
-        else:
-            # Sometimes we only set the date_pushed after it's pushed out, however,
-            # it seems that Satellite does not like update entries without issued_date.
-            # Since we know that we are pushing it now, and the next push will get the data
-            # correctly, let's just insert "date submitted".
-            rec.issued_date = update.date_submitted
-        if update.date_modified:
+        # date_pushed is not yet saved for updates which are being pushed now
+        # moreover issued_date is supposed to be immutable for the same id
+        rec.issued_date = update.date_submitted
+
+        if update.date_modified and update.date_pushed:
+            # Use the most recent date
+            if update.date_modified > update.date_pushed:
+                rec.updated_date = update.date_modified
+            else:
+                rec.updated_date = update.date_pushed
+        elif update.date_pushed:
+            rec.updated_date = update.date_pushed
+        elif update.date_modified:
             rec.updated_date = update.date_modified
         else:
-            # Likewise, if there is no date_modified, use date_submitted
+            # Likewise, if there is no date_modified or date_pushed, use date_submitted
             rec.updated_date = update.date_submitted
 
         col = cr.UpdateCollection()

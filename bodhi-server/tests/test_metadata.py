@@ -26,6 +26,7 @@ import shutil
 import tempfile
 
 import createrepo_c
+import pytest
 
 from bodhi.server.buildsys import DevBuildsys, setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
@@ -84,7 +85,7 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         assert len(md.uinfo.updates) == 1
         assert md.uinfo.updates[0].title == update.title
         assert md.uinfo.updates[0].release == update.release.long_name
-        assert md.uinfo.updates[0].status == update.status.value
+        assert md.uinfo.updates[0].status == UpdateStatus.testing.value
         assert md.uinfo.updates[0].updated_date == update.date_modified
         assert md.uinfo.updates[0].fromstr == config.get('bodhi_email')
         assert md.uinfo.updates[0].rights == config.get('updateinfo_rights')
@@ -126,20 +127,94 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         assert pkg.arch == 'noarch'
         assert pkg.filename == 'TurboGears-1.0.2.2-2.fc17.noarch.rpm'
 
-    def test_date_modified_none(self):
-        """The metadata should use date_submitted if an update's date_modified is None."""
+    def test_status_for_update_being_pushed_to_stable(self):
+        """
+        The metadata should report the status based on request if the update is being pushed
+        into a repository for the first time.
+        """
         update = self.db.query(Update).one()
-        update.date_modified = None
+        update.status = UpdateStatus.testing
+        update.request = UpdateRequest.stable
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
                                 close_shelf=False)
         md.add_update(update)
         md.shelf.close()
 
         assert len(md.uinfo.updates) == 1
-        assert md.uinfo.updates[0].updated_date == update.date_submitted
+        assert md.uinfo.updates[0].status == UpdateStatus.stable.value
+
+    def test_status_for_update_being_pushed_to_testing(self):
+        """
+        The metadata should report the status based on request if the update is being pushed
+        into a repository for the first time.
+        """
+        update = self.db.query(Update).one()
+        update.status = UpdateStatus.pending
+        update.request = UpdateRequest.testing
+        md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
+                                close_shelf=False)
+        md.add_update(update)
+        md.shelf.close()
+
+        assert len(md.uinfo.updates) == 1
+        assert md.uinfo.updates[0].status == UpdateStatus.testing.value
+
+    def test_status_for_update_already_in_repo(self):
+        """
+        The metadata should report the status based on update status if the update was
+        already into the repo.
+        """
+        update = self.db.query(Update).one()
+        update.status = UpdateStatus.stable
+        update.request = None
+        md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
+                                close_shelf=False)
+        md.add_update(update)
+        md.shelf.close()
+
+        assert len(md.uinfo.updates) == 1
+        assert md.uinfo.updates[0].status == update.status.value
+
+    @pytest.mark.parametrize(
+        'date_modified,date_pushed',
+        [pytest.param(
+            datetime(year=2022, month=11, day=23, hour=12, minute=41, second=4),
+            datetime(year=2022, month=11, day=23, hour=11, minute=41, second=4),
+            id='modified_after_push'),
+         pytest.param(
+            datetime(year=2022, month=11, day=23, hour=11, minute=41, second=4),
+            datetime(year=2022, month=11, day=23, hour=12, minute=41, second=4),
+            id='modified_before_push'),
+         pytest.param(
+            None,
+            datetime(year=2022, month=11, day=23, hour=12, minute=41, second=4),
+            id='never_modified'),
+         pytest.param(
+            datetime(year=2022, month=11, day=23, hour=12, minute=41, second=4),
+            None,
+            id='never_pushed'),
+         pytest.param(
+            None,
+            None,
+            id='first_compose')])
+    def test_date_modified_and_date_pushed(self, date_modified, date_pushed):
+        """The metadata should use the most recent between date_modified and date_pushed."""
+        expected = datetime(year=2022, month=11, day=23, hour=12, minute=41, second=4)
+        update = self.db.query(Update).one()
+        update.date_modified = date_modified
+        update.date_pushed = date_pushed
+        if not date_modified and not date_pushed:
+            update.date_submitted = expected
+        md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
+                                close_shelf=False)
+        md.add_update(update)
+        md.shelf.close()
+
+        assert len(md.uinfo.updates) == 1
+        assert md.uinfo.updates[0].updated_date == expected
 
     def test_date_pushed_none(self):
-        """The metadata should use date_submitted if an update's date_pushed is None."""
+        """updated_date should use date_submitted if an update's date_pushed is None."""
         update = self.db.query(Update).one()
         update.date_pushed = None
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
