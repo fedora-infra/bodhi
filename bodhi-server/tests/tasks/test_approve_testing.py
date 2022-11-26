@@ -120,6 +120,7 @@ class TestMain(BaseTaskTestCase):
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         assert self.db.query(models.User).filter_by(name='bodhi').count() == 0
         assert self.db.query(models.Comment).count() == 0
+        assert update.date_approved is None
 
     def test_autokarma_update_not_meeting_testing_requirements(self):
         """
@@ -146,6 +147,7 @@ class TestMain(BaseTaskTestCase):
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         assert self.db.query(models.User).filter_by(name='bodhi').count() == 0
         assert self.db.query(models.Comment).count() == 0
+        assert update.date_approved is None
 
     @patch('bodhi.server.models.Update.comment', side_effect=IOError('The DB died lol'))
     @patch('bodhi.server.tasks.approve_testing.log')
@@ -507,6 +509,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
+        assert update.date_approved is not None
 
     def test_autotime_update_does_not_meet_stable_days_doesnt_get_pushed(self):
         """
@@ -529,6 +532,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         assert update.request is None
+        assert update.date_approved is None
 
     def test_autotime_update_meeting_stable_days_get_pushed(self):
         """
@@ -550,6 +554,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
+        assert update.date_approved is not None
 
     def test_no_autotime_update_meeting_stable_days_and_test_requirement(self):
         """
@@ -572,6 +577,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         assert update.request is None
+        assert update.date_approved is None
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 2)])
     def test_autotime_update_does_not_meet_test_requirements(self):
@@ -594,6 +600,7 @@ class TestMain(BaseTaskTestCase):
         approve_testing_main()
 
         assert update.request is None
+        assert update.date_approved is None
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     def test_autotime_update_does_no_mandatory_days_in_testing(self):
@@ -616,6 +623,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
+        assert update.date_approved is not None
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     def test_autotime_update_zero_day_in_testing_meeting_test_requirements_gets_pushed(self):
@@ -641,6 +649,7 @@ class TestMain(BaseTaskTestCase):
         assert update.request == models.UpdateRequest.stable
         assert update.status == models.UpdateStatus.testing
         assert update.date_stable is None
+        assert update.date_approved is not None
 
     @pytest.mark.parametrize('from_side_tag', (None, 'f17-build-side-1234'))
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
@@ -679,6 +688,7 @@ class TestMain(BaseTaskTestCase):
         assert update.status == models.UpdateStatus.stable
         assert update.pushed
         assert update.date_pushed is not None
+        assert update.date_approved is not None
 
         if not from_side_tag:
             # First pass, it adds f17=updates-pending, then since we're pushing
@@ -730,6 +740,7 @@ class TestMain(BaseTaskTestCase):
         approve_testing_main()
 
         assert update.request is None
+        assert update.date_approved is None
 
     def test_autotime_update_negative_karma_does_not_get_pushed(self):
         """
@@ -753,6 +764,7 @@ class TestMain(BaseTaskTestCase):
         approve_testing_main()
 
         assert update.request is None
+        assert update.date_approved is None
 
     def test_autotime_update_no_autokarma_met_karma_requirements_get_comments(self):
         """
@@ -778,6 +790,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         assert update.request is None
+        assert update.date_approved is not None
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -808,6 +821,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
+        assert update.date_approved is not None
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -837,6 +851,7 @@ class TestMain(BaseTaskTestCase):
         approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
+        assert update.date_approved is not None
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -865,6 +880,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         assert update.request is None
+        assert update.date_approved is None
         assert update.autotime == False
 
     @patch("bodhi.server.buildsys.DevBuildsys.getLatestBuilds", return_value=[{
@@ -896,6 +912,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         assert update.status == update_status
+        assert update.date_approved is None
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)

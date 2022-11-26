@@ -1,0 +1,1 @@
+The `date_approved` property of the `Update` model is now set when the update is ready to be pushed to stable
