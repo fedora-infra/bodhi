@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>bodhi.server.models &#8212; bodhi 6.0.1 documentation</title>
+    <title>bodhi.server.models &#8212; bodhi 7.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
@@ -3624,17 +3624,6 @@ to should be closed automatically when the update is pushed to stable.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="bodhi.server.models.Update.date_pushed">
-<span class="sig-name descname"><span class="pre">date_pushed</span></span><a class="headerlink" href="#bodhi.server.models.Update.date_pushed" title="Permalink to this definition">¶</a></dt>
-<dd><p>The date the update was pushed or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>DateTime</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.server.models.Update.date_testing">
 <span class="sig-name descname"><span class="pre">date_testing</span></span><a class="headerlink" href="#bodhi.server.models.Update.date_testing" title="Permalink to this definition">¶</a></dt>
 <dd><p>The date the update was placed into the testing repository
@@ -3997,6 +3986,24 @@ such as “f25” or “master”.</p></li>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><dl class="simple">
 <dt>The time this update became locked, or None if it is not</dt><dd><p>locked.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>datetime.datetime or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.server.models.Update.date_pushed">
+<span class="sig-name descname"><span class="pre">date_pushed</span></span><a class="headerlink" href="#bodhi.server.models.Update.date_pushed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the time that this update was pushed in repository.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>The most recent between date_testing and date_stable, or</dt><dd><p>None if the update was never pushed in any repo.</p>
 </dd>
 </dl>
 </p>
