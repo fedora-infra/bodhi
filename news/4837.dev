@@ -1,1 +1,0 @@
-The `date_pushed` database column of the `Update` model has been dropped and replaced by a property, no change should be noticeable to users

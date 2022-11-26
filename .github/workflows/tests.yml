@@ -4,10 +4,12 @@ on:
     branches:
       - develop
       - 6.0
+      - 7.0
   pull_request:
     branches:
       - develop
       - 6.0
+      - 7.0
 
 name: Run tests
 

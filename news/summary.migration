@@ -1,3 +1,0 @@
-The `critpath_groups` column has been added to the Update model (pr:4759)
-The `side_tag_active` and `side_tag_expired` update statuses have been removed, since they were never used (pr:4823)
-The `date_pushed` database column of the `Update` model has been dropped and replaced by a property
