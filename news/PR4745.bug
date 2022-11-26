@@ -1,1 +1,0 @@
-Editing a stuck Rawhide side-tag update (usually when gating tests fail) will no more cause builds to be tagged with the release candidate-tag to prevent the automatic update consumer from creating an automatic update and breaking the side-tag update

@@ -1,1 +1,0 @@
-References to never used `side_tag_active` and `side_tag_expired` update statuses and the `Update.side_tag_locked` property have been removed
