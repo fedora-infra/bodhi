@@ -49,6 +49,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import backref, class_mapper, relationship, validates
 from sqlalchemy.orm.base import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
@@ -1890,7 +1891,6 @@ class Update(Base):
         date_submitted (DateTime): The date that the update was created.
         date_modified (DateTime): The date the update was last modified or ``None``.
         date_approved (DateTime): The date the update was approved or ``None``.
-        date_pushed (DateTime): The date the update was pushed or ``None``.
         date_testing (DateTime): The date the update was placed into the testing repository
             or ``None``.
         date_stable (DateTime): The date the update was placed into the stable repository or
@@ -1916,7 +1916,8 @@ class Update(Base):
 
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id')
-    __include_extras__ = ('meets_testing_requirements', 'url', 'title', 'version_hash')
+    __include_extras__ = ('date_pushed', 'meets_testing_requirements', 'url', 'title',
+                          'version_hash')
     __get_by__ = ('alias',)
 
     autokarma = Column(Boolean, default=True, nullable=False)
@@ -1953,7 +1954,6 @@ class Update(Base):
     date_submitted = Column(DateTime, default=datetime.utcnow, index=True)
     date_modified = Column(DateTime)
     date_approved = Column(DateTime)
-    date_pushed = Column(DateTime)
     date_testing = Column(DateTime)
     date_stable = Column(DateTime)
 
@@ -2076,6 +2076,22 @@ class Update(Base):
         """
         if self.locked and self.compose is not None:
             return self.compose.date_created
+
+    @hybrid_property
+    def date_pushed(self):
+        """
+        Return the time that this update was pushed in repository.
+
+        Returns:
+            datetime.datetime or None: The most recent between date_testing and date_stable, or
+                None if the update was never pushed in any repo.
+        """
+        if self.date_stable:
+            return self.date_stable
+        elif self.date_testing:
+            return self.date_testing
+        else:
+            return None
 
     @property
     def mandatory_days_in_testing(self):
@@ -3876,7 +3892,6 @@ class Update(Base):
             if self.autokarma:
                 log.info("Automatically marking %s as stable", self.alias)
                 self.set_request(db, UpdateRequest.stable, agent)
-                self.date_pushed = None
                 notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
                     dict(update=self, status='stable')))
             else:

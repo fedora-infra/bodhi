@@ -672,7 +672,6 @@ class ComposerThread(threading.Thread):
                 update.date_stable = now
                 if update.from_tag:
                     eol_sidetags.append(update.from_tag)
-            update.date_pushed = now
             update.pushed = True
 
         log.info('Deleting EOL side-tags.')
