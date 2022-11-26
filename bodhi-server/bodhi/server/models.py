@@ -3889,6 +3889,7 @@ class Update(Base):
                 log.info("%s reached stable karma threshold, but does not meet gating "
                          "requirements", self.alias)
                 return
+            self.date_approved = datetime.utcnow()
             if self.autokarma:
                 log.info("Automatically marking %s as stable", self.alias)
                 self.set_request(db, UpdateRequest.stable, agent)
