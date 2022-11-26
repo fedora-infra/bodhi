@@ -73,7 +73,6 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         """
         update = self.db.query(Update).one()
         now = datetime(year=2018, month=2, day=8, hour=12, minute=41, second=4)
-        update.date_pushed = now
         update.date_modified = now
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
                                 close_shelf=False)
@@ -202,7 +201,7 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         expected = datetime(year=2022, month=11, day=23, hour=12, minute=41, second=4)
         update = self.db.query(Update).one()
         update.date_modified = date_modified
-        update.date_pushed = date_pushed
+        update.date_stable = date_pushed
         if not date_modified and not date_pushed:
             update.date_submitted = expected
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
@@ -216,7 +215,7 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
     def test_date_pushed_none(self):
         """updated_date should use date_submitted if an update's date_pushed is None."""
         update = self.db.query(Update).one()
-        update.date_pushed = None
+        update.date_stable = update.date_testing = None
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
                                 close_shelf=False)
         md.add_update(update)
@@ -277,7 +276,7 @@ class TestFetchUpdates(UpdateInfoMetadataTestCase):
     def test_build_unassociated(self, warning):
         """A warning should be logged if the Bodhi Build object is not associated with an Update."""
         update = self.db.query(Update).one()
-        update.date_pushed = None
+        update.date_stable = update.date_testing = None
         u = base.create_update(self.db, ['TurboGears-1.0.2.2-4.fc17'])
         u.builds[0].update = None
         self.db.flush()
@@ -397,7 +396,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         # Pretend it's pushed to testing
         update.status = UpdateStatus.testing
         update.request = None
-        update.date_pushed = datetime.utcnow()
+        update.date_testing = datetime.utcnow()
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
         # Generate the XML

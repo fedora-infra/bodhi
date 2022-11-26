@@ -2696,7 +2696,7 @@ class TestUpdatesService(BasePyTestCase):
         assert not body['updates']
 
         # Now approve one
-        self.db.query(Update).first().date_pushed = now
+        self.db.query(Update).first().date_stable = now
         self.db.commit()
 
         # And try again
@@ -2745,7 +2745,7 @@ class TestUpdatesService(BasePyTestCase):
         assert not body['updates']
 
         # Now approve one
-        self.db.query(Update).first().date_pushed = now
+        self.db.query(Update).first().date_stable = now
         self.db.commit()
 
         # And try again
