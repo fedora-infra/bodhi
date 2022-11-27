@@ -46,7 +46,7 @@ Form.prototype.success = function(data) {
     // update.  We'll accept the comment (success!) but add a note to the
     // response informing you that your positive karma was stripped from the
     // payload.  Here we display those caveats to users.
-    caveats = data.caveats || [];  // May be undefined...
+    var caveats = data.caveats || [];  // May be undefined...
     $.each(caveats, function(i, caveat) {
         msg = self.messenger.post({
             message: caveat.description,
