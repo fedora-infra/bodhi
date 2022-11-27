@@ -11,7 +11,7 @@ def inherit(context):
 % if chrome:
 <%block name="css">
 ${parent.css()}
-<link href="${request.static_url('bodhi.server:static/vendor/selectize/selectize.bootstrap3-0.12.3.css') }" rel="stylesheet" />
+<link href="${request.static_url('bodhi.server:static/vendor/selectize/selectize.bootstrap5-0.15.2.css') }" rel="stylesheet" />
 <link rel="alternate" type="application/atom+xml" title="New Buildroot Overrides" href="${request.route_url('overrides_rss') + '?' + request.query_string}"/>
 </%block>
 % endif
@@ -189,7 +189,7 @@ ${parent.css()}
 % if chrome:
 <%block name="javascript">
 ${parent.javascript()}
-<script src="${request.static_url('bodhi.server:static/vendor/selectize/selectize-0.12.3.min.js')}"></script>
+<script src="${request.static_url('bodhi.server:static/vendor/selectize/selectize-0.15.2.min.js')}"></script>
 <script>
   $(document).ready(function() {
 
