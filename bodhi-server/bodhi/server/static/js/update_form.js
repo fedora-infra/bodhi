@@ -235,7 +235,7 @@ $(document).ready(function() {
         var sidetagname = $(this).attr('data-sidetagname');
 
         // change the label of the dropdown button to the sidetag name
-        $("#dropdownMenuButtonSidetags .buttonlabel").html(sidetagname)
+        $("#dropdownMenuButtonSidetags .buttonlabel").text(sidetagname)
 
         //hide the builds adder for regular candidate-tag type updates
         $("#builds-card .selectize-control").hide();
