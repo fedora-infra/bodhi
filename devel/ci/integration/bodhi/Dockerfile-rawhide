@@ -4,7 +4,7 @@ LABEL \
   vendor="Fedora Infrastructure" \
   maintainer="Aurelien Bompard <abompard@fedoraproject.org>" \
   license="MIT"
-
+ENV VIRTUAL_ENV=/srv/venv
 # For integration testing we're using the infrastructure repo
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/main/f/files/common/fedora-infra-tags.repo
 
@@ -27,10 +27,10 @@ RUN mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 RUN \
     for pkg in bodhi-client bodhi-messages bodhi-server; do \
         cd $pkg && \
-        python3 setup.py sdist && \
+        poetry build -f sdist && \
         cp dist/* ~/rpmbuild/SOURCES/ && \
         cp $pkg.spec ~/rpmbuild/SPECS/ && \
-        rpmbuild -ba ~/rpmbuild/SPECS/$pkg.spec && \
+        rpmbuild -ba --nocheck ~/rpmbuild/SPECS/$pkg.spec && \
         dnf install -y $(ls ~/rpmbuild/RPMS/noarch/*$pkg*.rpm) && \
         cd ..; \
     done; \

@@ -1,15 +1,14 @@
 <%inherit file="master.html"/>
-<%block name="css">
-${parent.css()}
-<link href="${request.static_url('bodhi.server:static/vendor/chartjs/Chart.min.css')}" rel="stylesheet" />
-</%block>
 <div class="subheader">
     <div class="container py-4">
       <div class="row">
         <div class="col-md-6 col-md-offset-3">
-            <h3 class="font-weight-bold m-0"><a href="${request.route_url('releases')}">Releases</a>
+            <h3 class="fw-bold m-0"><a href="${request.route_url('releases')}">Releases</a>
               <span class="text-muted">/</span> 
               ${release['long_name']}
+              % if release.state.value == 'frozen':
+              ${self.fragments.frozen_badge()}
+              % endif
             </h3>
         </div>
       </div>
@@ -62,7 +61,7 @@ ${parent.css()}
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Pending</td>
+          <td class="col-6 text-end">Pending</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=pending">
               <span class="fa fa-chevron-right">${num_updates_pending}</span>
@@ -70,7 +69,7 @@ ${parent.css()}
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Testing</td>
+          <td class="col-6 text-end">Testing</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=testing">
               <span class="fa fa-chevron-right">${num_updates_testing}</span>
@@ -78,7 +77,7 @@ ${parent.css()}
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Stable</td>
+          <td class="col-6 text-end">Stable</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=stable">
               <span class="fa fa-chevron-right">${num_updates_stable}</span>
@@ -86,7 +85,7 @@ ${parent.css()}
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Unpushed</td>
+          <td class="col-6 text-end">Unpushed</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=unpushed">
               <span class="fa fa-chevron-right">${num_updates_unpushed}</span>
@@ -94,7 +93,7 @@ ${parent.css()}
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Obsolete</td>
+          <td class="col-6 text-end">Obsolete</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=obsolete">
               <span class="fa fa-chevron-right">${num_updates_obsolete}</span>
@@ -113,7 +112,7 @@ ${parent.css()}
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">New Package</td>
+          <td class="col-6 text-end">New Package</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=newpackage">
               <span class="fa fa-chevron-right">${num_updates_newpackage}</span>
@@ -121,7 +120,7 @@ ${parent.css()}
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Bugfix</td>
+          <td class="col-6 text-end">Bugfix</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=bugfix">
               <span class="fa fa-chevron-right">${num_updates_bugfix}</span>
@@ -129,7 +128,7 @@ ${parent.css()}
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Enhancement</td>
+          <td class="col-6 text-end">Enhancement</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=enhancement">
               <span class="fa fa-chevron-right">${num_updates_enhancement}</span>
@@ -137,7 +136,7 @@ ${parent.css()}
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Security</td>
+          <td class="col-6 text-end">Security</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=security">
               <span class="fa fa-chevron-right">${num_updates_security}</span>
@@ -149,7 +148,7 @@ ${parent.css()}
       <table class="table">
         <caption class="caption-top">Updates by gating status</caption>
         <tr class="d-flex">
-          <td class="col-6 text-right">Passed</td>
+          <td class="col-6 text-end">Passed</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&gating=passed">
               <span class="fa fa-chevron-right">${num_gating_passed}</span>
@@ -157,7 +156,7 @@ ${parent.css()}
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Ignored</td>
+          <td class="col-6 text-end">Ignored</td>
           <td class="col-6">
             <a href="${request.route_url('updates')}?releases=${release['name']}&gating=ignored">
               <span class="fa fa-chevron-right">${num_gating_ignored}</span>
@@ -169,7 +168,7 @@ ${parent.css()}
       <table class="table">
         <caption class="caption-top">Buildroot overrides</caption>
         <tr class="d-flex">
-          <td class="col-6 text-right">Active</td>
+          <td class="col-6 text-end">Active</td>
           <td class="col-6">
             <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=0">
               <span class="fa fa-chevron-right">${num_active_overrides}</span>
@@ -177,7 +176,7 @@ ${parent.css()}
           </td>
         </tr>
         <tr class="d-flex">
-          <td class="col-6 text-right">Expired</td>
+          <td class="col-6 text-end">Expired</td>
           <td class="col-6">
             <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=1">
               <span class="fa fa-chevron-right">${num_expired_overrides}</span>
@@ -194,8 +193,8 @@ ${parent.css()}
       </div>
       <div>
         <div class="panel-heading clearfix">
-          <span class="float-left">Latest ${release['long_name']} updates</span>
-          <span class="float-right">
+          <span class="float-start">Latest ${release['long_name']} updates</span>
+          <span class="float-end">
             <a href="${request.route_url('updates')}?releases=${release['name']}">
               View all
               <span class="fa fa-chevron-right"></span>
@@ -216,11 +215,17 @@ ${parent.css()}
 
 <%block name="javascript">
 ${parent.javascript()}
-<script src="${request.static_url('bodhi.server:static/vendor/chartjs/Chart.min.js')}"></script>
+<script src="${request.static_url('bodhi.server:static/vendor/chartjs/chart.min.js')}"></script>
+
+<script>
+  $(document).ready(function() {
+    // Initialize tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip()
+  });
+</script>
 
 <script type="text/javascript">
   $(document).ready(function() {
-    Chart.platform.disableCSSInjection = true;
     $('#releasetimeline').html('');
     $('#releasestatus').html('');
     $('#releasetypes').html('');
@@ -235,7 +240,8 @@ ${parent.javascript()}
           borderColor : "${self.util.type2color(ud_type)}",
           pointBackgroundColor : "${self.util.type2color(ud_type)}",
           pointBorderColor : "#fff",
-          fill : "False",
+          fill : false,
+          tension: 0.2,
           data : [
             % for yearmonth in date_commits[ud_type]:
             ${date_commits[ud_type][yearmonth]},
@@ -246,14 +252,16 @@ ${parent.javascript()}
       ]
     }
     var options_timeline = {
-        scales: {
-            yAxes: [{
-                stacked: false
-            }]
+        plugins: {
+            title: {
+                display: true,
+                text: "${release['long_name']} Updates Timeline"
+            }
         },
-        title: {
-            display: true,
-            text: "${release['long_name']} Updates Timeline"
+        scales: {
+            y: {
+                stacked: false
+            }
         }
     }
     // About 25 labels should be printed at most.
@@ -289,9 +297,12 @@ ${parent.javascript()}
       }]
     }
     var options_status = {
-        legend: {
-            display: true,
-            position: "right"
+        aspectRatio: 2,
+        plugins: {
+            legend: {
+                display: true,
+                position: "right"
+            }
         }
     }
     var releasestatus = document.getElementById("releasestatus").getContext("2d");
@@ -316,9 +327,12 @@ ${parent.javascript()}
       }]
     }
     var options_types = {
-        legend: {
-            display: true,
-            position: "right"
+        aspectRatio: 2,
+        plugins: {
+            legend: {
+                display: true,
+                position: "right"
+            }
         }
     }
     var releasetypes = document.getElementById("releasetypes").getContext("2d");

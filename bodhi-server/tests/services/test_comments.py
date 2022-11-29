@@ -100,8 +100,8 @@ class TestCommentsService(base.BasePyTestCase):
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
             res = self.app.post_json('/comments/', comment)
 
-        assert'errors' not in res.json_body
-        assert'comment' in res.json_body
+        assert 'errors' not in res.json_body
+        assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
         assert res.json_body['comment']['user_id'] == 1
         assert res.json_body['comment']['karma_critpath'] == -1
@@ -114,11 +114,11 @@ class TestCommentsService(base.BasePyTestCase):
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
             res = self.app.post_json('/comments/', comment)
 
-        assert'errors' not in res.json_body
+        assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
         assert res.json_body['comment']['user_id'] == 1
-        assert'bug_feedback' in res.json_body['comment']
+        assert 'bug_feedback' in res.json_body['comment']
         feedback = res.json_body['comment']['bug_feedback']
         assert len(feedback) == 1
 
@@ -135,7 +135,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
         assert res.json_body['comment']['user_id'] == 1
-        assert'testcase_feedback' in res.json_body['comment']
+        assert 'testcase_feedback' in res.json_body['comment']
         feedback = res.json_body['comment']['testcase_feedback']
         assert len(feedback) == 1
 
@@ -523,7 +523,7 @@ class TestCommentsService(base.BasePyTestCase):
         res = self.app.get('/comments/', {"ignore_user": "guest"})
         body = res.json_body
         assert len(body['comments']) == 1
-        assert'errors' not in body
+        assert 'errors' not in body
         comment = body['comments'][0]
         assert comment['text'] == 'srsly.  pretty good.'
 
@@ -552,7 +552,7 @@ class TestCommentsService(base.BasePyTestCase):
         res = self.app.get('/comments/', {"ignore_user": "guest,anonymous"})
         body = res.json_body
         assert len(body['comments']) == 1
-        assert'errors' not in body
+        assert 'errors' not in body
         assert body['comments'][0]['text'] == 'Cool! 😃'
 
     def test_list_comments_with_nonexistent_ignore_user(self):

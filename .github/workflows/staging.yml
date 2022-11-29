@@ -3,18 +3,37 @@ on:
     branches:
       - staging
 
-name: Build in koji
+name: Build Staging Snapshot in Koji
 
 jobs:
 
-  build:
-    name: Build in koji
+  generate_srpms:
+    name: Generate SRPMS
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           ref: staging
+      - name: Build the rpms with bodhi-ci (just to get the SRPMS)
+        run: devel/ci/bodhi-ci rpm -r ${{ matrix.release }}
+      - name: Upload srpms
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.release }}-SRPMs
+          path: test_results/${{ matrix.release }}-rpm/*.src.rpm
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [f36,f37]
 
+  build_in_koji:
+    name: Build ${{matrix.module}} on ${{matrix.release}} in Koji
+    runs-on: ubuntu-latest
+    needs: generate_srpms
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: staging
       - name: install Deps with apt
         run: sudo apt-get install krb5-k5tls krb5-user krb5-config libkrb5-dev
 
@@ -45,18 +64,14 @@ jobs:
           KEYTAB: ${{ secrets.KEYTAB }}
         run: echo $KEYTAB | base64 --decode > bodhidev-bot.keytab
 
-      - name: Build the rpms with bodhi-ci (just to get the SRPMS)
-        run: devel/ci/bodhi-ci rpm -r ${{ matrix.release }}
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
 
-      - name: Build bodhi-client on Koji
-        run: koji --keytab=bodhidev-bot.keytab --principal=bodhidev-bot@FEDORAPROJECT.ORG build --wait ${{ matrix.release }}-infra test_results/${{ matrix.release }}-rpm/*bodhi-client*.src.rpm
+      - name: Build ${{matrix.module}} on Koji
+        run: koji --keytab=bodhidev-bot.keytab --principal=bodhidev-bot@FEDORAPROJECT.ORG build --wait ${{ matrix.release }}-infra ${{ matrix.release }}-SRPMs/*${{matrix.module}}*.src.rpm
 
-      - name: Build bodhi-messages on Koji
-        run: koji --keytab=bodhidev-bot.keytab --principal=bodhidev-bot@FEDORAPROJECT.ORG build --wait ${{ matrix.release }}-infra test_results/${{ matrix.release }}-rpm/*bodhi-messages*.src.rpm
-      
-      - name: Build bodhi-server on Koji
-        run: koji --keytab=bodhidev-bot.keytab --principal=bodhidev-bot@FEDORAPROJECT.ORG build --wait ${{ matrix.release }}-infra test_results/${{ matrix.release }}-rpm/*bodhi-server*.src.rpm
     strategy:
       fail-fast: false
       matrix:
-        release: [f34]
+        module: [bodhi-client, bodhi-messages, bodhi-server]
+        release: [f36,f37]

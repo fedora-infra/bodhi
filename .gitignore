@@ -27,6 +27,7 @@ bodhi-server/development.ini
 dist/
 */dist
 docs/_build
+*/docs/_build
 docs/docblocks
 docs/developer/docblocks
 docs/generated

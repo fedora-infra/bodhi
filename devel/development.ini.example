@@ -80,9 +80,6 @@ test_gating.required = True
 waiverdb_api_url = http://bodhi_user:pass@localhost:6544/api/v1.0
 greenwave_api_url = http://localhost:6545/api/v1.0
 
-# Documentation
-docs_path = %(here)s/../docs/_build/html/
-
 [server:main]
 use = egg:waitress#main
 host = 0.0.0.0

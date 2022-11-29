@@ -6,40 +6,19 @@
 # cd bodhi
 # cp devel/Vagrantfile.example Vagrantfile
 # vagrant up
-
-# There is also an option when provisioning to setup bodhi
-# to use the fedora stg infratucture for koji and src.stg (for package acls)
-# To use this, use the command:
 #
-# vagrant --use-staging up
-#
-# vagrant will prompt you for for fas username for auth to koji. Additionally
-# after the box is finished, you will need to aquire a kerberos ticket periodically
-# with `kinit <fasusername>@STG.FEDORAPROJECT.ORG` for bodhi to be able to auth with
-# the stg koji.
+# remember to set the value of fas_username
 
 require 'etc'
 
-use_staging_infra = false
-
-# Don't use GetoptLong/OptionParser as it conflicts with options for the main program.
-if ARGV.include?('--use-staging')
-  use_staging_infra = true
-  ARGV.delete('--use-staging')
-end
-
-if use_staging_infra
-    print "Enter your FAS username for krb auth to staging: "
-    fasusername = STDIN.gets.chomp
-    print "\n"
-end
-
 VAGRANTFILE_API_VERSION = "2"
 
+fas_username = ""
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
- config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-34-1.2.x86_64.vagrant-libvirt.box"
- config.vm.box = "f34-cloud-libvirt"
- config.vm.box_download_checksum = "3d9c00892253c869bffcf2e84ddd308e90d5c7a5928b3bc00e0563a4bec55849"
+ config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-36-1.5.x86_64.vagrant-libvirt.box"
+ config.vm.box = "f36-cloud-libvirt"
+ config.vm.box_download_checksum = "afa6304fddb15aaa1a4877c251ac15482726877c86861ed23385ef9f7750f9c0"
  config.vm.box_download_checksum_type = "sha256"
 
  # Forward traffic on the host to the development server on the guest.
@@ -57,13 +36,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
  # This allows developers to view message queues at http://localhost:15672/
  config.vm.network "forwarded_port", guest: 15672, host: 15672
 
- # This is an optional plugin that, if installed, updates the host's /etc/hosts
+ # This is a plugin that updates the host's /etc/hosts
  # file with the hostname of the guest VM. In Fedora it is packaged as
  # ``vagrant-hostmanager``
- if Vagrant.has_plugin?("vagrant-hostmanager")
-     config.hostmanager.enabled = true
-     config.hostmanager.manage_host = true
- end
+ config.hostmanager.enabled = true
+ config.hostmanager.manage_host = true
+ 
 
  # Vagrant can share the source directory using rsync, NFS, or SSHFS (with the vagrant-sshfs
  # plugin). Consult the Vagrant documentation if you do not want to use SSHFS.
@@ -75,7 +53,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
  # to create and use a dnf cache directory
  #
  # Dir.mkdir('.dnf-cache') unless File.exists?('.dnf-cache')
- # config.vm.synced_folder ".dnf-cache", "/var/cache/dnf", type: "sshfs", sshfs_opts_append: "-o nonempty"
+ # config.vm.synced_folder ".dnf-cache", "/var/cache/dnf", type: "sshfs"
 
  # Comment this line if you would like to disable the automatic update during provisioning
  config.vm.provision "shell", inline: "sudo dnf upgrade -y"
@@ -83,14 +61,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
  # bootstrap and run with ansible
  config.vm.provision "ansible" do |ansible|
      ansible.playbook = "devel/ansible/playbook.yml"
-
-     # if vagrant is given a fas username, assume the user is using the stg infrastructure
-     if fasusername
-        ansible.extra_vars = {
-        staging_fas: fasusername,
-        use_staging_infra: true
-        }
-     end
+     ansible.extra_vars = {
+        fas_username: fas_username
+    }
  end
 
 

@@ -1,15 +1,25 @@
+from unittest import mock
+
+from authlib.oauth2.rfc6750 import InvalidTokenError
 from pyramid import testing
-from zope.interface import interfaces
+from pyramid.httpexceptions import HTTPAccepted, HTTPUnauthorized
 import pytest
 
 from bodhi.server import models
-from bodhi.server.auth.utils import remember_me
+from bodhi.server.auth.utils import get_and_store_user, get_final_redirect, remember_me
 
 from .. import base
+from .utils import fake_send
 
 
 class TestRememberMe(base.BasePyTestCase):
     """Test the remember_me() function."""
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        # Declare the routes on the testing config, otherwise req.route_url() won't work.
+        self.config.add_route('home', '/')
+        self.config.include("bodhi.server.auth")
 
     def _generate_req_info(self, openid_endpoint):
         """Generate the request and info to be handed to remember_me() for these tests."""
@@ -32,9 +42,12 @@ class TestRememberMe(base.BasePyTestCase):
         """Test the post-login hook with a bad openid endpoint"""
         req, info = self._generate_req_info('bad_endpoint')
 
-        with pytest.raises(interfaces.ComponentLookupError):
+        with pytest.raises(HTTPUnauthorized) as exc:
             remember_me(None, req, info)
 
+        assert str(exc.value) == (
+            "Invalid OpenID provider. You can only use: https://id.stg.fedoraproject.org/openid/"
+        )
         # The user should not exist
         assert models.User.get('lmacken') is None
 
@@ -90,3 +103,45 @@ class TestRememberMe(base.BasePyTestCase):
         user = models.User.get('lmacken')
         assert len(user.groups) == 0
         assert len(models.Group.get('releng').users) == 0
+
+
+class TestGetFinalRedirect(base.BasePyTestCase):
+    """Test the get_final_redirect() function."""
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        # Declare the routes on the testing config, otherwise req.route_url() won't work.
+        self.config.add_route('home', '/')
+        self.config.include("bodhi.server.auth")
+
+    def test_no_loop(self):
+        """Make sure we don't redirect to the login page in a loop."""
+        req = testing.DummyRequest()
+        req.session['came_from'] = "http://example.com/login?method=openid"
+        response = get_final_redirect(req)
+        assert response.location == "/"
+
+
+class TestGetAndStoreUser(base.BasePyTestCase):
+
+    def test_no_userinfo(self):
+        """Test when the OIDC server has no userinfo."""
+        request = testing.DummyRequest(
+            path="/oidc/login",
+            headers={"Authorization": "Bearer TOKEN"}
+        )
+        request.registry = self.registry
+        request.db = self.db
+
+        userinfo_response = {
+            "error": "invalid_request",
+            "error_description": "No userinfo for token",
+        }
+
+        with mock.patch(
+            'requests.sessions.Session.send',
+            side_effect=fake_send({"UserInfo": userinfo_response})
+        ):
+            with pytest.raises(InvalidTokenError) as exc:
+                get_and_store_user(request, "TOKEN", HTTPAccepted())
+        assert str(exc.value) == "invalid_token: No userinfo for token"

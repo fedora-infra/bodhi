@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 """Documentation build job."""
-
 from .constants import MODULES
 from .job import BuildJob, Job
 
@@ -30,10 +29,18 @@ class DocsJob(Job):
     """
 
     _command = [
-        '/usr/bin/bash', '-c',
+        '/usr/bin/bash', '-cx',
         (
             'for submodule in ' + ' '.join(MODULES) + '; do '
-            'cd $submodule && /usr/bin/python3 setup.py develop && cd ..; done && '
+            '  pushd $submodule; '
+            '  VERSION=( $(poetry version) ); '
+            '  poetry build -f sdist; '
+            '  tar -xzvf "dist/${VERSION[0]}-${VERSION[1]}.tar.gz" -C /tmp/; '
+            '  pushd "/tmp/${VERSION[0]}-${VERSION[1]}"; '
+            '  python setup.py develop; '
+            '  popd; '
+            '  popd; '
+            'done;'
             'make -C docs clean && '
             'make -C docs html PYTHON=/usr/bin/python3 && '
             'make -C docs man PYTHON=/usr/bin/python3 && '

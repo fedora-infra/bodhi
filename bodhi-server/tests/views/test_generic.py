@@ -23,7 +23,7 @@ from pyramid.testing import DummyRequest
 import pytest
 import webtest
 
-from bodhi.server import main, util
+from bodhi.server import __version__, main, util
 from bodhi.server.models import Release, ReleaseState, Update, UpdateStatus
 
 from .. import base
@@ -493,12 +493,18 @@ class TestGenericViews(base.BasePyTestCase):
         app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
         res = app.get('/updates/new', status=403, headers=headers)
         assert '<h1>403 <small>Forbidden</small></h1>' in res
-        assert '<p class="lead">Access was denied to this resource.</p>' in res
+        assert '<p class="lead">You must be logged in.</p>' in res
 
     def test_api_version(self):
         """Test the API Version JSON call"""
         res = self.app.get('/api_version')
         assert str(util.version()) in res
+
+    def test_docs(self):
+        """Test the docs redirection."""
+        res = self.app.get('/docs/some/where.html', status=301)
+        ver = ".".join(__version__.split(".")[:2])
+        assert res.location == f"https://fedora-infra.github.io/bodhi/{ver}/some/where.html"
 
 
 class TestNotfoundView(base.BasePyTestCase):
@@ -508,4 +514,4 @@ class TestNotfoundView(base.BasePyTestCase):
         res = self.app.get('/makemerich', status=404)
 
         assert '404 <small>Not Found</small>' in res
-        assert 'The resource could not be found.' in res
+        assert '<p class="lead">/makemerich</p>' in res

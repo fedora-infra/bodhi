@@ -28,6 +28,7 @@ from bodhi.server import config, models
 from bodhi.server.exceptions import BodhiException, ExternalCallException
 from bodhi.server.tasks import fetch_test_cases_task
 from bodhi.server.tasks.fetch_test_cases import main as fetch_test_cases_main
+
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
 
@@ -71,7 +72,7 @@ class TestFetchTestCases(BaseTaskTestCase):
         """
         MediaWiki.return_value.call.side_effect = URLError("oh no!")
 
-        update = self.db.query(models.Update).filter(
+        update = self.db.query(models.Update).join(models.Build).filter(
             models.Build.nvr == 'bodhi-2.0-1.fc17').one()
 
         with pytest.raises(ExternalCallException):
@@ -85,7 +86,7 @@ class TestFetchTestCases(BaseTaskTestCase):
         """
         Assert that Build.update_test_cases is called.
         """
-        update = self.db.query(models.Update).filter(
+        update = self.db.query(models.Update).join(models.Build).filter(
             models.Build.nvr == 'bodhi-2.0-1.fc17').one()
         fetch_test_cases_main(update.alias)
 

@@ -51,16 +51,21 @@ def _warn_staging_overrides(
     Returns:
         The value of the option being handled.
     """
-    if ctx.params.get('staging', False) and (param.name in ['url', 'id_provider']) and \
-            value is not None:
-        click.echo(f'\nWarning: {param.name} and staging flags are '
-                   f'both set. {param.name} will be ignored.\n',
-                   err=True)
+    if ctx.params.get('staging', False):
+        if (
+            param.name == 'url' and value != constants.BASE_URL
+            or param.name == 'id_provider' and value != constants.IDP
+        ):
+            click.echo(
+                f'\nWarning: {param.name} and staging flags are '
+                f'both set. {param.name} will be ignored.\n',
+                err=True
+            )
     if param.name == 'staging' and value:
-        if ctx.params.get('url', False):
+        if ctx.params.get('url', constants.BASE_URL) != constants.BASE_URL:
             click.echo('\nWarning: url and staging flags are both set. url will be ignored.\n',
                        err=True)
-        if ctx.params.get('id_provider', False):
+        if ctx.params.get('id_provider', constants.IDP) != constants.IDP:
             click.echo('\nWarning: id_provider and staging flags '
                        'are both set. id_provider will be ignored.\n',
                        err=True)
@@ -121,24 +126,24 @@ new_edit_options = [
     click.option('--notes', help='Update description'),
     click.option('--notes-file', help='Update description from a file'),
     click.option('--bugs', help='Comma-separated list of bug numbers', default=''),
-    click.option('--close-bugs', is_flag=True, help='Automatically close bugs'),
+    click.option('--close-bugs/--no-close-bugs', default=None,
+                 help='Automatically close bugs or not'),
     click.option('--request', help='Requested repository',
-                 type=click.Choice(['testing', 'stable', 'unpush'])),
-    click.option('--autotime', is_flag=True, help='Enable stable push base on time in testing'),
+                 type=click.Choice(constants.REQUEST_TYPES)),
+    click.option('--autotime/--no-autotime', default=None,
+                 help='Enable/Disable stable push based on time in testing'),
     click.option('--stable-days', type=click.INT,
                  help='Days in testing required to push to stable'),
-    click.option('--autokarma', is_flag=True, help='Enable karma automatism'),
+    click.option('--autokarma/--no-autokarma', default=None,
+                 help='Enable/Disable karma automatism'),
     click.option('--stable-karma', type=click.INT, help='Stable karma threshold'),
     click.option('--unstable-karma', type=click.INT, help='Unstable karma threshold'),
     click.option('--requirements',
                  help='Space or comma-separated list of required Taskotron tasks'),
     click.option('--suggest', help='Post-update user suggestion',
-                 type=click.Choice(['logout', 'reboot'])),
+                 type=click.Choice(constants.SUGGEST_TYPES)),
     click.option('--display-name',
                  help='The name of the update', default=None),
-    click.option('--from-tag', help='Use builds from a Koji tag instead of specifying '
-                                    'them individually.',
-                 is_flag=True),
     staging_option]
 
 
@@ -189,10 +194,10 @@ release_options = [
                  help='Koji pending signing tag (eg: f20-updates-pending-signing)'),
     click.option('--override-tag', help='Koji override tag (eg: f20-override)'),
     click.option('--state', type=click.Choice(['disabled', 'pending', 'current',
-                                               'archived']),
+                                               'frozen', 'archived']),
                  help='The state of the release'),
     click.option('--mail-template', help='Name of the email template for this release'),
-    click.option('--composed-by-bodhi/--not-composed-by-bodhi', is_flag=True, default=True,
+    click.option('--composed-by-bodhi/--not-composed-by-bodhi', is_flag=True, default=None,
                  help='The flag that indicates whether the release is composed by Bodhi or not'),
     click.option('--package-manager', type=click.Choice(['unspecified', 'dnf', 'yum']),
                  help='The package manager used by this release'),
@@ -202,7 +207,7 @@ release_options = [
         '--create-automatic-updates/--no-create-automatic-updates',
         help=('Configure for this release, whether or not automatic updates are '
               'created for builds which are tagged into its Koji candidate tag.'),
-        is_flag=True, default=False),
+        is_flag=True, default=None),
     staging_option,
     url_option,
     debug_option]
@@ -309,21 +314,15 @@ def _save_override(url: str, staging: bool, edit: bool = False,
         print_resp(resp, client, override_hint=True)
 
 
-@click.group()
+@click.group(help="Command line tool for interacting with Bodhi.")
 @click.version_option(message='%(version)s')
 def cli():
-    # Docs that show in the --help
-    """Command line tool for interacting with Bodhi."""
-    # Developer Docs
     """Create the main CLI group."""
     pass  # pragma: no cover
 
 
-@cli.group()
+@cli.group(help="Interact with composes.")
 def composes():
-    # Docs that show in the --help
-    """Interact with composes."""
-    # Developer Docs
     """Create the composes group."""
     pass  # pragma: no cover
 
@@ -379,11 +378,8 @@ def list_composes(url: str, id_provider: str, client_id: str, staging: bool, ver
     print_resp(client.list_composes(), client, verbose)
 
 
-@cli.group()
+@cli.group(help="Interact with updates on Bodhi.")
 def updates():
-    # Docs that show in the --help
-    """Interact with updates on Bodhi."""
-    # Developer Docs
     """Create the updates group."""
     pass  # pragma: no cover
 
@@ -403,8 +399,10 @@ def require_severity_for_security_update(type: str, severity: str):
 
 @updates.command()
 @click.option('--type', default='bugfix', help='Update type', required=True,
-              type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
+              type=click.Choice(constants.UPDATE_TYPES))
 @add_options(new_edit_options)
+@click.option('--from-tag', is_flag=True,
+              help='Use builds from a Koji tag instead of specifying them individually')
 @click.argument('builds_or_tag')
 @click.option('--file', help='A text file containing all the update details')
 @handle_errors
@@ -416,8 +414,8 @@ def new(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
     """
     Create a new update.
 
-    BUILDS: a comma separated list of Builds to be added to the update
-    (e.g. 0ad-0.0.21-4.fc26,2ping-3.2.1-4.fc26)
+    BUILDS_OR_TAG: a comma separated list of Builds to be added to the update
+    (e.g. 0ad-0.0.21-4.fc26,2ping-3.2.1-4.fc26) or a single side-tag name
     """
     # Developer Docs
     """
@@ -433,6 +431,12 @@ def new(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
     client = bindings.BodhiClient(
         base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
     )
+
+    # Because some flag options are common between new and edit, we cannot set the default
+    # to be a boolean, instead we set them here
+    for option in ['close_bugs', 'autotime', 'autokarma']:
+        if kwargs[option] is None:
+            kwargs[option] = False
 
     # Because bodhi.server.services.updates expects from_tag to be string
     # copy builds to from_tag and remove builds
@@ -493,7 +497,7 @@ def _validate_edit_update(
 
 @updates.command()
 @click.option('--type', help='Update type',
-              type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
+              type=click.Choice(constants.UPDATE_TYPES))
 @click.option('--addbuilds', help='Add Comma-separated list of build nvr')
 @click.option('--removebuilds', help='Remove Comma-separated list of build nvr')
 @add_options(new_edit_options)
@@ -531,35 +535,34 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
     try:
         query_param = {'updateid': kwargs['update']}
         resp = client.query(**query_param)
-        del(kwargs['update'])
+        del kwargs['update']
 
         # Convert list of 'Bug' instances in DB to comma separated bug_ids for parsing.
         former_update = resp['updates'][0].copy()
+
+        # If these flags are not set by the user we load values from the existing update
+        for option in ['close_bugs', 'autotime', 'autokarma']:
+            if kwargs[option] is None:
+                kwargs[option] = former_update[option]
+
         if not kwargs['bugs']:
             kwargs['bugs'] = ",".join([str(bug['bug_id']) for bug in former_update['bugs']])
             former_update.pop('bugs', None)
 
         kwargs['builds'] = [b['nvr'] for b in former_update['builds']]
         kwargs['edited'] = former_update['alias']
-        # Because bodhi.server.services.updates expects from_tag to be string
-        # copy builds to from_tag and remove builds
-        if kwargs['from_tag']:
-            if not former_update.get('from_tag', None):
+
+        if former_update.get('from_tag', None):
+            # The build list is always refreshed from the side-tag by validate_from_tag()
+            if (kwargs['addbuilds'] or kwargs['removebuilds']):
                 click.echo(
-                    "ERROR: This update was not created from a tag."
-                    " Please remove --from_tag and try again.", err=True
-                )
-                sys.exit(1)
-            if kwargs['addbuilds'] or kwargs['removebuilds']:
-                click.echo(
-                    "ERROR: The --from-tag option can't be used together with"
-                    " --addbuilds or --removebuilds.", err=True
+                    "ERROR: The --addbuilds and --removebuilds options"
+                    " cannot be used with a side-tag update.", err=True
                 )
                 sys.exit(1)
             kwargs['from_tag'] = former_update['from_tag']
             del kwargs['builds']
         else:
-            kwargs.pop('from_tag')
             if kwargs['addbuilds']:
                 for build in kwargs['addbuilds'].split(','):
                     if build not in kwargs['builds']:
@@ -567,6 +570,7 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
             if kwargs['removebuilds']:
                 for build in kwargs['removebuilds'].split(','):
                     kwargs['builds'].remove(build)
+
         del kwargs['addbuilds']
         del kwargs['removebuilds']
 
@@ -611,7 +615,7 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
 @click.option('--releases', help='Updates for specific releases')
 @click.option('--locked', help='Updates that are in a locked state')
 @click.option('--request', help='Updates with a specific request',
-              type=click.Choice(['testing', 'stable', 'unpush']))
+              type=click.Choice(constants.REQUEST_TYPES))
 @click.option('--severity', help='Updates with a specific severity',
               type=click.Choice(['unspecified', 'urgent', 'high', 'medium', 'low']))
 @click.option('--submitted-since',
@@ -622,9 +626,9 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
               type=click.Choice(['pending', 'testing', 'stable', 'obsolete',
                                  'unpushed']))
 @click.option('--suggest', help='Filter by post-update user suggestion',
-              type=click.Choice(['logout', 'reboot']))
+              type=click.Choice(constants.SUGGEST_TYPES))
 @click.option('--type', default=None, help='Filter by update type',
-              type=click.Choice(['newpackage', 'security', 'bugfix', 'enhancement']))
+              type=click.Choice(constants.UPDATE_TYPES))
 @click.option('--user', help='Updates submitted by a specific user')
 @click.option('--mine', is_flag=True, help='Show only your updates')
 @add_options(openid_options)
@@ -789,9 +793,9 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
     requested_arch = kwargs['arch']
     debuginfo = kwargs['debuginfo']
 
-    del(kwargs['staging'])
-    del(kwargs['arch'])
-    del(kwargs['debuginfo'])
+    del kwargs['staging']
+    del kwargs['arch']
+    del kwargs['debuginfo']
     # At this point we need to have reduced the kwargs dict to only our
     # query options (updateid or builds)
     if not any(kwargs.values()):
@@ -983,11 +987,8 @@ def trigger_tests(update: str, url: str, id_provider: str, client_id: str, **kwa
     print_resp(resp, client)
 
 
-@cli.group()
+@cli.group(help="Interact with overrides on Bodhi.")
 def overrides():
-    # Docs that show in the --help
-    """Interact with overrides on Bodhi."""
-    # Developer Docs
     """Create the overrides CLI group."""
     pass  # pragma: no cover
 
@@ -1201,11 +1202,8 @@ def print_resp(resp: munch.Munch, client: bindings.BodhiClient, verbose: bool = 
             click.echo(caveat.description)
 
 
-@cli.group()
+@cli.group(help="Interact with releases.")
 def releases():
-    # Docs that show in the --help
-    """Interact with releases."""
-    # Developer Docs
     """Manage the releases."""
     pass  # pragma: no cover
 
@@ -1214,14 +1212,20 @@ def releases():
 @handle_errors
 @add_options(release_options)
 @add_options(openid_options)
-def create_release(url: str, id_provider: str, client_id: str, debug: bool, composed_by_bodhi: bool,
-                   **kwargs):
+def create_release(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
     """Create a release."""
     client = bindings.BodhiClient(
         base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
     )
     kwargs['csrf_token'] = client.csrf()
-    kwargs['composed_by_bodhi'] = composed_by_bodhi
+    # the defaults for these are set to None so that edit_release
+    # does not change the current value unless it was passed on the
+    # command line; for creating a new release, we set the defaults
+    # here
+    if kwargs['composed_by_bodhi'] is None:
+        kwargs['composed_by_bodhi'] = True
+    if kwargs['create_automatic_updates'] is None:
+        kwargs['create_automatic_updates'] = False
     kwargs['eol'] = kwargs.pop('eol').date() if kwargs['eol'] else None
     save(client, **kwargs)
 
@@ -1231,8 +1235,7 @@ def create_release(url: str, id_provider: str, client_id: str, debug: bool, comp
 @add_options(release_options)
 @add_options(openid_options)
 @click.option('--new-name', help='New release name (eg: F20)')
-def edit_release(url: str, id_provider: str, client_id: str, debug: bool, composed_by_bodhi: bool,
-                 **kwargs):
+def edit_release(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
     """Edit an existing release."""
     client = bindings.BodhiClient(
         base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
@@ -1256,7 +1259,6 @@ def edit_release(url: str, id_provider: str, client_id: str, debug: bool, compos
 
     data['edited'] = edited
     data['csrf_token'] = csrf
-    data['composed_by_bodhi'] = composed_by_bodhi
 
     new_name = kwargs.pop('new_name')
 

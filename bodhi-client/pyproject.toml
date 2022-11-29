@@ -1,3 +1,56 @@
+[tool.poetry]
+name = "bodhi-client"
+version = "7.0.0"
+description = "Bodhi client"
+authors = ["Fedora Infrastructure team"]
+maintainers = ["Fedora Infrastructure Team <infrastructure@lists.fedoraproject.org>"]
+homepage = "https://bodhi.fedoraproject.org/"
+repository = "https://github.com/fedora-infra/bodhi"
+keywords = ["fedora"]
+license = "GPL-2.0-or-later"
+# Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: System :: Software Distribution"
+]
+packages = [
+    { include = "bodhi" },
+    { include = "tests", format = "sdist" },
+]
+include = [
+    { path = "docs", format = "sdist" },
+    { path = "bodhi-client.bash", format = "sdist" },
+    { path = "COPYING", format = "sdist" },
+]
+exclude = ["docs/_build"]
+
+[tool.poetry.dev-dependencies]
+Sphinx = ">=3.4.3"
+pytest = ">=6.0.0"
+pytest-cov = ">=2.11.1"
+pytest-mock = ">=3.5.1"
+diff-cover = ">=4.2.1"
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+click = ">=7.1.2"
+koji = ">=1.27.1"
+authlib = ">=0.15.4"
+munch = ">=2.5.0"
+requests-kerberos = ">=0.12"
+
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+bodhi = "bodhi.client.cli:cli"

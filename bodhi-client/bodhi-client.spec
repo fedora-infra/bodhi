@@ -1,6 +1,6 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-client
-%global pypi_version 5.7.5
+%global pypi_version 7.0.0
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
@@ -13,46 +13,62 @@ Source0:        %{pypi_name}-%{pypi_version}.tar.gz
 BuildArch:      noarch
 
 BuildRequires:  make
+BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3-devel
+BuildRequires:  python3-pytest
+BuildRequires:  python3-pytest-cov
+BuildRequires:  python3-pytest-mock
 BuildRequires:  python3-sphinx
-BuildRequires:  python3dist(click)
-BuildRequires:  python3dist(authlib)
-BuildRequires:  python3dist(koji)
-BuildRequires:  python3dist(setuptools)
 
-Requires: /usr/bin/koji
-Requires: python3-dnf
-Requires: python3-koji
+Requires: koji
 
 Obsoletes: python3-bodhi-client <= 5.7.5
+# Replace the bodhi metapackage
+Obsoletes: bodhi <= 5.7.5
 
 %py_provides python3-bodhi-client
 
 %description
-
+Command-line client for Bodhi, Fedora's update gating system.
 
 %prep
 %autosetup -n %{pypi_name}-%{pypi_version}
 # Remove bundled egg-info
 rm -rf %{pypi_name}.egg-info
 
+%generate_buildrequires
+%pyproject_buildrequires
+
+
 %build
-%py3_build
+%pyproject_wheel
 make %{?_smp_mflags} -C docs man
 
 %install
-%py3_install
+%pyproject_install
+%pyproject_save_files bodhi
+
 install -d %{buildroot}%{_mandir}/man1
 install -pm0644 docs/_build/bodhi.1 %{buildroot}%{_mandir}/man1/
+install -d %{buildroot}%{_sysconfdir}/bash_completion.d
+install -pm0644 bodhi-client.bash %{buildroot}%{_sysconfdir}/bash_completion.d/bodhi-client.bash
 
-%files -n %{pypi_name}
+%check
+%pyproject_check_import
+%{pytest} -v
+
+%files -n %{pypi_name} -f %{pyproject_files}
 %{_bindir}/bodhi
-%{python3_sitelib}/bodhi
-%{python3_sitelib}/bodhi_client-%{pypi_version}-py%{python3_version}-*.pth
-%{python3_sitelib}/bodhi_client-%{pypi_version}-py%{python3_version}.egg-info
 %{_mandir}/man1/bodhi.1*
+%config(noreplace) %{_sysconfdir}/bash_completion.d/bodhi-client.bash
 
 %changelog
+* Sat Nov 26 2022 Mattia Verga <mattia.verga@fedoraproject.org> - 7.0.0-1
+- Update to 7.0.0.
+
+* Fri Apr 08 2022 Aurelien Bompard <abompard@fedoraproject.org> - 6.0.0-1
+- Update to 6.0.0.
+
 * Wed Feb 23 2022 Ryan Lerch <rlerch@redhat.com> - 5.7.5-0
 - Prepare the Bodhi client to be compatible with an OIDC-enabled server. PR#4391.
 

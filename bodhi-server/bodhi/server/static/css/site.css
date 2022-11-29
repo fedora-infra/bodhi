@@ -6,7 +6,7 @@ a {
     outline: 0 !important;
 }
 
-a:hover {
+a {
     text-decoration: none;
 }
 
@@ -33,10 +33,6 @@ a:hover {
     margin-right: 0px;
 }
 
-ul {
-    list-style: none;
-}
-
 .table colgroup.strip {
     width: 10px !important;
 }
@@ -61,6 +57,11 @@ hr {
 /* Search-y stuff */
 .typeahead__result {
     font-size: .9rem;
+}
+
+pre {
+    background-color: #fdf6e3;
+    padding: 1rem;
 }
 
 #bodhi-searchbar .typeahead__list {
@@ -228,6 +229,12 @@ padding-bottom: 2em;
 .min-width-3{
     min-width: 3em;
 }
+.min-width-4{
+    min-width: 4em;
+}
+.min-width-5{
+    min-width: 5em;
+}
 
 .min-width-35{
     min-width: 3.5em;
@@ -240,6 +247,14 @@ padding-bottom: 2em;
 .card.user-comment{
     border-color: #ddd!important;
     box-shadow: 0 0 5px 0px #eee;
+}
+
+.card.user-comment.negative-karma-comment {
+    border-color: #dc3545!important;
+}
+
+.negative-karma-comment .card-header {
+    background-color: #ffc9c9;
 }
 
 .custom-select{
@@ -343,4 +358,13 @@ padding-bottom: 2em;
 
 .caption-top {
     caption-side: top;
+    font-weight: bold;
+}
+
+.list-group-item {
+    padding: .75rem 1.25rem;
+}
+
+.text-bg-warning, .text-bg-info {
+    color: #fff!important;
 }

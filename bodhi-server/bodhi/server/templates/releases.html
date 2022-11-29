@@ -7,26 +7,35 @@
 </%def>
 
 <%def name="release_list(release_status, stable_only=False)">
+<%
+if release_status == 'pending':
+  releases_list = request.releases['pending'] + request.releases['frozen']
+else:
+  releases_list = request.releases[release_status]
+%>\
 <ul class="list-group my-3">
     <li class="list-group-item bg-light">
         <div class="row">
-            <div class="col font-weight-bold">
-                ${release_status.capitalize()} Releases <span class="badge badge-primary badge-pill">${len(request.releases[release_status])}</span>
+            <div class="col fw-bold">
+                ${release_status.capitalize()} Releases <span class="badge rounded-pill text-bg-primary">${len(releases_list)}</span>
             </div>
             % if not stable_only:
-            <div class="col-1 align-self-right font-weight-bold text-muted text-center">Pending</div>
-            <div class="col-1 align-self-right font-weight-bold text-muted text-center">Testing</div>
+            <div class="col-1 align-self-right fw-bold text-muted text-center">Pending</div>
+            <div class="col-1 align-self-right fw-bold text-muted text-center">Testing</div>
             % endif
-            <div class="col-1 align-self-right font-weight-bold text-muted text-center">Stable</div>
+            <div class="col-1 align-self-right fw-bold text-muted text-center">Stable</div>
 
           </div>
       
     </li>
-    % for r in request.releases[release_status]:
+    % for r in sorted(releases_list, key=lambda i: i['name'], reverse=True):
     <li class="list-group-item">
         <div class="row">
-          <div class="col font-weight-bold">
+          <div class="col fw-bold">
             <a href="${request.route_url('releases')}${r['name']}">${r['long_name']}</a>
+            % if r['state'] == 'frozen':
+            ${self.fragments.frozen_badge()}
+            % endif
           </div>
           % if not stable_only:
           ${counts_box(r, "pending")}
@@ -43,7 +52,7 @@
     <div class="container">
       <div class="row">
           <div class="col-md-6 col-md-offset-3">
-              <h3 class="font-weight-bold m-0">Releases</h3>
+              <h3 class="fw-bold m-0">Releases</h3>
           </div>
       </div>
     </div>
@@ -53,3 +62,13 @@
     ${release_list('pending', stable_only=False)}
     ${release_list('archived', stable_only=True)}
 </div>
+
+<%block name="javascript">
+${parent.javascript()}
+<script>
+  $(document).ready(function() {
+    // Initialize tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip()
+  });
+</script>
+</%block>

@@ -101,6 +101,8 @@ def approve_update(update: Update, db: Session):
         # Do not add the release.pending_stable_tag if the update
         # was created from a side tag.
         if update.release.composed_by_bodhi:
+            if not update.date_approved:
+                update.date_approved = func.current_timestamp()
             update.set_request(db=db, action=UpdateRequest.stable, username="bodhi")
         # For updates that are not included in composes run by bodhi itself,
         # mark them as stable
@@ -131,7 +133,7 @@ def approve_update(update: Update, db: Session):
             update.status = UpdateStatus.stable
             update.request = None
             update.pushed = True
-            update.date_stable = update.date_pushed = func.current_timestamp()
+            update.date_stable = update.date_approved = func.current_timestamp()
             update.comment(db, "This update has been submitted for stable by bodhi",
                            author=u'bodhi')
             update.modify_bugs()

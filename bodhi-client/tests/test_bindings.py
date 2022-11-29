@@ -67,7 +67,7 @@ class TestBodhiClientBase(BodhiClientTestCase):
             "CLIENT_ID",
             constants.SCOPE,
             "https://id.example.com",
-            storage=storage.return_value
+            storage=storage.return_value,
         )
         storage.assert_called_with(os.path.expanduser("~/.config/bodhi/client.json"))
         assert client.csrf_token == ''
@@ -106,7 +106,7 @@ class TestBodhiClientAuth(BodhiClientTestCase):
 
         client.ensure_auth()
 
-        self.oidc.ensure_auth.assert_called_once_with()
+        self.oidc.ensure_auth.assert_called_once_with(use_kerberos=True)
         self.oidc.request.assert_called_once_with(
             "GET", "http://example.com/bodhi/oidc/login-token"
         )
@@ -141,13 +141,16 @@ class TestBodhiClientAuth(BodhiClientTestCase):
         )
         self.oidc.login.assert_not_called()
 
-    def test_send_request_ok(self):
-        self.oidc.request.return_value = build_response(200, "/url", '{"foo": "bar"}')
+    def test_send_request_ok(self, mocker):
+        requests = mocker.patch("bodhi.client.bindings.requests")
+        requests.request.return_value = build_response(200, "/url", '{"foo": "bar"}')
+
         client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
 
         response = client.send_request("somewhere", "GET")
 
-        self.oidc.request.assert_called_once_with("GET", "http://example.com/bodhi/somewhere")
+        requests.request.assert_called_once_with("GET", "http://example.com/bodhi/somewhere")
+        self.oidc.request.assert_not_called()
         assert "foo" in response
         assert response.foo == "bar"
 
@@ -158,22 +161,32 @@ class TestBodhiClientAuth(BodhiClientTestCase):
         client.send_request("somewhere", "GET", auth=True)
 
         self.oidc.request.assert_called_once_with("GET", "http://example.com/bodhi/somewhere")
-        self.oidc.ensure_auth.assert_called_once_with()
+        self.oidc.ensure_auth.assert_called_once_with(use_kerberos=True)
 
     def test_send_request_error(self, mocker):
-        self.oidc.request.return_value = build_response(500, "/url", "error")
+        response = build_response(500, "/url", "error")
+        requests = mocker.patch("bodhi.client.bindings.requests")
+        self.oidc.request.return_value = requests.request.return_value = response
         client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
 
         with pytest.raises(bindings.BodhiClientException) as exc:
             client.send_request("somewhere", "GET")
         assert str(exc.value) == "error"
+        with pytest.raises(bindings.BodhiClientException) as exc:
+            client.send_request("somewhere", "GET", auth=True)
+        assert str(exc.value) == "error"
 
     def test_send_request_failure(self, mocker):
-        self.oidc.request.side_effect = OIDCClientError("Something went wrong")
+        failure = OIDCClientError("Something went wrong")
+        requests = mocker.patch("bodhi.client.bindings.requests")
+        self.oidc.request.side_effect = requests.request.side_effect = failure
         client = bindings.BodhiClient(base_url='http://example.com/bodhi/')
 
         with pytest.raises(bindings.BodhiClientException) as exc:
             client.send_request("somewhere", "GET")
+        assert str(exc.value) == "Something went wrong"
+        with pytest.raises(bindings.BodhiClientException) as exc:
+            client.send_request("somewhere", "GET", auth=True)
         assert str(exc.value) == "Something went wrong"
 
 
@@ -772,6 +785,54 @@ class TestSaveOverride(BodhiClientTestCase):
         expected_expiration = now + timedelta(days=2)
         assert (actual_expiration - expected_expiration) < timedelta(minutes=5)
 
+    def test_save_override_expiration_date(self, mocker):
+        """
+        Test the save_override() method with an explicit expiration date.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mocker.MagicMock(return_value='return_value')
+        client.csrf_token = 'a token'
+        now = datetime.utcnow()
+        response = client.save_override(nvr='python-pyramid-1.5.6-3.el7',
+                                        expiration_date=now,
+                                        notes='This is needed to build bodhi-2.4.0.')
+
+        assert response == 'return_value'
+        client.send_request.assert_called_once_with(
+            'overrides/', verb='POST', auth=True,
+            data={'nvr': 'python-pyramid-1.5.6-3.el7',
+                  'expiration_date': now,
+                  'csrf_token': 'a token', 'notes': 'This is needed to build bodhi-2.4.0.'})
+
+    def test_save_override_no_expiration(self, mocker):
+        """
+        Test the save_override() method without duration or expiration date.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mocker.MagicMock(return_value='return_value')
+        client.csrf_token = 'a token'
+        with pytest.raises(TypeError):
+            client.save_override(
+                nvr='python-pyramid-1.5.6-3.el7',
+                notes='This is needed to build bodhi-2.4.0.'
+            )
+
+    def test_save_override_both_expirations(self, mocker):
+        """
+        Test the save_override() method with duration and expiration date.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mocker.MagicMock(return_value='return_value')
+        client.csrf_token = 'a token'
+        now = datetime.utcnow()
+        with pytest.raises(TypeError):
+            client.save_override(
+                nvr='python-pyramid-1.5.6-3.el7',
+                notes='This is needed to build bodhi-2.4.0.',
+                duration=1,
+                expiration_date=now,
+            )
+
     def test_save_override_edit(self, mocker):
         """
         Test the save_override() method with the edit argument.
@@ -1216,7 +1277,7 @@ class TestUpdateStr(BodhiClientTestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        assert(
+        assert (
             '     Waivers: netvor - 2018-06-29 00:20:20\n'
             '              This is fine. See BZ#1566485\n'
             '              build: slop-7.4-1.fc28\n'

@@ -73,6 +73,7 @@ class PyramidOAuth2App(PyramidAppMixinAuthlib1, OAuth2Mixin, OpenIDMixin, BaseAp
         if request.method == 'GET':
             error = request.GET.get('error')
             if error:
+                self.framework.clear_state_data(request.session, request.GET.get('state'))
                 description = request.GET.get('error_description')
                 raise OAuthError(error=error, description=description)
             params = {

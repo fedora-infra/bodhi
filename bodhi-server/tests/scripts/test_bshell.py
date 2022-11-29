@@ -40,7 +40,7 @@ class TestMain:
 
         assert r.exit_code == 0
         assert r.output == ""
-        call.assert_called_once_with(['pshell-3', '/path/to/config.ini'])
+        call.assert_called_once_with(['pshell', '/path/to/config.ini'])
 
     @patch('bodhi.server.scripts.bshell.get_configfile')
     @patch('bodhi.server.scripts.bshell.call')

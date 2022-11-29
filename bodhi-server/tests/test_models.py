@@ -18,29 +18,45 @@
 """Test suite for bodhi.server.models"""
 from datetime import datetime, timedelta
 from unittest import mock
+from urllib.error import URLError
 import hashlib
 import html
 import json
 import pickle
 import time
 import uuid
-from urllib.error import URLError
 
-from fedora_messaging.testing import mock_sends
 from fedora_messaging.api import Message
+from fedora_messaging.testing import mock_sends
 from pyramid.testing import DummyRequest
-import pytest
 from sqlalchemy.exc import IntegrityError
 import cornice
+import pytest
 import requests.exceptions
 
-from bodhi.messages.schemas import errata as errata_schemas, update as update_schemas
-from bodhi.server import models as model, buildsys, mail, util, Session
+from bodhi.messages.schemas import errata as errata_schemas
+from bodhi.messages.schemas import update as update_schemas
+from bodhi.server import buildsys, mail
+from bodhi.server import models as model
+from bodhi.server import Session, util
 from bodhi.server.config import config
-from bodhi.server.exceptions import BodhiException, ExternalCallException, LockedUpdateException
+from bodhi.server.exceptions import (
+    BodhiException,
+    ExternalCallException,
+    LockedUpdateException,
+)
 from bodhi.server.models import (
-    BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
-    UpdateSuggestion, UpdateType, TestGatingStatus, PackageManager)
+    BugKarma,
+    PackageManager,
+    ReleaseState,
+    TestGatingStatus,
+    UpdateRequest,
+    UpdateSeverity,
+    UpdateStatus,
+    UpdateSuggestion,
+    UpdateType,
+)
+
 from .base import BasePyTestCase, DummyUser
 
 
@@ -275,9 +291,9 @@ class TestBugDefaultMessage(BasePyTestCase):
         assert 'cool fedora stuff {}'.format(update.alias) == message
         assert 'not here' not in message
 
-    @mock.patch.dict(config, {'testing_bug_epel_msg': 'cool epel stuff {update_url}'})
     def test_epel_with_testing_bug_epel_msg(self):
         """Test with testing_bug_epel_msg defined."""
+        config['testing_bug_epel_msg'] = 'cool epel stuff {update_url}'
         bug = model.Bug()
         update = model.Update.query.first()
         update.release.id_prefix = 'FEDORA-EPEL'
@@ -288,13 +304,15 @@ class TestBugDefaultMessage(BasePyTestCase):
         assert 'cool epel stuff {}'.format(config['base_address'] + update.get_url()) == message
 
     @mock.patch('bodhi.server.models.log.warning')
-    @mock.patch.dict(
-        config,
-        {'testing_bug_msg': 'cool fedora stuff {update_url}', 'base_address': 'b',
-         'critpath.min_karma': 1, 'fedora_epel.mandatory_days_in_testing': 0},
-        clear=True)
     def test_epel_without_testing_bug_epel_msg(self, warning):
         """Test with testing_bug_epel_msg undefined."""
+        config.update({
+            'testing_bug_msg': 'cool fedora stuff {update_url}',
+            'base_address': 'b',
+            'critpath.min_karma': 1,
+            'fedora_epel.mandatory_days_in_testing': 0
+        })
+        del config["testing_bug_epel_msg"]
         bug = model.Bug()
         update = model.Update.query.first()
         update.release.id_prefix = 'FEDORA-EPEL'
@@ -638,7 +656,7 @@ class TestCompose(BasePyTestCase):
         # If we remove the extra keys from normal_json, the remaining dictionary should be the same
         # as j.
         for k in set(normal_json.keys()) - set(j.keys()):
-            del(normal_json[k])
+            del normal_json[k]
         assert j == normal_json
 
     def test___lt___false_fallthrough(self):
@@ -720,47 +738,59 @@ class TestRelease(ModelTest):
         """Test the collection_name property of the Release."""
         assert self.obj.collection_name == 'Fedora'
 
-    @mock.patch.dict(config, {'fedora.mandatory_days_in_testing': 42})
     def test_mandatory_days_in_testing_status_falsey(self):
         """Test mandatory_days_in_testing() with a value that is falsey."""
+        config["fedora.mandatory_days_in_testing"] = 42
         assert self.obj.mandatory_days_in_testing == 42
 
-    @mock.patch.dict(config, {'f11.current.mandatory_days_in_testing': 42, 'f11.status': 'current'})
     def test_mandatory_days_in_testing_status_truthy(self):
         """Test mandatory_days_in_testing() with a value that is truthy."""
+        config.update({
+            'f11.current.mandatory_days_in_testing': 42,
+            'f11.status': 'current'
+        })
         assert self.obj.mandatory_days_in_testing == 42
 
-    @mock.patch.dict(config, {'f11.current.mandatory_days_in_testing': 0, 'f11.status': 'current'})
     def test_mandatory_days_in_testing_status_0_days(self):
         """Test mandatory_days_in_testing() with a value that is 0."""
+        config.update({
+            'f11.current.mandatory_days_in_testing': 0,
+            'f11.status': 'current'
+        })
         assert self.obj.mandatory_days_in_testing == 0
 
-    @mock.patch.dict(config, {'critpath.stable_after_days_without_negative_karma': 11,
-                              'f11.current.critpath.stable_after_days_without_negative_karma': 42})
     def test_critpath_mandatory_days_in_testing_no_status(self):
         """
         Test critpath_mandatory_days_in_testing() returns global default if
         release has no status.
         """
+        config.update({
+            'critpath.stable_after_days_without_negative_karma': 11,
+            'f11.current.critpath.stable_after_days_without_negative_karma': 42
+        })
         assert self.obj.critpath_mandatory_days_in_testing == 11
 
-    @mock.patch.dict(config, {'critpath.stable_after_days_without_negative_karma': 11,
-                              'f11.status': 'current'})
     def test_critpath_mandatory_days_in_testing_status_default(self):
         """
         Test critpath_mandatory_days_in_testing() returns global default if
         release has status, but no override set.
         """
+        config.update({
+            'critpath.stable_after_days_without_negative_karma': 11,
+            'f11.status': 'current'
+        })
         assert self.obj.critpath_mandatory_days_in_testing == 11
 
-    @mock.patch.dict(config, {'critpath.stable_after_days_without_negative_karma': 11,
-                              'f11.status': 'current',
-                              'f11.current.critpath.stable_after_days_without_negative_karma': 42})
     def test_critpath_mandatory_days_in_testing_status_override(self):
         """
         Test critpath_mandatory_days_in_testing() returns override value if
         release has status and override set.
         """
+        config.update({
+            'critpath.stable_after_days_without_negative_karma': 11,
+            'f11.status': 'current',
+            'f11.current.critpath.stable_after_days_without_negative_karma': 42
+        })
         assert self.obj.critpath_mandatory_days_in_testing == 42
 
     def test_setting_prefix(self):
@@ -772,9 +802,11 @@ class TestRelease(ModelTest):
 
         assert self.obj.setting_prefix == 'f11'
 
-    @mock.patch.dict(config, {'f11.status': "It's doing just fine, thanks for asking"})
     def test_setting_status_found(self):
         """Assert correct return value from the setting_status property when config is found."""
+        config.update({
+            'f11.status': "It's doing just fine, thanks for asking"
+        })
         assert self.obj.setting_status == "It's doing just fine, thanks for asking"
 
     def test_setting_status_not_found(self):
@@ -798,11 +830,13 @@ class TestRelease(ModelTest):
         model.Release.clear_all_releases_cache()
         assert model.Release._all_releases is None
 
-    @mock.patch.dict(config, {'f11.koji-signing-pending-side-tag': '-signing-pending-test'})
     def test_get_pending_signing_side_tag_found(self):
         """
         Assert that correct side tag is returned.
         """
+        config.update({
+            'f11.koji-signing-pending-side-tag': '-signing-pending-test'
+        })
         assert self.obj.get_pending_signing_side_tag("side-tag") == "side-tag-signing-pending-test"
 
     def test_get_pending_signing_side_tag_not_found(self):
@@ -811,11 +845,13 @@ class TestRelease(ModelTest):
         """
         assert self.obj.get_pending_signing_side_tag("side-tag") == "side-tag-signing-pending"
 
-    @mock.patch.dict(config, {'f11.koji-testing-side-tag': '-testing-test'})
     def test_get_pending_testing_side_tag_found(self):
         """
         Assert that correct side tag is returned.
         """
+        config.update({
+            'f11.koji-testing-side-tag': '-testing-test'
+        })
         assert self.obj.get_pending_testing_side_tag("side-tag") == "side-tag-testing-test"
 
     def test_get_pending_testing_side_tag_not_found(self):
@@ -1932,10 +1968,10 @@ class TestUpdateInit(BasePyTestCase):
 class TestUpdateNew(BasePyTestCase):
     """Tests for the Update.new() method."""
 
-    @mock.patch.dict('bodhi.server.config.config', {'bodhi_email': None})
     @mock.patch('bodhi.server.models.log.warning')
     def test_add_bugs_bodhi_not_configured(self, warning):
         """Adding a bug should log a warning if Bodhi isn't configured to handle bugs."""
+        config["bodhi_email"] = None
         release = self.create_release('36')
         package = model.RpmPackage.query.filter_by(name='bodhi').one()
         build = model.RpmBuild(nvr='bodhi-6.0.0-1.fc36', release=release,
@@ -1986,10 +2022,10 @@ class TestUpdateEdit(BasePyTestCase):
         with pytest.raises(model.LockedUpdateException):
             model.Update.edit(request, data)
 
-    @mock.patch.dict('bodhi.server.config.config', {'bodhi_email': None})
     @mock.patch('bodhi.server.models.log.warning')
     def test_add_bugs_bodhi_not_configured(self, warning):
         """Adding a bug should log a warning if Bodhi isn't configured to handle bugs."""
+        config["bodhi_email"] = None
         update = model.Update.query.first()
         data = {
             'edited': update.alias, 'builds': [update.builds[0].nvr], 'bugs': [12345, ], }
@@ -2016,9 +2052,9 @@ class TestUpdateEdit(BasePyTestCase):
         update = model.Update.query.first()
         assert update.display_name == ''
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
     def test_gating_required_false(self):
         """Assert that test_gating_status is not updated if test_gating is not enabled."""
+        config["test_gating.required"] = False
         update = model.Update.query.first()
         update.test_gating_status = None
         data = {
@@ -2046,9 +2082,9 @@ class TestUpdateEdit(BasePyTestCase):
         update = model.Update.query.first()
         assert update.test_gating_status is None
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_gating_required_true(self):
         """Assert that test_gating_status is updated if test_gating is enabled."""
+        config["test_gating.required"] = True
         update = model.Update.query.first()
         update.test_gating_status = None
         data = {
@@ -2076,12 +2112,12 @@ class TestUpdateEdit(BasePyTestCase):
         update = model.Update.query.first()
         assert update.test_gating_status == model.TestGatingStatus.failed
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_rawhide_update_edit_move_to_testing(self):
         """
         Assert that a pending rawhide update that was edited gets moved to testing
         if all the builds in the update are signed.
         """
+        config["test_gating.required"] = True
         update = model.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         update.status = model.UpdateStatus.pending
         update.release.composed_by_bodhi = False
@@ -2112,12 +2148,12 @@ class TestUpdateEdit(BasePyTestCase):
         assert update.status == model.UpdateStatus.testing
         assert update.test_gating_status == model.TestGatingStatus.failed
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_rawhide_update_edit_stays_pending(self):
         """
         Assert that a pending rawhide update that was edited does not get moved to testing
         if not all the builds in the update are signed.
         """
+        config["test_gating.required"] = True
         update = model.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         update.status = model.UpdateStatus.pending
         update.release.composed_by_bodhi = False
@@ -2148,12 +2184,12 @@ class TestUpdateEdit(BasePyTestCase):
         assert update.status == model.UpdateStatus.pending
         assert update.test_gating_status == model.TestGatingStatus.failed
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_not_rawhide_update_signed_stays_pending(self):
         """
         Assert that a non rawhide pending update that was edited does not get moved to testing
         if all the builds in the update are signed.
         """
+        config["test_gating.required"] = True
         update = model.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         update.status = model.UpdateStatus.pending
         update.release.composed_by_bodhi = True
@@ -2298,7 +2334,7 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.release.testing_repository = 'updates-testing'
 
         assert update.install_command == (
-            f'sudo dnf upgrade --enablerepo=updates-testing --advisory={update.alias}')
+            f'sudo dnf upgrade --enablerepo=updates-testing --refresh --advisory={update.alias}')
 
     def test_upgrade_in_stable(self):
         """Update is an enhancement, a security or a bugfix and is in stable."""
@@ -2308,7 +2344,7 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        assert update.install_command == f'sudo dnf upgrade --advisory={update.alias}'
+        assert update.install_command == f'sudo dnf upgrade --refresh --advisory={update.alias}'
 
     def test_newpackage_in_testing(self):
         """Update is a newpackage and is in testing."""
@@ -2319,7 +2355,8 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.release.testing_repository = 'updates-testing'
 
         assert update.install_command == (
-            r'sudo dnf install --enablerepo=updates-testing --advisory={} \*'.format(update.alias))
+            r'sudo dnf install --enablerepo=updates-testing --refresh '
+            r'--advisory={} \*'.format(update.alias))
 
     def test_newpackage_in_stable(self):
         """Update is a newpackage and is in stable."""
@@ -2329,7 +2366,8 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        assert update.install_command == r'sudo dnf install --advisory={} \*'.format(update.alias)
+        assert update.install_command == r'sudo dnf install --refresh ' \
+                                         r'--advisory={} \*'.format(update.alias)
 
     def test_cannot_install(self):
         """Update is out of stable or testing repositories."""
@@ -2464,7 +2502,7 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
         expected_post = mock.call(
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
-            data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
+            data={"product_version": "fedora-17", "decision_context": ["bodhi_update_push_testing"],
                   "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
                               {"item": f"{update.alias}", "type": "bodhi_update"}],
                   "verbose": False},
@@ -2507,7 +2545,7 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
         assert sleep.mock_calls == []
         expected_post = mock.call(
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
-            data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
+            data={"product_version": "fedora-17", "decision_context": ["bodhi_update_push_testing"],
                   "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
                               {"item": f"{update.alias}", "type": "bodhi_update"}],
                   "verbose": False},
@@ -2747,12 +2785,12 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         # meets_testing_requirement() should return True since the karma threshold has been reached
         assert update.meets_testing_requirements
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_test_gating_faild_no_testing_requirements(self):
         """
         The Update.meets_testing_requirements() should return False, if the test gating
         status of an update is failed.
         """
+        config["test_gating.required"] = True
         update = model.Update.query.first()
         update.autokarma = False
         update.stable_karma = 1
@@ -2762,12 +2800,12 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         # Assert that our preconditions from the docblock are correct.
         assert not update.meets_testing_requirements
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_test_gating_queued_no_testing_requirements(self):
         """
         The Update.meets_testing_requirements() should return False, if the test gating
         status of an update is queued.
         """
+        config["test_gating.required"] = True
         update = model.Update.query.first()
         update.autokarma = False
         update.stable_karma = 1
@@ -2777,12 +2815,12 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         # Assert that our preconditions from the docblock are correct.
         assert not update.meets_testing_requirements
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_test_gating_running_no_testing_requirements(self):
         """
         The Update.meets_testing_requirements() should return False, if the test gating
         status of an update is running.
         """
+        config["test_gating.required"] = True
         update = model.Update.query.first()
         update.autokarma = False
         update.stable_karma = 1
@@ -2792,12 +2830,12 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         # Assert that our preconditions from the docblock are correct.
         assert not update.meets_testing_requirements
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_test_gating_missing_testing_requirements(self):
         """
         The Update.meets_testing_requirements() should return True, if the test gating
         status of an update is missing.
         """
+        config["test_gating.required"] = True
         update = model.Update.query.first()
         update.autokarma = False
         update.stable_karma = 1
@@ -2807,12 +2845,12 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         # Assert that our preconditions from the docblock are correct.
         assert update.meets_testing_requirements
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_test_gating_waiting_testing_requirements(self):
         """
         The Update.meets_testing_requirements() should return False, if the test gating
         status of an update is waiting.
         """
+        config["test_gating.required"] = True
         update = model.Update.query.first()
         update.autokarma = False
         update.stable_karma = 1
@@ -2822,12 +2860,12 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         # Assert that our preconditions from the docblock are correct.
         assert not update.meets_testing_requirements
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
     def test_test_gating_off(self):
         """
         The Update.meets_testing_requirements() should return True if the
         testing gating is not required, regardless of its test gating status.
         """
+        config["test_gating.required"] = False
         update = model.Update.query.first()
         update.autokarma = False
         update.stable_karma = 1
@@ -3004,7 +3042,7 @@ class TestUpdate(ModelTest):
                 [
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing',
+                        'decision_context': ['bodhi_update_push_testing'],
                         'verbose': False,
                         'subject': [
                             {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
@@ -3022,7 +3060,7 @@ class TestUpdate(ModelTest):
                 [
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing',
+                        'decision_context': ['bodhi_update_push_testing'],
                         'verbose': True,
                         'subject': [
                             {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
@@ -3030,7 +3068,7 @@ class TestUpdate(ModelTest):
                     },
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing',
+                        'decision_context': ['bodhi_update_push_testing'],
                         'verbose': True,
                         'subject': [
                             {'item': self.obj.alias, 'type': 'bodhi_update'},
@@ -3045,13 +3083,17 @@ class TestUpdate(ModelTest):
         for critpath update with multiple batches.
         """
         with mock.patch.dict('bodhi.server.models.config', {'greenwave_batch_size': 1}):
-            self.obj.critpath = True
+            self.obj.critpath_groups = "core critical-path-apps"
             assert self.obj.greenwave_subject_batch_size == 1
             assert self.obj.greenwave_request_batches(verbose=True) == (
                 [
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing_critpath',
+                        'decision_context': [
+                            'bodhi_update_push_testing_critical-path-apps_critpath',
+                            'bodhi_update_push_testing_core_critpath',
+                            'bodhi_update_push_testing'
+                        ],
                         'verbose': True,
                         'subject': [
                             {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
@@ -3059,29 +3101,16 @@ class TestUpdate(ModelTest):
                     },
                     {
                         'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing',
-                        'verbose': True,
-                        'subject': [
-                            {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-                        ]
-                    },
-                    {
-                        'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing_critpath',
+                        'decision_context': [
+                            'bodhi_update_push_testing_critical-path-apps_critpath',
+                            'bodhi_update_push_testing_core_critpath',
+                            'bodhi_update_push_testing'
+                        ],
                         'verbose': True,
                         'subject': [
                             {'item': self.obj.alias, 'type': 'bodhi_update'},
                         ]
-                    },
-                    {
-                        'product_version': 'fedora-11',
-                        'decision_context': 'bodhi_update_push_testing',
-                        'verbose': True,
-                        'subject': [
-                            {'item': self.obj.alias, 'type': 'bodhi_update'},
-                        ]
-                    },
-
+                    }
                 ]
             )
 
@@ -3094,7 +3123,7 @@ class TestUpdate(ModelTest):
             [
                 {
                     'product_version': 'fedora-11',
-                    'decision_context': 'bodhi_update_push_testing',
+                    'decision_context': ['bodhi_update_push_testing'],
                     'verbose': True,
                     'subject': [
                         {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
@@ -3122,26 +3151,20 @@ class TestUpdate(ModelTest):
         The Update.mandatory_days_in_testing method should be a positive integer if the
         mandatory_days_in_testing attribute of release is not truthy.
         """
-        update = self.obj
+        assert self.obj.mandatory_days_in_testing == 7
 
-        assert update.mandatory_days_in_testing == 7
-
-    @mock.patch.dict('bodhi.server.models.config', {'fedora.mandatory_days_in_testing': '0'})
     def test_mandatory_days_in_testing_false(self):
         """
         The Update.mandatory_days_in_testing method should be 0 if the
         mandatory_days_in_testing attribute of release is not truthy.
         """
-        update = self.obj
+        config["fedora.mandatory_days_in_testing"] = 0
+        assert self.obj.mandatory_days_in_testing == 0
 
-        assert update.mandatory_days_in_testing == 0
-
-    @mock.patch.dict('bodhi.server.models.config', {}, clear=True)
     def test_mandatory_days_in_testing_release_not_configured(self):
         """mandatory_days_in_testing() should return 0 if there is no config for the release."""
-        update = self.obj
-
-        assert update.mandatory_days_in_testing == 0
+        del config["fedora.mandatory_days_in_testing"]
+        assert self.obj.mandatory_days_in_testing == 0
 
     def test_days_to_stable_critpath(self):
         """
@@ -3197,7 +3220,6 @@ class TestUpdate(ModelTest):
 
         assert update.days_to_stable == 3
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_days_to_stable_zero(self):
         """
         The Update.days_to_stable() method should only return a positive integer or zero.
@@ -3206,6 +3228,7 @@ class TestUpdate(ModelTest):
         less than or equal to the number of days in testing, days_to_stable() should return zero.
         See issue #1708.
         """
+        config["test_gating.required"] = True
         update = self.obj
         update.autokarma = False
         update.test_gating_status = TestGatingStatus.failed
@@ -3216,7 +3239,6 @@ class TestUpdate(ModelTest):
         assert update.mandatory_days_in_testing <= update.days_in_testing
         assert update.days_to_stable == 0
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_days_to_stable_positive(self):
         """
         The Update.days_to_stable() method should only return a positive integer or zero.
@@ -3225,6 +3247,7 @@ class TestUpdate(ModelTest):
         greater than the number of days in testing, return the positive number of days until
         stable. See issue #1708.
         """
+        config["test_gating.required"] = True
         update = self.obj
         update.autokarma = False
         update.test_gating_status = TestGatingStatus.failed
@@ -3248,20 +3271,6 @@ class TestUpdate(ModelTest):
         self.obj.request = UpdateRequest.obsolete
 
         assert self.obj.requested_tag == self.obj.release.candidate_tag
-
-    def test_side_tag_locked_false(self):
-        """Test the side_tag_locked property when it is false."""
-        self.obj.status = model.UpdateStatus.side_tag_active
-        self.obj.request = None
-
-        assert not self.obj.side_tag_locked
-
-    def test_side_tag_locked_true(self):
-        """Test the side_tag_locked property when it is true."""
-        self.obj.status = model.UpdateStatus.side_tag_active
-        self.obj.request = model.UpdateRequest.stable
-
-        assert self.obj.side_tag_locked
 
     @mock.patch('bodhi.server.models.bugs.bugtracker.close')
     @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
@@ -3399,6 +3408,27 @@ class TestUpdate(ModelTest):
             override_tag='dist-fc25-override',
             branch='fc25', version='25')
         assert not update.contains_critpath_component(update.builds, update.release.name)
+
+    def test_critpath_groups(self, critpath_json_config):
+        (tempdir, _) = critpath_json_config
+        config.update({
+            'critpath.type': 'json',
+            'critpath.jsonpath': tempdir
+        })
+        update = self.get_update()
+        update.release = model.Release(
+            name='F36', long_name='Fedora 36',
+            id_prefix='FEDORA', dist_tag='f36',
+            stable_tag='f36-updates',
+            testing_tag='f36-updates-testing',
+            candidate_tag='f36-updates-candidate',
+            pending_signing_tag='f36-updates-testing-signing',
+            pending_testing_tag='f36-updates-testing-pending',
+            pending_stable_tag='f36-updates-pending',
+            override_tag='f36-override',
+            branch='f36', version='36')
+        groups = update.get_critpath_groups(update.builds, update.release.branch)
+        assert groups == "core"
 
     def test_unpush_build(self):
         assert len(self.obj.builds) == 1
@@ -3689,11 +3719,11 @@ class TestUpdate(ModelTest):
         assert self.obj.request is None
         assert self.obj.status == UpdateStatus.obsolete
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_check_karma_thresholds_gating_fail(self):
         """check_karma_thresholds should no-op on an update that meets
         the threshold but does not meet gating requirements.
         """
+        config["test_gating.required"] = True
         self.obj.status = UpdateStatus.testing
         self.obj.request = None
         self.obj.autokarma = True
@@ -3705,6 +3735,22 @@ class TestUpdate(ModelTest):
 
         assert self.obj.request is None
         assert self.obj.status == UpdateStatus.testing
+
+    def test_check_karma_thresholds_frozen_release(self):
+        """check_karma_thresholds should no-op on an update those
+        release is in frozen state.
+        """
+        self.obj.status = UpdateStatus.pending
+        self.obj.request = UpdateRequest.testing
+        self.obj.autokarma = True
+        self.obj.comment(self.db, "foo", 1, 'biz')
+        self.obj.stable_karma = 1
+        self.obj.release.state = ReleaseState.frozen
+
+        self.obj.check_karma_thresholds(self.db, 'bowlofeggs')
+
+        assert self.obj.request is UpdateRequest.testing
+        assert self.obj.status == UpdateStatus.pending
 
     def test_critpath_approved_no_release_requirements(self):
         """critpath_approved() should use the broad requirements if the release doesn't have any."""
@@ -3895,9 +3941,9 @@ class TestUpdate(ModelTest):
         assert link == ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'"
                         " class='notblue'>BZ#1</a> foo\xe9bar")
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
     def test_set_request_pending_testing_gating_false(self):
         """Ensure that test gating is not updated when it is disabled in config."""
+        config["test_gating.required"] = False
         req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
@@ -3924,9 +3970,9 @@ class TestUpdate(ModelTest):
         assert self.obj.request == UpdateRequest.testing
         assert self.obj.test_gating_status is None
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_set_request_pending_testing_gating_true(self):
         """Ensure that test gating is  updated when it is enabled in config."""
+        config["test_gating.required"] = True
         req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
@@ -3966,6 +4012,32 @@ class TestUpdate(ModelTest):
         self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
 
         assert self.obj.request == UpdateRequest.stable
+        assert self.obj.status == UpdateStatus.pending
+
+        self.obj = mock.Mock()
+        self.obj.remove_tag(self.obj.release.pending_testing_tag)
+        self.obj.remove_tag.assert_called_once_with(self.obj.release.pending_testing_tag)
+
+    def test_set_request_pending_stable_frozen_release(self):
+        """
+        Ensure that it's not possible to submit an update to stable if it is still pending and
+        the release is frozen.
+        """
+        req = DummyRequest(user=DummyUser())
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        assert self.obj.status == UpdateStatus.pending
+        self.obj.stable_karma = 1
+        self.obj.release.state = ReleaseState.frozen
+
+        with pytest.raises(BodhiException) as exc:
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+        assert str(exc.value) == (
+            'The release of this update is frozen and the update has not yet been '
+            'pushed to testing. It is currently not possible to push it to stable.'
+        )
+
+        assert self.obj.request is UpdateRequest.testing
         assert self.obj.status == UpdateStatus.pending
 
         self.obj = mock.Mock()
@@ -4142,12 +4214,12 @@ class TestUpdate(ModelTest):
         # The request should have gotten switched to testing.
         assert self.obj.request == UpdateRequest.testing
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_set_request_stable_for_critpath_update_when_test_gating_enabled(self):
         """
         Ensure that we can't submit a critpath update for stable if it hasn't passed the
         test gating and return the error message as expected.
         """
+        config["test_gating.required"] = True
         req = DummyRequest()
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
@@ -4727,15 +4799,15 @@ class TestUpdate(ModelTest):
             update.waive_test_results('foo')
         assert str(exc.value) == "Test gating is not enabled"
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_cannot_waive_test_results_of_an_update_which_passes_gating(self):
+        config["test_gating.required"] = True
         update = self.obj
         with pytest.raises(BodhiException) as exc:
             update.waive_test_results('foo')
         assert str(exc.value) == "Can't waive test results on an update that passes test gating"
 
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_cannot_waive_test_results_of_an_update_which_is_locked(self):
+        config["test_gating.required"] = True
         update = self.obj
         update.locked = True
         with pytest.raises(LockedUpdateException) as exc:
@@ -4761,10 +4833,11 @@ class TestUpdate(ModelTest):
                  'testcase': 'dist.someothertest', 'type': 'test-result-failed'}]}
         post.return_value.status_code = 200
 
-        with mock.patch.dict('bodhi.server.config.config',
-                             {'test_gating.required': True,
-                              'waiverdb.access_token': 'abc'}):
-            self.obj.waive_test_results('foo', 'this is not true!')
+        config.update({
+            'test_gating.required': True,
+            'waiverdb.access_token': 'abc',
+        })
+        self.obj.waive_test_results('foo', 'this is not true!')
 
         # Check for the comment
         expected_comment = "This update's test gating status has been changed to 'waiting'."
@@ -4776,6 +4849,7 @@ class TestUpdate(ModelTest):
                 "username": "foo", "comment": "this is not true!", "waived": True,
                 "product_version": "{}".format(self.obj.product_version),
                 "testcase": "{}".format(test),
+                "scenario": None,
                 "subject": {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}}
             expected_calls.append(mock.call(
                 '{}/waivers/'.format(config.get('waiverdb_api_url')),
@@ -4814,25 +4888,28 @@ class TestUpdate(ModelTest):
                     'item': {"item": "%s" % update.builds[0].nvr, "type": "koji_build"},
                     'result_id': "123",
                     'testcase': 'dist.depcheck',
+                    'scenario': 'kde',
                     'type': 'test-result-failed'
                 }
             ]
         }
         mock_greenwave.return_value = decision
-        with mock.patch.dict('bodhi.server.config.config',
-                             {'test_gating.required': True,
-                              'waiverdb.access_token': 'abc'}):
-            update.waive_test_results('foo', 'this is not true!')
-            wdata = {
-                'subject': {"item": "%s" % update.builds[0].nvr, "type": "koji_build"},
-                'testcase': 'dist.depcheck',
-                'product_version': update.product_version,
-                'waived': True,
-                'username': 'foo',
-                'comment': 'this is not true!'
-            }
-            mock_waiverdb.assert_called_once_with(
-                '{}/waivers/'.format(config.get('waiverdb_api_url')), wdata)
+        config.update({
+            'test_gating.required': True,
+            'waiverdb.access_token': 'abc',
+        })
+        update.waive_test_results('foo', 'this is not true!')
+        wdata = {
+            'subject': {"item": "%s" % update.builds[0].nvr, "type": "koji_build"},
+            'testcase': 'dist.depcheck',
+            'scenario': 'kde',
+            'product_version': update.product_version,
+            'waived': True,
+            'username': 'foo',
+            'comment': 'this is not true!'
+        }
+        mock_waiverdb.assert_called_once_with(
+            '{}/waivers/'.format(config.get('waiverdb_api_url')), wdata)
 
         # Check for the comment
         expected_comment = "This update's test gating status has been changed to 'waiting'."

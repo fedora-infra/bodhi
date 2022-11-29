@@ -1,14 +1,15 @@
 """A generic OIDC client that can use OOB or not."""
-
 from functools import partial
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
+import re
 import threading
 
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.integrations.requests_client import OAuth2Session
 from authlib.oidc.discovery.well_known import get_well_known_url
+from requests_kerberos import HTTPKerberosAuth, OPTIONAL
 import click
 import requests
 
@@ -45,7 +46,7 @@ class OIDCClient:
     """A client for OpenID Connect authentication."""
 
     def __init__(
-        self, client_id, scope, id_provider, storage
+        self, client_id, scope, id_provider, storage,
     ):
         """Initialize OIDCClient.
 
@@ -57,6 +58,7 @@ class OIDCClient:
         """
         self.client_id = client_id
         self.scope = scope
+        self.id_provider = id_provider
         self.storage = storage
         self._tokens = None
         self._username = None
@@ -116,16 +118,46 @@ class OIDCClient:
                 self._username = response.json()["nickname"]
         return self._username
 
-    def login(self):
+    def login(self, use_kerberos=False):
         """Login to the OIDC provider.
 
         If authentication fails, it will be retried.
+
+        Args:
+            use_kerberos (bool): Use Kerberos for authentication.
 
         Raises:
             click.ClickException: When authentication was cancelled.
         """
         authorization_endpoint = self.metadata["authorization_endpoint"]
         uri, state_ = self.client.create_authorization_url(authorization_endpoint)
+        # 1. use_kerberos is True and Kerberos succeeds -> print success
+        # 2. use_kerberos is True and Kerberos fails -> browser login follows
+        # 3. use_kerberos is False -> browser login only
+        if use_kerberos:
+            try:
+                self.login_with_kerberos(uri)
+            except (OIDCClientError, OAuthError) as e:
+                click.secho(
+                    f"Kerberos authentication failed ({e}). "
+                    f"Proceeding with browser-based authentication.",
+                    fg="red"
+                )
+        if not self.is_logged_in:
+            self.login_with_browser(uri)
+        click.secho("Login successful!", fg="green")
+
+    def login_with_browser(self, uri):
+        """Login to the OIDC provider using the browser.
+
+        If authentication failed, it will be retried.
+
+        Args:
+            uri (str): Authentication URL as obtained from ``create_authorization_url()``.
+
+        Raises:
+            click.ClickException: Login has been cancelled.
+        """
         click.secho("Authenticating... Please open your browser to:", fg="yellow")
         click.echo(uri)
         if self._use_oob:
@@ -134,10 +166,13 @@ class OIDCClient:
                     value = click.prompt(
                         click.style(
                             "Paste here the code that you got after logging in", fg="yellow"
-                        )
+                        ),
+                        hide_input=True,
                     )
-                except KeyboardInterrupt:
-                    raise click.ClickException("Cancelled.")
+                except click.exceptions.Abort:
+                    # Raise a generic exception for friendliness to outside scripts
+                    # that don't want to import click
+                    raise SystemExit("Cancelled.")
                 try:
                     self.auth_callback(f"?{value}")
                 except OAuthError as e:
@@ -146,7 +181,34 @@ class OIDCClient:
                     break
         else:
             self._run_http_server()
-        click.secho("Login successful!", fg="green")
+
+    def login_with_kerberos(self, uri):
+        """Login to the OIDC provider using Kerberos.
+
+        Raises:
+            OIDCClientError: if there is a problem during the auth process.
+        """
+        response = requests.get(
+            uri,
+            auth=HTTPKerberosAuth(
+                # REQUIRED is not working with id.fedoraproject.org
+                mutual_authentication=OPTIONAL,
+            ),
+        )
+        try:
+            response.raise_for_status()
+        except requests.RequestException as e:
+            raise OIDCClientError(
+                f"There was an issue while performing Kerberos authentication: {e}")
+        try:
+            value = re.findall(
+                r"<title>\s*(code=[\w\-_=;&]+)\s*</title>", response.text
+            )[0]
+        except IndexError:
+            raise OIDCClientError(
+                f'Unable to locate OIDC code in the response from "{uri}".'
+            )
+        self.auth_callback(f"?{value}")
 
     def _run_http_server(self):
         httpd = HTTPServer(
@@ -178,10 +240,15 @@ class OIDCClient:
             redirect_uri=self.redirect_uri,
         )
 
-    def ensure_auth(self):
+    @property
+    def is_logged_in(self):
+        """Check whether the client is logged in with the provider."""
+        return bool(self.tokens)
+
+    def ensure_auth(self, use_kerberos=False):
         """Make sure the client is authenticated."""
-        if not self.tokens:
-            self.login()
+        if not self.is_logged_in:
+            self.login(use_kerberos=use_kerberos)
 
     @property
     def tokens(self):
@@ -191,13 +258,15 @@ class OIDCClient:
             dict: The authentication tokens.
         """
         if self._tokens is None:
-            self._tokens = self.storage.load("tokens")
+            self._tokens = self.storage.load("tokens", {}).get(self.id_provider)
         return self._tokens
 
     @tokens.setter
     def tokens(self, value):
         self._tokens = value
-        self.storage.save("tokens", self._tokens)
+        stored_tokens = self.storage.load("tokens", {})
+        stored_tokens[self.id_provider] = value
+        self.storage.save("tokens", stored_tokens)
 
     def _update_token(self, token, refresh_token=None, access_token=None):
         self.tokens = token

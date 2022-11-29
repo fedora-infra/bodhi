@@ -16,4 +16,6 @@
 """This package defines Bodhi's messages."""
 
 
-__version__ = "5.7.5"
+import importlib.metadata
+METADATA = importlib.metadata.metadata('bodhi-messages')
+__version__ = METADATA['version']

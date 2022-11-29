@@ -28,8 +28,16 @@ import pytest
 from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.models import (
-    Build, Release, TestGatingStatus, Update, UpdateRequest, UpdateStatus, UpdateType, User
+    Build,
+    Release,
+    TestGatingStatus,
+    Update,
+    UpdateRequest,
+    UpdateStatus,
+    UpdateType,
+    User,
 )
+
 from .. import base
 
 
@@ -68,22 +76,24 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
     # Test the main code paths.
 
-    @pytest.mark.parametrize('critpath', (True, False))
-    @mock.patch('bodhi.server.models.Update.contains_critpath_component')
-    def test_consume(self, contains, critpath, caplog):
+    @pytest.mark.parametrize('critpath', (True, False, "groups"))
+    def test_consume(self, critpath, caplog):
         """Assert that messages about tagged builds create an update."""
         caplog.set_level(logging.DEBUG)
 
-        # The following is a really dirty hack
-        # We can't better mock things because 'util.get_critpath_components' uses a custom
-        # wrapper to "memoize" values that causes leakage between tests
-        contains.return_value = critpath
-
-        # process the message
-        self.handler(self.sample_message)
+        if critpath is True:
+            with mock.patch.dict(config, [('critpath_pkgs', ['colord'])]):
+                self.handler(self.sample_message)
+        elif critpath is False:
+            self.handler(self.sample_message)
+        elif critpath == "groups":
+            with mock.patch.dict(config, [('critpath.type', 'json')]):
+                with mock.patch('bodhi.server.util.read_critpath_json') as fakejson:
+                    fakejson.return_value = {'rpm': {'core': ['colord']}}
+                    self.handler(self.sample_message)
 
         # check if the update exists...
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
 
@@ -98,6 +108,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
             assert update.critpath == True
         else:
             assert update.critpath == False
+        if critpath == "groups":
+            assert update.critpath_groups == "core"
 
         expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
         assert update.user and update.user.name == expected_username
@@ -120,7 +132,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.handler(self.sample_message)
 
         # check if the update exists...
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
 
@@ -147,7 +159,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.handler(self.sample_message)
 
         # check if the update exists...
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
 
@@ -174,7 +186,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.handler(self.sample_message)
 
         # check if the update exists...
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
 
@@ -227,7 +239,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.handler(self.sample_message)
 
         # check if the update exists...
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
 
@@ -249,7 +261,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         caplog.set_level(logging.DEBUG)
 
         self.handler(self.sample_message)
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
         # Move it back to Pending as if the user has manually created it
@@ -272,7 +284,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         caplog.set_level(logging.DEBUG)
 
         self.handler(self.sample_message)
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
         assert update is not None
@@ -291,10 +303,10 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         msg.body['build_id'] = 442563
         self.handler(msg)
         nvr = self.sample_nvr.replace('1.3.4', '1.3.5')
-        old_update = self.db.query(Update).filter(
+        old_update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
-        new_update = self.db.query(Update).filter(
+        new_update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == nvr)
         ).first()
         assert new_update is not None
@@ -307,7 +319,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         caplog.set_level(logging.DEBUG)
 
         self.handler(self.sample_message)
-        update = self.db.query(Update).filter(
+        update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
         assert update is not None
@@ -331,10 +343,10 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         # The new update should have been created and the old one should be stuck in testing
         nvr = self.sample_nvr.replace('1.3.4', '1.3.5')
-        old_update = self.db.query(Update).filter(
+        old_update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
-        new_update = self.db.query(Update).filter(
+        new_update = self.db.query(Update).join(Build).filter(
             Update.builds.any(Build.nvr == nvr)
         ).first()
         assert new_update is not None
@@ -410,8 +422,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         self.handler(self.sample_message)
 
-        assert(f"Creating bodhi user for '{expected_username}'."
-               in caplog.messages)
+        assert (f"Creating bodhi user for '{expected_username}'."
+                in caplog.messages)
 
     def test_existing_user(self, caplog):
         """Test Koji build user existing in DB."""
@@ -426,8 +438,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
             self.db.add(user)
         self.db.flush()
 
-        assert(f"Creating bodhi user for '{expected_username}'."
-               not in caplog.messages)
+        assert (f"Creating bodhi user for '{expected_username}'."
+                not in caplog.messages)
 
     # Test messages that should be ignored.
 

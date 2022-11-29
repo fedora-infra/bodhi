@@ -1,10 +1,11 @@
-FROM registry.fedoraproject.org/fedora:34
+FROM registry.fedoraproject.org/fedora:36
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
 RUN dnf install -y \
     createrepo_c \
     findutils \
     git \
+    krb5-devel \
     python3-createrepo_c \
     python3-koji \
     createrepo_c \
@@ -12,6 +13,7 @@ RUN dnf install -y \
     gcc-c++ \
     graphviz \
     make \
+    poetry \
     postgresql-devel \
     python3-devel \
     python3-librepo \
@@ -21,7 +23,6 @@ RUN dnf install -y \
     python3-gssapi \
     python3-pip \
     python3-wheel \
-    python3-whitenoise \
     python3-prometheus_client \
     pre-commit
 
@@ -29,19 +30,11 @@ RUN pip-3 install \
     pyasn1 \
     celery
 
-# Force authlib 1.0rc1 even if it's a RC
-RUN pip-3 install authlib==1.0rc1
-
-# Fake pungi being installed so we can avoid it and all its dependencies
-RUN ln -s /usr/bin/true /usr/bin/pungi-koji
 VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
 COPY . /bodhi
 RUN pip-3 install \
-    -r bodhi-messages/test-requirements.txt \
-    -r bodhi-client/test-requirements.txt \
-    -r bodhi-server/test-requirements.txt \
     -r devel/ci/integration/requirements.txt \
     -r docs/requirements.txt
 RUN cp devel/development.ini.example bodhi-server/development.ini
@@ -49,3 +42,5 @@ RUN sed -i '/pyramid_debugtoolbar/d' bodhi-server/development.ini
 RUN for pkg in bodhi-client bodhi-messages bodhi-server; do \
     cd $pkg ; pip3 install . || exit $? ; cd -; \
     done
+RUN poetry config virtualenvs.create false
+RUN git config --global --add safe.directory /bodhi

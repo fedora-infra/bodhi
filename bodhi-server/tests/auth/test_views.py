@@ -1,55 +1,16 @@
 from unittest import mock
 from urllib.parse import urlparse
-import time
 
 from authlib.common.urls import url_decode
 from pyramid import testing
+from pyramid.httpexceptions import HTTPUnauthorized
+import pytest
 
 from bodhi.server import models
-from bodhi.server.auth.constants import SCOPES
 from bodhi.server.auth.views import authorize_oidc, login_with_token
 
 from .. import base
-from ..utils import get_bearer_token, mock_send_value
-from .utils import set_session_data
-
-
-def fake_send(responses=None):
-    now = int(time.time())
-    default_responses = {
-        "UserInfo": {
-            "sub": "SUB",
-            "nickname": "testuser",
-            "email": "testuser@example.com",
-            "groups": ["testgroup1", "testgroup2"]
-        },
-        "openid-configuration": {
-            "userinfo_endpoint": "https://id.stg.fedoraproject.org/openidc/UserInfo",
-            "token_endpoint": "https://id.stg.fedoraproject.org/openidc/Token",
-            "authorization_endpoint": "https://id.stg.fedoraproject.org/openidc/Authorization",
-        },
-        "Token": get_bearer_token(),
-        "TokenInfo": {
-            "active": True,
-            "client_id": "test-client-id",
-            "username": "testuser",
-            "scope": SCOPES,
-            "sub": "SUB",
-            "aud": "https://protected.example.net/resource",
-            "iss": "https://server.example.com/",
-            "exp": now + 3600,
-            "iat": now
-        },
-    }
-    _responses = default_responses.copy()
-    _responses.update(responses or {})
-
-    def _mocker(req, **kwargs):
-        for endpoint, response in _responses.items():
-            if req.url.endswith(f"/{endpoint}"):
-                return mock_send_value(response)
-        raise RuntimeError(f"Unsupported URL: {req.url}")
-    return _mocker
+from .utils import set_session_data, fake_send
 
 
 class TestLogin(base.BasePyTestCase):
@@ -141,6 +102,25 @@ class TestOIDCLoginViews(base.BasePyTestCase):
         user = models.User.get('testuser')
         assert user.email == "newaddress@example.com"
         assert [g.name for g in user.groups] == ["testgroup1", "testgroup3"]
+
+    def test_authorize_error(self):
+        """Test login failure handling."""
+        request = testing.DummyRequest(
+            path="/oidc/authorize",
+            params={
+                "state": "STATE",
+                "error": "test_error",
+                "error_description": "This is a test error"
+            }
+        )
+        set_session_data(request.session, "STATE", "state", "STATE", app_name="fedora")
+        request.registry = self.registry
+
+        with mock.patch('requests.sessions.Session.send', side_effect=fake_send()):
+            with pytest.raises(HTTPUnauthorized) as exc:
+                authorize_oidc(request)
+        assert exc.value.status_code == 401
+        assert str(exc.value) == "Authentication failed: This is a test error"
 
     def test_login_with_token(self):
         """Test a user logging in with a token."""

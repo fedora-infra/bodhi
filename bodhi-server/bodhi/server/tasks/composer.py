@@ -23,6 +23,10 @@ comprised of a fedora messaging consumer that launches threads for each reposito
 composed.
 """
 
+from datetime import datetime
+from http.client import IncompleteRead
+from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
 import functools
 import hashlib
 import json
@@ -34,24 +38,34 @@ import tempfile
 import threading
 import time
 import typing
-from datetime import datetime
-from http.client import IncompleteRead
-from urllib.error import HTTPError, URLError
-from urllib.request import urlopen
 
 import jinja2
 import sqlalchemy.orm.exc
 
-from bodhi.messages.schemas import compose as compose_schemas, update as update_schemas
-from bodhi.server import buildsys, notifications, mail
+from bodhi.messages.schemas import compose as compose_schemas
+from bodhi.messages.schemas import update as update_schemas
+from bodhi.server import buildsys, mail, notifications
 from bodhi.server.config import config, validate_path
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import UpdateInfoMetadata
-from bodhi.server.models import (Compose, ComposeState, Update, UpdateRequest, UpdateType, Release,
-                                 UpdateStatus, ReleaseState, ContentType)
+from bodhi.server.models import (
+    Compose,
+    ComposeState,
+    ContentType,
+    Release,
+    ReleaseState,
+    Update,
+    UpdateRequest,
+    UpdateStatus,
+    UpdateType,
+)
 from bodhi.server.tasks.clean_old_composes import main as clean_old_composes
-from bodhi.server.util import (copy_container, sorted_updates, sanity_check_repodata,
-                               transactional_session_maker)
+from bodhi.server.util import (
+    copy_container,
+    sanity_check_repodata,
+    sorted_updates,
+    transactional_session_maker,
+)
 
 
 log = logging.getLogger('bodhi')
@@ -658,7 +672,6 @@ class ComposerThread(threading.Thread):
                 update.date_stable = now
                 if update.from_tag:
                     eol_sidetags.append(update.from_tag)
-            update.date_pushed = now
             update.pushed = True
 
         log.info('Deleting EOL side-tags.')
@@ -900,7 +913,6 @@ class PungiComposerThread(ComposerThread):
         """
         super(PungiComposerThread, self).__init__(max_concur_sem, compose, agent, db_factory,
                                                   compose_dir, resume)
-        self.devnull = None
         self.compose_dir = compose_dir
         self.path = None
 
@@ -1068,9 +1080,6 @@ class PungiComposerThread(ComposerThread):
             log.info('Skipping completed repo: %s', self.path)
             return
 
-        # We have a thread-local devnull FD so that we can close them after the compose is done
-        self.devnull = open(os.devnull, 'wb')
-
         self._create_pungi_config()
         config_file = os.path.join(self._pungi_conf_dir, 'pungi.conf')
         self._label = '%s-%s' % (config.get('pungi.labeltype'),
@@ -1097,7 +1106,7 @@ class PungiComposerThread(ComposerThread):
                                            # Stderr should also go to pungi.global.log if it starts
                                            stderr=subprocess.PIPE,
                                            # We will never have additional input
-                                           stdin=self.devnull)
+                                           stdin=subprocess.DEVNULL)
         log.info('Pungi running as PID: %s', compose_process.pid)
         # Since the compose process takes a long time, we can safely just wait 3 seconds
         # to abort the entire compose early if Pungi fails to start up correctly.
@@ -1106,7 +1115,6 @@ class PungiComposerThread(ComposerThread):
             log.error('Pungi process terminated with error within 3 seconds! Abandoning!')
             _, err = compose_process.communicate()
             log.error('Stderr: %s', err)
-            self.devnull.close()
             raise Exception('Pungi returned error, aborting!')
 
         return compose_process
@@ -1226,7 +1234,6 @@ class PungiComposerThread(ComposerThread):
         out, err = pungi_process.communicate()
         out = out.decode()
         err = err.decode()
-        self.devnull.close()
         if pungi_process.returncode != 0:
             log.error('Pungi exited with exit code %d', pungi_process.returncode)
             log.error('Stderr: %s', err)

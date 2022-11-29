@@ -1,6 +1,8 @@
 <%inherit file="master.html"/>
 <%
-  from bodhi.server.util import json_escape
+  from bodhi.server.util import json_escape, eol_releases
+
+  eol_list = eol_releases()
 %>
 
 <%block name="css">
@@ -14,7 +16,7 @@ ${parent.css()}
     <div class="container py-4">
       <div class="row">
         <div class="col">
-            <h3 class="font-weight-bold m-0"><a href="${request.route_url('updates')}">Updates</a>
+            <h3 class="fw-bold m-0"><a href="${request.route_url('updates')}">Updates</a>
                 <span class="text-muted"> / </span> 
                 % if not update:
                 Create New Update
@@ -46,42 +48,66 @@ ${parent.css()}
     </div>
   </div>
 
+  % if eol_list:
+    <div class="row justify-content-center">
+      <div class="col-10 alert alert-info" role="alert">
+        <p>The following releases are appoaching End-Of-Life:<br/>
+        <ul>
+        % for release in eol_list:
+        <li><strong>${release[0] | n}</strong> will go EOL on ${release[1]}
+        % endfor
+        </ul>
+        Consider that before submitting any update for those releases!
+        </p>
+      </div>
+    </div>
+  % endif
+
   <div id="new-update-form" class="pt-3" style="display:none;">
     <div class="row justify-content-center">
 
         <div class="col-10">
             <div class="card" id="builds-card">
                 <div class="card-header">
-                  <div class="row">
-                      <div class="col">
-                          <h5 class="font-weight-bold my-1 ml-2">Builds</h5>
+                  <div class="d-flex flex-row justify-content-between">
+                      <div class="flex-grow-1">
+                          <h5 class="fw-bold my-1 ms-2">Builds</h5>
                       </div>
                       <%doc>
                       if new update form, sidetags is populated with the user's sidetags.
                       if edit update form, sidetags is always []
                       </%doc>
                       % if sidetags != []:
-                      <div class="col text-right pr-0">
+                      <div>
                         <div class="dropdown">
-                            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButtonSidetags" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                             <span class="fa fa-tag pr-1"></span> <span class="buttonlabel">Use Side Tag</span>
+                            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButtonSidetags" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                             <span class="fa fa-tag pe-1"></span> <span class="buttonlabel">Use Side Tag</span>
                             </button>
-                            <div class="dropdown-menu dropdown-menu-right w-100" aria-labelledby="dropdownMenuButtonSidetags">
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButtonSidetags">
                               % for tag in sidetags:
-                              <a class="dropdown-item sidetag-item" href="javascript:void(0)" data-sidetagid="${tag['id']}" data-sidetagname="${tag['name']}"><span class="fa fa-tag pr-1"></span> <strong>${tag['name']}</strong> <div class="float-right text-muted">${len(tag['builds'])} build${'s' if len(tag['builds']) > 1 else ''}</div></a>
+                              <a class="dropdown-item sidetag-item" href="javascript:void(0)" data-sidetagid="${tag['id']}" data-sidetagname="${tag['name']}">
+                                <div class="d-flex flex-row align-items-center">
+                                  <span class="fa fa-tag me-2 flex-grow-0"></span>
+                                  <span class="fw-bold flex-grow-1 me-3">${tag['name']}</span>
+                                  <span class="text-muted">${len(tag['builds'])} build${'s' if len(tag['builds']) > 1 else ''}</span>
+                                </div>
+                              </a>
                               % endfor
                             </div>
                           </div>
                       </div>
                       % endif
                       % if update and update.from_tag:
-                      <div class="col text-right pr-0">
-                      <span class="text-muted"><span class="fa fa-tag pr-1"></span> ${update.from_tag} <button class="btn btn-outline-primary btn-sm ml-2" id="sidetag-update"><span class="fa fa-refresh"></span></button></span>
+                      <div>
+                        <span class="text-muted">
+                          <span class="fa fa-tag pe-1"></span>${update.from_tag}
+                          <button class="btn btn-outline-primary btn-sm ms-2" id="sidetag-update"><span class="fa fa-refresh"></span></button>
+                        </span>
                       </div>
                       % endif
-                    </div>
-                    
+                  </div>
                 </div>
+
                 <div class="card-body p-0">
                   % if update and update.from_tag:
                     <div class='list-group list-group-flush' id='sidetag-buildlist'>
@@ -104,16 +130,16 @@ ${parent.css()}
       <div class="col-10 mt-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="font-weight-bold mb-0">Metadata</h5>
+                <h5 class="fw-bold mb-0">Metadata</h5>
             </div>
           <div class="card-body">
-            <h6 class="font-weight-bold">
-              <div class="row">
-                <div class="col">
+            <h6 class="fw-bold">
+              <div class="d-flex flex-row justify-content-between">
+                <div class="flex-grow-1">
                     Description
                 </div>
-                <div class="col text-right pr-0">
-                    <button type="button" class="btn btn-outline-primary btn-sm py-0" data-toggle="modal" data-target="#previewModal">
+                <div>
+                    <button type="button" class="btn btn-outline-primary btn-sm py-0" data-bs-toggle="modal" data-bs-target="#previewModal">
                         Preview
                       </button>
                 </div>
@@ -125,7 +151,7 @@ ${parent.css()}
 ${update.notes}
 % endif
 </textarea>
-<p class="mb-1 text-right"><small>Description field uses <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</small></p>
+<p class="mb-1 text-right"><small>Description field uses <a href="#" data-bs-toggle="modal" data-bs-target="#markdown-help">Fedora-Flavored Markdown</a>.</small></p>
 
           </div>
           
@@ -134,7 +160,7 @@ ${update.notes}
                 <div class="modal-content">
                   <div class="modal-header">
                     <h5 class="modal-title" id="previewModalLabel">Update Description preview</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                       <span aria-hidden="true">&times;</span>
                     </button>
                   </div>
@@ -142,7 +168,7 @@ ${update.notes}
                       <div id="preview"><h3><small>Preview</small></h3></div>
                   </div>
                   <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                   </div>
                 </div>
               </div>
@@ -153,7 +179,7 @@ ${update.notes}
           <div class="card-body pt-0">
               <div class="row">
                   <div class="col-4">
-              <h6 class="font-weight-bold">Type</h6>
+              <h6 class="fw-bold">Type</h6>
               <select id="updatetypes" name="type">
                   % for value in types:
                   <option value="${value}"
@@ -165,7 +191,7 @@ ${update.notes}
               </select>
             </div>
             <div class="col-4">
-                <h6 class="font-weight-bold">Severity</h6>
+                <h6 class="fw-bold">Severity</h6>
                 <select id="severity" name="severity">
                     % for value in severities:
                     <option value="${value}"
@@ -180,7 +206,7 @@ ${update.notes}
                 </select>
               </div>
               <div class="col-4">
-                  <h6 class="font-weight-bold" title="What action should testers take after installing the update?  Do they need to update or reboot to see if things are really working?">
+                  <h6 class="fw-bold" title="What action should testers take after installing the update?  Do they need to update or reboot to see if things are really working?">
                     Suggestion
                   </h6>
                     <select id="suggest" name="suggest">
@@ -202,7 +228,7 @@ ${update.notes}
 
       <div class="card" id="bugs-card">
           <div class="card-header">
-              <h5 class="font-weight-bold mb-0">Bugs</h5>
+              <h5 class="fw-bold mb-0">Bugs</h5>
           </div>
           <div class="card-body p-0">
             <select id="bugs-search" name="bugs" multiple="multiple" placeholder="search and add bugs">
@@ -214,31 +240,31 @@ ${update.notes}
             </select>
           </div>
           <div class="card-body">
-              <div class="custom-control custom-switch">
-                  <input type="checkbox" class="custom-control-input" name="close_bugs" id="close_bugs" class="form-check-input" data-singleton="true"
+              <div class="form-check form-switch">
+                  <input type="checkbox" class="form-check-input" role="switch" name="close_bugs" id="close_bugs" data-singleton="true"
                   % if update and update.close_bugs:
                   checked
                   % elif not update:
                   checked
                   % endif
                 >
-                  <label class="custom-control-label" for="close_bugs">
-                      <div class="font-weight-bold">Close bugs on stable?</div>
+                  <label class="form-check-label" for="close_bugs">
+                      <div class="fw-bold">Close bugs on stable?</div>
                       <small>If checked, then associated bugs in RHBZ will be closed once this update is pushed to the stable repository.</small>
                   </label>
               </div>
           </div>
           <div class="card-body pt-0">
-              <div class="custom-control custom-switch">
-                  <input type="checkbox" name="require_bugs" id="require_bugs" class="custom-control-input" data-singleton="true"
+              <div class="form-check form-switch">
+                  <input type="checkbox" class="form-check-input" role="switch" name="require_bugs" id="require_bugs" data-singleton="true"
                   % if update and update.require_bugs:
                   checked
                   % elif not update:
                   checked
                   % endif
                 >
-                  <label class="custom-control-label" for="require_bugs">
-                      <div class="font-weight-bold">Require bugs</div>
+                  <label class="form-check-label" for="require_bugs">
+                      <div class="fw-bold">Require bugs</div>
                       <small>If checked, this will require that positive feedback be given on all associated bugs before the update can pass to stable.  If your update has no associated bugs, this option has no effect.</small>
                   </label>
               </div>
@@ -249,10 +275,10 @@ ${update.notes}
 
       <div class="card">
           <div class="card-header">
-              <h5 class="font-weight-bold mb-0">Final details</h5>
+              <h5 class="fw-bold mb-0">Final details</h5>
           </div>
           <div class="card-body">
-            <h6 class="font-weight-bold">Name</h6>
+            <h6 class="fw-bold">Name</h6>
             <input class="typeahead form-control noui" name="display_name" type="text" placeholder="(optional) update name. leave blank and bodhi will use the package names."
 % if update:
 value="${update.display_name | h}"
@@ -262,7 +288,7 @@ value="${update.display_name | h}"
           <div class="card-body pt-0">
               <div class="row">
                   <div class="col-12">
-                      <h6 class="font-weight-bold" title="If specified, the update will be blocked from stable until all of the listed taskotron tests are passing.">Required Taskotron checks</h6>
+                      <h6 class="fw-bold" title="If specified, the update will be blocked from stable until all of the listed taskotron tests are passing.">Required Taskotron checks</h6>
                       <input type="text" name="requirements" id="requirements" class="form-control" 
                   placeholder="Required taskotron tasks"
                       % if update and update.requirements:
@@ -273,24 +299,24 @@ value="${update.display_name | h}"
                 </div>
           </div>
           <div class="card-body pt-0">
-              <div class="custom-control custom-switch">
-                  <input type="checkbox" class="custom-control-input" name="autokarma" id="autokarma" class="form-check-input" data-singleton="true"
+              <div class="form-check form-switch">
+                  <input type="checkbox"  class="form-check-input" role="switch" name="autokarma" id="autokarma" data-singleton="true"
                   % if update and update.autokarma:
                   checked
                   % elif not update:
                   checked
                   % endif
                 />
-                  <label class="custom-control-label" for="autokarma">
-                      <div class="font-weight-bold">Auto-request stable based on karma?</div>
+                  <label class="form-check-label" for="autokarma">
+                      <div class="fw-bold">Auto-request stable based on karma?</div>
                       <small>If checked, this option allows bodhi to automatically move your update from testing to stable once enough positive karma has been given.</small>
                   </label>
               </div>
           </div>
           <div class="card-body pt-0">
-              <div class="row ml-3">
+              <div class="row ms-3">
                   <div class="col-6">
-                      <h6 class="font-weight-bold" title="This is the threshold of positive karma required to automatically push an update from testing to stable.">Stable Karma</h6>
+                      <h6 class="fw-bold" title="This is the threshold of positive karma required to automatically push an update from testing to stable.">Stable Karma</h6>
                       <input type="number" class="form-control" name="stable_karma" min="1" required
                       % if update:
                       value="${update.stable_karma}"
@@ -300,7 +326,7 @@ value="${update.display_name | h}"
                     />
                   </div>
                   <div class="col-6">
-                      <h6 class="font-weight-bold" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough time was spent in testing.">Unstable Karma</h6>
+                      <h6 class="fw-bold" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough time was spent in testing.">Unstable Karma</h6>
                       <input type="number" class="form-control" name="unstable_karma" max="-1" required
                       % if update:
                       value="${update.unstable_karma}"
@@ -312,24 +338,24 @@ value="${update.display_name | h}"
                 </div>
           </div>
           <div class="card-body pt-0">
-              <div class="custom-control custom-switch">
-                  <input type="checkbox" class="custom-control-input" name="autotime" id="autotime" class="form-check-input" data-singleton="true"
+              <div class="form-check form-switch">
+                  <input type="checkbox"  class="form-check-input" role="switch" name="autotime" id="autotime" data-singleton="true"
                   % if update and update.autotime:
                   checked
                   % elif not update:
                   checked
                   % endif
                 />
-                  <label class="custom-control-label" for="autotime">
-                      <div class="font-weight-bold">Auto-request stable based on time?</div>
+                  <label class="form-check-label" for="autotime">
+                      <div class="fw-bold">Auto-request stable based on time?</div>
                       <small>If checked, this option allows bodhi to automatically move your update from testing to stable once enough time was spent in testing.</small>
                   </label>
               </div>
           </div>
           <div class="card-body pt-0">
-              <div class="row ml-3">
+              <div class="row ms-3">
                   <div class="col-6">
-                      <h6 class="font-weight-bold" title="This is the number of days an update needs to spend in testing to be automatically pushed to stable. If empty it will be set to the minimum number of days set for the Release.">Stable days</h6>
+                      <h6 class="fw-bold" title="This is the number of days an update needs to spend in testing to be automatically pushed to stable. If empty it will be set to the minimum number of days set for the Release.">Stable days</h6>
                       <input type="number" name="stable_days" placeholder="auto" class="form-control"
                       % if update:
                       min="${update.mandatory_days_in_testing}" value="${update.stable_days}"
@@ -341,16 +367,16 @@ value="${update.display_name | h}"
                 </div>
           </div>
           <div class="card-body pt-0">
-              <div class="custom-control custom-switch">
-                  <input type="checkbox" class="custom-control-input" name="require_testcases" id="require_testcases" class="form-check-input" data-singleton="true"
+              <div class="form-check form-switch">
+                  <input type="checkbox"  class="form-check-input" role="switch" name="require_testcases" id="require_testcases" data-singleton="true"
                   % if update and update.require_testcases:
                   checked
                   % elif not update:
                   checked
                   % endif
                 />
-                  <label class="custom-control-label" for="require_testcases">
-                      <div class="font-weight-bold">Require testcases</div>
+                  <label class="form-check-label" for="require_testcases">
+                      <div class="fw-bold">Require testcases</div>
                       <small>If checked, this will require that positive feedback be given on all associated wiki test cases before the update can pass to stable.  If your update has no associated wiki test cases, this option has no effect.</small>
                   </label>
               </div>

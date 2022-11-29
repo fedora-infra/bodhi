@@ -20,21 +20,23 @@ from datetime import datetime, timedelta
 from unittest import mock
 import copy
 
-from fedora_messaging import api, testing as fml_testing
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
 import webtest
 
 from bodhi.messages.schemas import buildroot_override as override_schemas
+from bodhi.server import main
 from bodhi.server.models import (
     BuildrootOverride,
     PackageManager,
+    Release,
     RpmBuild,
     RpmPackage,
-    Release,
-    User,
-    Update,
     TestGatingStatus,
+    Update,
+    User,
 )
-from bodhi.server import main
+
 from .. import base
 
 
@@ -754,7 +756,7 @@ class TestOverridesWebViews(base.BasePyTestCase):
         resp = app.get('/overrides/new',
                        status=403, headers={'Accept': 'text/html'})
         assert '<h1>403 <small>Forbidden</small></h1>' in resp
-        assert '<p class="lead">Access was denied to this resource.</p>' in resp
+        assert '<p class="lead">You must be logged in.</p>' in resp
 
     def test_override_new_loggedin(self):
         """
@@ -771,7 +773,7 @@ class TestOverridesWebViews(base.BasePyTestCase):
         """
         resp = self.app.get('/overrides/',
                             status=200, headers={'Accept': 'text/html'})
-        assert '<h3 class="font-weight-bold m-0 d-flex align-items-center">Overrides' in resp
+        assert '<h3 class="fw-bold m-0 d-flex align-items-center">Overrides' in resp
         assert '<a href="http://localhost/overrides/bodhi-2.0-1.fc17">' in resp
 
     @mock.patch('bodhi.server.util.arrow.get')
@@ -791,6 +793,6 @@ class TestOverridesWebViews(base.BasePyTestCase):
         resp = self.app.get('/overrides/bodhi-2.0-1.fc17',
                             status=200, headers={'Accept': 'text/html'})
 
-        assert ("<span class='col-xs-auto pr-2 ml-auto text-danger'><small>"
+        assert ("<span class='col-xs-auto pe-2 ms-auto text-danger'><small>"
                 "expired <strong>82 seconds bro ago</strong></small></span>") in resp
         assert abs((get.mock_calls[0][1][0] - expiration_date).seconds) < 64

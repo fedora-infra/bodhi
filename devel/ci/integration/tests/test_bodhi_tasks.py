@@ -67,6 +67,8 @@ def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
         bodhi_container.execute(["wait-for-file", "/tmp/pungi-calls.log"])
     except ConuException as e:
         print(f"Waiting for pungi-calls.log failed, relevant composes: {composes}")
+        with read_file(bodhi_container, "/tmp/celery.log") as log:
+            print(log.read())
         raise e
     with read_file(bodhi_container, "/tmp/pungi-calls.log") as fh:
         calls = fh.read().splitlines()
@@ -90,6 +92,8 @@ def test_update_edit(
             # tags: ['el9-updates-candidate', 'el9', 'el9-updates-testing']
             "AND r.id_prefix = 'FEDORA' "
             "AND u.locked = FALSE AND u.status IN ('pending', 'testing') "
+            "AND u.type != 'security' "
+            "AND u.from_tag IS NULL "
             "AND us.name NOT LIKE '%packagerbot%' "
             "ORDER BY u.date_submitted DESC LIMIT 1"
         )
@@ -147,7 +151,11 @@ def test_update_edit(
         bodhi_container.execute(["wait-for-file", "-d", "/srv/celery-results"])
     except ConuException as e:
         print(f"Waiting for celery results failed, relevant update: {update_alias}")
+        print("Apache logs:")
         with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        print("Celery logs:")
+        with read_file(bodhi_container, "/tmp/celery.log") as log:
             print(log.read())
         raise e
     result = {"status": "RETRY"}

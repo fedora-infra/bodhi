@@ -9,8 +9,11 @@ RUN dnf install -y \
     fedora-messaging \
     findutils \
     git \
+    krb5-devel \
     make \
     pip \
+    poetry \
+    python-unversioned-command \
     python3-alembic \
     python3-arrow \
     python3-authlib \
@@ -44,6 +47,7 @@ RUN dnf install -y \
     python3-pytest \
     python3-pytest-cov \
     python3-pytest-mock \
+    python3-requests-kerberos \
     python3-responses \
     python3-simplemediawiki \
     python3-sphinx \
@@ -52,16 +56,16 @@ RUN dnf install -y \
     python3-waitress \
     python3-webtest \
     python3-wheel \
-    python3-whitenoise \
     python3-yaml \
     rpm-build \
-    rpmdevtools
+    rpmdevtools \
+    skopeo
 
-# Fake pungi being installed so we can avoid it and all its dependencies
-RUN ln -s /usr/bin/true /usr/bin/pungi-koji
 VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
 COPY . /bodhi
 RUN cp devel/development.ini.example bodhi-server/development.ini
 RUN sed -i '/pyramid_debugtoolbar/d' bodhi-server/development.ini
+RUN poetry config virtualenvs.create false
+RUN git config --global --add safe.directory /bodhi

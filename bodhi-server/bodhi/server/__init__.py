@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Initialize the Bodhi server."""
 from collections import defaultdict
+import importlib.metadata
 import logging as python_logging
 
 from cornice.validators import DEFAULT_FILTERS
@@ -26,17 +27,19 @@ from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
+from pyramid.session import PickleSerializer, SignedCookieSessionFactory
 from pyramid.tweens import EXCVIEW
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
-from whitenoise import WhiteNoise
 import pkg_resources
 
 from bodhi.server import bugs, buildsys
 from bodhi.server.config import config as bodhi_config
 
 
-__version__ = "5.7.5"
+METADATA = importlib.metadata.metadata('bodhi-server')
+__version__ = METADATA['version']
+
 
 # This is a regular expression used to match username mentions in comments.
 MENTION_RE = r'(?<!\S)(@\w+)'
@@ -244,8 +247,10 @@ def main(global_config, testing=None, session=None, **settings):
     setup_buildsys()
 
     # Sessions & Caching
-    from pyramid.session import SignedCookieSessionFactory
-    session_factory = SignedCookieSessionFactory(bodhi_config['session.secret'])
+    session_factory = SignedCookieSessionFactory(
+        bodhi_config['session.secret'],
+        serializer=PickleSerializer(),
+    )
 
     # Construct a list of all groups we're interested in
     default = []
@@ -261,13 +266,12 @@ def main(global_config, testing=None, session=None, **settings):
     config.include('pyramid_mako')
     config.include('cornice')
 
-    # Initialize the database scoped session
-    initialize_db(bodhi_config)
-
     # Lazy-loaded memoized request properties
     if session:
         config.registry.sessionmaker = lambda: session
     else:
+        # Initialize the database scoped session
+        initialize_db(bodhi_config)
         config.registry.sessionmaker = Session
 
     config.add_request_method(lambda x: Session, 'db', reify=True)
@@ -331,6 +335,10 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_route('liveness', '/healthz/live')
     config.add_route('readyness', '/healthz/ready')
 
+    # Legacy: Redirect the previously self-hosted documentation
+    # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hybrid.html#using-subpath-in-a-route-pattern
+    config.add_route("docs", "/docs/*subpath")
+
     config.scan('bodhi.server.views')
     config.scan('bodhi.server.services')
     config.scan('bodhi.server.webapp')
@@ -366,5 +374,4 @@ def main(global_config, testing=None, session=None, **settings):
 
     log.info('Bodhi ready and at your service!')
     app = config.make_wsgi_app()
-    app = WhiteNoise(app, root=bodhi_config["docs_path"], prefix="/docs", index_file=True)
     return app

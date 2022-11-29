@@ -2,7 +2,8 @@
 
 import typing
 
-from pyramid.httpexceptions import HTTPFound
+from authlib.oauth2.rfc6750 import InvalidTokenError
+from pyramid.httpexceptions import HTTPFound, HTTPUnauthorized
 from pyramid.security import remember
 
 from bodhi.server import log
@@ -36,6 +37,9 @@ def get_and_store_user(
     """
     # Get information about the user
     userinfo = request.registry.oidc.fedora.userinfo(token={"access_token": access_token})
+    if "error" in userinfo:
+        raise InvalidTokenError(description=userinfo["error_description"])
+
     username = userinfo['nickname']
     log.info(f'{username} successfully logged in')
     # Create or update the user in the database, update the groups
@@ -76,9 +80,10 @@ def remember_me(context: 'mako.runtime.Context', request: 'pyramid.request.Reque
     endpoint = request.params['openid.op_endpoint']
     if endpoint != request.registry.settings['openid.provider']:
         log.warning('Invalid OpenID provider: %s' % endpoint)
-        request.session.flash('Invalid OpenID provider. You can only use: %s' %
-                              request.registry.settings['openid.provider'])
-        return HTTPFound(location=request.route_url('home'))
+        raise HTTPUnauthorized(
+            'Invalid OpenID provider. You can only use: %s' %
+            request.registry.settings['openid.provider']
+        )
 
     username = info['sreg']['nickname']
     email = info['sreg']['email']
@@ -151,11 +156,14 @@ def get_final_redirect(request: 'pyramid.request.Request'):
     Returns:
         HTTPFound: An HTTP 302 response redirecting to the right URL.
     """
-    came_from = request.session.get('came_from', '/')
+    came_from = request.session.get('came_from', request.route_path("home"))
     request.session.pop('came_from', None)
 
     # Mitigate "Covert Redirect"
     if not came_from.startswith(request.host_url):
-        came_from = '/'
+        came_from = request.route_path("home")
+    # Don't redirect endlessly to the login view
+    if came_from.startswith(request.route_url('login')):
+        came_from = request.route_path("home")
 
     return HTTPFound(location=came_from)

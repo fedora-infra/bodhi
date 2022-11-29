@@ -25,21 +25,40 @@ import re
 import textwrap
 import time
 
-from fedora_messaging import api, testing as fml_testing
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
+from webtest import TestApp
 import koji
 import pytest
 import requests
-from webtest import TestApp
 
-from bodhi.messages.schemas import base as base_schemas, update as update_schemas
+from bodhi.messages.schemas import base as base_schemas
+from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import main
 from bodhi.server.config import config
-from bodhi.server.models import (
-    Build, BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
-    ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
-    UpdateSeverity, UpdateSuggestion, User, TestGatingStatus, PackageManager)
-from bodhi.server.util import call_api
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
+from bodhi.server.models import (
+    Build,
+    BuildrootOverride,
+    Compose,
+    Group,
+    ModulePackage,
+    PackageManager,
+    Release,
+    ReleaseState,
+    RpmBuild,
+    RpmPackage,
+    TestGatingStatus,
+    Update,
+    UpdateRequest,
+    UpdateSeverity,
+    UpdateStatus,
+    UpdateSuggestion,
+    UpdateType,
+    User,
+)
+from bodhi.server.util import call_api
+
 from ..base import BasePyTestCase
 from ..utils import assert_multiline_equal
 
@@ -455,7 +474,7 @@ class TestNewUpdate(BasePyTestCase):
         """
         Test html rendering of default build link
         """
-        self.app.app.application.registry.settings['koji_web_url'] = \
+        self.registry.settings['koji_web_url'] = \
             'https://koji.fedoraproject.org/koji/'
         nvr = 'bodhi-2.0.0-2.fc17'
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
@@ -471,7 +490,7 @@ class TestNewUpdate(BasePyTestCase):
         """
         Test html rendering of default build link without trailing slash
         """
-        self.app.app.application.registry.settings['koji_web_url'] = \
+        self.registry.settings['koji_web_url'] = \
             'https://koji.fedoraproject.org/koji'
         nvr = 'bodhi-2.0.0-2.fc17'
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
@@ -488,7 +507,7 @@ class TestNewUpdate(BasePyTestCase):
         Test html rendering of build link using a mock config variable 'koji_web_url'
         without a trailing slash in it
         """
-        self.app.app.application.registry.settings['koji_web_url'] = 'https://host.org'
+        self.registry.settings['koji_web_url'] = 'https://host.org'
         nvr = 'bodhi-2.0.0-2.fc17'
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             resp = self.app.post_json('/updates/', self.get_update(nvr))
@@ -815,6 +834,34 @@ class TestNewUpdate(BasePyTestCase):
         assert up['request'] == 'testing'
 
     @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.util.read_critpath_json')
+    @mock.patch.dict(config, [('critpath.type', 'json')])
+    def test_new_edit_update_critpath_groups(self, fakejson, *args):
+        """
+        Ensure that creating a new update and editing it on the grouped
+        critpath data path works.
+        """
+        fakejson.return_value = {'rpm': {'core': ['kernel']}}
+        args = self.get_update('kernel-3.11.5-300.fc17')
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            up = self.app.post_json('/updates/', args).json_body
+
+        assert up['critpath']
+        assert up['critpath_groups'] == "core"
+
+        args['edited'] = up['alias']
+        # just edit anything, it doesn't matter, the point here is to
+        # hit the critpath re-discovery code in the edit codepath
+        args['stable_days'] = '50'
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            ed = self.app.post_json('/updates/', args).json_body
+
+        assert ed['critpath']
+        assert ed['critpath_groups'] == "core"
+
+    @mock.patch(**mock_valid_requirements)
     def test_obsoletion(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -909,6 +956,7 @@ class TestNewUpdate(BasePyTestCase):
         # Assert that the type of the new update is security.
         up = self.db.query(Build).filter_by(nvr='bodhi-2.0.0-3.fc17').one().update
         assert up.type == UpdateType.security
+        assert up.severity == UpdateSeverity.high
 
     @mock.patch(**mock_valid_requirements)
     def test_obsoletion_security_update(self, *args):
@@ -1046,6 +1094,27 @@ class TestSetRequest(BasePyTestCase):
         assert res.json_body['status'] == 'error'
         assert res.json_body['errors'][0]['description'] == (
             "Can't change request on a locked update"
+        )
+
+    @mock.patch(**mock_valid_requirements)
+    def test_set_request_rawhide(self, *args):
+        """Ensure that we get an error if trying to set request on a rawhide update"""
+        nvr = 'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Build).filter_by(nvr=nvr).one().update
+        up.locked = False
+        up.requirements = ''
+        up.test_gating_status = TestGatingStatus.passed
+        up.date_testing = datetime.utcnow() - timedelta(days=8)
+        up.release.composed_by_bodhi = False
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json(f'/updates/{up.alias}/request', post_data, status=400)
+
+        assert res.json_body['status'] == 'error'
+        assert res.json_body['errors'][0]['description'] == (
+            "Setting a request on an Update for a Release not composed by Bodhi is not allowed"
         )
 
     @mock.patch(**mock_valid_requirements)
@@ -1220,7 +1289,10 @@ class TestEditUpdateForm(BasePyTestCase):
         resp = app.get('/updates/FEDORA-2017-a3bbe1a8f2/edit', status=403,
                        headers={'accept': 'text/html'})
         assert '<h1>403 <small>Forbidden</small></h1>' in resp
-        assert '<p class="lead">Access was denied to this resource.</p>' in resp
+        assert (
+            '<p class="lead">Unauthorized: get_update_for_editing__GET failed permission check</p>'
+            in resp
+        )
 
     def test_disabled_unspecified_severity_for_security_update(self):
         alias = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update.alias
@@ -1314,7 +1386,7 @@ class TestUpdatesService(BasePyTestCase):
 
         res = self.app.get(f'/updates/{alias}', status=200, headers={'Accept': 'text/html'})
 
-        assert '<div class="col font-weight-bold text-muted">Content Type</div>' in res.text
+        assert '<div class="col fw-bold text-muted">Content Type</div>' in res.text
         assert 'RPM' in res.text
 
     def test_content_type_none(self):
@@ -1335,8 +1407,8 @@ class TestUpdatesService(BasePyTestCase):
 
         res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
 
-        assert '"decision_context": "bodhi_update_push_testing",' not in res
-        assert '"decision_context": "bodhi_update_push_stable",' in res
+        assert '"decision_context": ["bodhi_update_push_testing"],' not in res
+        assert '"decision_context": ["bodhi_update_push_stable"],' in res
 
     def test_decision_context_pending_testing(self):
         """The HTML should include the correct decision context for Pending/Testing updates."""
@@ -1346,8 +1418,8 @@ class TestUpdatesService(BasePyTestCase):
 
         res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
 
-        assert '"decision_context": "bodhi_update_push_stable",' not in res
-        assert '"decision_context": "bodhi_update_push_testing",' in res
+        assert '"decision_context": ["bodhi_update_push_stable"],' not in res
+        assert '"decision_context": ["bodhi_update_push_testing"],' in res
 
     def test_decision_context_testing(self):
         """The HTML should include the correct decision context for Testing updates."""
@@ -1359,13 +1431,13 @@ class TestUpdatesService(BasePyTestCase):
 
         res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
 
-        assert '"decision_context": "bodhi_update_push_testing",' not in res
-        assert '"decision_context": "bodhi_update_push_stable",' in res
+        assert '"decision_context": ["bodhi_update_push_testing"],' not in res
+        assert '"decision_context": ["bodhi_update_push_stable"],' in res
 
     def test_home_html_legal(self):
         """Test the home page HTML when a legal link is configured."""
         with mock.patch.dict(
-                self.app.app.application.registry.settings,
+                self.registry.settings,
                 {'legal_link': 'http://loweringthebar.net/'}):
             resp = self.app.get('/', headers={'Accept': 'text/html'})
 
@@ -1376,7 +1448,7 @@ class TestUpdatesService(BasePyTestCase):
 
     def test_home_html_no_legal(self):
         """Test the home page HTML when no legal link is configured."""
-        with mock.patch.dict(self.app.app.application.registry.settings, {'legal_link': ''}):
+        with mock.patch.dict(self.registry.settings, {'legal_link': ''}):
             resp = self.app.get('/', headers={'Accept': 'text/html'})
 
         assert 'Fedora Updates System' in resp
@@ -1913,7 +1985,7 @@ class TestUpdatesService(BasePyTestCase):
         """Test getting a single update via HTML when no privacy link is configured."""
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
 
-        with mock.patch.dict(self.app.app.application.registry.settings, {'privacy_link': ''}):
+        with mock.patch.dict(self.registry.settings, {'privacy_link': ''}):
             resp = self.app.get(f'/updates/{update.alias}',
                                 headers={'Accept': 'text/html'})
 
@@ -1929,7 +2001,7 @@ class TestUpdatesService(BasePyTestCase):
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
 
         with mock.patch.dict(
-                self.app.app.application.registry.settings,
+                self.registry.settings,
                 {'privacy_link': 'https://privacyiscool.com'}):
             resp = self.app.get(f'/updates/{update.alias}',
                                 headers={'Accept': 'text/html'})
@@ -2624,7 +2696,7 @@ class TestUpdatesService(BasePyTestCase):
         assert not body['updates']
 
         # Now approve one
-        self.db.query(Update).first().date_pushed = now
+        self.db.query(Update).first().date_stable = now
         self.db.commit()
 
         # And try again
@@ -2673,7 +2745,7 @@ class TestUpdatesService(BasePyTestCase):
         assert not body['updates']
 
         # Now approve one
-        self.db.query(Update).first().date_pushed = now
+        self.db.query(Update).first().date_stable = now
         self.db.commit()
 
         # And try again
@@ -3860,9 +3932,14 @@ class TestUpdatesService(BasePyTestCase):
         assert up.status == UpdateStatus.obsolete
         assert up.request is None
 
+    @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     def test_obsoletion_unlocked_with_open_stable_request(self, *args):
-        """ Ensure that we don't obsolete updates that have a stable request """
+        """
+        Ensure that we don't obsolete updates that have a stable request
+        when we push a new update to testing, but we do when we submit
+        the newer update to stable.
+        """
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
 
@@ -3874,7 +3951,8 @@ class TestUpdatesService(BasePyTestCase):
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
 
-        args = self.get_update('bodhi-2.0.0-3.fc17')
+        nvr_new = 'bodhi-2.0.0-3.fc17'
+        args = self.get_update(nvr_new)
 
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             r = self.app.post_json('/updates/', args).json_body
@@ -3884,6 +3962,29 @@ class TestUpdatesService(BasePyTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         assert up.status == UpdateStatus.pending
         assert up.request == UpdateRequest.stable
+
+        new_up = self.db.query(Build).filter_by(nvr=nvr_new).one().update
+        new_up.status = UpdateStatus.testing
+        new_up.request = None
+        new_up.comment(self.db, 'This update has been pushed to testing', author='bodhi')
+        new_up.date_testing = new_up.comments[-1].timestamp - timedelta(days=7)
+        assert len(new_up.builds) == 1
+        new_up.test_gating_status = TestGatingStatus.passed
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
+        assert new_up.days_in_testing == 7
+        assert new_up.meets_testing_requirements is True
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestStableV1):
+            r = self.app.post_json(
+                f'/updates/{new_up.alias}/request',
+                {'request': 'stable', 'csrf_token': self.get_csrf_token()}).json_body
+
+        assert r['update']['request'] == 'stable'
+
+        up = self.db.query(Build).filter_by(nvr=nvr).one().update
+        assert up.status == UpdateStatus.obsolete
+        assert up.request is None
 
     @mock.patch(**mock_valid_requirements)
     def test_push_to_stable_for_obsolete_update(self, *args):
@@ -5205,8 +5306,9 @@ class TestUpdatesService(BasePyTestCase):
         assert 'text/html' in resp.headers['Content-Type']
         assert 'kernel-3.11.5-300.fc17' in resp
 
-    @mock.patch(**mock_valid_requirements)
-    def test_disable_autopush_non_critical_update_with_negative_karma(self, *args):
+    @unused_mock_patch(**mock_valid_requirements)
+    @pytest.mark.parametrize('rawhide_workflow', (True, False))
+    def test_disable_autopush_non_critical_update_with_negative_karma(self, rawhide_workflow):
         """Disable autokarma on non-critical updates upon negative comment."""
         user = User(name='bob')
         self.db.add(user)
@@ -5224,6 +5326,8 @@ class TestUpdatesService(BasePyTestCase):
         assert resp.json['request'] == 'testing'
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
+        if rawhide_workflow:
+            up.release.composed_by_bodhi = False
         # Clear pending messages
         self.db.info['messages'] = []
         self.db.commit()
@@ -5231,8 +5335,12 @@ class TestUpdatesService(BasePyTestCase):
         up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
 
-        expected_comment = config.get('disable_automatic_push_to_stable')
-        assert up.comments[3].text == expected_comment
+        if not rawhide_workflow:
+            expected_comment = config.get('disable_automatic_push_to_stable')
+            assert len(up.comments) == 4
+            assert up.comments[-1].text == expected_comment
+        else:
+            assert len(up.comments) == 3
 
         up.comment(self.db, 'LGTM Now', author='ralph', karma=1)
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
@@ -5244,7 +5352,10 @@ class TestUpdatesService(BasePyTestCase):
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
 
         assert up.karma == 3
-        assert up.autokarma is False
+        if not rawhide_workflow:
+            assert up.autokarma is False
+        else:
+            assert up.autokarma is True
 
         # Request and Status remains testing since the autopush is disabled
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
@@ -5336,7 +5447,7 @@ class TestUpdatesService(BasePyTestCase):
         update.comment(self.db, 'works', 1, 'bowlofeggs')
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
-        self.app.app.application.registry.settings['test_gating.required'] = True
+        self.registry.settings['test_gating.required'] = True
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
@@ -5365,7 +5476,7 @@ class TestUpdatesService(BasePyTestCase):
         update.comment(self.db, 'works', 1, 'bowlofeggs')
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
-        self.app.app.application.registry.settings['test_gating.required'] = True
+        self.registry.settings['test_gating.required'] = True
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
@@ -5522,6 +5633,37 @@ class TestUpdatesService(BasePyTestCase):
         assert 'Push to Stable' in resp
         assert 'Edit' in resp
 
+    @mock.patch(**mock_valid_requirements)
+    def test_push_to_stable_button_not_present_when_karma_reached_and_frozen_release(self, *args):
+        """
+        Assert that the "Push to Stable" button is not displayed when the required karma is
+        reached, but the release is frozen and the update is still pending.
+        """
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
+        update = Update.get(resp.json['alias'])
+        update.status = UpdateStatus.pending
+        update.request = UpdateRequest.testing
+        update.pushed = False
+        update.autokarma = False
+        update.stable_karma = 1
+        update.release.state = ReleaseState.frozen
+        update.comment(self.db, 'works', 1, 'bowlofeggs')
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
+
+        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
+
+        # Checks Push to Stable text in the html page for this update
+        assert 'text/html' in resp.headers['Content-Type']
+        assert nvr in resp
+        assert 'Push to Stable' not in resp
+        assert 'Edit' in resp
+
     def assert_severity_html(self, severity, text=()):
         """
         Assert that the "Update Severity" label appears correctly given specific 'severity'.
@@ -5556,7 +5698,7 @@ class TestUpdatesService(BasePyTestCase):
         """
         self.assert_severity_html(
             UpdateSeverity.urgent,
-            ['<div class="col font-weight-bold text-muted">Severity', 'urgent']
+            ['<div class="col fw-bold text-muted">Severity', 'urgent']
         )
 
     @mock.patch(**mock_valid_requirements)
@@ -5566,7 +5708,7 @@ class TestUpdatesService(BasePyTestCase):
         """
         self.assert_severity_html(
             UpdateSeverity.high,
-            ['<div class="col font-weight-bold text-muted">Severity', 'high']
+            ['<div class="col fw-bold text-muted">Severity', 'high']
         )
 
     @mock.patch(**mock_valid_requirements)
@@ -5576,7 +5718,7 @@ class TestUpdatesService(BasePyTestCase):
         """
         self.assert_severity_html(
             UpdateSeverity.medium,
-            ['<div class="col font-weight-bold text-muted">Severity', 'medium']
+            ['<div class="col fw-bold text-muted">Severity', 'medium']
         )
 
     @mock.patch(**mock_valid_requirements)
@@ -5586,7 +5728,7 @@ class TestUpdatesService(BasePyTestCase):
         """
         self.assert_severity_html(
             UpdateSeverity.low,
-            ['<div class="col font-weight-bold text-muted">Severity', 'low']
+            ['<div class="col fw-bold text-muted">Severity', 'low']
         )
 
     @mock.patch(**mock_valid_requirements)
@@ -5926,6 +6068,42 @@ class TestUpdatesService(BasePyTestCase):
         assert update.days_to_stable == 0
         assert update.meets_testing_requirements is True
 
+    @unused_mock_patch(**mock_valid_requirements)
+    @pytest.mark.parametrize('update_status',
+                             [pytest.param(UpdateStatus.pending, id='pending_update'),
+                              pytest.param(UpdateStatus.testing, id='testing_update'),
+                              pytest.param(UpdateStatus.stable, id='stable_update')])
+    @pytest.mark.parametrize('release_state',
+                             [pytest.param(ReleaseState.frozen, id='frozen_release'),
+                              pytest.param(ReleaseState.pending, id='pending_release')])
+    def test_frozen_release_html(self, update_status, release_state):
+        """
+        Assert that the "Frozen release" warning is showed when appropriate.
+        """
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
+        update = Update.get(resp.json['alias'])
+        update.status = update_status
+        release = update.release
+        release.state = release_state
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
+
+        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
+
+        assert 'text/html' in resp.headers['Content-Type']
+        assert nvr in resp
+        if update_status != UpdateStatus.stable and release_state == ReleaseState.frozen:
+            assert ('This update will not be pushed to stable until freeze is lifted '
+                    f'from {release.long_name}.') in resp
+        else:
+            assert ('This update will not be pushed to stable until freeze is lifted '
+                    f'from {release.long_name}.') not in resp
+
 
 class TestWaiveTestResults(BasePyTestCase):
     """
@@ -6079,7 +6257,7 @@ class TestWaiveTestResults(BasePyTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             {
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
@@ -6096,6 +6274,7 @@ class TestWaiveTestResults(BasePyTestCase):
                 'waived': True,
                 'product_version': 'fedora-17',
                 'testcase': 'dist.rpmdeplint',
+                'scenario': None,
                 'subject': {
                     'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                 }
@@ -6157,7 +6336,7 @@ class TestWaiveTestResults(BasePyTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             {
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
@@ -6175,6 +6354,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     'waived': True,
                     'product_version': 'fedora-17',
                     'testcase': 'dist.rpmdeplint',
+                    'scenario': None,
                     'subject': {
                         'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                     }
@@ -6188,6 +6368,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     'waived': True,
                     'product_version': 'fedora-17',
                     'testcase': 'atomic_ci_pipeline_results',
+                    'scenario': None,
                     'subject': {
                         'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                     }
@@ -6255,7 +6436,7 @@ class TestWaiveTestResults(BasePyTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             {
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
@@ -6272,6 +6453,7 @@ class TestWaiveTestResults(BasePyTestCase):
                 'waived': True,
                 'product_version': 'fedora-17',
                 'testcase': 'atomic_ci_pipeline_results',
+                'scenario': None,
                 'subject': {
                     'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                 }
@@ -6337,7 +6519,7 @@ class TestWaiveTestResults(BasePyTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             {
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
@@ -6355,6 +6537,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     'waived': True,
                     'product_version': 'fedora-17',
                     'testcase': 'dist.rpmdeplint',
+                    'scenario': None,
                     'subject': {
                         'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                     }
@@ -6368,6 +6551,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     'waived': True,
                     'product_version': 'fedora-17',
                     'testcase': 'atomic_ci_pipeline_results',
+                    'scenario': None,
                     'subject': {
                         'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                     }
@@ -6435,7 +6619,7 @@ class TestWaiveTestResults(BasePyTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             {
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
@@ -6452,6 +6636,7 @@ class TestWaiveTestResults(BasePyTestCase):
                 'waived': True,
                 'product_version': 'fedora-17',
                 'testcase': 'dist.rpmdeplint',
+                'scenario': None,
                 'subject': {
                     'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
                 }
@@ -6578,7 +6763,7 @@ class TestGetTestResults(BasePyTestCase):
             'https://greenwave.api/decision',
             data={
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': update.alias, 'type': 'bodhi_update'}
@@ -6618,7 +6803,7 @@ class TestGetTestResults(BasePyTestCase):
             'https://greenwave.api/decision',
             data={
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': update.alias, 'type': 'bodhi_update'}
@@ -6646,9 +6831,12 @@ class TestGetTestResults(BasePyTestCase):
     def test_get_test_results_calling_greenwave(self, call_api, *args):
         """
         Ensure if all conditions are met we do try to call greenwave with the proper
-        argument.
+        argument for a non-critical-path update, without critical path group
+        support.
         """
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.critpath = False
+        update.critpath_groups = None
         call_api.return_value = {"foo": "bar"}
 
         res = self.app.get(f'/updates/{update.alias}/get-test-results')
@@ -6657,7 +6845,7 @@ class TestGetTestResults(BasePyTestCase):
             'https://greenwave.api/decision',
             data={
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': update.alias, 'type': 'bodhi_update'}
@@ -6680,29 +6868,101 @@ class TestGetTestResults(BasePyTestCase):
         """
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         update.critpath = True
+        update.critpath_groups = None
         call_api.return_value = {"foo": "bar"}
 
         res = self.app.get(f'/updates/{update.alias}/get-test-results')
 
-        assert call_api.call_args_list == [
-            mock.call(
-                'https://greenwave.api/decision',
-                data={
-                    'product_version': 'fedora-17',
-                    'decision_context': context,
-                    'subject': [
-                        {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                        {'item': update.alias, 'type': 'bodhi_update'}
-                    ],
-                    'verbose': True,
-                },
-                method='POST',
-                retries=3,
-                service_name='Greenwave'
-            ) for context in ('bodhi_update_push_testing_critpath', 'bodhi_update_push_testing')
-        ]
+        call_api.assert_called_once_with(
+            'https://greenwave.api/decision',
+            data={
+                'product_version': 'fedora-17',
+                'decision_context': [
+                    'bodhi_update_push_testing_critpath',
+                    'bodhi_update_push_testing'
+                ],
+                'subject': [
+                    {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'item': update.alias, 'type': 'bodhi_update'}
+                ],
+                'verbose': True,
+            },
+            method='POST',
+            retries=3,
+            service_name='Greenwave'
+        )
 
-        assert res.json_body == {'decisions': [{'foo': 'bar'}, {'foo': 'bar'}]}
+        assert res.json_body == {'decisions': [{'foo': 'bar'}]}
+
+    @mock.patch.dict(config, [('greenwave_api_url', 'https://greenwave.api')])
+    @mock.patch('bodhi.server.util.call_api')
+    def test_get_test_results_calling_greenwave_critpath_groups(self, call_api, *args):
+        """
+        Ensure if all conditions are met we do try to call greenwave with the proper
+        arguments for a critical path update when critical path group support
+        is present.
+        """
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.critpath = True
+        update.critpath_groups = 'core critical-path-apps'
+        call_api.return_value = {"foo": "bar"}
+
+        res = self.app.get(f'/updates/{update.alias}/get-test-results')
+
+        call_api.assert_called_once_with(
+            'https://greenwave.api/decision',
+            data={
+                'product_version': 'fedora-17',
+                'decision_context': [
+                    'bodhi_update_push_testing_critical-path-apps_critpath',
+                    'bodhi_update_push_testing_core_critpath',
+                    'bodhi_update_push_testing'
+                ],
+                'subject': [
+                    {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'item': update.alias, 'type': 'bodhi_update'}
+                ],
+                'verbose': True,
+            },
+            method='POST',
+            retries=3,
+            service_name='Greenwave'
+        )
+
+        assert res.json_body == {'decisions': [{'foo': 'bar'}]}
+
+    @mock.patch.dict(config, [('greenwave_api_url', 'https://greenwave.api')])
+    @mock.patch('bodhi.server.util.call_api')
+    def test_get_test_results_calling_greenwave_critpath_groups_empty(self, call_api, *args):
+        """
+        Ensure if all conditions are met we do try to call greenwave with the proper
+        arguments for a critical path update when critical path group support
+        is present, but the update is not in any groups.
+        """
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.critpath = False
+        update.critpath_groups = ''
+        call_api.return_value = {"foo": "bar"}
+
+        res = self.app.get(f'/updates/{update.alias}/get-test-results')
+
+        call_api.assert_called_once_with(
+            'https://greenwave.api/decision',
+            data={
+                'product_version': 'fedora-17',
+                'decision_context': ['bodhi_update_push_testing'],
+                'subject': [
+                    {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'item': update.alias, 'type': 'bodhi_update'}
+                ],
+                'verbose': True,
+            },
+            method='POST',
+            retries=3,
+            service_name='Greenwave'
+        )
+
+        assert res.json_body == {'decisions': [{'foo': 'bar'}]}
 
     @mock.patch('bodhi.server.util.call_api')
     def test_get_test_results_calling_greenwave_no_session(self, call_api, *args):
@@ -6723,7 +6983,7 @@ class TestGetTestResults(BasePyTestCase):
             'https://greenwave.api/decision',
             data={
                 'product_version': 'fedora-17',
-                'decision_context': 'bodhi_update_push_testing',
+                'decision_context': ['bodhi_update_push_testing'],
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': update.alias, 'type': 'bodhi_update'}

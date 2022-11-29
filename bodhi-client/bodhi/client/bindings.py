@@ -41,8 +41,9 @@ except ImportError:  # pragma: no cover
     # dnf is not available on EL 7.
     dnf = None  # pragma: no cover
 from munch import munchify
-from requests.exceptions import RequestException
+from requests.exceptions import ConnectionError, RequestException
 import koji
+import requests
 
 from .constants import (
     BASE_URL,
@@ -74,13 +75,14 @@ class BodhiClientException(RequestException):
 class UpdateNotFound(BodhiClientException):
     """Used to indicate that a referenced Update is not found on the server."""
 
-    def __init__(self, update: str):
+    def __init__(self, update: str, **kwargs):
         """
         Initialize the Exception.
 
         Args:
             update: The alias of the update that was not found.
         """
+        super().__init__(**kwargs)
         self.update = update
 
     def __str__(self) -> str:
@@ -96,7 +98,7 @@ class UpdateNotFound(BodhiClientException):
 class ComposeNotFound(BodhiClientException):
     """Used to indicate that a referenced Compose is not found on the server."""
 
-    def __init__(self, release: str, request: str):
+    def __init__(self, release: str, request: str, **kwargs):
         """
         Initialize the Exception.
 
@@ -104,6 +106,7 @@ class ComposeNotFound(BodhiClientException):
             release: The release component of the compose that was not found.
             request: The request component of the compose that was not found.
         """
+        super().__init__(**kwargs)
         self.release = release
         self.request = request
 
@@ -174,6 +177,7 @@ class BodhiClient:
         client_id: str = CLIENT_ID,
         id_provider: str = IDP,
         staging: bool = False,
+        oidc_storage_path: typing.Optional[str] = None,
     ):
         """
         Initialize the Bodhi client.
@@ -183,6 +187,7 @@ class BodhiClient:
                       ```staging``` is True.
             client_id: The OpenID Connect Client ID.
             staging: If True, use the staging server. If False, use base_url.
+            oidc_storage_path: Path to a file were OIDC credentials are stored
         """
         if staging:
             base_url = STG_BASE_URL
@@ -193,15 +198,17 @@ class BodhiClient:
             base_url = base_url + '/'
         self.base_url = base_url
         self.csrf_token = ''
+        self.oidc_storage_path = (
+            oidc_storage_path or os.path.join(os.environ["HOME"], ".config", "bodhi", "client.json")
+        )
         self._build_oidc_client(client_id, id_provider)
 
     def _build_oidc_client(self, client_id, id_provider):
-        storage_path = os.path.join(os.environ["HOME"], ".config", "bodhi", "client.json")
         self.oidc = OIDCClient(
             client_id,
             SCOPE,
             id_provider.rstrip("/"),
-            storage=JSONStorage(storage_path),
+            storage=JSONStorage(self.oidc_storage_path),
         )
 
     def send_request(self, url, verb="GET", **kwargs):
@@ -214,11 +221,15 @@ class BodhiClient:
         Returns:
             requests.Response: The response as returned by python-requests.
         """
-        if kwargs.pop("auth", False):
+        auth = kwargs.pop("auth", False)
+        if auth:
             self.ensure_auth()
+            request_func = self.oidc.request
+        else:
+            request_func = requests.request
         try:
-            response = self.oidc.request(verb, f"{self.base_url}{url}", **kwargs)
-        except OIDCClientError as e:
+            response = request_func(verb, f"{self.base_url}{url}", **kwargs)
+        except (OIDCClientError, ConnectionError) as e:
             raise BodhiClientException(str(e))
         if not response.ok:
             raise BodhiClientException(response.text)
@@ -226,7 +237,7 @@ class BodhiClient:
 
     def ensure_auth(self):
         """Make sure we are authenticated."""
-        self.oidc.ensure_auth()
+        self.oidc.ensure_auth(use_kerberos=True)
         if not self.oidc.has_cookie("auth_tkt", domain=urlparse(self.base_url).hostname):
             while True:
                 resp = self.oidc.request("GET", f"{self.base_url}oidc/login-token")
@@ -234,7 +245,7 @@ class BodhiClient:
                     break
                 if resp.status_code == 401:
                     self.clear_auth()
-                    self.oidc.login()
+                    self.oidc.login(use_kerberos=True)
                 else:
                     resp.raise_for_status()
 
@@ -435,7 +446,7 @@ class BodhiClient:
         # bodhi1 compat
         if 'limit' in kwargs:
             kwargs['rows_per_page'] = kwargs['limit']
-            del(kwargs['limit'])
+            del kwargs['limit']
         # 'mine' may be in kwargs, but set False
         if kwargs.get('mine'):
             if self.username is None:
@@ -450,16 +461,16 @@ class BodhiClient:
                 kwargs['updateid'] = kwargs['package']
             else:
                 kwargs['packages'] = kwargs['package']
-            del(kwargs['package'])
+            del kwargs['package']
         if 'release' in kwargs:
             if isinstance(kwargs['release'], list):
                 kwargs['releases'] = kwargs['release']
             else:
                 kwargs['releases'] = [kwargs['release']]
-            del(kwargs['release'])
+            del kwargs['release']
         if 'type_' in kwargs:
             kwargs['type'] = kwargs['type_']
-            del(kwargs['type_'])
+            del kwargs['type_']
         # Old Bodhi CLI set bugs default to "", but new Bodhi API
         # checks for 'if bugs is not None', not 'if not bugs'
         if 'bugs' in kwargs and kwargs['bugs'] == '':
@@ -494,8 +505,14 @@ class BodhiClient:
             data={'update': update, 'text': comment, 'karma': karma, 'csrf_token': self.csrf()})
 
     @errorhandled
-    def save_override(self, nvr: str, duration: int, notes: str, edit: bool = False,
-                      expired: bool = False) -> 'munch.Munch':
+    def save_override(
+        self, nvr: str,
+        notes: str,
+        duration: typing.Optional[int] = None,
+        expiration_date: typing.Optional[datetime.datetime] = None,
+        edit: bool = False,
+        expired: bool = False
+    ) -> 'munch.Munch':
         """
         Save a buildroot override.
 
@@ -504,15 +521,24 @@ class BodhiClient:
 
         Args:
             nvr: The nvr of a koji build.
-            duration: Number of days from now that this override should expire.
             notes: Notes about why this override is in place.
+            duration: Number of days from now that this override should expire.
+            expiration_date: Date when this override should expire. This argument or the
+                ``duration`` argument must be provided.
             edit: True if we are editing an existing override, False otherwise. Defaults to False.
             expired: Set to True to expire an override. Defaults to False.
         Returns:
             A dictionary-like representation of the saved override.
         """
-        expiration_date = datetime.datetime.utcnow() + \
-            datetime.timedelta(days=duration)
+        if duration is None and expiration_date is None:
+            raise TypeError("The duration or the expiration_date must be provided.")
+        if duration is not None and expiration_date is not None:
+            raise TypeError(
+                "The duration and the expiration_date cannot be provided at the same time."
+            )
+        if duration:
+            expiration_date = datetime.datetime.utcnow() + \
+                datetime.timedelta(days=duration)
         data = {'nvr': nvr,
                 'expiration_date': expiration_date,
                 'notes': notes,
@@ -955,10 +981,11 @@ class BodhiClient:
             An initialized authenticated koji client.
         """
         config = configparser.ConfigParser()
-        if os.path.exists(os.path.join(os.path.expanduser('~'), '.koji', 'config')):
-            config.read_file(open(os.path.join(os.path.expanduser('~'), '.koji', 'config')))
-        else:
-            config.read_file(open('/etc/koji.conf'))
+        koji_conf = os.path.join(os.path.expanduser('~'), '.koji', 'config')
+        if not os.path.exists(koji_conf):
+            koji_conf = '/etc/koji.conf'
+        with open(koji_conf) as fh:
+            config.read_file(fh)
         session = koji.ClientSession(config.get('koji', 'server'))
         return session
 

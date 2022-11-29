@@ -30,10 +30,10 @@ ${parent.css()}
 % endif
 <div class="list-group">
     % if chrome:
-    <div class="list-group-item bg-light d-flex font-weight-bold">
+    <div class="list-group-item bg-light d-flex fw-bold">
       ${total} Comments
       % if page == 1:
-      <a class="ml-1" href="${request.route_url('comments_rss') + '?' + request.query_string}">
+      <a class="ms-1" href="${request.route_url('comments_rss') + '?' + request.query_string}">
         <span class="fa fa-rss"></span>
       </a>
       % endif

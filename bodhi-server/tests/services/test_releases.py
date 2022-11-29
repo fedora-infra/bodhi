@@ -15,21 +15,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-from datetime import datetime, date
+from datetime import date, datetime
 from unittest import mock
 import os
 
-import webtest
 from fedora_messaging import testing as fml_testing
+import webtest
 
 from bodhi import server
 from bodhi.server.config import config
 from bodhi.server.models import (
-    Build, PackageManager, Release, ReleaseState, UpdateType,
-    User, Update, UpdateStatus, UpdateRequest)
+    Build,
+    PackageManager,
+    Release,
+    ReleaseState,
+    Update,
+    UpdateRequest,
+    UpdateStatus,
+    UpdateType,
+    User,
+)
 from bodhi.server.util import get_absolute_path
 from bodhi.server.views import generic
-from .. import base, create_update
+
+from .. import base
 
 
 class TestReleasesService(base.BasePyTestCase):
@@ -505,8 +514,8 @@ class TestReleasesService(base.BasePyTestCase):
 
     def test_get_single_release_html_two_same_updates_same_month(self):
         """Test the HTML view with two updates of the same type from the same month."""
-        create_update(self.db, ['bodhi-3.4.0-1.fc27'])
-        create_update(self.db, ['rust-chan-0.3.1-1.fc27'])
+        base.create_update(self.db, ['bodhi-3.4.0-1.fc27'])
+        base.create_update(self.db, ['rust-chan-0.3.1-1.fc27'])
         self.db.flush()
 
         res = self.app.get('/releases/f17', headers={'Accept': 'text/html'})
@@ -566,6 +575,19 @@ class TestReleasesHTML(base.BasePyTestCase):
             branch='f18', state=ReleaseState.pending)
         self.db.add(release)
 
+        release = Release(
+            name='F37', long_name='Fedora 37',
+            id_prefix='FEDORA', version='37',
+            dist_tag='f37', stable_tag='f37-updates',
+            testing_tag='f37-updates-testing',
+            candidate_tag='f37-updates-candidate',
+            pending_signing_tag='f37-updates-testing-signing',
+            pending_testing_tag='f37-updates-testing-pending',
+            pending_stable_tag='f37-updates-pending',
+            override_tag='f37-override',
+            branch='f37', state=ReleaseState.frozen)
+        self.db.add(release)
+
         currentrelease = self.db.query(Release).filter_by(name='F17').one()
         addedupdates = [[UpdateStatus.pending,
                          [[UpdateType.security, 5],
@@ -604,6 +626,26 @@ class TestReleasesHTML(base.BasePyTestCase):
                            [UpdateType.newpackage, 4]]]]
         with fml_testing.mock_sends():
             _add_updates(addedupdates2, user2, pendingrelease, "fc18")
+
+        frozenrelease = self.db.query(Release).filter_by(name='F37').one()
+        addedupdates3 = [[UpdateStatus.pending,
+                         [[UpdateType.security, 6],
+                          [UpdateType.bugfix, 6],
+                          [UpdateType.enhancement, 6],
+                          [UpdateType.newpackage, 6]]],
+                         [UpdateStatus.testing,
+                          [[UpdateType.security, 12],
+                           [UpdateType.bugfix, 13],
+                           [UpdateType.enhancement, 22],
+                           [UpdateType.newpackage, 33]]],
+                         [UpdateStatus.stable,
+                          [[UpdateType.security, 7],
+                           [UpdateType.bugfix, 14],
+                           [UpdateType.enhancement, 31],
+                           [UpdateType.newpackage, 45]]]]
+        with fml_testing.mock_sends():
+            _add_updates(addedupdates3, user2, frozenrelease, "fc37")
+
         self.db.flush()
         # Clear the caches
         Release._tag_cache = None
@@ -625,3 +667,15 @@ class TestReleasesHTML(base.BasePyTestCase):
 
         # Assert that stable updates counts in a pending release are displayed properly
         assert '?releases=F18&amp;status=stable">16' in res
+
+        # Assert that 'frozen' badge is displayed next to a frozen release name
+        assert ('Fedora 37</a>\n            \n  <span class="badge bg-info ms-1" '
+                'data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="This '
+                'release is currently frozen and updates will not be pushed to stable '
+                'until freeze is lifted">frozen</span>') in res
+
+        # Assert that testing updates counts in a frozen release are displayed properly
+        assert '?releases=F37&amp;status=testing">80' in res
+
+        # Assert that stable updates counts in a frozen release are displayed properly
+        assert '?releases=F37&amp;status=stable">97' in res

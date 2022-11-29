@@ -1,3 +1,60 @@
+[tool.isort]
+profile = "black"
+known_first_party = "bodhi"
+lines_after_imports = 2
+force_alphabetical_sort_within_sections = true
+from_first = true
+
+[tool.mypy]
+mypy_path = "bodhi-client:bodhi-messages:bodhi-server"
+namespace_packages = true
+explicit_package_bases = true
+follow_imports = "silent"
+
+  [[tool.mypy.overrides]]
+  module = 'backoff.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'bugzilla.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'dnf.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'fedora.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'fedora_messaging.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'koji.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'munch.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'pyramid.*'
+  ignore_missing_imports = true
+
+  [[tool.mypy.overrides]]
+  module = 'xmlrpc.*'
+  ignore_missing_imports = true
+
+[tool.pydocstyle]
+inherit = true
+add-ignore = "D413"
+
+[tool.pytest.ini_options]
+addopts = "--cov-config .coveragerc --cov=bodhi --cov-report term-missing --cov-report xml --cov-report html"
+testpaths = ["tests"]
+
 [tool.towncrier]
 package = "bodhi"
 filename = "docs/user/release_notes.rst"

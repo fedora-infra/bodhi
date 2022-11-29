@@ -2,9 +2,12 @@
 
 import typing
 
+from authlib.integrations.base_client import OAuthError
 from authlib.oauth2 import ResourceProtector
-from pyramid.httpexceptions import HTTPAccepted, HTTPFound
+from pyramid.httpexceptions import HTTPAccepted, HTTPFound, HTTPUnauthorized
 from pyramid.security import forget
+
+from bodhi.server import log
 
 from .constants import SCOPES
 from .fedora import IntrospectTokenValidator
@@ -82,7 +85,11 @@ def authorize_oidc(request: 'pyramid.request.Request'):
     # After user confirmed on Fedora authorization page, it will redirect back to Bodhi to
     # authorize. In this route, we get the user's profile information, store the user
     # information in the database, mark the user as logged in, etc.
-    token = request.registry.oidc.fedora.authorize_access_token(request)
+    try:
+        token = request.registry.oidc.fedora.authorize_access_token(request)
+    except OAuthError as e:
+        log.warning(f"OIDC authorization failed: {e}")
+        raise HTTPUnauthorized(f'Authentication failed: {e.description}')
     response = get_final_redirect(request)
     get_and_store_user(request, token["access_token"], response)
     return response

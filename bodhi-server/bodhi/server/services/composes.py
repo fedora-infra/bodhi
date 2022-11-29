@@ -19,7 +19,7 @@
 
 from cornice.resource import resource, view
 from pyramid import httpexceptions
-from pyramid.security import Allow, Everyone
+from pyramid.authorization import Allow, Everyone
 from sqlalchemy.orm import exc
 
 from bodhi.server import models, security

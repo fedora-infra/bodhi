@@ -1,3 +1,136 @@
+[tool.poetry]
+name = "bodhi-server"
+version = "7.0.0"
+description = "Bodhi server"
+readme = "README.rst"
+authors = ["Fedora Infrastructure Team"]
+maintainers = ["Fedora Infrastructure Team <infrastructure@lists.fedoraproject.org>"]
+repository = "https://github.com/fedora-infra/bodhi"
+homepage = "https://bodhi.fedoraproject.rog"
+keywords = ["web", "fedora", "pyramid"]
+license = "GPL-2.0-or-later"
+# Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: System :: Software Distribution",
+    "Framework :: Pyramid",
+    "Programming Language :: JavaScript",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+]
+packages = [
+    { include = "bodhi" },
+    { include = "tests", format = "sdist"}
+]
+include = [
+    { path = "*.txt", format = "sdist" },
+    { path = "*.ini", format = "sdist" },
+    { path = "*.cfg", format = "sdist" },
+    { path = "*.rst", format = "sdist" },
+    { path = "celeryconfig.py", format = "sdist" },
+    { path = "COPYING", format = "sdist"},
+    { path = "bodhi/server/locale/.placeholder", format = "sdist" },
+    { path = "bodhi/*.ico", format = "sdist" },
+    { path = "bodhi/*.png", format = "sdist" },
+    { path = "bodhi/*.css", format = "sdist" },
+    { path = "bodhi/*.gif", format = "sdist" },
+    { path = "bodhi/*.jpg", format = "sdist" },
+    { path = "bodhi/*.pt", format = "sdist" },
+    { path = "bodhi/*.txt", format = "sdist" },
+    { path = "bodhi/*.mak", format = "sdist" },
+    { path = "bodhi/*.mako", format = "sdist" },
+    { path = "bodhi/*.js", format = "sdist" },
+    { path = "bodhi/*.html", format = "sdist" },
+    { path = "bodhi/*.xml", format = "sdist" },
+    { path = "bodhi/*.ttf", format = "sdist" },
+    { path = "bodhi/*.woff", format = "sdist" },
+    { path = "bodhi/*.woff2", format = "sdist" },
+    { path = "bodhi/*.eot", format = "sdist" },
+    { path = "bodhi/*.otf", format = "sdist" },
+    { path = "bodhi/*.svg", format = "sdist" },
+    { path = "bodhi/*.tpl", format = "sdist" },
+    { path = "bodhi/*.rst", format = "sdist" },
+    { path ="apache/*", format = "sdist" },
+    { path = "docs", format = "sdist" },
+        ]
+exclude = [
+    { path = "development.ini", format = "sdist" },
+    { path = "docs/_build", format = "sdist" }
+        ]
+
+[tool.poetry.dev-dependencies]
+bodhi-messages = {path = "../bodhi-messages"}
+pytest = ">=6.2.2"
+pytest-cov = ">=2.11.1"
+pytest-mock = ">=3.5.1"
+diff-cover = ">=4.2.1"
+responses = ">=0.10.15"
+webtest = ">=2.0.35"
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+alembic = ">=1.5.5"
+arrow = ">=0.17.0"
+authlib = ">=0.15.4"
+backoff = ">=1.10.0"
+bleach = ">=3.2.3"
+bodhi-messages = "^7.0.0"
+celery = ">=5.2.1"
+click = ">=7.1.2"
+colander = ">=1.8.3"
+cornice = ">=5.0.3"
+"dogpile.cache" = ">=1.1.2"
+pyasn1-modules = ">=0.2.8" # Due to an unfortunate dash in its name, installs break if pyasn1 is installed first
+fedora-messaging = ">=3.0.0"
+feedgen= ">=0.9.0"
+Jinja2 = ">=2.11.3"
+Markdown = ">=3.3.6"
+munch = ">=2.5.0"
+koji = ">=1.27.1"
+#libcomps ="^0.1.18"
+libcomps ="*"
+packaging = ">=21.3"
+prometheus-client = ">=0.13.1"
+psycopg2 = ">=2.8.6"
+py3dns = ">=3.2.1" # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
+pyLibravatar = ">=1.6"
+pyramid = ">=1.10.5"
+pyramid-fas-openid = ">=0.4.0"
+pyramid-mako = ">=1.0.2"
+python-bugzilla = ">=3.2.0"
+PyYAML = ">=5.4.1"
+requests = ">=2.25.1"
+simplemediawiki = {version = "^1.2.0b2", allow-prereleases = true}
+SQLAlchemy = ">=1.3.24"
+waitress = ">=1.4.4"
+
+[tool.pytest.ini_options]
+addopts = "--cov-config .coveragerc --cov=bodhi --cov-report term --cov-report xml --cov-report html"
+testpaths = ["tests"]
+
+[tool.poetry.plugins."paste.app_factory"]
+main = "bodhi.server:main"
+
+[tool.poetry.scripts]
+initialize_bodhi_db = "bodhi.server.scripts.initializedb:main"
+bodhi-push = "bodhi.server.push:push"
+bodhi-untag-branched = "bodhi.server.scripts.untag_branched:main"
+bodhi-skopeo-lite = "bodhi.server.scripts.skopeo_lite:main"
+bodhi-sar = "bodhi.server.scripts.sar:get_user_data"
+bodhi-shell = "bodhi.server.scripts.bshell:get_bodhi_shell"
+bodhi-clean-old-composes = "bodhi.server.scripts.compat:clean_old_composes"
+bodhi-expire-overrides = "bodhi.server.scripts.compat:expire_overrides"
+bodhi-approve-testing = "bodhi.server.scripts.compat:approve_testing"
+bodhi-check-policies = "bodhi.server.scripts.compat:check_policies"
+
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

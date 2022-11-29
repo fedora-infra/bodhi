@@ -16,15 +16,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+from urllib.parse import quote, urlencode
 import hashlib
 import math
 import xml.etree.ElementTree as ET
-from urllib.parse import urlencode
 
 import psycopg2
 import pytest
 
 from .utils import read_file
+
 
 content_type_mapping = {
     'base': 'Base',
@@ -179,7 +180,7 @@ def test_get_notfound_view(bodhi_container):
         assert not http_response.ok
         assert http_response.status_code == 404
         assert "Not Found" in http_response.text
-        assert "The resource could not be found" in http_response.text
+        assert '<p class="lead">/inexisting_path</p>' in http_response.text
     except AssertionError:
         print(http_response)
         print(http_response.text)
@@ -513,6 +514,10 @@ def test_get_users_json(bodhi_container, db_container):
     for user in users:
         user["avatar"] = create_avatar_url(user["name"], 24)
         user["openid"] = f"{user['name']}.id.dev.fedoraproject.org"
+        # Python and SQL don't sort identically :(
+        # Python: fedorabugs > fedora-contributor
+        # SQL: fedorabugs < fedora-contributor
+        user["groups"].sort(key=lambda d: d["name"])
 
     try:
         assert http_response.ok
@@ -521,7 +526,7 @@ def test_get_users_json(bodhi_container, db_container):
             # Sort groups for comparaison
             user["groups"].sort(key=lambda d: d["name"])
         for user in users:
-            assert user in response_users
+            assert user in response_users, f"{user} not in {response_users}"
         assert http_response.json()["page"] == 1
         assert http_response.json()["pages"] == int(math.ceil(total / float(20)))
         assert http_response.json()["rows_per_page"] == 20
@@ -707,7 +712,6 @@ def test_get_packages_json(bodhi_container, db_container):
             curs.execute(query_packages, (package_name, ))
             rows = curs.fetchall()
             for row in rows:
-                print(row)
                 package = {}
                 package['name'] = package_name
                 package['type'] = row[0]
@@ -717,7 +721,7 @@ def test_get_packages_json(bodhi_container, db_container):
 
     # GET on package with particular name
     with bodhi_container.http_client(port="8080") as c:
-        http_response = c.get(f"/packages/?name={packages[0]['name']}")
+        http_response = c.get(f"/packages/?name={quote(packages[0]['name'])}")
 
     try:
         assert http_response.ok
@@ -732,6 +736,7 @@ def test_get_packages_json(bodhi_container, db_container):
         response_packages.sort(key=lambda p: p["type"])
         assert packages == response_packages
     except AssertionError:
+        print("Packages:", packages)
         print(http_response)
         print(http_response.text)
         with read_file(bodhi_container, "/httpdir/errorlog") as log:
@@ -1357,6 +1362,14 @@ def test_get_comments_rss(bodhi_container, db_container):
 
     bodhi_ip = bodhi_container.get_IPv4s()[0]
 
+    try:
+        assert http_response.ok
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
     rss = ET.fromstring(http_response.text)
     rss_childs = list(rss)
     channel = rss_childs[0]

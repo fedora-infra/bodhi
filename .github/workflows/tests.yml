@@ -1,10 +1,15 @@
 on:
+  workflow_dispatch:
   push:
     branches:
       - develop
+      - 6.0
+      - 7.0
   pull_request:
     branches:
       - develop
+      - 6.0
+      - 7.0
 
 name: Run tests
 
@@ -29,6 +34,8 @@ jobs:
     name: Diff-cover check
     runs-on: ubuntu-latest
     needs: unit_tests
+    # Run diff-cover even if the unit tests failed on rawhide:
+    if: always()
     steps:
       - uses: actions/checkout@v2
         with:
@@ -50,21 +57,21 @@ jobs:
 
   integration_tests:
     name: Integration Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
 
       - name: Install deps
-        run: pip install click -r devel/ci/integration/requirements.txt
+        run: pip3 install click -r devel/ci/integration/requirements.txt
 
       - name: Run the integration tests
-        run: devel/ci/bodhi-ci integration -r ${{ matrix.release }}
+        run: python3 devel/ci/bodhi-ci integration -r ${{ matrix.release }}
     strategy:
       fail-fast: false
       matrix:
         # integration tests are broken on pip atm, so not included in this list.
-        release: [f34,f35,f36,rawhide]
+        release: [f36,f37,rawhide]
 
   unit_tests:
     name: Unit Tests
@@ -88,7 +95,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f34,f35,f36,pip,rawhide]
+        release: [f36,f37,pip,rawhide]
         module: [bodhi-client, bodhi-messages, bodhi-server]
 
   docs:
@@ -105,7 +112,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f34,f35,f36,pip,rawhide]
+        release: [f36,f37,pip,rawhide]
 
   rpms:
     name: Build the RPMS
@@ -130,4 +137,4 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f34,f35,f36,rawhide]
+        release: [f36,f37,rawhide]

@@ -4,7 +4,7 @@ LABEL \
   vendor="Fedora Infrastructure" \
   maintainer="Aurelien Bompard <abompard@fedoraproject.org>" \
   license="MIT"
-
+ENV VIRTUAL_ENV=/srv/venv
 # For integration testing we're using the infrastructure repo
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/main/f/files/common/fedora-infra-tags.repo
 

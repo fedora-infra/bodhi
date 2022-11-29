@@ -29,8 +29,8 @@ Of course, if you want to make a new major release, simply create a ``major.mino
 desired commit on ``develop``.
 
 
-Cherry picking
---------------
+Backporting Patches with Mergify
+--------------------------------
 
 To simplify the release process, almost all patches are sent to the ``develop`` branch. Once they
 are reviewed and merged, they can be cherry picked to a ``major.minor`` branch if desired. To aid in
@@ -44,21 +44,82 @@ request.
 .. note:: The backporting feature is configured in ``.mergify.yml``.
 
 
+Deploying a development snapshot to Staging
+===========================================
+
+On the Fedora Infrastructure, the `Bodhi Staging instance <https://bodhi.stg.fedoraproject.org>`_ is
+used to test out Bodhi in an enviroment as close to production as possible. 
+
+To run this procedure, you will need the ability to run playbooks on batcave, and your Fedora Account 
+on needs to be a member the `sysadmin-bodhi` group on both `accounts staging <https://accounts.stg.fedoraproject.org/group/sysadmin-bodhi/>`_ 
+and `accounts production <https://accounts.fedoraproject.org/group/sysadmin-bodhi/>`_ 
+
+To deploy to staging:
+
+#. Merge the changes into the `staging` branch.
+#. After the changes are pushed,the 
+   `Build Staging snapshot in Koji <https://github.com/fedora-infra/bodhi/actions/workflows/staging.yml>`_ 
+   github action generates SRPMs, and submits them to build in koji. Once successfully built, The
+   packages (bodhi-server, bodhi-client, and bodhi messages) are then automatically tagged into the 
+   f34-infra-stg koji tag.
+
+   Note that each snapshot package will have the following version format appended to the current version:
+   `^<YYYYMMDDHHMM>git<githash>`. For example:
+
+   * bodhi-client-5.7.5^202203102341gite878e73-1.fc34
+   * bodhi-server-5.7.5^202203102341gite878e73-1.fc34
+   * bodhi-messages-5.7.5^202203102341gite878e73-1.fc34
+#. Sometimes it takes a couple of minutes for the builds to appear in the f34-infra koji repo, so check 
+   that the newly built packages are available to the bodhi-backend01 machine with::
+
+      ssh bodhi-backend01.stg.iad2.fedoraproject.org
+      [bodhi-backend01 ~][STG]$ dnf list bodhi-server bodhi-client --refresh --all
+      Installed Packages
+      bodhi-client.noarch                 5.7.5^202202010001gitabcdefg-1.fc34                  @infrastructure-tags-stg
+      bodhi-server.noarch                 5.7.5^202202010001gitabcdefg-1.fc34                  @infrastructure-tags-stg
+      Available Packages
+      bodhi-client.noarch                 5.7.5^202203102341gite878e73-1.fc34                 @infrastructure-tags-stg
+      bodhi-server.noarch                 5.7.5^202203102341gite878e73-1.fc34                 @infrastructure-tags-stg
+   
+   The packages listed in ``available packages`` should be the ones just built in koji after pushing to the staging branch
+
+#. With the packages available, run the following four playbooks on batcave01::
+
+      # Run the bodhi-backend playbook to ensure everything is up to date
+      $ sudo rbac-playbook -l staging groups/bodhi-backend.yml
+
+      # Synchronize the database from production to staging
+      $ sudo rbac-playbook manual/staging-sync/bodhi.yml -l staging
+
+      # Upgrade the Bodhi backend on staging
+      $ sudo rbac-playbook manual/upgrade/bodhi.yml -l staging
+
+      # Upgrade the Bodhi frontend on staging
+      $ sudo rbac-playbook openshift-apps/bodhi.yml -l staging
+
+#. The final playbook in that run will cause the openshift images for bodhi to rebuild and redeploy.
+   In a few minutes the new version of bodhi will appear on https://bodhi.stg.fedoraproject.org.
+
+   You can check the status of the openshift image builds and deployment on https://os.stg.fedoraproject.org
+
+
+
 How to make a release
 =====================
 
 Preparation
 -----------
 
-If you are making a new major or minor release:
+If you are making a new major or new minor release:
 
 #. Prepare the ``.mergify.yml`` file for the new ``major.minor`` branch as described above.
-#. Raise the version to the appropriate value in ``bodhi/__init__.py`` and ``setup.py``.
+#. Raise the version to the appropriate value in ``bodhi-*/pyproject.toml`` and in the spec files
+   in ``bodhi-*/*.spec``.
 #. Add missing authors to the release notes fragments by changing to the ``news`` directory and
    running the ``get-authors.py`` script, but check for duplicates and errors
-#. Generate the release notes by running ``towncrier``. Be aware that any commits that were cherry
-   picked to a previous release branch will show up again, and we wouldn't want to mark those
-   commits as being new
+#. Generate the release notes by running ``towncrier build --version VERSION``. Be aware that any
+   commits that were cherry picked to a previous release branch will show up again, and we wouldn't
+   want to mark those commits as being new
 #. Add a note to all the associated issues and pull requests to let them know they will be included
    in this release.
 #. Push those changes to the upstream repository (via a PR or not)
@@ -76,6 +137,8 @@ If you are making a new major or minor release:
 #. Adjust ``diff-cover`` to use the new ``major.minor`` branch for comparison in
    ``devel/ci/bodhi-ci``. You can find the spot to edit by searching for the ``--compare-branch``
    flag being passed to ``diff-cover``. This change should remain in that release branch only.
+#. In ``.github/workflows/tests.yml``, add the new ``major.minor`` branch in the list of branches
+   on which CI is run.
 #. Push that new branch to the upstream repository
 
 Build a beta

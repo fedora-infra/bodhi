@@ -20,12 +20,12 @@
 from datetime import datetime
 from unittest import mock
 
-import click
 from click.testing import CliRunner
+import click
 import pytest
 
-from bodhi.server import push
-from bodhi.server import models
+from bodhi.server import models, push
+
 from . import base
 
 
@@ -226,6 +226,20 @@ Locking updates...
 Requesting a compose
 """
 
+TEST_BUILDS_FLAG_FROZEN_EXPECTED_OUTPUT = """
+
+===== <Compose: F37 stable> =====
+
+python-paste-deploy-1.5.2-8.fc37
+
+
+Push these 1 updates? [y/N]: y
+
+Locking updates...
+
+Requesting a compose
+"""
+
 TEST_YES_FLAG_EXPECTED_OUTPUT = """
 
 ===== <Compose: F17 testing> =====
@@ -242,7 +256,8 @@ Locking updates...
 Requesting a compose
 """
 
-TEST_LOCKED_UPDATES_EXPECTED_OUTPUT = """Existing composes detected: <Compose: F17 testing>. Do you wish to resume them all? [y/N]: y
+TEST_LOCKED_UPDATES_EXPECTED_OUTPUT = (
+    """Existing composes detected: <Compose: F17 testing>. Do you wish to resume them all? [y/N]: y
 
 
 ===== <Compose: F17 testing> =====
@@ -255,9 +270,10 @@ Push these 1 updates? [y/N]: y
 Locking updates...
 
 Requesting a compose
-"""
+""")
 
-TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT = """Existing composes detected: <Compose: F17 testing>. Resuming all.
+TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT = (
+    """Existing composes detected: <Compose: F17 testing>. Resuming all.
 
 
 ===== <Compose: F17 testing> =====
@@ -270,7 +286,7 @@ Pushing 1 updates.
 Locking updates...
 
 Requesting a compose
-"""
+""")
 
 TEST_RELEASES_FLAG_EXPECTED_OUTPUT = """
 
@@ -285,6 +301,20 @@ python-paste-deploy-1.5.2-8.fc26
 
 
 Push these 2 updates? [y/N]: y
+
+Locking updates...
+
+Requesting a compose
+"""
+
+TEST_RELEASES_FLAG_FROZEN_RELEASE_EXPECTED_OUTPUT = """
+
+===== <Compose: F37 testing> =====
+
+python-paste-deploy-1.5.2-8.fc37
+
+
+Push these 1 updates? [y/N]: y
 
 Locking updates...
 
@@ -368,10 +398,31 @@ Locking updates...
 Requesting a compose
 """
 
-TEST_BUILDS_AND_UPDATES_FLAG_EXPECTED_OUTPUT = """ERROR: Must specify only one of --updates or --builds
+TEST_BUILDS_AND_UPDATES_FLAG_EXPECTED_OUTPUT = (
+    """ERROR: Must specify only one of --updates or --builds
+""")
+
+TEST_ONLY_TESTING_FROZEN_RELEASE_EXPECTED_OUTPUT = """
+
+===== <Compose: F36 stable> =====
+
+python-nose-1.3.7-11.fc36
+
+
+===== <Compose: F37 testing> =====
+
+python-paste-deploy-1.5.2-8.fc37
+
+
+Push these 2 updates? [y/N]: y
+
+Locking updates...
+
+Requesting a compose
 """
 
 
+@mock.patch("bodhi.server.push.initialize_db", mock.Mock())
 class TestPush(base.BasePyTestCase):
     """
     This class contains tests for the push() function.
@@ -466,6 +517,63 @@ class TestPush(base.BasePyTestCase):
         assert not python_paste_deploy.locked
         assert python_paste_deploy.date_locked is None
 
+    def test_builds_flag_frozen_release(self):
+        """
+        Forcing a push to stable on a build for a frozen release is allowed.
+        """
+        f37 = models.Release(
+            name='F37', long_name='Fedora 37',
+            id_prefix='FEDORA', version='37',
+            dist_tag='f37', stable_tag='f37-updates',
+            testing_tag='f37-updates-testing',
+            candidate_tag='f37-updates-candidate',
+            pending_signing_tag='f37-updates-testing-signing',
+            pending_testing_tag='f37-updates-testing-pending',
+            pending_stable_tag='f37-updates-pending',
+            override_tag='f37-override',
+            branch='f37', state=models.ReleaseState.frozen)
+        self.db.add(f37)
+        self.db.commit()
+        python_nose = self.create_update(['python-nose-1.3.7-11.fc37'], 'F37')
+        python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc37'], 'F37')
+        python_nose.builds[0].signed = True
+        python_paste_deploy.builds[0].signed = True
+        python_nose.status = models.UpdateStatus.testing
+        python_paste_deploy.status = models.UpdateStatus.testing
+        python_nose.request = models.UpdateRequest.stable
+        python_paste_deploy.request = models.UpdateRequest.stable
+        self.db.commit()
+        cli = CliRunner()
+
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=base.TransactionalSessionMaker(self.Session)):
+            with mock.patch('bodhi.server.push.compose_task') as compose_task:
+                result = cli.invoke(
+                    push.push,
+                    ['--username', 'bowlofeggs', '--builds', 'python-paste-deploy-1.5.2-8.fc37'],
+                    input='y')
+                f37_python_paste_deploy = self.db.query(models.Build).filter_by(
+                    nvr='python-paste-deploy-1.5.2-8.fc37').one().update
+                compose_task.delay.assert_called_with(
+                    api_version=2, agent="bowlofeggs", resume=False,
+                    composes=[
+                        f37_python_paste_deploy.compose.__json__(composer=True)
+                    ],
+                )
+
+        assert result.exit_code == 0
+        assert result.output == TEST_BUILDS_FLAG_FROZEN_EXPECTED_OUTPUT
+        f37_python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc37').one().update
+        assert not f37_python_nose.locked
+        assert f37_python_nose.date_locked is None
+        assert f37_python_nose.compose is None
+
+        assert f37_python_paste_deploy.locked
+        assert f37_python_paste_deploy.date_locked <= datetime.utcnow()
+        assert f37_python_paste_deploy.compose.release.id == f37.id
+        assert f37_python_paste_deploy.compose.request == models.UpdateRequest.stable
+
     def test_updates_flag(self):
         """
         Assert correct operation when the --updates flag is given.
@@ -505,6 +613,64 @@ class TestPush(base.BasePyTestCase):
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         assert not python_paste_deploy.locked
         assert python_paste_deploy.date_locked is None
+
+    def test_updates_flag_frozen_release(self):
+        """
+        Forcing a push to stable on an update for a frozen release is allowed.
+        """
+        f37 = models.Release(
+            name='F37', long_name='Fedora 37',
+            id_prefix='FEDORA', version='37',
+            dist_tag='f37', stable_tag='f37-updates',
+            testing_tag='f37-updates-testing',
+            candidate_tag='f37-updates-candidate',
+            pending_signing_tag='f37-updates-testing-signing',
+            pending_testing_tag='f37-updates-testing-pending',
+            pending_stable_tag='f37-updates-pending',
+            override_tag='f37-override',
+            branch='f37', state=models.ReleaseState.frozen)
+        self.db.add(f37)
+        self.db.commit()
+        python_nose = self.create_update(['python-nose-1.3.7-11.fc37'], 'F37')
+        python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc37'], 'F37')
+        python_nose.builds[0].signed = True
+        python_paste_deploy.builds[0].signed = True
+        python_nose.status = models.UpdateStatus.testing
+        python_paste_deploy.status = models.UpdateStatus.testing
+        python_nose.request = models.UpdateRequest.stable
+        python_paste_deploy.request = models.UpdateRequest.stable
+        self.db.commit()
+        alias_python_paste_deploy = python_paste_deploy.alias
+        cli = CliRunner()
+
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=base.TransactionalSessionMaker(self.Session)):
+            with mock.patch('bodhi.server.push.compose_task') as compose_task:
+                result = cli.invoke(
+                    push.push,
+                    ['--username', 'bowlofeggs', '--updates', alias_python_paste_deploy],
+                    input='y')
+                f37_python_paste_deploy = self.db.query(models.Build).filter_by(
+                    nvr='python-paste-deploy-1.5.2-8.fc37').one().update
+                compose_task.delay.assert_called_with(
+                    api_version=2, agent="bowlofeggs", resume=False,
+                    composes=[
+                        f37_python_paste_deploy.compose.__json__(composer=True)
+                    ],
+                )
+
+        assert result.exit_code == 0
+        assert result.output == TEST_BUILDS_FLAG_FROZEN_EXPECTED_OUTPUT
+        f37_python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc37').one().update
+        assert not f37_python_nose.locked
+        assert f37_python_nose.date_locked is None
+        assert f37_python_nose.compose is None
+
+        assert f37_python_paste_deploy.locked
+        assert f37_python_paste_deploy.date_locked <= datetime.utcnow()
+        assert f37_python_paste_deploy.compose.release.id == f37.id
+        assert f37_python_paste_deploy.compose.request == models.UpdateRequest.stable
 
     def test_updates_and_builds_flag(self):
         """
@@ -775,6 +941,98 @@ class TestPush(base.BasePyTestCase):
         assert f26_python_paste_deploy.compose.release.id == f26.id
         assert f26_python_paste_deploy.compose.request == models.UpdateRequest.testing
 
+    def test_releases_flag_frozen_release_testing_request(self):
+        """
+        Assert correct operation from the --releases flag with frozen release and testing request.
+        """
+        f37 = models.Release(
+            name='F37', long_name='Fedora 37',
+            id_prefix='FEDORA', version='37',
+            dist_tag='f37', stable_tag='f37-updates',
+            testing_tag='f37-updates-testing',
+            candidate_tag='f37-updates-candidate',
+            pending_signing_tag='f37-updates-testing-signing',
+            pending_testing_tag='f37-updates-testing-pending',
+            pending_stable_tag='f37-updates-pending',
+            override_tag='f37-override',
+            branch='f37', state=models.ReleaseState.frozen)
+        f36 = models.Release(
+            name='F36', long_name='Fedora 36',
+            id_prefix='FEDORA', version='36',
+            dist_tag='f36', stable_tag='f36-updates',
+            testing_tag='f36-updates-testing',
+            candidate_tag='f36-updates-candidate',
+            pending_signing_tag='f36-updates-testing-signing',
+            pending_testing_tag='f36-updates-testing-pending',
+            pending_stable_tag='f36-updates-pending',
+            override_tag='f36-override',
+            branch='f36', state=models.ReleaseState.current)
+        self.db.add(f37)
+        self.db.add(f36)
+        self.db.commit()
+        python_nose_f36 = self.create_update(['python-nose-1.3.7-11.fc36'], 'F36')
+        python_nose_f37 = self.create_update(['python-nose-1.3.7-11.fc37'], 'F37')
+        python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc37'], 'F37')
+        python_nose_f36.builds[0].signed = True
+        python_nose_f37.builds[0].signed = True
+        python_paste_deploy.builds[0].signed = True
+        python_nose_f36.status = models.UpdateStatus.testing
+        python_nose_f37.status = models.UpdateStatus.testing
+        python_paste_deploy.status = models.UpdateStatus.pending
+        python_nose_f36.request = models.UpdateRequest.stable
+        python_nose_f37.request = models.UpdateRequest.stable
+        python_paste_deploy.request = models.UpdateRequest.testing
+        self.db.commit()
+        cli = CliRunner()
+
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=base.TransactionalSessionMaker(self.Session)):
+            with mock.patch('bodhi.server.push.compose_task') as compose_task:
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--releases', 'f37,f36',
+                                                '--request', 'testing'],
+                                    input='y')
+                # The call to push modifies the database, so we need to modify the expected call to
+                # suit.
+                f37_python_paste_deploy = self.db.query(models.Build).filter_by(
+                    nvr='python-paste-deploy-1.5.2-8.fc37').one().update
+                compose_task.delay.assert_called_with(
+                    api_version=2, agent="bowlofeggs", resume=False,
+                    composes=[
+                        f37_python_paste_deploy.compose.__json__(composer=True)
+                    ],
+                )
+
+        assert result.exit_code == 0
+        assert result.output == TEST_RELEASES_FLAG_FROZEN_RELEASE_EXPECTED_OUTPUT
+        # The Fedora 17 updates should not have been locked.
+        f17_python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        f17_python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
+        assert not f17_python_nose.locked
+        assert f17_python_nose.date_locked is None
+        assert f17_python_nose.compose is None
+        assert not f17_python_paste_deploy.locked
+        assert f17_python_paste_deploy.date_locked is None
+        assert f17_python_paste_deploy.compose is None
+        # These two should not have been locked and composed.
+        f36_python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc36').one().update
+        f37_python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc37').one().update
+        assert not f36_python_nose.locked
+        assert f36_python_nose.date_locked is None
+        assert f36_python_nose.compose is None
+        assert not f37_python_nose.locked
+        assert f37_python_nose.date_locked is None
+        assert f37_python_nose.compose is None
+        # The python-paste_deploy F37 should be locked.
+        assert f37_python_paste_deploy.locked
+        assert f37_python_paste_deploy.date_locked <= datetime.utcnow()
+        # ...and associated with the new Compose.
+        assert f37_python_paste_deploy.compose.release.id == f37.id
+        assert f37_python_paste_deploy.compose.request == models.UpdateRequest.testing
+
     def test_create_composes_for_releases_marked_as_composed_by_bodhi(self):
         """
         Assert that composes are created only for releases marked as 'composed_by_bodhi'.
@@ -860,6 +1118,102 @@ class TestPush(base.BasePyTestCase):
         assert f26_python_paste_deploy.compose.release.id == f26.id
         assert f26_python_paste_deploy.compose.request == models.UpdateRequest.testing
 
+    def test_only_testing_compose_for_frozen_release(self):
+        """
+        Assert that only testing requests are composed for frozen releases.
+        """
+        f37 = models.Release(
+            name='F37', long_name='Fedora 37',
+            id_prefix='FEDORA', version='37',
+            dist_tag='f37', stable_tag='f37-updates',
+            testing_tag='f37-updates-testing',
+            candidate_tag='f37-updates-candidate',
+            pending_signing_tag='f37-updates-testing-signing',
+            pending_testing_tag='f37-updates-testing-pending',
+            pending_stable_tag='f37-updates-pending',
+            override_tag='f37-override',
+            branch='f37', state=models.ReleaseState.frozen)
+        f36 = models.Release(
+            name='F36', long_name='Fedora 36',
+            id_prefix='FEDORA', version='36',
+            dist_tag='f36', stable_tag='f36-updates',
+            testing_tag='f36-updates-testing',
+            candidate_tag='f36-updates-candidate',
+            pending_signing_tag='f36-updates-testing-signing',
+            pending_testing_tag='f36-updates-testing-pending',
+            pending_stable_tag='f36-updates-pending',
+            override_tag='f36-override',
+            branch='f36', state=models.ReleaseState.current)
+        self.db.add(f37)
+        self.db.add(f36)
+        self.db.commit()
+        python_nose_f36 = self.create_update(['python-nose-1.3.7-11.fc36'], 'F36')
+        python_nose_f37 = self.create_update(['python-nose-1.3.7-11.fc37'], 'F37')
+        python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc37'], 'F37')
+        python_nose_f36.builds[0].signed = True
+        python_nose_f37.builds[0].signed = True
+        python_paste_deploy.builds[0].signed = True
+        python_nose_f36.status = models.UpdateStatus.testing
+        python_nose_f37.status = models.UpdateStatus.testing
+        python_paste_deploy.status = models.UpdateStatus.pending
+        python_nose_f36.request = models.UpdateRequest.stable
+        python_nose_f37.request = models.UpdateRequest.stable
+        python_paste_deploy.request = models.UpdateRequest.testing
+        # Let's mark Fedora 17 release as not composed by Bodhi
+        f17_release = self.db.query(models.Release).filter_by(
+            name='F17').one()
+        f17_release.composed_by_bodhi = False
+        self.db.commit()
+        cli = CliRunner()
+
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=base.TransactionalSessionMaker(self.Session)):
+            with mock.patch('bodhi.server.push.compose_task') as compose_task:
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
+                # Calling push alters the database, so we need to update the expected call to
+                # reflect the changes.
+                f36_python_nose = self.db.query(models.Build).filter_by(
+                    nvr='python-nose-1.3.7-11.fc36').one().update
+                f37_python_paste_deploy = self.db.query(models.Build).filter_by(
+                    nvr='python-paste-deploy-1.5.2-8.fc37').one().update
+                compose_task.delay.assert_called_with(
+                    api_version=2, agent="bowlofeggs", resume=False,
+                    composes=[
+                        f36_python_nose.compose.__json__(composer=True),
+                        f37_python_paste_deploy.compose.__json__(composer=True)
+                    ],
+                )
+
+        assert result.exit_code == 0
+        assert result.output == TEST_ONLY_TESTING_FROZEN_RELEASE_EXPECTED_OUTPUT
+        # The Fedora 17 updates should not have been locked and composed.
+        f17_python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        f17_python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
+        assert not f17_python_nose.locked
+        assert f17_python_nose.date_locked is None
+        assert f17_python_nose.compose is None
+        assert not f17_python_paste_deploy.locked
+        assert f17_python_paste_deploy.date_locked is None
+        assert f17_python_paste_deploy.compose is None
+        # The python-nose F37 should not have been locked and composed.
+        f37_python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc37').one().update
+        assert not f37_python_nose.locked
+        assert f37_python_nose.date_locked is None
+        assert f37_python_nose.compose is None
+        # The python-nose F36 and python-paste_deploy F37 should both be locked.
+        assert f36_python_nose.locked
+        assert f36_python_nose.date_locked <= datetime.utcnow()
+        assert f37_python_paste_deploy.locked
+        assert f37_python_paste_deploy.date_locked <= datetime.utcnow()
+        # The two updates should also be associated with the new Composes.
+        assert f36_python_nose.compose.release.id == f36.id
+        assert f36_python_nose.compose.request == models.UpdateRequest.stable
+        assert f37_python_paste_deploy.compose.release.id == f37.id
+        assert f37_python_paste_deploy.compose.request == models.UpdateRequest.testing
+
     def test_request_flag(self):
         """
         Assert that the --request flag works correctly.
@@ -901,6 +1255,65 @@ class TestPush(base.BasePyTestCase):
                 assert u.compose.release.id == python_paste_deploy.release.id
                 assert u.compose.request == models.UpdateRequest.testing
                 assert u.compose.content_type == models.ContentType.rpm
+
+    def test_request_stable_flag(self):
+        """
+        Assert that the --request stable flag works correctly.
+        """
+        # Let's mark nose as a stable request so it gets composed when we request a stable update.
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_nose.request = models.UpdateRequest.stable
+
+        f37 = models.Release(
+            name='F37', long_name='Fedora 37',
+            id_prefix='FEDORA', version='37',
+            dist_tag='f37', stable_tag='f37-updates',
+            testing_tag='f37-updates-testing',
+            candidate_tag='f37-updates-candidate',
+            pending_signing_tag='f37-updates-testing-signing',
+            pending_testing_tag='f37-updates-testing-pending',
+            pending_stable_tag='f37-updates-pending',
+            override_tag='f37-override',
+            branch='f37', state=models.ReleaseState.frozen)
+        self.db.add(f37)
+        self.db.commit()
+        python_nose_f37 = self.create_update(['python-nose-1.3.7-11.fc37'], 'F37')
+        python_nose_f37.builds[0].signed = True
+        python_nose_f37.status = models.UpdateStatus.testing
+        python_nose_f37.request = models.UpdateRequest.stable
+        self.db.commit()
+        cli = CliRunner()
+
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=base.TransactionalSessionMaker(self.Session)):
+            with mock.patch('bodhi.server.push.compose_task') as compose_task:
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--request', 'stable'],
+                                    input='y')
+                # The call to push modifies the database, so we need to modify the expected call to
+                # suit.
+                python_nose = self.db.query(models.Build).filter_by(
+                    nvr='python-nose-1.3.7-11.fc17').one().update
+                compose_task.delay.assert_called_with(
+                    api_version=2, agent="bowlofeggs", resume=False, composes=[
+                        python_nose.compose.__json__(composer=True)
+                    ],
+                )
+
+            assert result.exit_code == 0
+            python_bodhi = self.db.query(models.Build).filter_by(
+                nvr='bodhi-2.0-1.fc17').one().update
+            assert not python_bodhi.locked
+            assert python_bodhi.date_locked is None
+            assert python_bodhi.compose is None
+            # Stable compose for frozen release should not be processed
+            assert not python_nose_f37.locked
+            assert python_nose_f37.date_locked is None
+            assert python_nose_f37.compose is None
+            # Stable compose for f17 should have been processed
+            assert python_nose.locked
+            assert python_nose.date_locked <= datetime.utcnow()
+            assert python_nose.compose.release.id == python_nose.release.id
 
     def test_resume_flag(self):
         """

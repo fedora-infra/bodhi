@@ -41,8 +41,10 @@ def get_configfile() -> typing.Optional[str]:
     """
     configfile = None
     setupdir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..')
-    for cfg in (os.path.join(setupdir, 'development.ini'),
-                '/etc/bodhi/production.ini'):
+    possible_configs = [os.path.join(setupdir, 'development.ini'), '/etc/bodhi/production.ini']
+    if "BODHI_CONFIG" in os.environ:
+        possible_configs.insert(0, os.environ["BODHI_CONFIG"])
+    for cfg in possible_configs:
         if os.path.exists(cfg):
             configfile = cfg
             break
@@ -352,6 +354,9 @@ class BodhiConfig(dict):
         'critpath_pkgs': {
             'value': [],
             'validator': _generate_list_validator()},
+        'critpath.jsonpath': {
+            'value': '/etc/bodhi/critpath',
+            'validator': str},
         'critpath.min_karma': {
             'value': 2,
             'validator': int},
@@ -371,9 +376,6 @@ class BodhiConfig(dict):
             'value': (
                 'Bodhi is disabling automatic push to stable due to negative karma. The '
                 'maintainer may push manually if they determine that the issue is not severe.'),
-            'validator': str},
-        'docs_path': {
-            'value': '/usr/share/doc/bodhi-docs/html/',
             'validator': str},
         'dogpile.cache.arguments.filename': {
             'value': '/var/cache/bodhi-dogpile-cache.dbm',
@@ -657,6 +659,11 @@ class BodhiConfig(dict):
             self.update(get_appsettings(configfile))
         self.loaded = True
         self._validate()
+
+    def clear(self):
+        """Restore the configuration to its original blank state."""
+        super().clear()
+        self.loaded = False
 
     def _load_defaults(self):
         """Iterate over self._defaults and set all default values on self."""

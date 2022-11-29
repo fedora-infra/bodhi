@@ -1,8 +1,8 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-messages
-%global pypi_version 5.7.5
+%global pypi_version 7.0.0
 
-Name:           python-%{pypi_name}
+Name:           %{pypi_name}
 Version:        %{pypi_version}
 Release:        0%{?dist}
 Summary:        JSON schema for messages sent by Bodhi
@@ -12,7 +12,10 @@ URL:            https://github.com/fedora-infra/bodhi
 Source0:        %{pypi_name}-%{pypi_version}.tar.gz
 BuildArch:      noarch
 
+BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3-devel
+BuildRequires:  python3-pytest
+BuildRequires:  python3-pytest-cov
 BuildRequires:  python3dist(fedora-messaging)
 BuildRequires:  python3dist(setuptools)
 
@@ -20,8 +23,8 @@ BuildRequires:  python3dist(setuptools)
 Bodhi Messages This package contains the schema for messages published by
 Bodhi.
 
-%package -n     python3-%{pypi_name}               
-Summary:        %{summary}                                                                                                                  
+%package -n     python3-%{pypi_name}
+Summary:        %{summary}
 %{?python_provide:%python_provide python3-%{pypi_name}}
 %description -n python3-%{pypi_name}
 
@@ -30,19 +33,30 @@ Summary:        %{summary}
 # Remove bundled egg-info
 rm -rf %{pypi_name}.egg-info
 
+%generate_buildrequires
+%pyproject_buildrequires
+
 %build
-%py3_build
+%pyproject_wheel
 
 %install
-%py3_install
+%pyproject_install
+%pyproject_save_files bodhi
 
-%files -n python3-%{pypi_name}
+%check
+%pyproject_check_import
+%{pytest} -v
+
+%files -n python3-%{pypi_name} -f %{pyproject_files}
 %doc README.rst
-%{python3_sitelib}/bodhi
-%{python3_sitelib}/bodhi_messages-%{pypi_version}-py%{python3_version}-*.pth
-%{python3_sitelib}/bodhi_messages-%{pypi_version}-py%{python3_version}.egg-info
 
 %changelog
+* Sat Nov 26 2022 Mattia Verga <mattia.verga@fedoraproject.org> - 7.0.0-1
+- Update to 7.0.0.
+
+* Fri Apr 08 2022 Aurelien Bompard <abompard@fedoraproject.org> - 6.0.0-1
+- Update to 6.0.0.
+
 * Wed Feb 23 2022 Ryan Lerch <rlerch@redhat.com> - 5.7.5-0
 - Prepare the Bodhi client to be compatible with an OIDC-enabled server. PR#4391.
 

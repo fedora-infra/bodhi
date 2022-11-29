@@ -47,49 +47,22 @@ if can_edit and update.release.composed_by_bodhi:
 <div class="container">
 <div class="row">
   <div class="col-md-12">
-    <div class="h3">
-      <div class="row">
-        <div class="col">
-            <div class="media">
-              <div class="text-center">
-                % if update.type:
-                  ${self.util.type2icon(update.type) | n}
-                % endif
-                % if update.critpath:
-                <br/><span data-toggle="tooltip" title="This update is in the critical path" class="ml-n2 text-muted"><small> <i class="fa fa-fw fa-fire"></i></small></span>
-                % endif
-            </div>
-                <div class="media-body ml-0">
-                    <div class="font-weight-bold">
-                      <a href="${request.route_url('update', id=update['alias'])}">
-                      ${update.get_title(amp=True,nvr=True,beautify=True) | h}
-                      </a>
-                    </div>
-                    <div class="h5 mt-1">
-                        ${update.alias} created by <a href="${request.route_url('user', name=update['user']['name'])}"> ${update['user']['name']}</a>
-                        <span title="${update['date_submitted']} UTC"> ${self.util.age(update['date_submitted'])} </span>
-                        for <a href="${request.route_url('release', name=update['release']['name'])}">${update['release']['long_name']}
-                        </a>
-                      </div>
-                </div>
-            </div>
-
-        </div>
-        <div class="col-x-auto">
+  <div class="row">
+    <div class="col-md-auto order-md-last text-end mb-1 mb-md-0">
             % if can_edit and (not update.locked and update.status.value != 'stable'):
               <a id='edit' href="javascript:void(0)" class="btn btn-outline-primary border-0 btn-sm"><span class="fa fa-fw fa-pencil-square-o"></span> Edit</a>
             % elif update.locked and update.date_locked:
-            <a class="btn btn-link text-muted" href="${request.route_url('composes', release_name=update.compose.release.name, request=update.compose.request.value)}" data-toggle="tooltip" title="This update is currently locked since ${(update.date_locked).strftime('%Y-%m-%d %H:%M:%S')} (UTC) and cannot be modified.">
+            <a class="btn btn-link text-muted" href="${request.route_url('composes', release_name=update.compose.release.name, request=update.compose.request.value)}" data-bs-toggle="tooltip" title="This update is currently locked since ${(update.date_locked).strftime('%Y-%m-%d %H:%M:%S')} (UTC) and cannot be modified.">
               <span class="fa fa-fw fa-lock text-muted"></span>
               <span class="sr-only">Locked</span>
             </a>
             % endif
-              <span class="btn btn-sm btn-${self.fragments.status_context(update.status.value)}">
+              <span class="badge bg-${self.fragments.status_context(update.status.value)}">
                   ${self.fragments.status_text(update)}
               </span>
             % if actions:
               <div class="dropdown d-inline" id="updatebuttons">
-                <button class="btn btn-outline-primary border-0 btn-sm dropdown-toggle" type="button" id="statusActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button class="btn btn-outline-primary border-0 btn-sm dropdown-toggle" type="button" id="statusActions" data-bs-toggle="dropdown" aria-expanded="false">
                     Actions
                 </button>
                 <div class="dropdown-menu" aria-labelledby="statusActions">
@@ -108,53 +81,79 @@ if can_edit and update.release.composed_by_bodhi:
                 </div>
               </div>
             % endif
-        </div>
-      </div>
+    </div>
+    <div class="col-md">
+      <row class="align-items-center no-gutters">
+            <div class="d-flex align-items-center">
+              <div class="h3 text-center flex-shrink-0 me-1">
+                % if update.type:
+                  ${self.util.type2icon(update.type) | n}
+                % endif
+                % if update.critpath_groups:
+                <br/><span data-bs-toggle="tooltip" title="This update is in critical path groups ${update.critpath_groups}" class="ms-n2 text-muted"><small> <i class="fa fa-fw fa-fire"></i></small></span>
+                % elif update.critpath:
+                <br/><span data-bs-toggle="tooltip" title="This update is in the critical path" class="ms-n2 text-muted"><small> <i class="fa fa-fw fa-fire"></i></small></span>
+                % endif
+              </div>
+              <div class="flex-grow-1 ms-0">
+                    <h3 class="fw-bold">
+                      <a href="${request.route_url('update', id=update['alias'])}">
+                      ${update.get_title(amp=True,nvr=True,beautify=True) | h}
+                      </a>
+                    </h3>
+                    ${update.alias} created by <a href="${request.route_url('user', name=update['user']['name'])}"> ${update['user']['name']}</a>
+                    <span title="${update['date_submitted']} UTC"> ${self.util.age(update['date_submitted'])} </span>
+                    for <a href="${request.route_url('release', name=update['release']['name'])}">${update['release']['long_name']}
+                    </a>
+              </div>
+            </div>
+      </row>
     </div>
   </div>
+  </div>
 </div>
-<ul class="nav nav-tabs pt-2" role="tablist">
-  <li class="nav-item">
-    <a class="nav-link active" data-toggle="tab" href="#details" role="tab">Details</a>
+<ul class="nav nav-tabs pt-2" role="tablist" id="updateTabList">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details-tab-pane" type="button" role="tab" aria-selected="true">Details</button>
   </li>
 
-  <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#packages" role="tab">Builds <span class="badge badge-secondary">${len(update.builds)}</span></a>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="builds-tab" data-bs-toggle="tab" data-bs-target="#builds-tab-pane" type="button" role="tab">Builds <span class="badge text-bg-secondary">${len(update.builds)}</span></button>
   </li>
 
   % if update.bugs:
-  <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#bugs" role="tab">Bugs <span class="badge badge-secondary">${len(update.bugs)}</span></a>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="bugs-tab" data-bs-toggle="tab" data-bs-target="#bugs-tab-pane" type="button" role="tab">Bugs <span class="badge text-bg-secondary">${len(update.bugs)}</span></button>
   </li>
   % endif
 
   % if update.test_cases:
-  <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#tests" role="tab">Test Cases <span class="badge badge-secondary">${len(update.test_cases)}</span></a>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tests-tab" data-bs-toggle="tab" data-bs-target="#tests-tab-pane" type="button" role="tab">Test Cases <span class="badge text-bg-secondary">${len(update.test_cases)}</span></button>
   </li>
   % endif
 
-  <li class="nav-item">
-    <a class="nav-link" id="tab-automatedtests" data-toggle="tab" href="#automatedtests" role="tab">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="automatedtests-tab" data-bs-toggle="tab" data-bs-target="#automatedtests-tab-pane" type="button" role="tab">
       Automated Tests
-      <span style="display:none" class='badge badge-success'>
+      <span style="display:none" class='badge text-bg-success'>
         <span class='fa fa-check-circle'></span>
         <span id="automatedtests-success"></span>
       </span>
-      <span style="display:none" class='badge badge-info'>
+      <span style="display:none" class='badge text-bg-info'>
         <span class='fa fa-info-circle'></span>
         <span id="automatedtests-info"></span>
       </span>
-      <span style="display:none" class='badge badge-warning'>
+      <span style="display:none" class='badge text-bg-warning'>
         <span class='fa fa-exclamation-circle'></span>
         <span id="automatedtests-warning"></span>
       </span>
-      <span style="display:none" class='badge badge-danger'>
+      <span style="display:none" class='badge text-bg-danger'>
         <span class='fa fa-minus-circle'></span>
         <span id="automatedtests-danger"></span>
       </span>
-      <span id="automatedtests-progress" class="badge badge-secondary"></span>
-    </a>
+      <span id="automatedtests-progress" class="badge text-bg-secondary"></span>
+    </button>
   </li>
 
 </ul>
@@ -162,10 +161,10 @@ if can_edit and update.release.composed_by_bodhi:
 </div>
 <div class="container pt-4">
   <!-- Tab panes -->
-  <div class="tab-content">
-    <div class="tab-pane active" id="details" role="tabpanel">
+  <div class="tab-content" id="updateTabContent">
+    <div class="tab-pane show active" id="details-tab-pane" role="tabpanel" aria-labelledby="details-tab" tabindex="0">
       <div class="row">
-        <div class="col-9">
+        <div class="col-md-9">
 
           % if update.notes:
           ${self.util.markup(update.notes) | n}
@@ -174,12 +173,12 @@ if can_edit and update.release.composed_by_bodhi:
           % if not 'unspecified' in update.suggest:
           <p class="mt-3">
             % if 'logout' in update.suggest:
-            <h5 class="font-weight-bold"><i class="fa fa-exclamation-circle text-muted"></i> Logout Required</h5>
+            <h5 class="fw-bold"><i class="fa fa-exclamation-circle text-muted"></i> Logout Required</h5>
             After installing this update it is required that you logout of
             your current user session and log back in to ensure the changes
             supplied by this update are applied properly.
             % elif 'reboot' in update.suggest:
-            <h5 class="font-weight-bold"><i class="fa fa-exclamation-circle text-muted"></i> Reboot Required</h5>
+            <h5 class="fw-bold"><i class="fa fa-exclamation-circle text-muted"></i> Reboot Required</h5>
             After installing this update it is required that you reboot your
             system to ensure the changes supplied by this update are applied
             properly.
@@ -190,12 +189,12 @@ if can_edit and update.release.composed_by_bodhi:
           % if install_command:
           <div class="pt-2">
           <h4>How to install</h4>
-            <pre style="position: relative;"><span class="badge badge-secondary" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${install_command}</code></pre>
+            <pre style="position: relative;"><span class="badge text-bg-secondary" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${install_command}</code></pre>
           </div>
           % endif
 
           <div class="pt-2 mt-4 border-top">
-            <!--<h4>Comments <span class="badge badge-secondary">${len(update.comments)}</span>
+            <!--<h4>Comments <span class="badge text-bg-secondary">${len(update.comments)}</span>
               <small><a href="${request.route_url('comments_rss')}?updates=${update.alias}">
                   <span class="fa fa-rss"></span>
               </a></small>
@@ -213,20 +212,19 @@ if can_edit and update.release.composed_by_bodhi:
           <div id="new_comment">
           <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
           <input type="hidden" name="update" value="${update.alias}"/>
-          <div class="card mt-5">
-              <div class="card-header pb-0 pt-1 pr-0 bg-light">
+          <div class="card mt-5 mb-3">
+              <div class="card-header pb-0 pt-1 pe-0 bg-light">
                 <div class="row">
-                  <div class="col pr-0">
+                  <div class="col pe-0">
                     <%
                       help_content = "Comments support <a href='docs/user/fedora-flavored-markdown.html'>Fedora-Flavored Markdown</a>"
                       if request.registry.settings.get('privacy_link'):
                         privacy_link = request.registry.settings.get('privacy_link')
                         help_content = help_content + "<br/><br/>Comments are governed under <a href='{}'>this privacy policy</a>.".format(privacy_link)
                     %>
-                      <a tabindex="0" class="btn btn-link text-muted float-right" role="button" data-toggle="popover" data-trigger="focus" title="Comment Help"
-                      data-content="${help_content}" data-html="true" data-placement="bottom">
+                      <a tabindex="0" class="btn btn-link text-muted float-end" data-bs-container="body" data-bs-toggle="popover" data-bs-trigger="focus" data-bs-title="Comment Help" data-bs-content="${help_content}" data-bs-html="true" data-bs-placement="bottom">
                       <i class="fa fa-question-circle"></i></a>
-                          <ul class="nav nav-tabs float-right border-bottom-0">
+                          <ul class="nav nav-tabs float-end border-bottom-0">
                             <li class="nav-item">
                               <a class="nav-link pointer" id="preview_button">Preview</a>
                             </li>
@@ -264,7 +262,7 @@ if can_edit and update.release.composed_by_bodhi:
                         <div class="col-auto min-width-35">${self.fragments.karma(-1)}</div>
                         <div class="col-auto min-width-35">${self.fragments.karma(0)}</div>
                         <div class="col-auto min-width-35">${self.fragments.karma(1)}</div>
-                        <div class="col font-weight-bold text-muted">Bugs</div>
+                        <div class="col fw-bold text-muted">Bugs</div>
                       </div>
                     </div>
                     % for bug in update.bugs:
@@ -285,7 +283,7 @@ if can_edit and update.release.composed_by_bodhi:
                         <div class="col-auto min-width-35">${self.fragments.karma(-1)}</div>
                         <div class="col-auto min-width-35">${self.fragments.karma(0)}</div>
                         <div class="col-auto min-width-35">${self.fragments.karma(1)}</div>
-                        <div class="col font-weight-bold text-muted">Test Cases</div>
+                        <div class="col fw-bold text-muted">Test Cases</div>
                       </div>
                     </div>
                     % for test in update.full_test_cases:
@@ -304,7 +302,7 @@ if can_edit and update.release.composed_by_bodhi:
                   <div class="card-body">
 
                 <div class="d-flex align-items-center">
-                  <div class="ml-auto">
+                  <div class="ms-auto">
                       <button id="submit" type="submit" class="btn btn-outline-primary">
                           <span class="indicator fa fa-comment" data-spinclass="indicator fa fa-spinner fa-spin"></span>
                           Add Comment &amp; Feedback
@@ -315,7 +313,7 @@ if can_edit and update.release.composed_by_bodhi:
             </div>
           </div>
           % else:
-          <div class="alert alert-secondary bg-light mt-5 text-center text-muted">
+          <div class="alert alert-secondary bg-light mt-5 mb-3 text-center text-muted">
             <p>
             % if request.matched_route:
               Please <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
@@ -326,17 +324,28 @@ if can_edit and update.release.composed_by_bodhi:
           </div>
           %endif
         </div>
-        <div class="col-3 font-size-09">
-            <div class="mt-3">
-              <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
+        <div class="col-md-3 font-size-09">
+            <div>
+              % if update.release.state == models.ReleaseState.frozen and (update.status == models.UpdateStatus.pending or update.status == models.UpdateStatus.testing):
+              <div class="card border-info mb-1">
+                <div class="card-header text-bg-info h5 fw-bold">
+                  Frozen release
+                </div>
+                <div class="card-body">
+                  This update will not be pushed to stable until freeze is lifted from ${update.release.long_name}.
+                </div>
+              </div>
+              % endif
+
+              <div class="h5 d-flex align-items-center fw-bold border-bottom">
                   <div class="py-2 text-uppercase font-size-09">Metadata</div>
               </div>
-              
+
               % if update.type:
               <div class="pb-1">
                   <div class="row">
-                    <div class="col font-weight-bold text-muted">Type</div>
-                    <div class="col-xs-auto font-weight-bold">
+                    <div class="col fw-bold text-muted">Type</div>
+                    <div class="col-auto fw-bold">
                         ${self.util.type2icon(update.type) | n} ${update.type.value}
                     </div>
                   </div>
@@ -346,8 +355,8 @@ if can_edit and update.release.composed_by_bodhi:
               % if update.severity and update.severity.value != 'unspecified':
               <div class="pb-1">
                   <div class="row">
-                    <div class="col font-weight-bold text-muted">Severity</div>
-                    <div class="col-xs-auto font-weight-bold">
+                    <div class="col fw-bold text-muted">Severity</div>
+                    <div class="col-auto fw-bold">
                         ${update.severity.value}
                     </div>
                   </div>
@@ -356,9 +365,9 @@ if can_edit and update.release.composed_by_bodhi:
 
               <div class="pb-1">
                   <div class="row">
-                    <div class="col font-weight-bold text-muted">Karma</div>
-                    <div class="col-xs-auto font-weight-bold">
-                        ${self.fragments.karma(update.karma, show_digit=True)}
+                    <div class="col fw-bold text-muted">Karma</div>
+                    <div class="col-auto fw-bold">
+                        ${self.fragments.karma(update.karma, show_digit=True, show_details=update._composite_karma)}
                     </div>
                   </div>
               </div>
@@ -366,9 +375,9 @@ if can_edit and update.release.composed_by_bodhi:
               % if update.signed:
               <div class="pb-1">
                   <div class="row">
-                    <div class="col font-weight-bold text-muted">Signed</div>
-                    <div class="col-xs-auto font-weight-bold">
-                        <span class="fa fa-check text-success" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="Update signed"></span>
+                    <div class="col fw-bold text-muted">Signed</div>
+                    <div class="col-auto fw-bold">
+                        <span class="fa fa-check text-success" aria-hidden="true" data-bs-toggle="tooltip" data-bs-placement="top" title="Update signed"></span>
                     </div>
                   </div>
               </div>
@@ -377,8 +386,8 @@ if can_edit and update.release.composed_by_bodhi:
               % if update.content_type:
               <div class="pb-1">
                   <div class="row">
-                    <div class="col font-weight-bold text-muted">Content Type</div>
-                    <div class="col-xs-auto font-weight-bold">
+                    <div class="col fw-bold text-muted">Content Type</div>
+                    <div class="col-auto fw-bold">
                         ${update.content_type.description | n}
                     </div>
                   </div>
@@ -387,7 +396,7 @@ if can_edit and update.release.composed_by_bodhi:
             </div>
               % if request.registry.settings.get('test_gating.required'):
               <div class="mt-3">
-                  <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
+                  <div class="h5 d-flex align-items-center fw-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">
                           % if request.registry.settings.get('test_gating.url'):
                           <a class="notblue" href="${request.registry.settings.get('test_gating.url')}" title="More information about test gating">
@@ -400,15 +409,16 @@ if can_edit and update.release.composed_by_bodhi:
                     </div>
                 <div class="pb-1">
                   <div id="test_status_badge">
+                    <a class="gating-summary notblue" href="#automatedtests">${update.test_gating_status}</a>
                     <i class="spinner fa fa-spinner fa-spin fa-fw"></i>
                   </div>
                   % if can_edit and update.test_gating_status == models.TestGatingStatus.failed and update.status == models.UpdateStatus.testing:
-                  <div id='trigger' class="btn btn-outline-primary btn-sm mt-1" data-toggle="modal" data-target="#trigger_tests">
+                  <div id='trigger' class="btn btn-outline-primary btn-sm mt-1" data-bs-toggle="modal" data-bs-target="#trigger_tests">
                     <span class="fa fa-fw fa-retweet"></span> Re-Trigger Tests
                   </div>
                   % endif
                   % if can_edit and self.util.can_waive_test_results(update):
-                  <div id='waive' class="btn btn-outline-primary btn-sm mt-1" hidden="true" data-toggle="modal" data-target="#waive_test_results">
+                  <div id='waive' class="btn btn-outline-primary btn-sm mt-1" hidden="true" data-bs-toggle="modal" data-bs-target="#waive_test_results">
                     <span class="fa fa-fw fa-thumbs-up"></span> Waive Test Results
                   </div>
                   % endif
@@ -416,11 +426,11 @@ if can_edit and update.release.composed_by_bodhi:
               </div>
               % endif
               <div class="mt-3">
-                  <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
+                  <div class="h5 d-flex align-items-center fw-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">Builds</div>
-                       <span class="badge badge-secondary badge-pill ml-1">${len(update.builds)}</span>
+                       <span class="badge text-bg-secondary badge-pill ms-1">${len(update.builds)}</span>
                       % if request.user and update.from_tag:
-                      <span class="badge badge-light badge-pill ml-auto border" title="Builds from the Side Tag: ${update.from_tag}" data-toggle="tooltip"><i class="fa fa-tag pr-1"></i> ${update.from_tag}</span>
+                      <span class="badge text-bg-light badge-pill ms-auto border" title="Builds from the Side Tag: ${update.from_tag}" data-bs-toggle="tooltip"><i class="fa fa-tag pe-1"></i> ${update.from_tag}</span>
                       % endif
                   </div>
 
@@ -431,7 +441,7 @@ if can_edit and update.release.composed_by_bodhi:
               %>
               <div class="pb-1">
                   <div class="row">
-                    <div class="col text-muted text-truncate" data-toggle="tooltip" title="${build.nvr}"><a href="${build_url}" target="_blank">
+                    <div class="col text-muted text-truncate" data-bs-toggle="tooltip" title="${build.nvr}"><a href="${build_url}" target="_blank">
                         ${build.nvr}</a></div>
                   </div>
               </div>
@@ -439,17 +449,17 @@ if can_edit and update.release.composed_by_bodhi:
 
               </div>
               <div class="mt-3">
-                  <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
+                  <div class="h5 d-flex align-items-center fw-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">Settings</div>
                   </div>
 
               % if update.unstable_karma:
               <div class="pb-1">
                   <div class="row">
-                    <div class="col font-weight-bold text-muted">Unstable by Karma</div>
-                    <div class="col-xs-auto font-weight-bold">
-                          <span class="text-muted font-weight-bold" data-toggle='tooltip' title='The update will be marked as unstable when karma reaches ${update.unstable_karma} '>
-                            <i class="fa fa-thumbs-down pr-1"></i>${update.unstable_karma}
+                    <div class="col fw-bold text-muted">Unstable by Karma</div>
+                    <div class="col-auto fw-bold">
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='The update will be marked as unstable when karma reaches ${update.unstable_karma} '>
+                            <i class="fa fa-thumbs-down pe-1"></i>${update.unstable_karma}
                           </span>
                     </div>
                   </div>
@@ -458,14 +468,14 @@ if can_edit and update.release.composed_by_bodhi:
 
               <div class="pb-1">
                   <div class="row">
-                    <div class="col font-weight-bold text-muted">Stable by Karma</div>
-                    <div class="col-xs-auto font-weight-bold">
+                    <div class="col fw-bold text-muted">Stable by Karma</div>
+                    <div class="col-auto fw-bold">
                       % if update.autokarma is True and update.stable_karma:
-                          <span class="text-muted font-weight-bold" data-toggle='tooltip' title='The update will be automatically pushed to stable when karma reaches ${update.stable_karma}'>
-                            <i class="fa fa-thumbs-up pr-1"></i>${update.stable_karma}
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='The update will be automatically pushed to stable when karma reaches ${update.stable_karma}'>
+                            <i class="fa fa-thumbs-up pe-1"></i>${update.stable_karma}
                           </span>
                       % else:
-                          <span class="text-muted font-weight-bold" data-toggle='tooltip'
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip'
                             title='The update will not be automatically pushed to stable by karma'>
                             disabled
                           </span>
@@ -473,18 +483,18 @@ if can_edit and update.release.composed_by_bodhi:
                     </div>
                   </div>
               </div>
-              
+
               <div class="pb-1">
                 <div class="row">
-                  <div class="col font-weight-bold text-muted">Stable by Time</div>
-                  <div class="col-xs-auto font-weight-bold">
+                  <div class="col fw-bold text-muted">Stable by Time</div>
+                  <div class="col-auto fw-bold">
                     % if update.autotime is True and update.stable_days is not None:
-                        <span class="text-muted font-weight-bold" data-toggle='tooltip'
+                        <span class="text-muted fw-bold" data-bs-toggle='tooltip'
                         title='The update will be automatically pushed to stable after being in testing for ${update.stable_days} days'>
                           ${update.stable_days} days
                         </span>
                     % else:
-                        <span class="text-muted font-weight-bold" data-toggle='tooltip'
+                        <span class="text-muted fw-bold" data-bs-toggle='tooltip'
                           title='The update will not be automatically pushed to stable by a time frame'>
                           disabled
                         </span>
@@ -495,13 +505,13 @@ if can_edit and update.release.composed_by_bodhi:
               </div>
 
               <div class="mt-3">
-                  <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
+                  <div class="h5 d-flex align-items-center fw-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">Dates</div>
                   </div>
                     <div class="row">
-                      <div class="col font-weight-bold text-muted">submitted</div>
-                      <div class="col-xs-auto font-weight-bold">
-                            <span class="text-muted font-weight-bold" data-toggle='tooltip' title='${(update.date_submitted).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
+                      <div class="col fw-bold text-muted">submitted</div>
+                      <div class="col-auto fw-bold">
+                            <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='${(update.date_submitted).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
                                 ${self.util.age(update.date_submitted)}
                             </span>
                       </div>
@@ -509,9 +519,9 @@ if can_edit and update.release.composed_by_bodhi:
 
                     % if update.date_testing:
                     <div class="row">
-                      <div class="col font-weight-bold text-muted">in testing</div>
-                        <div class="col-xs-auto font-weight-bold">
-                          <span class="text-muted font-weight-bold" data-toggle='tooltip' title='${(update.date_testing).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
+                      <div class="col fw-bold text-muted">in testing</div>
+                        <div class="col-auto fw-bold">
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='${(update.date_testing).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
                             ${self.util.age(update.date_testing)}
                           </span>
                         </div>
@@ -520,9 +530,9 @@ if can_edit and update.release.composed_by_bodhi:
 
                     % if update.date_stable:
                     <div class="row">
-                      <div class="col font-weight-bold text-muted">in stable</div>
-                        <div class="col-xs-auto font-weight-bold">
-                          <span class="text-muted font-weight-bold" data-toggle='tooltip' title='${(update.date_stable).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
+                      <div class="col fw-bold text-muted">in stable</div>
+                        <div class="col-auto fw-bold">
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='${(update.date_stable).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
                             ${self.util.age(update.date_stable)}
                           </span>
                         </div>
@@ -531,9 +541,9 @@ if can_edit and update.release.composed_by_bodhi:
 
                     % if update.days_to_stable and update.status.value == 'testing':
                     <div class="row">
-                      <div class="col font-weight-bold text-muted">days to stable</div>
-                        <div class="col-xs-auto font-weight-bold">
-                          <span class="text-muted font-weight-bold">
+                      <div class="col fw-bold text-muted">days to stable</div>
+                        <div class="col-auto fw-bold">
+                          <span class="text-muted fw-bold">
                             ${str(update.days_to_stable)}
                           </span>
                         </div>
@@ -542,9 +552,9 @@ if can_edit and update.release.composed_by_bodhi:
 
                     % if update.date_modified:
                     <div class="row">
-                      <div class="col font-weight-bold text-muted">modified</div>
-                        <div class="col-xs-auto font-weight-bold">
-                          <span data-toggle='tooltip' title='${(update.date_modified).strftime("%Y-%m-%d %H:%M:%S")} (UTC)' class="text-muted font-weight-bold">
+                      <div class="col fw-bold text-muted">modified</div>
+                        <div class="col-auto fw-bold">
+                          <span data-bs-toggle='tooltip' title='${(update.date_modified).strftime("%Y-%m-%d %H:%M:%S")} (UTC)' class="text-muted fw-bold">
                               ${self.util.age(update.date_modified)}
                           </span>
                         </div>
@@ -553,9 +563,9 @@ if can_edit and update.release.composed_by_bodhi:
 
                     % if update.date_approved:
                     <div class="row">
-                      <div class="col font-weight-bold text-muted">approved</div>
-                        <div class="col-xs-auto font-weight-bold">
-                          <span data-toggle='tooltip' title='${(update.date_approved).strftime("%Y-%m-%d %H:%M:%S")} (UTC)' class="text-muted font-weight-bold">
+                      <div class="col fw-bold text-muted">approved</div>
+                        <div class="col-auto fw-bold">
+                          <span data-bs-toggle='tooltip' title='${(update.date_approved).strftime("%Y-%m-%d %H:%M:%S")} (UTC)' class="text-muted fw-bold">
                               ${self.util.age(update.date_approved)}
                           </span>
                         </div>
@@ -567,14 +577,14 @@ if can_edit and update.release.composed_by_bodhi:
     </div>
 
     % if update.bugs:
-    <div class="tab-pane" id="bugs" role="tabpanel">
+    <div class="tab-pane" id="bugs-tab-pane" role="tabpanel" aria-labelledby="bugs-tab" tabindex="0">
       <div class="list-group my-3">
         % for bug in update.bugs:
         <div class="list-group-item">
           <div class="row align-self-center">
-            <div class="col font-weight-bold">${self.util.bug_link(bug) | n}</div>
-            <div class="col-xs-auto pl-3 font-weight-bold">${self.fragments.karma(update.get_bug_karma(bug)[0], show_digit=True, zero_thumbsup=False)}</div>
-            <div class="col-xs-auto pl-3 font-weight-bold">${self.fragments.karma(update.get_bug_karma(bug)[1], show_digit=True, zero_thumbsup=True)}</div>
+            <div class="col fw-bold">${self.util.bug_link(bug) | n}</div>
+            <div class="col-auto ps-3 fw-bold">${self.fragments.karma(update.get_bug_karma(bug)[0], show_digit=True, zero_thumbsup=False)}</div>
+            <div class="col-auto ps-3 fw-bold">${self.fragments.karma(update.get_bug_karma(bug)[1], show_digit=True, zero_thumbsup=True)}</div>
           </div>
         </div>
         % endfor
@@ -582,50 +592,52 @@ if can_edit and update.release.composed_by_bodhi:
     </div>
     % endif
 
-    <div class="tab-pane" id="packages" role="tabpanel">
-      <table class="table">
+    <div class="tab-pane justify-content-center" id="builds-tab-pane" role="tabpanel" aria-labelledby="builds-tab" tabindex="0">
+      <div class="col-lg-9 list-group list-group-flush">
         % for build in update.builds:
-        <tr class="media">
-          <td>
-            <%
-              koji_web_url = request.registry.settings.get('koji_web_url').strip('/') + '/'
-              build_url = urljoin(koji_web_url, 'search?terms='+build.nvr+'&type=build&match=exact')
-            %>
-            <a href="${build_url}" target="_blank">
-                ${build.nvr}</a>
-          </td>
-          <td class="float-right">
-            % if build.signed:
-              <span class="fa fa-key text-muted" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="Build signed"></span>
-            % endif
-          </td>
-          <td class="float-right">
-            <a href='${request.route_url("updates_rss") + "?packages="}${build.package.name | u}'>
-              <span class="fa fa-rss" data-toggle="tooltip" data-placement="top" title="RSS feed for new Bodhi updates containing ${build.package.name}"></span>
-            </a>
-            <a href='${request.route_url("updates") + "?packages="}${build.package.name | u}'>
-              <span class="fa fa-list" data-toggle="tooltip" data-placement="top" title="Show other Bodhi updates for ${build.package.name}"></span>
-            </a>
-            % if can_edit:
-            % if build.override:
-            <a href="${request.route_url('override', nvr=build.nvr)}">
-              <span class="fa fa-pencil" data-toggle="tooltip" data-placement="top" title="Edit the buildroot override for ${build.nvr}"/>
-            </a>
-            % else:
-            <a href='${request.route_url("new_override")}?nvr=${build.nvr}'>
-              <span class="fa fa-plus" data-toggle="tooltip" data-placement="top" title="Create a buildroot override for ${build.nvr}"/>
-            </a>
-            % endif
-            % endif
-          </td>
-        </tr>
+        <div class="list-group-item">
+          <div class="d-flex flex-row justify-content-between align-items-center">
+            <div class="flex-shrink-0 flex-grow-0">
+              % if build.signed:
+              <span class="fa fa-key text-muted me-2" aria-hidden="true" data-bs-toggle="tooltip" data-placement="top" title="Build signed"></span>
+              % endif
+            </div>
+            <div class="flex-grow-1">
+              <%
+                koji_web_url = request.registry.settings.get('koji_web_url').strip('/') + '/'
+                build_url = urljoin(koji_web_url, 'search?terms='+build.nvr+'&type=build&match=exact')
+              %>
+              <a href="${build_url}" target="_blank">${build.nvr}</a>
+            </div>
+            <div class="flex-shrink-0">
+              <a href='${request.route_url("updates_rss") + "?packages="}${build.package.name | u}'>
+                <span class="fa fa-rss ms-1" data-bs-toggle="tooltip" data-placement="top" title="RSS feed for new Bodhi updates containing ${build.package.name}"></span>
+              </a>
+              <a href='${request.route_url("updates") + "?packages="}${build.package.name | u}'>
+                <span class="fa fa-list ms-1" data-bs-toggle="tooltip" data-placement="top" title="Show other Bodhi updates for ${build.package.name}"></span>
+              </a>
+              % if can_edit:
+                % if build.override:
+                <a href="${request.route_url('override', nvr=build.nvr)}">
+                  <span class="fa fa-pencil ms-1" data-bs-toggle="tooltip" data-placement="top" title="Edit the buildroot override for ${build.nvr}"/>
+                </a>
+                % else:
+                <a href='${request.route_url("new_override")}?nvr=${build.nvr}'>
+                  <span class="fa fa-plus ms-1" data-bs-toggle="tooltip" data-placement="top" title="Create a buildroot override for ${build.nvr}"/>
+                </a>
+                % endif
+              % endif
+            </div>
+          </div>
+        </div>
         % endfor
-      </table>
+      </div>
     </div>
 
-    <div class="tab-pane" id="automatedtests" role="tabpanel">
+    <div class="tab-pane" id="automatedtests-tab-pane" role="tabpanel" aria-labelledby="automatedtests-tab" tabindex="0">
       <div id="resultsdb">
       <h3>Automated Test Results</h3>
+      <a class="gating-summary notblue">${update.test_gating_status}</a>
       <i class="fa spinner fa-spinner fa-spin fa-fw"></i>
       </div>
     </div>
@@ -639,8 +651,8 @@ if can_edit and update.release.composed_by_bodhi:
       <colgroup span="1"></colgroup>
       <thead>
         <tr>
-          <th><span data-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="fa fa-times-circle-o"></span></th>
-          <th><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="fa fa-check-circle-o"></span></th>
+          <th><span data-bs-toggle="tooltip" data-placement="top" title="FAIL - Does not fix the bug or pass the test case." class="fa fa-times-circle-o"></span></th>
+          <th><span data-bs-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="fa fa-check-circle-o"></span></th>
           <th></th>
         </tr>
       </thead>
@@ -724,6 +736,10 @@ ${parent.javascript()}
 <script src="${request.static_url('bodhi.server:static/vendor/moment/moment.min.js')}"></script>
 <script>
   $(document).ready(function() {
+    // Initialize popovers
+    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+
     // Some handy lookups that map taskotron states to bootstrap CSS classes.
     var classes = {
       PASSED: 'success',
@@ -754,11 +770,17 @@ ${parent.javascript()}
     // show the Greenwave decision
     var greenwave_api_url = '${request.registry.settings["greenwave_api_url"]}';
     var missing_tests = {};
+    var reqs_counter = 0;
+    var unsatisfied_reqs_counter = 0;
+    var missing_reqs_counter = 0;
+    var greenwave_errors = 0;
 
     // handle Greenwave decision
     var handle_unsatisfied_requirements = function(data){
         $.each(data['unsatisfied_requirements'], function(i, requirement) {
+            unsatisfied_reqs_counter++;
             if (requirement.type == 'test-result-missing') {
+                missing_reqs_counter++;
                 if (missing_tests[requirement.subject_identifier] === undefined)
                     missing_tests[requirement.subject_identifier] = [];
                 missing_tests[requirement.subject_identifier].push(requirement);
@@ -772,45 +794,69 @@ ${parent.javascript()}
             // there is at least one unsatisfied requirement, so show the button to be able to waive.
             $('#waive').removeAttr('hidden');
         });
-        % if request.registry.settings.get("test_gating.required") is True:
-            if (data['policies_satisfied']) {
-              label_class = classes['PASSED'];
-              icon_class = icons['PASSED'];
-            } else if (missing_tests.length != 0) {
-              label_class = classes['ABSENT'];
-              icon_class = icons['ABSENT'];
-            } else {
-              label_class = classes['FAILED'];
-              icon_class = icons['FAILED'];
-            }
+    };
 
-            var html = '<span class="badge badge-' + label_class + '">' +
-              '<span class="fa fa-' + icon_class + '">' +
-              '</span></span> ';
-            html += '<a class="gating-summary notblue" href="#automatedtests">' + data['summary'];
-            html += '</a>';
-            if (data.waivers.length != 0) {
-                 // Create url to waiverdb with waivers for this update
-                 var url = '${request.registry.settings["waiverdb_api_url"]}';
-                 url += '/waivers'
-                 url += '/?product_version=' + data.waivers[0].product_version;
-                 url += '&subject_type=' + data.waivers[0].subject_type;
-                 url += '&subject_identifier=' + data.waivers[0].subject_identifier;
-                 html += '<a class="notblue" target="_blank" href=' + url + '>';
-                 html += '<span data-toggle="tooltip" data-placement="top" ' +
-                 'title="Some tests failures were waived." ' +
-                 'class="fa fa-asterisk">' +
-                 '</span>';
-                 html += '</a>';
-            }
-            $('#test_status_badge').append(html);
-            $('#resultsdb h3').after(html);
+    var generate_requirements_summary = function() {
+        if (missing_reqs_counter > 0) {
+          label_class = classes['ABSENT'];
+          icon_class = icons['ABSENT'];
+        } else if (unsatisfied_reqs_counter > 0) {
+          label_class = classes['FAILED'];
+          icon_class = icons['FAILED'];
+        } else {
+          label_class = classes['PASSED'];
+          icon_class = icons['PASSED'];
+        }
+        var summary = '';
+        failed_reqs_counter = unsatisfied_reqs_counter - missing_reqs_counter;
+        if (reqs_counter == 0) {
+            summary = 'no tests are required';
+        } else if (failed_reqs_counter > 0 && missing_reqs_counter > 0) {
+            summary = failed_reqs_counter + ' of ' + reqs_counter + ' required tests failed, ' + missing_reqs_counter + ' results missing';
+        } else if (missing_reqs_counter > 0) {
+            summary = missing_reqs_counter + ' of ' + reqs_counter + ' required test results missing';
+        }
+        else if (failed_reqs_counter > 0) {
+            summary = failed_reqs_counter + ' of ' + reqs_counter + ' required tests failed';
+        }
+        else {
+            summary = 'All required tests passed';
+        }
 
-            $('.gating-summary').click(function(e){
-              e.preventDefault();
-              $('.nav-tabs a[href="#automatedtests"]').tab('show');
+        var html = '<span class="badge text-bg-' + label_class + '">' +
+          '<span class="fa fa-' + icon_class + '">' +
+          '</span></span> ';
+        html += '<a class="gating-summary notblue" href="#automatedtests">' + summary;
+        html += '</a>';
+        if (Object.keys(waivers).length != 0) {
+            var seensubjects = [];
+            // Create urls to waiverdb with waivers for this update
+            $.each(Object.keys(waivers), function(i, testcase) {
+                $.each(waivers[testcase], function(j, waiver) {
+                    if (!seensubjects.includes(waiver.subject_identifier)) {
+                        seensubjects.push(waiver.subject_identifier);
+                        var url = '${request.registry.settings["waiverdb_api_url"]}';
+                        url += '/waivers'
+                        url += '/?product_version=' + waiver.product_version;
+                        url += '&subject_type=' + waiver.subject_type;
+                        url += '&subject_identifier=' + waiver.subject_identifier;
+                        html += '<a class="notblue" target="_blank" href=' + url + '>';
+                        html += '<span data-toggle="tooltip" data-placement="top" ' +
+                        'title="Some test failures or missing tests were waived." ' +
+                        'class="fa fa-asterisk">' +
+                        '</span>';
+                        html += '</a>';
+                    }
+                });
             });
-        % endif
+        }
+        $('#test_status_badge .gating-summary').replaceWith(html);
+        $('#resultsdb .gating-summary').replaceWith(html);
+
+        $('.gating-summary').click(function(e){
+          e.preventDefault();
+          $('.nav-tabs a[href="#automatedtests"]').tab('show');
+        });
     };
 
     var get_greenwave_information = function(request, after_success) {
@@ -826,26 +872,20 @@ ${parent.javascript()}
                   waivers[waiver.testcase].push(waiver);
                 });
                 handle_unsatisfied_requirements(data);
-                // we don't want to generate result rows for both the
-                // critpath and non-critpath decision contexts, as both
-                // queries return the same set of test results
-                if (!(request.decision_context.endsWith("critpath")) {
-                    handle_results(data.results, request.subject);
-                }
+                reqs_counter += data['unsatisfied_requirements'].length;
+                reqs_counter += data['satisfied_requirements'].length;
+                handle_results(data.results, request.subject);
                 after_success();
             },
             error: function (jqxhr, status, error) {
+               greenwave_errors = 1;
                finish();
-               $('#resultsdb h3').after(
-                  '<h4 class="text-danger">Failed to talk to Greenwave.</h4>');
-               $('#test_status_badge').append(
-                  '<span class="text-danger">Failed to talk to Greenwave.</span>');
             },
         });
     };
 
     var make_row = function(outcome, testcase, note, arch, time, url, flavor) {
-      var icon = '<span data-toggle="tooltip" data-placement="top" ' +
+      var icon = '<span data-bs-toggle="tooltip" data-placement="top" ' +
         'title="' + outcome + '" ' +
         'class="fa fa-' + icons[outcome] + ' text-' + classes[outcome] + '">'+
         '</span>';
@@ -859,24 +899,24 @@ ${parent.javascript()}
           comments.push(waiver_details);
         }
 	reason += comments.join(", ")
-        required = '<span style="white-space:pre-line;" data-toggle="tooltip" data-placement="top" ' +
+        required = '<span style="white-space:pre-line;" data-bs-toggle="tooltip" data-placement="top" ' +
           'title="' + reason + '" ' +
           'class="fa fa-thumbs-up">' +
           '</span>';
       } else if ($.inArray(testcase, requirements) != -1) {
-        required = '<span data-toggle="tooltip" data-placement="top" ' +
+        required = '<span data-bs-toggle="tooltip" data-placement="top" ' +
           'title="' + testcase + ' is a required test" ' +
           'class="fa fa-asterisk">' +
           '</span>';
       }
 
       if (arch != undefined) {
-        testcase = testcase + "&nbsp;<span class='badge badge-secondary'>"
+        testcase = testcase + "&nbsp;<span class='badge text-bg-secondary'>"
           + arch + "</label>";
       }
 
       if (flavor) {
-        testcase = testcase + "&nbsp;<span class='badge badge-secondary'>"
+        testcase = testcase + "&nbsp;<span class='badge text-bg-secondary'>"
           + flavor + "</label>";
       }
 
@@ -949,7 +989,7 @@ ${parent.javascript()}
           return;
         }
 
-        var table = $("<table class='table table-hover'></table>").appendTo("#resultsdb");
+        var table = $("<table class='table table-hover'><tbody></tbody></table>").appendTo("#resultsdb");
 
         // show missing tests first
         if (buildname in missing_tests) {
@@ -971,11 +1011,10 @@ ${parent.javascript()}
           }
 
           var flavor;
-          if (scenario.includes("updates-server")) {
-            flavor = "server";
-          }
-          else if (scenario.includes("updates-workstation")) {
-            flavor = "workstation";
+          if (scenario.includes("fedora.updates-")) {
+            // this gets a correct flavor from an openQA scenario, e.g.
+            // 'kde' from 'fedora.updates-kde.x86_64.64bit'
+            flavor = scenario.split(".")[1].slice(8);
           }
 
           table.append(make_row(
@@ -1037,6 +1076,9 @@ ${parent.javascript()}
       update()
 
       if (current_batch >= request_batches.length) {
+        % if request.registry.settings.get("test_gating.required") is True:
+        if (!greenwave_errors) { generate_requirements_summary(); }
+        % endif
         progress.remove()
         finish();
         return;

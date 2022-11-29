@@ -19,6 +19,7 @@
 
 from collections import defaultdict, OrderedDict
 from contextlib import contextmanager
+from datetime import datetime, timedelta
 from importlib import import_module
 from urllib.parse import urlencode
 import errno
@@ -189,7 +190,41 @@ class memoized(object):
         return functools.partial(self.__call__, obj)
 
 
-@memoized
+def get_grouped_critpath_components(collection='master', component_type='rpm', components=None):
+    """
+    Return a dictionary of critical path components by group for a given collection.
+
+    Args:
+        collection (str): The collection/branch to search. Defaults to 'master'.
+        component_type (str): The component type to search for. This only affects PDC
+            queries. Defaults to 'rpm'.
+        components (frozenset or None): The list of components we are interested in. If None (the
+            default), all components for the given collection and type are returned.
+    Returns:
+        dict: The critpath components for the given collection and type, by group.
+    Raises:
+        ValueError: if the configured critpath.type does not support groups.
+    """
+    critpath_type = config.get('critpath.type')
+    if critpath_type != 'json':
+        raise ValueError(f'critpath.type {critpath_type} does not support groups')
+    critpath_components = {}
+    try:
+        critpath_components = read_critpath_json(collection).get(component_type, {})
+    except FileNotFoundError:
+        log.warning(f'No JSON file found for collection {collection}')
+    except json.JSONDecodeError:
+        log.warning(f'JSON file for collection {collection} is invalid')
+    if components and critpath_components:
+        filtered_dict = defaultdict(list)
+        for (group, groupcomps) in critpath_components.items():
+            filteredcomps = [gcomp for gcomp in groupcomps if gcomp in components]
+            if filteredcomps:
+                filtered_dict[group].extend(filteredcomps)
+        critpath_components = dict(filtered_dict)
+    return critpath_components
+
+
 def get_critpath_components(collection='master', component_type='rpm', components=None):
     """
     Return a list of critical path packages for a given collection, filtered by components.
@@ -207,13 +242,22 @@ def get_critpath_components(collection='master', component_type='rpm', component
     """
     critpath_components = []
     critpath_type = config.get('critpath.type')
-    if critpath_type != 'pdc' and component_type != 'rpm':
+    if critpath_type not in ('pdc', 'json') and component_type != 'rpm':
         log.warning('The critpath.type of "{0}" does not support searching for'
                     ' non-RPM components'.format(component_type))
 
     if critpath_type == 'pdc':
         critpath_components = get_critpath_components_from_pdc(
             collection, component_type, components)
+    elif critpath_type == 'json':
+        try:
+            critpath_components_grouped = read_critpath_json(collection).get(component_type, {})
+            for compgroup in critpath_components_grouped.values():
+                critpath_components.extend(compgroup)
+        except FileNotFoundError:
+            log.warning(f'No JSON file found for collection {collection}')
+        except json.JSONDecodeError:
+            log.warning(f'JSON file for collection {collection} is invalid')
     else:
         critpath_components = config.get('critpath_pkgs')
 
@@ -937,6 +981,7 @@ def severity_updateinfo_str(value):
 PDC_CRITPATH_COMPONENTS_GETALL_LIMIT = 10
 
 
+@memoized
 def get_critpath_components_from_pdc(branch, component_type='rpm', components=None):
     """
     Search PDC for critical path packages based on the specified branch.
@@ -989,6 +1034,24 @@ def get_critpath_components_from_pdc(branch, component_type='rpm', components=No
                 # There are no more results to iterate through
                 break
     return list(critpath_pkgs_set)
+
+
+def read_critpath_json(collection):
+    """
+    Read the JSON format critical path information for the collection.
+
+    Args:
+        collection (str): The collection to read information for.
+    Returns:
+        dict: A dict with critpath groups as keys, and lists of packages as values.
+    Raises:
+        FileNotFoundError: If there is no file for the requested collection.
+        json.JSONDecodeError: If the file is not valid JSON.
+    """
+    jsonpath = config.get('critpath.jsonpath')
+    jsonfile = os.path.join(jsonpath, f'{collection}.json')
+    with open(jsonfile, 'r', encoding='utf-8') as jsonfh:
+        return json.load(jsonfh)
 
 
 def call_api(api_url, service_name, error_key=None, method='GET', data=None, headers=None,
@@ -1288,3 +1351,46 @@ def json_escape(text: str) -> str:
         Escaped text.
     """
     return text.replace('"', '\\"')
+
+
+def build_names_by_type(builds: list) -> defaultdict:
+    """Produce a dict of package names by type from a list of builds.
+
+    Args:
+        builds (list): The list of builds to parse.
+    Returns:
+        defaultdict: A dict with package types as keys and lists of names as values.
+    """
+    components = defaultdict(list)
+    for build in builds:
+        ptype = build.package.type.value
+        pname = build.package.name
+        components[ptype].append(pname)
+    return components
+
+
+def eol_releases(days: int = 30) -> list:
+    """
+    Return a list of releases that are approaching EOL.
+
+    Args:
+        days: days before EOL
+    Returns:
+        A list of tuples in the format (release.long_name, release.eol).
+    """
+    from bodhi.server.models import Release, ReleaseState
+    active_releases = Release.query.filter(
+        Release.state.not_in(
+            [ReleaseState.disabled, ReleaseState.archived])
+    ).filter(
+        Release.eol != None
+    ).order_by(
+        Release.eol.asc()
+    )
+
+    eol_releases = []
+    for release in active_releases:
+        if release.eol - datetime.utcnow().date() < timedelta(days=days):
+            eol_releases.append((release.long_name, release.eol))
+
+    return eol_releases

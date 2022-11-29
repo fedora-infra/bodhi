@@ -4,35 +4,53 @@ Vagrant
 
 `Vagrant`_ allows contributors to get quickly up and running with a Bodhi development environment by
 automatically configuring a virtual machine. Before you get started, ensure that your host machine
-has virtualization extensions enabled in its BIOS so the guest doesn't go slower than molasses. To
+has virtualization extensions enabled in its BIOS so the guest is not slow. To
 get started, simply use these commands::
 
-    $ sudo dnf install ansible libvirt vagrant-libvirt vagrant-sshfs
+    $ sudo dnf install ansible libvirt vagrant-libvirt vagrant-sshfs vagrant-hostmanager
     $ sudo systemctl enable libvirtd
     $ sudo systemctl start libvirtd
 
-If you're on Ubuntu, use this in place of the first command::
-		$ sudo apt install ansible libvirt-dev vagrant-libvirt vagrant-sshfs
+As of 2022, bodhi now uses OpenID Connect (OIDC) for authentication. For the vagrant development environment,
+this requires a running FreeIPA and Ipsilon instance. Running tinystage
+(https://github.com/fedora-infra/tiny-stage) will set these up. Ensure that tinystage is running before trying
+to provision bodhi with vagrant. To set up tinystage::
 
-Check out the code and run ``vagrant up``::
+    $ git clone https://github.com/fedora-infra/tiny-stage
+    $ pushd tiny-stage/
+	$ vagrant up
+	$ popd
+
+Next, check out the bodhi code and run ``vagrant up``::
 
     $ git clone https://github.com/fedora-infra/bodhi
     $ cd bodhi
     $ vagrant up
 
-The ``Vagrantfile`` sets up a port forward from the host machine's port 6543 into the Vagrant
-guest's port 6543, so you can now visit http://localhost:6543 with your browser to see your Bodhi
-development instance if your browser is on the same host as the Vagrant host. If not, you will need
-to connect to port 6543 on your Vagrant host, which is an exercise left for the reader.
+Your newly provisioned bodhi development instance is now available at https://bodhi-dev.example.com/.
 
-The ``Vagrantfile`` also sets up a port forward from the host machine's port
-15672 to the Vagrant guest's port 15672. The Vagrant guest runs an AMQP message
-broker (RabbitMQ) which has a web interface for monitoring and administration
-at http://localhost:15672. The default username is "guest" and the password is
-"guest".
+The Vagrant guest runs an AMQP message broker (RabbitMQ) which has a web interface for monitoring and
+administration of the Fedora Messaging queue at http://bodhi-dev.example.com:15672/. The default username
+is ``guest`` and the password is ``guest``.
 
 
 .. _Vagrant: https://www.vagrantup.com
+
+
+Authentication
+^^^^^^^^^^^^^^
+
+The Vagrant environment will configure Bodhi server and Bodhi's CLI to use the tiny-stage Ipsilon
+(https://ipsilon.tinystage.test) for authentication. The users are defined in the tiny-stage FreeIPA
+instance (https://ipa.tinystage.test). There are many test users defined by default in the tinystage
+FreeIPA instance, and the admin user is ``admin`` with a password ``password``.
+
+During the Vagrant provisioning, two users are automatically added to the tinystage instance specifically
+for enabling you to test Bodhi: ``tinystage_packager`` and ``tinystage_provenpackager``, both with
+password ``password``. If you want to login with your username (or any username of your choice), just
+edit the ``fas_username`` variable in the Vagrantfile and re-provision the VM. Be advised that this will
+not be a copy of your real fas account, it will just have the same username with the default password
+``password`` and fake complementary data.
 
 
 Quick tips about the Bodhi Vagrant environment
@@ -96,13 +114,3 @@ the host::
 
 If you wish to use a custom ``Vagrantfile``, you can set the environment variable
 ``VAGRANT_VAGRANTFILE`` as a path to a script.
-
-
-Authentication
-^^^^^^^^^^^^^^
-
-The Vagrant environment will configure Bodhi server and Bodhi's CLI to use Fedora's staging Ipsilon
-server for authentication. This means you will need to ensure you have an account on Fedora's
-staging account system. If you need to make an account, you can do so
-`here <https://admin.stg.fedoraproject.org/accounts/>`_. This is done to prevent accidental changes
-to Fedora's production instance during development.

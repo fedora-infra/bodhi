@@ -175,7 +175,7 @@ class TestMain(base.BasePyTestCase):
         with mock.patch.dict(
                 self.app_settings,
                 {'authtkt.timeout': '10', 'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
-            server.main({}, **self.app_settings)
+            server.main({}, session=self.db, **self.app_settings)
 
         policy = set_authentication_policy.mock_calls[0][1][0]
         assert isinstance(policy, authentication.AuthTktAuthenticationPolicy)
@@ -197,7 +197,7 @@ class TestMain(base.BasePyTestCase):
         """Ensure that main() uses a default if authtkt.timeout is undefined in settings."""
         with mock.patch.dict(
                 self.app_settings, {'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
-            server.main({}, **self.app_settings)
+            server.main({}, session=self.db, **self.app_settings)
 
         policy = set_authentication_policy.mock_calls[0][1][0]
         assert isinstance(policy, authentication.AuthTktAuthenticationPolicy)
@@ -216,7 +216,7 @@ class TestMain(base.BasePyTestCase):
     def test_calls_session_remove(self):
         """Let's assert that main() calls Session.remove()."""
         with mock.patch('bodhi.server.Session.remove') as remove:
-            server.main({}, **self.app_settings)
+            server.main({}, session=self.db, **self.app_settings)
 
         remove.assert_called_once_with()
 
@@ -262,13 +262,20 @@ class TestMain(base.BasePyTestCase):
         generic._generate_home_page_stats.invalidate()
         assert generic._generate_home_page_stats() == 7
 
-    @mock.patch.dict('bodhi.server.config.config', {'warm_cache_on_start': True})
     def test_warms_up_releases_cache(self):
         """main() should warm up the _all_releases cache."""
         # Let's clear the release cache
+        config["warm_cache_on_start"] = True
         models.Release.clear_all_releases_cache()
 
         server.main({}, testing='guest', session=self.db)
 
         # The cache should have a release in it now - let's just spot check it
         assert models.Release._all_releases['current'][0]['name'] == 'F17'
+
+    def test_calls_initialize_db(self):
+        """main() should call initialize_db() when called without a session arg."""
+        with mock.patch('bodhi.server.initialize_db') as init_db:
+            server.main({}, **self.app_settings)
+
+        init_db.assert_called_once()

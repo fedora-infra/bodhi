@@ -17,7 +17,7 @@ bstopdeps:   Stop WaiverDB and Greenwave docker services
 bremovedeps: Destroy WaiverDB and Greenwave docker services
 
 
-The BODHI_URL environment variable is set to http://localhost:6543 so the
-bodhi client will use the local development server.
+The BODHI_URL environment variable is set to https://bodhi-dev.example.com/
+so the bodhi client will use the local development server.
 
 Happy hacking!
