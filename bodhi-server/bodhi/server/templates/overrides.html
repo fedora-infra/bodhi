@@ -62,7 +62,7 @@ ${parent.css()}
               <div class="ms-auto">
               <form id="filters-form">
                 <div class="dropdown">
-            <div class="input-group input-group-sm" data-toggle="dropdown">
+            <div class="input-group input-group-sm" data-bs-toggle="dropdown">
               <div class="input-group-prepend ms-auto">
                   <div class="btn btn-sm btn-outline-secondary border" id="overrides-filterslist">
 
@@ -97,7 +97,7 @@ ${parent.css()}
                   <label for="overrideexpired" class="col-auto align-self-center ps-1 pe-0 m-0">Status:</label>
                   </div>
                   <div class="col-8 ps-1">
-                      <select id="overrideexpired" name="expired" class="custom-select">
+                      <select id="overrideexpired" name="expired" class="form-select">
                           <option value="">&nbsp;</option>
                           <option value="False"
                           % if 'expired' in parameters and 'False' in parameters['expired']:
@@ -161,9 +161,10 @@ ${parent.css()}
                   </div>
               </div>
 
-              <input type="submit" class="btn btn-block btn-primary" value="Apply Filters" />
-
-              <a href="${request.route_url('overrides')}" class="btn btn-link btn-block">Clear Filters</a>
+              <div class="d-grid gap-2 mt-2">
+                <input type="submit" class="btn btn-primary" value="Apply Filters" />
+                <a href="${request.route_url('updates')}" class="btn btn-link">Clear Filters</a>
+              </div>
               </div>
           </div>
               </form></div>
