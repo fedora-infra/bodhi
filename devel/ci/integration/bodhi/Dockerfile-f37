@@ -28,8 +28,12 @@ RUN \
     for pkg in bodhi-client bodhi-messages bodhi-server; do \
         cd $pkg && \
         poetry build -f sdist && \
+        FILENAME=( $(find dist/ -type f) ) && \
+        FILENAME=${FILENAME##*/} && \
+        FILENAME=${FILENAME%-*} && \
         cp dist/* ~/rpmbuild/SOURCES/ && \
         cp $pkg.spec ~/rpmbuild/SPECS/ && \
+        sed -i "s/^%global src_name.*/%global src_name $FILENAME/g" ~/rpmbuild/SPECS/$pkg.spec && \
         rpmbuild -ba --nocheck ~/rpmbuild/SPECS/$pkg.spec && \
         dnf install -y $(ls ~/rpmbuild/RPMS/noarch/*$pkg*.rpm) && \
         cd ..; \
