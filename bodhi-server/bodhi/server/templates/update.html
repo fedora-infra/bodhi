@@ -409,7 +409,7 @@ if can_edit and update.release.composed_by_bodhi:
                     </div>
                 <div class="pb-1">
                   <div id="test_status_badge">
-                    <a class="gating-summary notblue" href="#automatedtests">${update.test_gating_status}</a>
+                    <a class="gating-summary notblue" href="#automatedtests-tab">${update.test_gating_status}</a>
                     <i class="spinner fa fa-spinner fa-spin fa-fw"></i>
                   </div>
                   % if can_edit and update.test_gating_status == models.TestGatingStatus.failed and update.status == models.UpdateStatus.testing:
@@ -740,6 +740,12 @@ ${parent.javascript()}
     const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
     const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
 
+    $('.gating-summary').click(function(e){
+      e.preventDefault();
+      const tabTrigger = new bootstrap.Tab($('#automatedtests-tab'))
+      tabTrigger.show();
+    });
+
     // Some handy lookups that map taskotron states to bootstrap CSS classes.
     var classes = {
       PASSED: 'success',
@@ -826,7 +832,7 @@ ${parent.javascript()}
         var html = '<span class="badge text-bg-' + label_class + '">' +
           '<span class="fa fa-' + icon_class + '">' +
           '</span></span> ';
-        html += '<a class="gating-summary notblue" href="#automatedtests">' + summary;
+        html += '<a class="gating-summary notblue" href="#automatedtests-tab">' + summary;
         html += '</a>';
         if (Object.keys(waivers).length != 0) {
             var seensubjects = [];
@@ -853,10 +859,6 @@ ${parent.javascript()}
         $('#test_status_badge .gating-summary').replaceWith(html);
         $('#resultsdb .gating-summary').replaceWith(html);
 
-        $('.gating-summary').click(function(e){
-          e.preventDefault();
-          $('.nav-tabs a[href="#automatedtests"]').tab('show');
-        });
     };
 
     var get_greenwave_information = function(request, after_success) {
