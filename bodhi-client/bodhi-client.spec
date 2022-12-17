@@ -1,5 +1,6 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-client
+%global src_name bodhi_client
 %global pypi_version 7.0.0
 
 Name:           %{pypi_name}
@@ -9,7 +10,7 @@ Summary:        Bodhi client
 
 License:        GPLv2+
 URL:            https://github.com/fedora-infra/bodhi
-Source0:        %{pypi_name}-%{pypi_version}.tar.gz
+Source0:        %{src_name}-%{pypi_version}.tar.gz
 BuildArch:      noarch
 
 BuildRequires:  make
@@ -32,7 +33,7 @@ Obsoletes: bodhi <= 5.7.5
 Command-line client for Bodhi, Fedora's update gating system.
 
 %prep
-%autosetup -n %{pypi_name}-%{pypi_version}
+%autosetup -n %{src_name}-%{pypi_version}
 # Remove bundled egg-info
 rm -rf %{pypi_name}.egg-info
 

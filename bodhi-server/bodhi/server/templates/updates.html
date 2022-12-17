@@ -84,10 +84,10 @@ ${parent.css()}
               <form id="filters-form">
                 <div class="dropdown">
             <div class="input-group input-group-sm" data-bs-toggle="dropdown">
+              % if parameters:
               <div class="input-group-prepend ms-auto">
                   <div class="btn btn-sm btn-outline-secondary border" id="updates-filterslist">
-
-                    % for param, values in request.params.dict_of_lists().items():
+                    % for param, values in parameters.items():
                       % for i, value in enumerate(values):
                         % if param in allValidParams:
                           % if i > 0:
@@ -100,8 +100,8 @@ ${parent.css()}
                       % endfor
                     % endfor
                   </div>
-
               </div>
+              %endif
               <input name="search" type="text" autocomplete='off' class="form-control" id="updates-search" value="${searchterm}" placeholder="search">
             </div>
             <div class="dropdown-menu dropdown-menu-right p-3" style="min-width:400px; max-width: 400px" id="filters-dropdown">
