@@ -5,7 +5,7 @@ updates:
   schedule:
     interval: daily
   open-pull-requests-limit: 10
-  versioning-strategy: lockfile-only
+  versioning-strategy: auto
   allow:
   - dependency-type: all
 - package-ecosystem: pip
@@ -13,7 +13,7 @@ updates:
   schedule:
     interval: daily
   open-pull-requests-limit: 10
-  versioning-strategy: lockfile-only
+  versioning-strategy: auto
   allow:
   - dependency-type: all
 - package-ecosystem: pip
@@ -21,6 +21,6 @@ updates:
   schedule:
     interval: daily
   open-pull-requests-limit: 10
-  versioning-strategy: lockfile-only
+  versioning-strategy: auto
   allow:
   - dependency-type: all
