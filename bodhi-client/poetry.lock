@@ -367,7 +367,7 @@ plugins = ["importlib-metadata"]
 
 [[package]]
 name = "pyspnego"
-version = "0.6.3"
+version = "0.7.0"
 description = "Windows Negotiate Authentication Client and Server"
 category = "main"
 optional = false
@@ -1025,18 +1025,18 @@ pygments = [
     {file = "Pygments-2.13.0.tar.gz", hash = "sha256:56a8508ae95f98e2b9bdf93a6be5ae3f7d8af858b43e02c5a2ff083726be40c1"},
 ]
 pyspnego = [
-    {file = "pyspnego-0.6.3-cp310-cp310-win32.whl", hash = "sha256:ac883b4a15a0a9a5a4189f64ddec2f81b6b0024eec949dd37bdd2110c49e04bd"},
-    {file = "pyspnego-0.6.3-cp310-cp310-win_amd64.whl", hash = "sha256:097f57f0826e43e1062bf2b1ef019fdc0921a78cf231baa55a545ffe486fa757"},
-    {file = "pyspnego-0.6.3-cp311-cp311-win32.whl", hash = "sha256:74a1122dda12fbd08c670d37f64183d97cb1479ea866472b28dcf86d3aa3f375"},
-    {file = "pyspnego-0.6.3-cp311-cp311-win_amd64.whl", hash = "sha256:dac7325615ac4e3fafa0fd756f6b7dc38c07e5f86cf99af70e2a6abd2238ddcc"},
-    {file = "pyspnego-0.6.3-cp37-cp37m-win32.whl", hash = "sha256:f8ec0cf43eab661c326a5bb2b62a8f9172eb412877cc00ad0e025b1e78c9881f"},
-    {file = "pyspnego-0.6.3-cp37-cp37m-win_amd64.whl", hash = "sha256:952e00690c1bbae94b6b3a27edcdd18d68a25e4f7164e026da173b1827860262"},
-    {file = "pyspnego-0.6.3-cp38-cp38-win32.whl", hash = "sha256:c899f1217f1793d4dc90a39eed4144cffd1c144defeccf362f7d854923a8f8c2"},
-    {file = "pyspnego-0.6.3-cp38-cp38-win_amd64.whl", hash = "sha256:4e81a004ec14bb2c05a5006c789d2c394b4f4296e60ed06a14904110ee2bb30c"},
-    {file = "pyspnego-0.6.3-cp39-cp39-win32.whl", hash = "sha256:c37a540ba386ee2e3eabe5ea0a8d8087f94f30ddf78a1dcb8121c37414ebb23d"},
-    {file = "pyspnego-0.6.3-cp39-cp39-win_amd64.whl", hash = "sha256:cf19490c20215da0a00563741566b1a5efc36fa4cdfeac15edf2fe7529d5bff5"},
-    {file = "pyspnego-0.6.3-py3-none-any.whl", hash = "sha256:0467587438002274790af754fdabf5f4023529444181ef40aa05a9808c35a222"},
-    {file = "pyspnego-0.6.3.tar.gz", hash = "sha256:6060a0e683171090adcf92c9d319ddd334f15117fa199a703d8c9bd094d9f6c0"},
+    {file = "pyspnego-0.7.0-cp310-cp310-win32.whl", hash = "sha256:e6e9664123d5521ecd21c32322f8ceb1575c8282b2f838beb33484ebaf2e66f9"},
+    {file = "pyspnego-0.7.0-cp310-cp310-win_amd64.whl", hash = "sha256:247e2d6ad6a6eaeaa6c9239a167ccf8d8c3b3322c684c90c03e6e18504c61d3a"},
+    {file = "pyspnego-0.7.0-cp311-cp311-win32.whl", hash = "sha256:f951ad694b4cc166932736be2756fa84c4dfbda9c4b30733d9fb62464f898f29"},
+    {file = "pyspnego-0.7.0-cp311-cp311-win_amd64.whl", hash = "sha256:6cc0bab3737f1323dc9ebc0ca49b48ded6a09009643424f471a909083d298dbf"},
+    {file = "pyspnego-0.7.0-cp37-cp37m-win32.whl", hash = "sha256:99c8fb4f4b859ae297c2f6cfed1511e46df574974a556c98a15c004251be0bec"},
+    {file = "pyspnego-0.7.0-cp37-cp37m-win_amd64.whl", hash = "sha256:64c665f1e88a07cc25b680a475755a393df2b6b2bb62b75b2e79d7059b056109"},
+    {file = "pyspnego-0.7.0-cp38-cp38-win32.whl", hash = "sha256:e7dfcc0c780de04273655a9c3f62ea09e24cd5cd401fe0039eac553b0732e362"},
+    {file = "pyspnego-0.7.0-cp38-cp38-win_amd64.whl", hash = "sha256:5eb034dc30eba0ec85e9ba02ef7b7d26df8804027ea95e5280838919b5ceecdd"},
+    {file = "pyspnego-0.7.0-cp39-cp39-win32.whl", hash = "sha256:65705b3763dc696358a5d6f9c74398afe37824a739e110b2b61ab731d617ff75"},
+    {file = "pyspnego-0.7.0-cp39-cp39-win_amd64.whl", hash = "sha256:0f43048a26a0c2c9edd8f3906f519022fcc5ae2baac1d2a65cdf9434ce0b761a"},
+    {file = "pyspnego-0.7.0-py3-none-any.whl", hash = "sha256:a35976b59e226e6166a69398240edee688ad40c96d5afdc0e07ac1f09fcc5830"},
+    {file = "pyspnego-0.7.0.tar.gz", hash = "sha256:da78096fd7c9f40e716f6fbe3e30d913103d75fd676f839f98fc3a6fee92fbe3"},
 ]
 pytest = [
     {file = "pytest-7.2.0-py3-none-any.whl", hash = "sha256:892f933d339f068883b6fd5a459f03d85bfcb355e4981e146d2c7616c21fef71"},
