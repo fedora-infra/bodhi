@@ -482,7 +482,7 @@ class TestNewUpdate(BasePyTestCase):
 
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
-        assert re.search(r'https://koji.fedoraproject.org/koji/search\?terms=.*\&amp;'
+        assert re.search(r'https://koji\.fedoraproject\.org/koji/search\?terms=.*\&amp;'
                          r'type=build\&amp;match=exact', str(resp))
 
     @mock.patch(**mock_valid_requirements)
@@ -498,7 +498,7 @@ class TestNewUpdate(BasePyTestCase):
 
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
-        assert re.search(r'https://koji.fedoraproject.org/koji/search\?terms=.*\&amp;'
+        assert re.search(r'https://koji\.fedoraproject\.org/koji/search\?terms=.*\&amp;'
                          r'type=build\&amp;match=exact', str(resp))
 
     @mock.patch(**mock_valid_requirements)
@@ -514,7 +514,7 @@ class TestNewUpdate(BasePyTestCase):
 
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
-        assert re.search(r'https://host.org/search\?terms=.*\&amp;type=build\&amp;match=exact',
+        assert re.search(r'https://host\.org/search\?terms=.*\&amp;type=build\&amp;match=exact',
                          str(resp))
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})

@@ -1,0 +1,6 @@
+name: "Bodhi CodeQL config"
+
+query-filters:
+- exclude:
+    problem.severity:
+      - recommendation
