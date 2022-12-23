@@ -42,7 +42,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
 
       - name: Edit the path in the coverage files
         run: sed -i -e "s,<source>/bodhi,<source>$PWD," Coverage*/coverage.xml

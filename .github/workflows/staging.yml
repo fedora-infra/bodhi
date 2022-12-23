@@ -65,7 +65,7 @@ jobs:
         run: echo $KEYTAB | base64 --decode > bodhidev-bot.keytab
 
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
 
       - name: Build ${{matrix.module}} on Koji
         run: koji --keytab=bodhidev-bot.keytab --principal=bodhidev-bot@FEDORAPROJECT.ORG build --wait ${{ matrix.release }}-infra ${{ matrix.release }}-SRPMs/*${{matrix.module}}*.src.rpm
