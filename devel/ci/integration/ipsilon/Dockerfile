@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:34
+FROM fedora:latest
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/main/f/files/common/fedora-infra-tags.repo
 RUN dnf install -y ipsilon ipsilon-openid ipsilon-openidc ipsilon-authfas patch
 COPY devel/ci/integration/ipsilon/api.py /usr/lib/python3.9/site-packages/ipsilon/providers/openid/extensions/api.py

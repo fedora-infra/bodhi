@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:34
+FROM fedora:latest
 LABEL \
   name="resultsdb" \
   vendor="Fedora Infrastructure" \
