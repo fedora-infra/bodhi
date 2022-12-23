@@ -87,7 +87,7 @@ jobs:
         run: devel/ci/bodhi-ci unit -r ${{ matrix.release }} -m ${{matrix.module}}
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Coverage for ${{ matrix.module }} on ${{ matrix.release }}
           path: test_results/${{ matrix.release }}-unit/${{ matrix.module }}/coverage.xml
@@ -127,7 +127,7 @@ jobs:
         run: devel/ci/bodhi-ci rpm -r ${{ matrix.release }}
 
       - name: Upload built rpms
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.release }} RPMs
           path: |
