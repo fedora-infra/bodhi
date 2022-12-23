@@ -1,8 +1,9 @@
 FROM fedora:latest
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/main/f/files/common/fedora-infra-tags.repo
-RUN dnf install -y ipsilon ipsilon-openid ipsilon-openidc ipsilon-authfas patch
-COPY devel/ci/integration/ipsilon/api.py /usr/lib/python3.9/site-packages/ipsilon/providers/openid/extensions/api.py
-RUN ipsilon-server-install --root-instance --secure no --testauth yes --openid yes --fas yes --hostname id.dev.fedoraproject.org --openid-extensions "insecureAPI,Teams,CLAs,Simple Registration"
+RUN dnf install -y ipsilon ipsilon-openid ipsilon-openidc patch git
+RUN git clone https://pagure.io/fedora-infra/ipsilon-fedora.git /opt/ipsilon-fedora
+RUN cd /opt/ipsilon-fedora && ./install.sh
+RUN ipsilon-server-install --root-instance --secure no --testauth yes --openid yes --openidc yes --hostname id.dev.fedoraproject.org --openid-extensions "insecureAPI,Teams,CLAs,Simple Registration"
 RUN sscg \
     --ca-file /etc/pki/tls/certs/localhost-ca.crt \
     --cert-file /etc/pki/tls/certs/localhost.crt \
