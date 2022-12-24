@@ -25,7 +25,7 @@
       - pcaro-hermit-fonts
       - pcp-system-tools
       - pre-commit
-      - poetry
+      #- poetry
       - postgresql-devel
       - postgresql-server
       - python3-alembic
@@ -127,6 +127,11 @@
 - name: pip install jinja2-cli
   pip:
       name: jinja2-cli
+
+# The version packaged in Fedora 37 is not compatible with lockfile
+- name: pip install "poetry>=1.2"
+  pip:
+      name: "poetry>=1.2"
 
 - name: Fake a pungi install
   file:
