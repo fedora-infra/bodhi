@@ -90,7 +90,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 name = "beautifulsoup4"
 version = "4.11.1"
 description = "Screen-scraping library"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6.0"
 
@@ -422,7 +422,7 @@ stevedore = ">=3.0.0"
 
 [[package]]
 name = "exceptiongroup"
-version = "1.0.4"
+version = "1.1.0"
 description = "Backport of PEP 654 (exception groups)"
 category = "dev"
 optional = false
@@ -635,14 +635,6 @@ pyrsistent = ">=0.14.0,<0.17.0 || >0.17.0,<0.17.1 || >0.17.1,<0.17.2 || >0.17.2"
 [package.extras]
 format = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3987", "uri-template", "webcolors (>=1.11)"]
 format-nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-validator", "rfc3986-validator (>0.1.0)", "uri-template", "webcolors (>=1.11)"]
-
-[[package]]
-name = "kitchen"
-version = "1.2.6"
-description = "Kitchen contains a cornucopia of useful code"
-category = "main"
-optional = false
-python-versions = "*"
 
 [[package]]
 name = "koji"
@@ -950,6 +942,18 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "pymediawiki"
+version = "0.7.2"
+description = "Wikipedia and MediaWiki API wrapper for Python"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+beautifulsoup4 = "*"
+requests = ">=2.0.0,<3.0.0"
+
+[[package]]
 name = "pyopenssl"
 version = "22.1.0"
 description = "Python wrapper module around the OpenSSL library"
@@ -1242,17 +1246,6 @@ testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8 (<5)", "flake8-202
 testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
-name = "simplemediawiki"
-version = "1.2.0b2"
-description = "Extremely low-level wrapper to the MediaWiki API"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-kitchen = "*"
-
-[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -1264,7 +1257,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 name = "soupsieve"
 version = "2.3.2.post1"
 description = "A modern CSS selector implementation for Beautiful Soup."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -1542,7 +1535,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8"
-content-hash = "1da9f59dd79c41eb5c1bbaf7c8597d883451949c41b26da8cd3395a254f4c243"
+content-hash = "7d411482cb72691ae16550f6bbf87c2e3884b6f51ed7eb6ff2ea885559baf7b4"
 
 [metadata.files]
 alembic = [
@@ -1805,8 +1798,8 @@ diff-cover = [
     {file = "dogpile.cache-1.1.8.tar.gz", hash = "sha256:d844e8bb638cc4f544a4c89a834dfd36fe935400b71a16cbd744ebdfb720fd4e"},
 ]
 exceptiongroup = [
-    {file = "exceptiongroup-1.0.4-py3-none-any.whl", hash = "sha256:542adf9dea4055530d6e1279602fa5cb11dab2395fa650b8674eaec35fc4a828"},
-    {file = "exceptiongroup-1.0.4.tar.gz", hash = "sha256:bd14967b79cd9bdb54d97323216f8fdf533e278df937aa2a90089e7d6e06e5ec"},
+    {file = "exceptiongroup-1.1.0-py3-none-any.whl", hash = "sha256:327cbda3da756e2de031a3107b81ab7b3770a602c4d16ca618298c526f4bec1e"},
+    {file = "exceptiongroup-1.1.0.tar.gz", hash = "sha256:bcb67d800a4497e1b404c2dd44fca47d3b7a5e5433dbab67f96c1a685cdfdf23"},
 ]
 fedora-messaging = [
     {file = "fedora_messaging-3.2.0-py3-none-any.whl", hash = "sha256:57f3667933b08d78c525df36bd8bd43682804814768d91e35c9e89f0aaa86900"},
@@ -1946,9 +1939,6 @@ jinja2-pluralize = [
 jsonschema = [
     {file = "jsonschema-4.17.3-py3-none-any.whl", hash = "sha256:a870ad254da1a8ca84b6a2905cac29d265f805acc57af304784962a2aa6508f6"},
     {file = "jsonschema-4.17.3.tar.gz", hash = "sha256:0f864437ab8b6076ba6707453ef8f98a6a0d512a80e93f8abdb676f737ecb60d"},
-]
-kitchen = [
-    {file = "kitchen-1.2.6.tar.gz", hash = "sha256:b84cf582f1bd1556b60ebc7370b9d331eb9247b6b070ce89dfe959cba2c0b03c"},
 ]
 koji = [
     {file = "koji-1.31.0-py2-none-any.whl", hash = "sha256:3debce3a4a41e3dacb3962aaf149f3f7dabfbc04e321ae171e10c768ce311ee2"},
@@ -2215,6 +2205,10 @@ pygments = [
 pylibravatar = [
     {file = "pyLibravatar-1.7.tar.gz", hash = "sha256:f239caae2aed0e2dcdd695ffcde4572958c001b4bdc464a9291d1b0cae0caa8d"},
 ]
+pymediawiki = [
+    {file = "pymediawiki-0.7.2-py3-none-any.whl", hash = "sha256:4b29ab6b2a5004c54777a61af169389ca56e54ee43e9af91bfc4e06b3d0ec867"},
+    {file = "pymediawiki-0.7.2.tar.gz", hash = "sha256:e0a8ed2929d6051c99807ae7502c1d2b04b1f457ed910dbebc9ba9b5f9d6a942"},
+]
 pyopenssl = [
     {file = "pyOpenSSL-22.1.0-py3-none-any.whl", hash = "sha256:b28437c9773bb6c6958628cf9c3bebe585de661dba6f63df17111966363dd15e"},
     {file = "pyOpenSSL-22.1.0.tar.gz", hash = "sha256:7a83b7b272dd595222d672f5ce29aa030f1fb837630ef229f62e72e395ce8968"},
@@ -2351,9 +2345,6 @@ service-identity = [
 setuptools = [
     {file = "setuptools-65.6.3-py3-none-any.whl", hash = "sha256:57f6f22bde4e042978bcd50176fdb381d7c21a9efa4041202288d3737a0c6a54"},
     {file = "setuptools-65.6.3.tar.gz", hash = "sha256:a7620757bf984b58deaf32fc8a4577a9bbc0850cf92c20e1ce41c38c19e5fb75"},
-]
-simplemediawiki = [
-    {file = "simplemediawiki-1.2.0b2.tar.gz", hash = "sha256:e9ea9ae7599f53cea70c49aa20034c711dbb1f26bfbcce40c1f01c65458533b8"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
