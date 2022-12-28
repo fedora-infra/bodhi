@@ -34,7 +34,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.8, <4"
 fedora-messaging = ">=3.0.0"
 
 [tool.poetry.dev-dependencies]
