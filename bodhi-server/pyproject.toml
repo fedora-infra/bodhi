@@ -76,7 +76,7 @@ responses = ">=0.10.15"
 webtest = ">=2.0.35"
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.8, <4"
 alembic = ">=1.5.5"
 arrow = ">=0.17.0"
 authlib = ">=0.15.4"
