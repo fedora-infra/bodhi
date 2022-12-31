@@ -10,7 +10,8 @@ RUN yum install -y \
     rabbitmq-server \
     fedora-messaging \
     hostname \
-    /bin/ps
+    /bin/ps \
+    util-linux
 
 RUN rabbitmq-plugins --offline enable rabbitmq_management && rm -f /root/.erlang.cookie
 
