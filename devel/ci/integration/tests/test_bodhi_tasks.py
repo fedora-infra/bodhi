@@ -129,7 +129,7 @@ def test_update_edit(
     update_alias = find_update()
     bug_id = find_bug()
     # Remove previous task results
-    # bodhi_container.execute(["find", "/srv/celery-results", "-type", "f", "-delete"])
+    bodhi_container.execute(["find", "/srv/celery-results", "-type", "f", "-delete"])
     result = run_cli(
         bodhi_container,
         [
@@ -164,5 +164,9 @@ def test_update_edit(
         assert len(results) > 0
         result = results[-1]
         time.sleep(1)
-    assert result["status"] == "SUCCESS", result
+    try:
+        assert result["status"] == "SUCCESS", result
+    except AssertionError as ex:
+        print(result["traceback"])
+        raise ex
     assert result["traceback"] is None
