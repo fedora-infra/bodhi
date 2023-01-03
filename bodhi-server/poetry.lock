@@ -491,11 +491,11 @@ decorator = "*"
 
 [[package]]
 name = "hupper"
-version = "1.10.3"
+version = "1.11"
 description = "Integrated process monitor for developing and reloading daemons."
 category = "main"
 optional = false
-python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
+python-versions = ">=3.7"
 
 [package.extras]
 docs = ["Sphinx", "pylons-sphinx-themes", "watchdog"]
@@ -1850,8 +1850,8 @@ gssapi = [
     {file = "gssapi-1.8.2.tar.gz", hash = "sha256:b78e0a021cc91158660e4c5cc9263e07c719346c35a9c0f66725e914b235c89a"},
 ]
 hupper = [
-    {file = "hupper-1.10.3-py2.py3-none-any.whl", hash = "sha256:f683850d62598c02faf3c7cdaaa727d8cbe3c5a2497a5737a8358386903b2601"},
-    {file = "hupper-1.10.3.tar.gz", hash = "sha256:cd6f51b72c7587bc9bce8a65ecd025a1e95f1b03284519bfe91284d010316cd9"},
+    {file = "hupper-1.11-py3-none-any.whl", hash = "sha256:2ae554e0fb7daf4cbd37a8c7e0419f6974614095a41a4529ad35fe3067b408a4"},
+    {file = "hupper-1.11.tar.gz", hash = "sha256:15c11bd775d8f98095b745b4e658a17c25c86e3b73275cae896ac1c8d533cb18"},
 ]
 hyperlink = [
     {file = "hyperlink-21.0.0-py2.py3-none-any.whl", hash = "sha256:e6b14c37ecb73e89c77d78cdb4c2cc8f3fb59a885c5b3f819ff4ed80f25af1b4"},
