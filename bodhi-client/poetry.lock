@@ -472,7 +472,7 @@ python-versions = "*"
 
 [[package]]
 name = "sphinx"
-version = "6.0.0"
+version = "6.1.1"
 description = "Python documentation generator"
 category = "dev"
 optional = false
@@ -487,7 +487,7 @@ imagesize = ">=1.3"
 importlib-metadata = {version = ">=4.8", markers = "python_version < \"3.10\""}
 Jinja2 = ">=3.0"
 packaging = ">=21.0"
-Pygments = ">=2.12"
+Pygments = ">=2.13"
 requests = ">=2.25.0"
 snowballstemmer = ">=2.0"
 sphinxcontrib-applehelp = "*"
@@ -499,7 +499,7 @@ sphinxcontrib-serializinghtml = ">=1.1.5"
 
 [package.extras]
 docs = ["sphinxcontrib-websupport"]
-lint = ["docutils-stubs", "flake8 (>=3.5.0)", "flake8-bugbear", "flake8-comprehensions", "flake8-simplify", "isort", "mypy (>=0.990)", "sphinx-lint", "types-requests"]
+lint = ["docutils-stubs", "flake8 (>=3.5.0)", "flake8-simplify", "isort", "mypy (>=0.990)", "ruff", "sphinx-lint", "types-requests"]
 test = ["cython", "html5lib", "pytest (>=4.6)"]
 
 [[package]]
@@ -983,8 +983,8 @@ snowballstemmer = [
     {file = "snowballstemmer-2.2.0.tar.gz", hash = "sha256:09b16deb8547d3412ad7b590689584cd0fe25ec8db3be37788be3810cbf19cb1"},
 ]
 sphinx = [
-    {file = "Sphinx-6.0.0.tar.gz", hash = "sha256:58c140ecd9aa0abbc8ff6da48a266648eac9e5bfc8e49576efd2979bf46f5961"},
-    {file = "sphinx-6.0.0-py3-none-any.whl", hash = "sha256:c2aeebfcb0e7474f5a820eac6177c7492b1d3c9c535aa21d5ae77cab2f3600e4"},
+    {file = "Sphinx-6.1.1.tar.gz", hash = "sha256:6a8e43b5030b9870d7402fb56f5efeebb83b76d65bf1c567a89b555340e127b2"},
+    {file = "sphinx-6.1.1-py3-none-any.whl", hash = "sha256:5818c36a250f60d2767f2cee14247b7f39882d97f582e3696958000b65665c5b"},
 ]
 sphinxcontrib-applehelp = [
     {file = "sphinxcontrib-applehelp-1.0.2.tar.gz", hash = "sha256:a072735ec80e7675e3f432fcae8610ecf509c5f1869d17e2eecff44389cdbc58"},
