@@ -86,7 +86,7 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
 
         update = models.Update.query.first()
         buildsys.get_session.assert_called_once()
-        assert update.builds[0].signed == False
+        assert update.builds[0].signed is False
 
     @patch('bodhi.server.tasks.check_signed_builds.buildsys')
     @patch('bodhi.server.tasks.check_signed_builds.log.debug')
@@ -128,7 +128,7 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
 
         update = models.Update.query.first()
         buildsys.get_session.assert_called_once()
-        assert update.builds[0].signed == False
+        assert update.builds[0].signed is False
         debug.assert_called_once_with('bodhi-2.0-1.fc17 is stuck waiting to be signed, '
                                       'let\'s try again')
         buildsys.get_session.return_value.untagBuild.assert_called_once_with(
@@ -160,7 +160,7 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
 
         update = models.Update.query.first()
         buildsys.get_session.assert_called_once()
-        assert update.builds[0].signed == False
+        assert update.builds[0].signed is False
         debug.assert_called_once_with('Oh, no! We\'ve never sent bodhi-2.0-1.fc17 for signing, '
                                       'let\'s fix it')
         buildsys.get_session.return_value.tagBuild.assert_called_once_with(
@@ -189,7 +189,7 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         update = models.Update.query.first()
         buildsys.get_session.assert_called_once()
         debug.assert_called_once_with('Changing signed status of bodhi-2.0-1.fc17')
-        assert update.builds[0].signed == True
+        assert update.builds[0].signed is True
 
     @patch('bodhi.server.tasks.check_signed_builds.buildsys')
     @patch('bodhi.server.tasks.check_signed_builds.log.debug')

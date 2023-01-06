@@ -1965,7 +1965,7 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            assert up.locked == False
+            assert up.locked is False
             assert up.status == UpdateStatus.stable
 
     @mock.patch(**mock_taskotron_results)

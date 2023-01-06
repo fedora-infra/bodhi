@@ -6056,7 +6056,7 @@ class TestUpdatesService(BasePyTestCase):
 
         assert up['title'] == 'bodhi-2.0.0-3.fc17'
         assert up['karma'] == 0
-        assert up['date_testing'] == None
+        assert up['date_testing'] is None
         update = Update.get(update.alias)
         update.status = UpdateStatus.testing
         self.date_testing = datetime.utcnow() + timedelta(days=7)

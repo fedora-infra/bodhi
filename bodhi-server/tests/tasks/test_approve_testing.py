@@ -361,7 +361,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         update = self.db.query(models.Update).all()[0]
-        assert update.critpath == True
+        assert update.critpath is True
         assert update.mandatory_days_in_testing == 14
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
@@ -881,7 +881,7 @@ class TestMain(BaseTaskTestCase):
 
         assert update.request is None
         assert update.date_approved is None
-        assert update.autotime == False
+        assert update.autotime is False
 
     @patch("bodhi.server.buildsys.DevBuildsys.getLatestBuilds", return_value=[{
         'creation_time': '2007-08-25 19:38:29.422344'}])
@@ -951,7 +951,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         assert update.has_stable_comment
-        assert update.request == None
+        assert update.request is None
         assert update.status == models.UpdateStatus.testing
 
         update.date_testing = datetime.utcnow() - timedelta(days=10)
@@ -988,7 +988,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
 
         assert update.has_stable_comment
-        assert update.request == None
+        assert update.request is None
         assert update.status == models.UpdateStatus.testing
 
         update.date_testing = datetime.utcnow() - timedelta(days=10)

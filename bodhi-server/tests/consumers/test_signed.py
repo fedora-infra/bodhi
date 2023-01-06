@@ -205,7 +205,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         build.update = update
 
         self.handler(self.sample_side_tag_message_2)
-        assert build.signed == True
+        assert build.signed is True
 
     @mock.patch('bodhi.server.consumers.signed.Build')
     def test_consume_from_tag_not_signed(self, mock_build_model):

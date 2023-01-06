@@ -1005,7 +1005,7 @@ class TestValidateFromTag(BasePyTestCase):
 
         validators.validate_from_tag(self.request)
 
-        assert self.request.validated['builds_from_tag'] == False
+        assert self.request.validated['builds_from_tag'] is False
         assert self.request.validated['sidetag_owner'] == 'dudemcpants'
         assert not self.request.errors
 
@@ -1016,7 +1016,7 @@ class TestValidateFromTag(BasePyTestCase):
         filled after calling the validator."""
         validators.validate_from_tag(self.request)
 
-        assert self.request.validated['builds_from_tag'] == True
+        assert self.request.validated['builds_from_tag'] is True
         assert self.request.validated['sidetag_owner'] == 'dudemcpants'
         assert len(self.request.validated['builds'])
         assert not self.request.errors

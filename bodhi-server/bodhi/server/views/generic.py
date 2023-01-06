@@ -111,7 +111,7 @@ def get_testing_counts(critpath, security):
 
     if critpath:
         query = query.filter(
-            models.Update.critpath == True)
+            models.Update.critpath.is_(True))
     if security:
         query = query.filter(
             models.Update.type == models.UpdateType.security)

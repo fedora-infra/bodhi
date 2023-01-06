@@ -543,7 +543,7 @@ def markup(context, text, bodhi=True):
     ]
 
     extensions = ['markdown.extensions.fenced_code', ]
-    if bodhi == True:
+    if bodhi is True:
         extensions.append(ffmarkdown.BodhiExtension())
     markdown_text = markdown.markdown(text, extensions=extensions)
 
@@ -1383,7 +1383,7 @@ def eol_releases(days: int = 30) -> list:
         Release.state.not_in(
             [ReleaseState.disabled, ReleaseState.archived])
     ).filter(
-        Release.eol != None
+        Release.eol.is_not(None)
     ).order_by(
         Release.eol.asc()
     )

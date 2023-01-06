@@ -580,7 +580,7 @@ class TestNew:
                     'autokarma': 'True', 'suggest': 'unspecified', 'notes': 'Initial Release',
                     'request': 'testing', 'bugs': '123456,43212',
                     'unstable_karma': '-3', 'type_': 'bugfix', 'type': 'bugfix',
-                    'type': 'bugfix', 'severity': 'unspecified', 'display_name': 'fake update name'
+                    'severity': 'unspecified', 'display_name': 'fake update name'
                 }
             ),
             mock.call(
