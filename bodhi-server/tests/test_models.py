@@ -375,7 +375,7 @@ class TestComment(BasePyTestCase):
         For history about why this is important, see
         https://github.com/fedora-infra/bodhi/issues/949.
         """
-        assert model.Comment.__table__.columns['text'].nullable == False
+        assert model.Comment.__table__.columns['text'].nullable is False
 
 
 class TestDeclEnum:
@@ -3278,10 +3278,10 @@ class TestUpdate(ModelTest):
         assert [c[1][0] for c in close.mock_calls] == [1, 2]
         assert all(
             ['to the Fedora 11 stable repository' in c[2]['comment']
-                for c in close.mock_calls]) == True
+                for c in close.mock_calls]) is True
         assert all(
             [c[2]['versions']['TurboGears'] == 'TurboGears-1.0.8-3.fc11'
-                for c in close.mock_calls]) == True
+                for c in close.mock_calls]) is True
 
     @mock.patch('bodhi.server.models.bugs.bugtracker.close')
     @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
@@ -3301,7 +3301,7 @@ class TestUpdate(ModelTest):
         assert [c[1][0] for c in comment.mock_calls] == [1, 2]
         assert all(
             ['pushed to the Fedora 11 stable repository' in c[1][1]
-                for c in comment.mock_calls]) == True
+                for c in comment.mock_calls]) is True
         # No bugs should have been closed
         assert close.call_count == 0
 

@@ -182,7 +182,7 @@ class TestMain(base.BasePyTestCase):
         assert policy.callback == server.groupfinder
         assert policy.cookie.hashalg == 'sha512'
         assert policy.cookie.max_age == 10
-        assert policy.cookie.secure == True
+        assert policy.cookie.secure is True
         assert policy.cookie.secret == 'hunter2'
         assert policy.cookie.timeout == 10
         set_authentication_policy.assert_called_once_with(policy)
@@ -204,7 +204,7 @@ class TestMain(base.BasePyTestCase):
         assert policy.callback == server.groupfinder
         assert policy.cookie.hashalg == 'sha512'
         assert policy.cookie.max_age == 86400
-        assert policy.cookie.secure == True
+        assert policy.cookie.secure is True
         assert policy.cookie.secret == 'hunter2'
         assert policy.cookie.timeout == 86400
         set_authentication_policy.assert_called_once_with(policy)

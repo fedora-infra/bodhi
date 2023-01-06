@@ -404,7 +404,7 @@ def save_release(request):
                     updates = request.db.query(Update).filter(Update.release_id == r.id).filter(
                         Update.request == UpdateRequest.stable
                     ).filter(
-                        Update.locked == False
+                        Update.locked.is_(False)
                     ).all()
                     for u in updates:
                         u.comment(

@@ -1586,7 +1586,7 @@ class TestParseFile(BodhiClientTestCase):
 
         assert len(updates) == 1
         assert len(updates[0]) == 13
-        assert updates[0]['close_bugs'] == True
+        assert updates[0]['close_bugs'] is True
         assert updates[0]['display_name'] == 'fake update name'
         assert updates[0]['unstable_karma'] == '-3'
         assert updates[0]['severity'] == 'unspecified'

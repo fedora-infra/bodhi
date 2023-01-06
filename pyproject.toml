@@ -57,7 +57,7 @@ testpaths = ["tests"]
 
 [tool.ruff]
 extend-exclude = [
-    'bodhi-ci',
+    'bodhi-ci'
 ]
 line-length = 100
 

@@ -1530,7 +1530,7 @@ class TestPush(base.BasePyTestCase):
 
         wanted_warn = f'Warning: {python_nose.get_title()} has unsigned builds and has been skipped'
         assert wanted_warn in result.output
-        assert result.exception == None
+        assert result.exception is None
         assert result.exit_code == 0
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
@@ -1571,7 +1571,7 @@ class TestPush(base.BasePyTestCase):
                         ],
                     )
 
-        assert result.exception == None
+        assert result.exception is None
         assert result.exit_code == 0
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update

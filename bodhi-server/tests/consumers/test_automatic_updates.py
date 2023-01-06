@@ -101,13 +101,13 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         assert update is not None
         assert update.type == UpdateType.newpackage
         assert update.status == UpdateStatus.pending
-        assert update.autokarma == False
+        assert update.autokarma is False
         assert update.test_gating_status is None
         assert update.builds[0].release == self.release
         if critpath:
-            assert update.critpath == True
+            assert update.critpath is True
         else:
-            assert update.critpath == False
+            assert update.critpath is False
         if critpath == "groups":
             assert update.critpath_groups == "core"
 

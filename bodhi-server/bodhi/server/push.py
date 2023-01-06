@@ -247,7 +247,7 @@ def _filter_releases(session, query, releases=None,
     _releases = []
 
     # Filter only releases composed by Bodhi.
-    releases_query = session.query(Release.name).filter(Release.composed_by_bodhi == True)
+    releases_query = session.query(Release.name).filter(Release.composed_by_bodhi.is_(True))
 
     releases_query = releases_query.filter(Release.state.in_(states))
 
