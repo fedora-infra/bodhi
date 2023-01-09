@@ -472,7 +472,7 @@ python-versions = "*"
 
 [[package]]
 name = "sphinx"
-version = "6.1.1"
+version = "6.1.2"
 description = "Python documentation generator"
 category = "dev"
 optional = false
@@ -983,8 +983,8 @@ snowballstemmer = [
     {file = "snowballstemmer-2.2.0.tar.gz", hash = "sha256:09b16deb8547d3412ad7b590689584cd0fe25ec8db3be37788be3810cbf19cb1"},
 ]
 sphinx = [
-    {file = "Sphinx-6.1.1.tar.gz", hash = "sha256:6a8e43b5030b9870d7402fb56f5efeebb83b76d65bf1c567a89b555340e127b2"},
-    {file = "sphinx-6.1.1-py3-none-any.whl", hash = "sha256:5818c36a250f60d2767f2cee14247b7f39882d97f582e3696958000b65665c5b"},
+    {file = "Sphinx-6.1.2.tar.gz", hash = "sha256:19678b91c1f4e2025cfe3bfcbf473ffa3b086651bbdd43d6816e16e4cc58a8b4"},
+    {file = "sphinx-6.1.2-py3-none-any.whl", hash = "sha256:2add7555f702f3e70654e04ac352d14974c8deb4a1e0785860914cd1269688f9"},
 ]
 sphinxcontrib-applehelp = [
     {file = "sphinxcontrib.applehelp-1.0.3-py3-none-any.whl", hash = "sha256:ba0f2a22e6eeada8da6428d0d520215ee8864253f32facf958cca81e426f661d"},
