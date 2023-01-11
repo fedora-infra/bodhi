@@ -45,6 +45,7 @@ class TestUpdateMessage:
                 "was ejected from the test_repo mash. Reason: \"some reason\""
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-2b055f8870",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -92,6 +93,7 @@ class TestUpdateMessage:
                 "completed push to stable"
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -131,6 +133,7 @@ class TestUpdateMessage:
                 "completed push to testing"
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -170,6 +173,7 @@ class TestUpdateMessage:
                 "is ready for testing"
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -228,6 +232,7 @@ class TestUpdateMessage:
                 "is ready for testing"
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -293,6 +298,7 @@ class TestUpdateMessage:
             "topic": "bodhi.update.request.testing",
             "summary": "lmacken submitted FEDORA-2019-f1ca3c00e5 to testing",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-f1ca3c00e5",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -407,6 +413,7 @@ class TestUpdateMessage:
             "topic": "bodhi.update.request.unpush",
             "summary": "ralph unpushed FEDORA-2019-8da6360454",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-8da6360454",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -439,6 +446,7 @@ class TestUpdateMessage:
             "topic": "bodhi.update.request.obsolete",
             "summary": "lmacken obsoleted FEDORA-2019-d64d0caab3",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -472,6 +480,7 @@ class TestUpdateMessage:
             "topic": "bodhi.update.request.stable",
             "summary": "lmacken submitted FEDORA-2019-d64d0caab3 to stable",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -504,6 +513,7 @@ class TestUpdateMessage:
             "topic": "bodhi.update.request.revoke",
             "summary": "lmacken revoked FEDORA-2019-d64d0caab3",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -536,6 +546,7 @@ class TestUpdateMessage:
             "topic": "bodhi.update.request.testing",
             "summary": "eclipseo submitted FEDORA-2019-f1ca3c00e5 to testing",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-f1ca3c00e5",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -571,6 +582,7 @@ class TestUpdateMessage:
             "topic": "bodhi.update.requirements_met.stable",
             "summary": "FEDORA-2019-f1ca3c00e5 has met stable testing requirements",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-f1ca3c00e5",
             "agent_avatar": None,
             "usernames": ["eclipseo"],
@@ -606,6 +618,7 @@ class TestUpdateMessage:
                 "Nothing from this e-mail should match the regex: test@example.com"
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2019-f2d195dada",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -649,6 +662,7 @@ class TestUpdateMessage:
             "topic": "bodhi.update.edit",
             "summary": "ralph edited FEDORA-2019-7dbbb74a13",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-7dbbb74a13",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -745,6 +759,7 @@ class TestUpdateMessage:
             "topic": "bodhi.update.karma.threshold.reach",
             "summary": "FEDORA-EPEL-2015-0238 reached the stable karma threshold",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2015-0238",
             "agent_avatar": None,
             "usernames": ['ralph'],
