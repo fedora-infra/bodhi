@@ -886,7 +886,7 @@ def test_get_overrides_rss(bodhi_container, db_container):
             {
                 "tag": "link",
                 "attrib": {},
-                "text": f"http://{bodhi_ip}:8080/overrides/{override['nvr']}"
+                "text": f"http://{bodhi_ip}:8080/overrides/{quote(override['nvr'])}"
             },
             {"tag": "description", "attrib": {}, "text": override["notes"]},
             {"tag": "pubDate", "attrib": {}, "text": override["submission_date"]},
