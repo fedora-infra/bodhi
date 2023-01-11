@@ -50,6 +50,16 @@ class BodhiMessage(message.Message):
         return "https://apps.fedoraproject.org/img/icons/bodhi.png"
 
     @property
+    def app_name(self) -> str:
+        """
+        Return the name of the application that generated the message.
+
+        Returns:
+            the name of the application (bodhi)
+        """
+        return "bodhi"
+
+    @property
     def agent(self) -> typing.Union[str, None]:
         """Return the agent's username for this message.
 

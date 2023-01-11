@@ -30,6 +30,7 @@ class TestErrataMessage:
             "summary": "This is the subject of the errata email",
             "__str__": "This is the body of the errata email",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-4cc36fafbb",
             "agent_avatar": (
                 'https://seccdn.libravatar.org/avatar/'
