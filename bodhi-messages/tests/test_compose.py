@@ -40,7 +40,7 @@ class TestComposeMessage:
             "usernames": ['mohanboddu'],
             "packages": [],
             'repo': 'test_repo',
-            'agent': 'mohanboddu'
+            'agent_name': 'mohanboddu'
         }
         msg = ComposeComposingV1(
             body={
@@ -60,7 +60,7 @@ class TestComposeMessage:
             "url": None,
             "usernames": ['mohanboddu'],
             "packages": [],
-            'agent': 'mohanboddu'
+            'agent_name': 'mohanboddu'
         }
         msg = ComposeStartV1(body={'agent': 'mohanboddu'})
         check_message(msg, expected)
@@ -75,7 +75,7 @@ class TestComposeMessage:
             "url": None,
             "usernames": ['mohanboddu'],
             "packages": [],
-            'agent': 'mohanboddu',
+            'agent_name': 'mohanboddu',
             'repo': 'test_repo',
             'success': False,
             'ctype': 'container',
@@ -100,7 +100,7 @@ class TestComposeMessage:
             "url": None,
             "usernames": ['mohanboddu'],
             "packages": [],
-            'agent': 'mohanboddu',
+            'agent_name': 'mohanboddu',
             'repo': 'test_repo',
             'success': True,
             'ctype': 'container',
@@ -124,7 +124,7 @@ class TestComposeMessage:
             "url": None,
             "usernames": ['mohanboddu'],
             "packages": [],
-            'agent': 'mohanboddu',
+            'agent_name': 'mohanboddu',
             'repo': 'test_repo'
         }
         msg = RepoDoneV1(
@@ -144,7 +144,7 @@ class TestComposeMessage:
             "url": None,
             "usernames": ['mohanboddu'],
             "packages": [],
-            'agent': 'mohanboddu',
+            'agent_name': 'mohanboddu',
             'repo': 'test_repo'
         }
         msg = ComposeSyncWaitV1(
@@ -164,7 +164,7 @@ class TestComposeMessage:
             "url": None,
             "usernames": ['mohanboddu'],
             "packages": [],
-            'agent': 'mohanboddu',
+            'agent_name': 'mohanboddu',
             'repo': 'test_repo'
         }
         msg = ComposeSyncDoneV1(

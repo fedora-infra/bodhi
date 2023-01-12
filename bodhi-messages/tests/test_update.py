@@ -633,7 +633,7 @@ class TestUpdateMessage:
                 'FEDORA-EPEL-2019-f2d195dada',
                 [BuildV1("abrt-addon-python3-2.1.11-50.el7"), BuildV1("asciinema-1.4.0-2.el7")],
                 UserV1('tdawson'), 'pending', 'testing', ReleaseV1('F29')),
-            'agent': 'ralph',
+            'agent_name': 'ralph',
         }
         msg = UpdateCommentV1(
             body={

@@ -69,7 +69,7 @@ class BuildrootOverrideMessage(BodhiMessage):
         return [self.build.package]
 
     @property
-    def agent(self) -> str:
+    def agent_name(self) -> str:
         """Return the agent's username for this message.
 
         Returns:
@@ -85,7 +85,7 @@ class BuildrootOverrideMessage(BodhiMessage):
         Returns:
             A list of affected usernames.
         """
-        return [self.agent]
+        return [self.agent_name]
 
 
 class BuildrootOverrideTagV1(BuildrootOverrideMessage):

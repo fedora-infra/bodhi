@@ -24,6 +24,7 @@ messages.
 import json
 import re
 import typing
+import warnings
 
 from fedora_messaging import message
 from fedora_messaging.schema_utils import user_avatar_url
@@ -66,6 +67,20 @@ class BodhiMessage(message.Message):
         Returns:
             The agent's username, or None if the body has no agent key.
         """
+        warnings.warn(
+            "agent property is deprecated, please use agent_name instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.agent_name
+
+    @property
+    def agent_name(self) -> typing.Union[str, None]:
+        """Return the agent's username for this message.
+
+        Returns:
+            The agent's username, or None if the body has no agent key.
+        """
         return self.body.get('agent', None)
 
     @property
@@ -76,7 +91,7 @@ class BodhiMessage(message.Message):
         Returns:
             The URL to the user's avatar, or None if username is None.
         """
-        username = self.agent
+        username = self.agent_name
         if username is None:
             return None
         return user_avatar_url(username)
@@ -108,8 +123,8 @@ class BodhiMessage(message.Message):
             A list of affected usernames.
         """
         users = []
-        if self.agent is not None:
-            users.append(self.agent)
+        if self.agent_name is not None:
+            users.append(self.agent_name)
 
         if 'comment' in self.body:
             text = self.body['comment']['text']

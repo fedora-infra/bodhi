@@ -37,7 +37,7 @@ class TestErrataMessage:
                 'a9bfa08eb2cdbfc3f0c22150b53985ea4489d288d9618b53b7d039c44e0f829d?s=64&d=retro'),
             "usernames": ['test_submitter'],
             "packages": ["tzdata"],
-            'agent': 'test_submitter',
+            'agent_name': 'test_submitter',
             'update': UpdateV1(
                 "FEDORA-2019-4cc36fafbb",
                 [BuildV1('tzdata-2014i-1.fc19')], UserV1('test_submitter'),
