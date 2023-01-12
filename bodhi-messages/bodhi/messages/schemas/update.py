@@ -82,6 +82,18 @@ class UpdateMessage(BodhiMessage):
         """Return a dictionary from the body representing an update."""
         return self.body['update']
 
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return self.summary
+
 
 class UpdateCommentV1(UpdateMessage):
     """Sent when a comment is made on an update."""
@@ -208,6 +220,23 @@ class UpdateCompleteStableV1(UpdateMessage):
             f"{self.update.user.name}'s {truncate(' '.join([b.nvr for b in self.update.builds]))} "
             f"bodhi update completed push to {self.update.status}")
 
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        new_line = "\n"
+        return (
+            f"{self.update.user.name}'s Bodhi update {self.update.alias}"
+            f"completed push to {self.update.status}\n"
+            f"Builds:\n"
+            f"{new_line.join([b.nvr for b in self.update.builds])} ")
+
 
 class UpdateCompleteTestingV1(UpdateMessage):
     """Sent when an update is available in the testing repository."""
@@ -242,6 +271,23 @@ class UpdateCompleteTestingV1(UpdateMessage):
         return (
             f"{self.update.user.name}'s {truncate(' '.join([b.nvr for b in self.update.builds]))} "
             f"bodhi update completed push to {self.update.status}")
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        new_line = "\n"
+        return (
+            f"{self.update.user.name}'s Bodhi update {self.update.alias}"
+            f"completed push to {self.update.status}\n"
+            f"Builds:\n"
+            f"{new_line.join([b.nvr for b in self.update.builds])} ")
 
 
 class UpdateEditV1(UpdateMessage):
@@ -297,6 +343,21 @@ class UpdateEditV1(UpdateMessage):
             A summary for this message.
         """
         return f"{self.agent_name} edited {self.update.alias}"
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return (
+            f"{self.agent_name} edited {self.update.alias} "
+            f"adding {len(self.body['new_bugs'])} new bugs"
+        )
 
 
 class UpdateEjectV1(UpdateMessage):
@@ -712,6 +773,22 @@ class UpdateReadyForTestingV1(BodhiMessage):
             f"{self.body['contact']['name']}'s "
             f"{truncate(' '.join([b['nvr'] for b in self.body['artifact']['builds']]))} "
             f"bodhi update is ready for testing")
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        new_line = "\n"
+        return (
+            f"{self.body['contact']['name']}'s Bodhi update is ready for testing\n"
+            f"Builds:\n"
+            f"{new_line.join([b['nvr'] for b in self.body['artifact']['builds']])} ")
 
     @property
     def url(self) -> str:

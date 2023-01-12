@@ -44,6 +44,10 @@ class TestUpdateMessage:
                 "mbooth's xstream-1.4.11.1-2.fc30 bodhi update "
                 "was ejected from the test_repo mash. Reason: \"some reason\""
             ),
+            "__str__": (
+                "mbooth's xstream-1.4.11.1-2.fc30 bodhi update "
+                "was ejected from the test_repo mash. Reason: \"some reason\""
+            ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-2b055f8870",
@@ -92,6 +96,10 @@ class TestUpdateMessage:
                 "eclipseo's golang-github-SAP-go-hdb-0.14.1-1.fc29 t… bodhi update "
                 "completed push to stable"
             ),
+            "__str__": (
+                "eclipseo's Bodhi update FEDORA-2019-d64d0caab3completed push to stable"
+                "\nBuilds:\ngolang-github-SAP-go-hdb-0.14.1-1.fc29\ntexworks-0.6.3-1.fc29 "
+            ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
@@ -132,6 +140,10 @@ class TestUpdateMessage:
                 "eclipseo's golang-github-SAP-go-hdb-0.14.1-1.fc29 t… bodhi update "
                 "completed push to testing"
             ),
+            "__str__": (
+                "eclipseo's Bodhi update FEDORA-2019-d64d0caab3completed push to testing"
+                "\nBuilds:\ngolang-github-SAP-go-hdb-0.14.1-1.fc29\ntexworks-0.6.3-1.fc29 "
+            ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
@@ -171,6 +183,10 @@ class TestUpdateMessage:
             "summary": (
                 "BaseOS CI's libselinux-2.8-6.fc29.x86_64 libsepol-2.… bodhi update "
                 "is ready for testing"
+            ),
+            "__str__": (
+                "BaseOS CI's Bodhi update is ready for testing\nBuilds:"
+                "\nlibselinux-2.8-6.fc29.x86_64\nlibsepol-2.8-3.fc29.x86_64 "
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
@@ -230,6 +246,10 @@ class TestUpdateMessage:
             "summary": (
                 "BaseOS CI's libselinux-2.8-6.fc29.x86_64 libsepol-2.… bodhi update "
                 "is ready for testing"
+            ),
+            "__str__": (
+                "BaseOS CI's Bodhi update is ready for testing\nBuilds:"
+                "\nlibselinux-2.8-6.fc29.x86_64\nlibsepol-2.8-3.fc29.x86_64 "
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
@@ -297,6 +317,7 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.testing",
             "summary": "lmacken submitted FEDORA-2019-f1ca3c00e5 to testing",
+            "__str__": "lmacken submitted FEDORA-2019-f1ca3c00e5 to testing",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-f1ca3c00e5",
@@ -412,6 +433,7 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.unpush",
             "summary": "ralph unpushed FEDORA-2019-8da6360454",
+            "__str__": "ralph unpushed FEDORA-2019-8da6360454",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-8da6360454",
@@ -445,6 +467,7 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.obsolete",
             "summary": "lmacken obsoleted FEDORA-2019-d64d0caab3",
+            "__str__": "lmacken obsoleted FEDORA-2019-d64d0caab3",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
@@ -479,6 +502,7 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.stable",
             "summary": "lmacken submitted FEDORA-2019-d64d0caab3 to stable",
+            "__str__": "lmacken submitted FEDORA-2019-d64d0caab3 to stable",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
@@ -512,6 +536,7 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.revoke",
             "summary": "lmacken revoked FEDORA-2019-d64d0caab3",
+            "__str__": "lmacken revoked FEDORA-2019-d64d0caab3",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
@@ -545,6 +570,7 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.testing",
             "summary": "eclipseo submitted FEDORA-2019-f1ca3c00e5 to testing",
+            "__str__": "eclipseo submitted FEDORA-2019-f1ca3c00e5 to testing",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-f1ca3c00e5",
@@ -581,6 +607,7 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.requirements_met.stable",
             "summary": "FEDORA-2019-f1ca3c00e5 has met stable testing requirements",
+            "__str__": "FEDORA-2019-f1ca3c00e5 has met stable testing requirements",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-f1ca3c00e5",
@@ -661,6 +688,7 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.edit",
             "summary": "ralph edited FEDORA-2019-7dbbb74a13",
+            "__str__": "ralph edited FEDORA-2019-7dbbb74a13 adding 2 new bugs",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-7dbbb74a13",
@@ -758,6 +786,7 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.karma.threshold.reach",
             "summary": "FEDORA-EPEL-2015-0238 reached the stable karma threshold",
+            "__str__": "FEDORA-EPEL-2015-0238 reached the stable karma threshold",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2015-0238",
