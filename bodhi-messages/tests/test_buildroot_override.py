@@ -28,6 +28,7 @@ class TestBuildrootOverrideMessage:
         expected = {
             "topic": "bodhi.buildroot_override.tag",
             "summary": "lmacken submitted a buildroot override for libxcrypt-4.4.4-2.fc28",
+            "__str__": "lmacken submitted a buildroot override for libxcrypt-4.4.4-2.fc28",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/overrides/libxcrypt-4.4.4-2.fc28",

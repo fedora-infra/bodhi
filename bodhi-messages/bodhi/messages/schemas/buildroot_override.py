@@ -49,6 +49,18 @@ class BuildrootOverrideMessage(BodhiMessage):
         """
         return self._summary_tmpl.format(submitter=self.submitter.name, build=self.build.nvr)
 
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return self.summary
+
     @property
     def url(self) -> str:
         """
