@@ -34,6 +34,7 @@ class TestComposeMessage:
         expected = {
             "topic": "bodhi.compose.composing",
             "summary": "bodhi composer started composing test_repo",
+            "__str__": "bodhi composer started composing test_repo",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
@@ -55,6 +56,7 @@ class TestComposeMessage:
         expected = {
             "topic": "bodhi.compose.start",
             "summary": "bodhi composer started a push",
+            "__str__": "bodhi composer started a push",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
@@ -70,6 +72,7 @@ class TestComposeMessage:
         expected = {
             "topic": "bodhi.compose.complete",
             "summary": "bodhi composer failed to compose test_repo",
+            "__str__": "bodhi composer failed to compose test_repo",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
@@ -95,6 +98,7 @@ class TestComposeMessage:
         expected = {
             "topic": "bodhi.compose.complete",
             "summary": "bodhi composer successfully composed test_repo",
+            "__str__": "bodhi composer successfully composed test_repo",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
@@ -119,6 +123,7 @@ class TestComposeMessage:
         expected = {
             "topic": "bodhi.repo.done",
             "summary": "bodhi composer is finished building test_repo",
+            "__str__": "bodhi composer is finished building test_repo",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
@@ -139,6 +144,10 @@ class TestComposeMessage:
                 "bodhi composer is waiting for test_repo "
                 "to hit the master mirror"
             ),
+            "__str__": (
+                "bodhi composer is waiting for test_repo "
+                "to hit the master mirror"
+            ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
@@ -156,6 +165,10 @@ class TestComposeMessage:
         expected = {
             "topic": "bodhi.compose.sync.done",
             "summary": (
+                "bodhi composer finished waiting for test_repo "
+                "to hit the master mirror"
+            ),
+            "__str__": (
                 "bodhi composer finished waiting for test_repo "
                 "to hit the master mirror"
             ),
