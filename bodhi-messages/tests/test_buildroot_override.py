@@ -40,7 +40,7 @@ class TestBuildrootOverrideMessage:
             "packages": ["libxcrypt"],
             'build': base.BuildV1('libxcrypt-4.4.4-2.fc28'),
             'submitter': base.UserV1('lmacken'),
-            'agent': 'lmacken'
+            'agent_name': 'lmacken'
         }
         msg = BuildrootOverrideTagV1(
             body={
@@ -68,7 +68,7 @@ class TestBuildrootOverrideMessage:
             "packages": ["libxcrypt"],
             'build': base.BuildV1('libxcrypt-4.4.4-2.fc28'),
             'submitter': base.UserV1('lmacken'),
-            'agent': 'lmacken'
+            'agent_name': 'lmacken'
         }
         msg = BuildrootOverrideUntagV1(
             body={
