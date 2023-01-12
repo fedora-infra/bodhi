@@ -86,6 +86,18 @@ class ComposeCompleteV1(BodhiMessage):
         else:
             return f"bodhi composer failed to compose {self.repo}"
 
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return self.summary
+
 
 class ComposeComposingV1(BodhiMessage):
     """Sent when the compose task composes."""
@@ -128,6 +140,18 @@ class ComposeComposingV1(BodhiMessage):
         """
         return f"bodhi composer started composing {self.repo}"
 
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return self.summary
+
 
 class ComposeStartV1(BodhiMessage):
     """Sent when a compose task starts."""
@@ -160,6 +184,18 @@ class ComposeStartV1(BodhiMessage):
             A summary for this message.
         """
         return "bodhi composer started a push"
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return self.summary
 
 
 class ComposeSyncDoneV1(BodhiMessage):
@@ -204,6 +240,18 @@ class ComposeSyncDoneV1(BodhiMessage):
         """
         return f"bodhi composer finished waiting for {self.repo} to hit the master mirror"
 
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return self.summary
+
 
 class ComposeSyncWaitV1(BodhiMessage):
     """Sent when a compose task sync is waiting."""
@@ -245,6 +293,18 @@ class ComposeSyncWaitV1(BodhiMessage):
             A summary for this message.
         """
         return f"bodhi composer is waiting for {self.repo} to hit the master mirror"
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return self.summary
 
 
 class RepoDoneV1(BodhiMessage):
@@ -291,3 +351,15 @@ class RepoDoneV1(BodhiMessage):
             A summary for this message.
         """
         return f"bodhi composer is finished building {self.repo}"
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return self.summary
