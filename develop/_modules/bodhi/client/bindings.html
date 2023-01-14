@@ -5,13 +5,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bodhi.client.bindings &#8212; bodhi 7.0.0 documentation</title>
+    <title>bodhi.client.bindings &#8212; bodhi 7.0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -104,14 +101,14 @@
 
 
 <div class="viewcode-block" id="BodhiClientException"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClientException">[docs]</a><span class="k">class</span> <span class="nc">BodhiClientException</span><span class="p">(</span><span class="n">RequestException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Used to indicate there was an error in the client.&quot;&quot;&quot;</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Used to indicate there was an error in the client.&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="UpdateNotFound"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.UpdateNotFound">[docs]</a><span class="k">class</span> <span class="nc">UpdateNotFound</span><span class="p">(</span><span class="n">BodhiClientException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Used to indicate that a referenced Update is not found on the server.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Used to indicate that a referenced Update is not found on the server.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="UpdateNotFound.__init__"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.UpdateNotFound.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the Exception.</span>
 
 <span class="sd">        Args:</span>
@@ -121,7 +118,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">update</span> <span class="o">=</span> <span class="n">update</span></div>
 
 <div class="viewcode-block" id="UpdateNotFound.__str__"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.UpdateNotFound.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human readable error message.</span>
 
 <span class="sd">        Returns:</span>
@@ -131,10 +128,10 @@
 
 
 <div class="viewcode-block" id="ComposeNotFound"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.ComposeNotFound">[docs]</a><span class="k">class</span> <span class="nc">ComposeNotFound</span><span class="p">(</span><span class="n">BodhiClientException</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Used to indicate that a referenced Compose is not found on the server.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Used to indicate that a referenced Compose is not found on the server.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ComposeNotFound.__init__"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.ComposeNotFound.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">release</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the Exception.</span>
 
 <span class="sd">        Args:</span>
@@ -146,7 +143,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">request</span></div>
 
 <div class="viewcode-block" id="ComposeNotFound.__str__"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.ComposeNotFound.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human readable error message.</span>
 
 <span class="sd">        Returns:</span>
@@ -156,7 +153,7 @@
 
 
 <div class="viewcode-block" id="errorhandled"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.errorhandled">[docs]</a><span class="k">def</span> <span class="nf">errorhandled</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Raise exceptions on failure. Used as a decorator for BodhiClient methods.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raise exceptions on failure. Used as a decorator for BodhiClient methods.&quot;&quot;&quot;</span>
 
     <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">:</span>
@@ -185,7 +182,7 @@
 
 
 <span class="k">def</span> <span class="nf">_days_since</span><span class="p">(</span><span class="n">data_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return number of days since the datetime passed as input in the form &#39;%Y-%m-%d %H:%M:%S&#39;.</span>
 
 <span class="sd">    This can be used to calculate how many days an update is in current state by passing</span>
@@ -204,7 +201,7 @@
 
 
 <div class="viewcode-block" id="BodhiClient"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient">[docs]</a><span class="k">class</span> <span class="nc">BodhiClient</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Python bindings to the Bodhi server REST API.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Python bindings to the Bodhi server REST API.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BodhiClient.__init__"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -214,7 +211,7 @@
         <span class="n">staging</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">oidc_storage_path</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the Bodhi client.</span>
 
 <span class="sd">        Args:</span>
@@ -247,7 +244,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="BodhiClient.send_request"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.send_request">[docs]</a>    <span class="k">def</span> <span class="nf">send_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Send the request to the Bodhi server.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send the request to the Bodhi server.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            url (str): The relative URL on the Bodhi server</span>
@@ -271,7 +268,7 @@
         <span class="k">return</span> <span class="n">munchify</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="BodhiClient.ensure_auth"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.ensure_auth">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Make sure we are authenticated.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make sure we are authenticated.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oidc</span><span class="o">.</span><span class="n">ensure_auth</span><span class="p">(</span><span class="n">use_kerberos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">oidc</span><span class="o">.</span><span class="n">has_cookie</span><span class="p">(</span><span class="s2">&quot;auth_tkt&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="n">urlparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="p">)</span><span class="o">.</span><span class="n">hostname</span><span class="p">):</span>
             <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -285,18 +282,18 @@
                     <span class="n">resp</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="BodhiClient.clear_auth"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.clear_auth">[docs]</a>    <span class="k">def</span> <span class="nf">clear_auth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Clear the authentication information.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear the authentication information.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oidc</span><span class="o">.</span><span class="n">clear_auth</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">csrf_token</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">username</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the authenticated username.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the authenticated username.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">oidc</span><span class="o">.</span><span class="n">username</span>
 
 <div class="viewcode-block" id="BodhiClient.save"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.save">[docs]</a>    <span class="nd">@errorhandled</span>
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save an update.</span>
 
 <span class="sd">        This entails either creating a new update, or editing an existing one.</span>
@@ -353,7 +350,7 @@
 
 <div class="viewcode-block" id="BodhiClient.request"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.request">[docs]</a>    <span class="nd">@errorhandled</span>
     <span class="k">def</span> <span class="nf">request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Request an update state change.</span>
 
 <span class="sd">        Args:</span>
@@ -379,7 +376,7 @@
 <div class="viewcode-block" id="BodhiClient.waive"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.waive">[docs]</a>    <span class="nd">@errorhandled</span>
     <span class="k">def</span> <span class="nf">waive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">comment</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
               <span class="n">tests</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Waive unsatisfied requirements on an update.</span>
 
 <span class="sd">        Args:</span>
@@ -405,7 +402,7 @@
 
 <div class="viewcode-block" id="BodhiClient.trigger_tests"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.trigger_tests">[docs]</a>    <span class="nd">@errorhandled</span>
     <span class="k">def</span> <span class="nf">trigger_tests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Trigger tests for update.</span>
 
 <span class="sd">        Args:</span>
@@ -426,7 +423,7 @@
 
 <div class="viewcode-block" id="BodhiClient.query"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.query">[docs]</a>    <span class="nd">@errorhandled</span>
     <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Query bodhi for a list of updates.</span>
 
 <span class="sd">        Args:</span>
@@ -513,7 +510,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s1">&#39;updates/&#39;</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BodhiClient.get_test_status"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.get_test_status">[docs]</a>    <span class="k">def</span> <span class="nf">get_test_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Query bodhi for the test status of the specified update..</span>
 
 <span class="sd">        Args:</span>
@@ -525,7 +522,7 @@
 
 <div class="viewcode-block" id="BodhiClient.comment"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.comment">[docs]</a>    <span class="nd">@errorhandled</span>
     <span class="k">def</span> <span class="nf">comment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">comment</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">karma</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a comment to an update.</span>
 
 <span class="sd">        Args:</span>
@@ -548,7 +545,7 @@
         <span class="n">edit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">expired</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save a buildroot override.</span>
 
 <span class="sd">        This entails either creating a new buildroot override, or editing an</span>
@@ -587,7 +584,7 @@
 
 <div class="viewcode-block" id="BodhiClient.get_compose"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.get_compose">[docs]</a>    <span class="nd">@errorhandled</span>
     <span class="k">def</span> <span class="nf">get_compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">release</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get information about compose.</span>
 
 <span class="sd">        Args:</span>
@@ -609,7 +606,7 @@
 
 <div class="viewcode-block" id="BodhiClient.list_composes"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.list_composes">[docs]</a>    <span class="nd">@errorhandled</span>
     <span class="k">def</span> <span class="nf">list_composes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        List composes.</span>
 
 <span class="sd">        Returns:</span>
@@ -623,7 +620,7 @@
             <span class="n">expired</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">releases</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">builds</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rows_per_page</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">page</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        List buildroot overrides.</span>
 
 <span class="sd">        Args:</span>
@@ -657,7 +654,7 @@
 
 <div class="viewcode-block" id="BodhiClient.csrf"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.csrf">[docs]</a>    <span class="nd">@errorhandled</span>
     <span class="k">def</span> <span class="nf">csrf</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return CSRF token if already acquired, otherwise login, get a CSRF, cache it, and return.</span>
 
 <span class="sd">        If there is already a CSRF token, this method returns it.</span>
@@ -674,7 +671,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf_token</span></div>
 
 <div class="viewcode-block" id="BodhiClient.parse_file"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.parse_file">[docs]</a>    <span class="k">def</span> <span class="nf">parse_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parse an update template file.</span>
 
 <span class="sd">        Args:</span>
@@ -720,7 +717,7 @@
 
 <div class="viewcode-block" id="BodhiClient.latest_builds"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.latest_builds">[docs]</a>    <span class="nd">@errorhandled</span>
     <span class="k">def</span> <span class="nf">latest_builds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the latest builds for a package.</span>
 
 <span class="sd">        Args:</span>
@@ -731,7 +728,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s1">&#39;latest_builds&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;package&#39;</span><span class="p">:</span> <span class="n">package</span><span class="p">})</span></div>
 
 <div class="viewcode-block" id="BodhiClient.testable"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.testable">[docs]</a>    <span class="k">def</span> <span class="nf">testable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterator</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a generator that iterates installed testing updates.</span>
 
 <span class="sd">        This method is a generator that yields packages that you currently</span>
@@ -766,7 +763,7 @@
 
 <div class="viewcode-block" id="BodhiClient.compose_str"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.compose_str">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">compose_str</span><span class="p">(</span><span class="n">compose</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">minimal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a string representation of a compose.</span>
 
 <span class="sd">        Args:</span>
@@ -807,7 +804,7 @@
 
 <div class="viewcode-block" id="BodhiClient.override_str"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.override_str">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">override_str</span><span class="p">(</span><span class="n">override</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">minimal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a string representation of a given override dictionary.</span>
 
 <span class="sd">        Args:</span>
@@ -831,12 +828,12 @@
         <span class="n">val</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Submitter: </span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">&#39;submitter&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="n">val</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Expiration Date: </span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">&#39;expiration_date&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="n">val</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Notes: </span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">&#39;notes&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="n">val</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Expired: </span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">&#39;expired_date&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">val</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;  Expired: </span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">&#39;expired_date&#39;</span><span class="p">]</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="k">return</span> <span class="n">val</span></div>
 
 <div class="viewcode-block" id="BodhiClient.update_str"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.update_str">[docs]</a>    <span class="k">def</span> <span class="nf">update_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">minimal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a string representation of a given update dictionary.</span>
 
 <span class="sd">        Args:</span>
@@ -992,7 +989,7 @@
 
 <div class="viewcode-block" id="BodhiClient.get_releases"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.get_releases">[docs]</a>    <span class="nd">@errorhandled</span>
     <span class="k">def</span> <span class="nf">get_releases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;munch.Munch&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a list of bodhi releases.</span>
 
 <span class="sd">        This method returns a dictionary in the following format::</span>
@@ -1009,7 +1006,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s1">&#39;releases/&#39;</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BodhiClient.get_koji_session"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.get_koji_session">[docs]</a>    <span class="k">def</span> <span class="nf">get_koji_session</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">koji</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an authenticated koji session.</span>
 
 <span class="sd">        Returns:</span>
@@ -1027,7 +1024,7 @@
     <span class="n">koji_session</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">fget</span><span class="o">=</span><span class="n">get_koji_session</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BodhiClient.candidates"><a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.candidates">[docs]</a>    <span class="k">def</span> <span class="nf">candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a list list of update candidates.</span>
 
 <span class="sd">        Returns:</span>
@@ -1135,11 +1132,11 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2007-2022, Red Hat, Inc..
+      &copy;2007-2023, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
 

@@ -5,13 +5,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bodhi.server.models &#8212; bodhi 7.0.0 documentation</title>
+    <title>bodhi.server.models &#8212; bodhi 7.0.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -52,10 +49,8 @@
 <span class="sd">&quot;&quot;&quot;Bodhi&#39;s database models.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 <span class="kn">from</span> <span class="nn">textwrap</span> <span class="kn">import</span> <span class="n">wrap</span>
-<span class="kn">from</span> <span class="nn">urllib.error</span> <span class="kn">import</span> <span class="n">URLError</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -64,8 +59,8 @@
 <span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 
+<span class="kn">from</span> <span class="nn">mediawiki</span> <span class="kn">import</span> <span class="n">MediaWiki</span>
 <span class="kn">from</span> <span class="nn">packaging.version</span> <span class="kn">import</span> <span class="n">parse</span> <span class="k">as</span> <span class="n">parse_version</span>
-<span class="kn">from</span> <span class="nn">simplemediawiki</span> <span class="kn">import</span> <span class="n">MediaWiki</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">sqlalchemy_version</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">and_</span><span class="p">,</span>
@@ -129,10 +124,10 @@
 <span class="c1"># http://techspot.zzzeek.org/2011/01/14/the-enum-recipe</span>
 
 <div class="viewcode-block" id="EnumSymbol"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.EnumSymbol">[docs]</a><span class="k">class</span> <span class="nc">EnumSymbol</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Define a fixed symbol tied to a parent class.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Define a fixed symbol tied to a parent class.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="EnumSymbol.__init__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.EnumSymbol.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls_</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">description</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the EnumSymbol.</span>
 
 <span class="sd">        Args:</span>
@@ -147,7 +142,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span></div>
 
 <div class="viewcode-block" id="EnumSymbol.__lt__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.EnumSymbol.__lt__">[docs]</a>    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return True if self.value is less than other.value.</span>
 
 <span class="sd">        Args:</span>
@@ -158,7 +153,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">value</span></div>
 
 <div class="viewcode-block" id="EnumSymbol.__reduce__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.EnumSymbol.__reduce__">[docs]</a>    <span class="k">def</span> <span class="nf">__reduce__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Allow unpickling to return the symbol linked to the DeclEnum class.</span>
 
 <span class="sd">        Returns:</span>
@@ -168,7 +163,7 @@
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cls_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EnumSymbol.__iter__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.EnumSymbol.__iter__">[docs]</a>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Iterate over this EnumSymbol&#39;s value and description.</span>
 
 <span class="sd">        Returns:</span>
@@ -177,7 +172,7 @@
         <span class="k">return</span> <span class="nb">iter</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="EnumSymbol.__repr__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.EnumSymbol.__repr__">[docs]</a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a string representation of this EnumSymbol.</span>
 
 <span class="sd">        Returns:</span>
@@ -186,7 +181,7 @@
         <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span></div>
 
 <div class="viewcode-block" id="EnumSymbol.__str__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.EnumSymbol.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a string representation of this EnumSymbol.</span>
 
 <span class="sd">        Returns:</span>
@@ -195,7 +190,7 @@
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EnumSymbol.__json__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.EnumSymbol.__json__">[docs]</a>    <span class="k">def</span> <span class="nf">__json__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a JSON representation of this EnumSymbol.</span>
 
 <span class="sd">        Args:</span>
@@ -207,10 +202,10 @@
 
 
 <div class="viewcode-block" id="EnumMeta"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.EnumMeta">[docs]</a><span class="k">class</span> <span class="nc">EnumMeta</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Generate new DeclEnum classes.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate new DeclEnum classes.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="EnumMeta.__init__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.EnumMeta.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">classname</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dict_</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the metaclass.</span>
 
 <span class="sd">        Args:</span>
@@ -228,7 +223,7 @@
         <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">classname</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dict_</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EnumMeta.__iter__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.EnumMeta.__iter__">[docs]</a>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Iterate the enum values.</span>
 
 <span class="sd">        Returns:</span>
@@ -238,13 +233,13 @@
 
 
 <div class="viewcode-block" id="DeclEnum"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnum">[docs]</a><span class="k">class</span> <span class="nc">DeclEnum</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">EnumMeta</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Declarative enumeration.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Declarative enumeration.&quot;&quot;&quot;</span>
 
     <span class="n">_reg</span> <span class="o">=</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="DeclEnum.from_string"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnum.from_string">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convert a string version of the enum to its enum type.</span>
 
 <span class="sd">        Args:</span>
@@ -261,7 +256,7 @@
 
 <div class="viewcode-block" id="DeclEnum.values"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnum.values">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the possible values that this enum can take on.</span>
 
 <span class="sd">        Returns:</span>
@@ -271,7 +266,7 @@
 
 <div class="viewcode-block" id="DeclEnum.db_type"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnum.db_type">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">db_type</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a database column type to be used for this enum.</span>
 
 <span class="sd">        Returns:</span>
@@ -281,13 +276,13 @@
 
 
 <div class="viewcode-block" id="DeclEnumType"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnumType">[docs]</a><span class="k">class</span> <span class="nc">DeclEnumType</span><span class="p">(</span><span class="n">SchemaType</span><span class="p">,</span> <span class="n">TypeDecorator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A database column type for an enum.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A database column type for an enum.&quot;&quot;&quot;</span>
 
     <span class="n">cache_ok</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="sd">&quot;&quot;&quot;See ``sqlalchemy.types.TypeDecorator.cache_ok``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;See ``sqlalchemy.types.TypeDecorator.cache_ok``&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DeclEnumType.__init__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnumType.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enum</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize with the given enum.</span>
 
 <span class="sd">        Args:</span>
@@ -303,7 +298,7 @@
         <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_set_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the table for this object.</span>
 
 <span class="sd">        Args:</span>
@@ -313,7 +308,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">_set_table</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DeclEnumType.copy"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnumType.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a copy of self.</span>
 
 <span class="sd">        Returns:</span>
@@ -322,7 +317,7 @@
         <span class="k">return</span> <span class="n">DeclEnumType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">enum</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DeclEnumType.process_bind_param"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnumType.process_bind_param">[docs]</a>    <span class="k">def</span> <span class="nf">process_bind_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the value of the enum.</span>
 
 <span class="sd">        Args:</span>
@@ -340,7 +335,7 @@
         <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">value</span></div>
 
 <div class="viewcode-block" id="DeclEnumType.process_result_value"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnumType.process_result_value">[docs]</a>    <span class="k">def</span> <span class="nf">process_result_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the enum that matches the given string.</span>
 
 <span class="sd">        Args:</span>
@@ -354,14 +349,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">enum</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="DeclEnumType.create"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnumType.create">[docs]</a>    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">checkfirst</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Issue CREATE ddl for this type, if applicable.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Issue CREATE ddl for this type, if applicable.&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DeclEnumType</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">bind</span><span class="p">,</span> <span class="n">checkfirst</span><span class="p">)</span>
         <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialect_impl</span><span class="p">(</span><span class="n">bind</span><span class="o">.</span><span class="n">dialect</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">SchemaType</span><span class="p">):</span>
             <span class="n">t</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">bind</span><span class="p">,</span> <span class="n">checkfirst</span><span class="o">=</span><span class="n">checkfirst</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DeclEnumType.drop"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.DeclEnumType.drop">[docs]</a>    <span class="k">def</span> <span class="nf">drop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bind</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">checkfirst</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Issue DROP ddl for this type, if applicable.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Issue DROP ddl for this type, if applicable.&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DeclEnumType</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">bind</span><span class="p">,</span> <span class="n">checkfirst</span><span class="p">)</span>
         <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialect_impl</span><span class="p">(</span><span class="n">bind</span><span class="o">.</span><span class="n">dialect</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">SchemaType</span><span class="p">):</span>
@@ -369,7 +364,7 @@
 
 
 <div class="viewcode-block" id="BodhiBase"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BodhiBase">[docs]</a><span class="k">class</span> <span class="nc">BodhiBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for the SQLAlchemy model base class.</span>
 
 <span class="sd">    Attributes:</span>
@@ -391,7 +386,7 @@
 
 <div class="viewcode-block" id="BodhiBase.get"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BodhiBase.get">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an instance of the model by using its __get_by__ attribute with id.</span>
 
 <span class="sd">        Args:</span>
@@ -405,7 +400,7 @@
         <span class="p">))</span><span class="o">.</span><span class="n">first</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="BodhiBase.__getitem__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BodhiBase.__getitem__">[docs]</a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Define a dictionary like interface for the models.</span>
 
 <span class="sd">        Args:</span>
@@ -416,7 +411,7 @@
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BodhiBase.__repr__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BodhiBase.__repr__">[docs]</a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a string representation of this model.</span>
 
 <span class="sd">        Returns:</span>
@@ -425,7 +420,7 @@
         <span class="k">return</span> <span class="s1">&#39;&lt;</span><span class="si">{0}</span><span class="s1"> </span><span class="si">{1}</span><span class="s1">&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__json__</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="BodhiBase.__json__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BodhiBase.__json__">[docs]</a>    <span class="k">def</span> <span class="nf">__json__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a JSON representation of this model.</span>
 
 <span class="sd">        Args:</span>
@@ -443,7 +438,7 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_to_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">seen</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a JSON representation of obj.</span>
 
 <span class="sd">        Args:</span>
@@ -503,7 +498,7 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_expand</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">relation</span><span class="p">,</span> <span class="n">seen</span><span class="p">,</span> <span class="n">req</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the to_json or id of a sqlalchemy relationship.</span>
 
 <span class="sd">        Args:</span>
@@ -525,7 +520,7 @@
 
 <div class="viewcode-block" id="BodhiBase.grid_columns"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BodhiBase.grid_columns">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">grid_columns</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the column names for the model, except for the excluded ones.</span>
 
 <span class="sd">        Returns:</span>
@@ -541,7 +536,7 @@
 
 <div class="viewcode-block" id="BodhiBase.find_polymorphic_child"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BodhiBase.find_polymorphic_child">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">find_polymorphic_child</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">identity</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find a child of a polymorphic base class.</span>
 
 <span class="sd">        For example, given the base Package class and the &#39;rpm&#39; identity, this</span>
@@ -586,7 +581,7 @@
 <span class="c1">#  Enumerated type declarations</span>
 <span class="c1">##</span>
 <div class="viewcode-block" id="ContentType"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.ContentType">[docs]</a><span class="k">class</span> <span class="nc">ContentType</span><span class="p">(</span><span class="n">DeclEnum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Used to differentiate between different kinds of content in various models.</span>
 
 <span class="sd">    This enum is used to mark objects as pertaining to particular kinds of content type, such as</span>
@@ -609,7 +604,7 @@
 
 <div class="viewcode-block" id="ContentType.infer_content_class"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.ContentType.infer_content_class">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">infer_content_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">build</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Identify and return the child class associated with the appropriate ContentType.</span>
 
 <span class="sd">        For example, given the Package base class and a normal koji build, return</span>
@@ -639,7 +634,7 @@
 
 
 <div class="viewcode-block" id="UpdateStatus"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.UpdateStatus">[docs]</a><span class="k">class</span> <span class="nc">UpdateStatus</span><span class="p">(</span><span class="n">DeclEnum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An enum used to describe the current state of an update.</span>
 
 <span class="sd">    Attributes:</span>
@@ -658,7 +653,7 @@
 
 
 <div class="viewcode-block" id="TestGatingStatus"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestGatingStatus">[docs]</a><span class="k">class</span> <span class="nc">TestGatingStatus</span><span class="p">(</span><span class="n">DeclEnum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class lists the different status the ``Update.test_gating_status`` flag can have.</span>
 
 <span class="sd">    Attributes:</span>
@@ -681,7 +676,7 @@
 
 
 <div class="viewcode-block" id="UpdateType"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.UpdateType">[docs]</a><span class="k">class</span> <span class="nc">UpdateType</span><span class="p">(</span><span class="n">DeclEnum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An enum used to classify the type of the update.</span>
 
 <span class="sd">    Attributes:</span>
@@ -699,7 +694,7 @@
 
 
 <div class="viewcode-block" id="UpdateRequest"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.UpdateRequest">[docs]</a><span class="k">class</span> <span class="nc">UpdateRequest</span><span class="p">(</span><span class="n">DeclEnum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An enum used to specify an update requesting to change states.</span>
 
 <span class="sd">    Attributes:</span>
@@ -718,7 +713,7 @@
 
 
 <div class="viewcode-block" id="UpdateSeverity"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.UpdateSeverity">[docs]</a><span class="k">class</span> <span class="nc">UpdateSeverity</span><span class="p">(</span><span class="n">DeclEnum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An enum used to specify the severity of the update.</span>
 
 <span class="sd">    Attributes:</span>
@@ -737,7 +732,7 @@
 
 
 <div class="viewcode-block" id="UpdateSuggestion"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.UpdateSuggestion">[docs]</a><span class="k">class</span> <span class="nc">UpdateSuggestion</span><span class="p">(</span><span class="n">DeclEnum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An enum used to tell the user whether they need to reboot or logout after applying an update.</span>
 
 <span class="sd">    Attributes:</span>
@@ -752,7 +747,7 @@
 
 
 <div class="viewcode-block" id="ReleaseState"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.ReleaseState">[docs]</a><span class="k">class</span> <span class="nc">ReleaseState</span><span class="p">(</span><span class="n">DeclEnum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An enum that describes the state of a :class:`Release`.</span>
 
 <span class="sd">    Attributes:</span>
@@ -771,7 +766,7 @@
 
 
 <div class="viewcode-block" id="ComposeState"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.ComposeState">[docs]</a><span class="k">class</span> <span class="nc">ComposeState</span><span class="p">(</span><span class="n">DeclEnum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Define the various states that a :class:`Compose` can be in.</span>
 
 <span class="sd">    Attributes:</span>
@@ -804,7 +799,7 @@
 
 
 <div class="viewcode-block" id="PackageManager"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.PackageManager">[docs]</a><span class="k">class</span> <span class="nc">PackageManager</span><span class="p">(</span><span class="n">DeclEnum</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An enum used to specify what package manager is used by a specific Release.</span>
 
 <span class="sd">    Attributes:</span>
@@ -835,7 +830,7 @@
 
 
 <div class="viewcode-block" id="Release"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release">[docs]</a><span class="k">class</span> <span class="nc">Release</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represent a distribution release, such as Fedora 27.</span>
 
 <span class="sd">    Attributes:</span>
@@ -913,7 +908,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">critpath_min_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the min_karma for critpath updates for this release.</span>
 
 <span class="sd">        If the release doesn&#39;t specify a min_karma, the default critpath.min_karma setting is used</span>
@@ -931,7 +926,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version_int</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an integer representation of the version of this release.</span>
 
 <span class="sd">        Returns:</span>
@@ -941,7 +936,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mandatory_days_in_testing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the number of days that updates in this release must spend in testing.</span>
 
 <span class="sd">        Returns:</span>
@@ -953,7 +948,7 @@
             <span class="n">days</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_prefix</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_status</span><span class="si">}</span><span class="s1">&#39;</span>
                               <span class="sa">f</span><span class="s1">&#39;.mandatory_days_in_testing&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">days</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_prefix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">days</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_prefix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
                               <span class="sa">f</span><span class="s1">&#39;.mandatory_days_in_testing&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">days</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No mandatory days in testing defined for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">. Defaulting to 0.&#39;</span><span class="p">)</span>
@@ -963,7 +958,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">critpath_mandatory_days_in_testing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the number of days that critpath updates in this release must spend in testing.</span>
 
 <span class="sd">        Returns:</span>
@@ -981,7 +976,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">collection_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the collection name of this release (eg: Fedora EPEL).</span>
 
 <span class="sd">        Returns:</span>
@@ -991,7 +986,7 @@
 
 <div class="viewcode-block" id="Release.all_releases"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release.all_releases">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">all_releases</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a mapping of release states to a list of dictionaries describing the releases.</span>
 
 <span class="sd">        Returns:</span>
@@ -1009,12 +1004,12 @@
 
 <div class="viewcode-block" id="Release.clear_all_releases_cache"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release.clear_all_releases_cache">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">clear_all_releases_cache</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Clear up Release cache.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear up Release cache.&quot;&quot;&quot;</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_all_releases</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Release.get_tags"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release.get_tags">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_tags</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a 2-tuple mapping tags to releases.</span>
 
 <span class="sd">        Args:</span>
@@ -1041,7 +1036,7 @@
 
 <div class="viewcode-block" id="Release.from_tags"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release.from_tags">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_tags</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find a release associated with one of the given koji tags.</span>
 
 <span class="sd">        Args:</span>
@@ -1061,7 +1056,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">setting_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the prefix for settings that pertain to this Release.</span>
 
 <span class="sd">        Returns:</span>
@@ -1071,7 +1066,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">setting_status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the status of the Release from settings.</span>
 
 <span class="sd">        Return the Release&#39;s status setting from the config. For example, if the release is f30,</span>
@@ -1085,7 +1080,7 @@
         <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_prefix</span><span class="si">}</span><span class="s1">.status&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Release.get_pending_testing_side_tag"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release.get_pending_testing_side_tag">[docs]</a>    <span class="k">def</span> <span class="nf">get_pending_testing_side_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">from_tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the testing-pending side tag for this ``Release``.</span>
 
 <span class="sd">        Args:</span>
@@ -1099,7 +1094,7 @@
         <span class="k">return</span> <span class="n">from_tag</span> <span class="o">+</span> <span class="n">side_tag_postfix</span></div>
 
 <div class="viewcode-block" id="Release.get_pending_signing_side_tag"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release.get_pending_signing_side_tag">[docs]</a>    <span class="k">def</span> <span class="nf">get_pending_signing_side_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">from_tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the signing-pending side tag for this ``Release``.</span>
 
 <span class="sd">        Args:</span>
@@ -1114,7 +1109,7 @@
 
 
 <div class="viewcode-block" id="TestCase"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCase">[docs]</a><span class="k">class</span> <span class="nc">TestCase</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents test cases from the wiki.</span>
 
 <span class="sd">    Attributes:</span>
@@ -1136,7 +1131,7 @@
 
 
 <div class="viewcode-block" id="Package"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Package">[docs]</a><span class="k">class</span> <span class="nc">Package</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This model represents a package.</span>
 
 <span class="sd">    This model uses single-table inheritance to allow for different package types.</span>
@@ -1172,7 +1167,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">external_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the package name as it&#39;s known to external services.</span>
 
 <span class="sd">        For most Packages, this is self.name.</span>
@@ -1183,7 +1178,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
 
 <div class="viewcode-block" id="Package.get_pkg_committers_from_pagure"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Package.get_pkg_committers_from_pagure">[docs]</a>    <span class="k">def</span> <span class="nf">get_pkg_committers_from_pagure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Pull users and groups who can commit on a package in Pagure.</span>
 
 <span class="sd">        Returns a tuple with two lists:</span>
@@ -1219,7 +1214,7 @@
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">committers</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Package.hascommitaccess"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Package.hascommitaccess">[docs]</a>    <span class="k">def</span> <span class="nf">hascommitaccess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">branchname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check on Pagure if a user has commit access on the package/branch.</span>
 
 <span class="sd">        Raises:</span>
@@ -1244,7 +1239,7 @@
 
 <div class="viewcode-block" id="Package.validate_builds"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Package.validate_builds">[docs]</a>    <span class="nd">@validates</span><span class="p">(</span><span class="s1">&#39;builds&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">validate_builds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">build</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validate builds being appended to ensure they are all the same type as the Package.</span>
 
 <span class="sd">        This method checks to make sure that all the builds on self.builds have their type attribute</span>
@@ -1268,7 +1263,7 @@
         <span class="k">return</span> <span class="n">build</span></div>
 
 <div class="viewcode-block" id="Package.__str__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Package.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a string representation of the package.</span>
 
 <span class="sd">        Returns:</span>
@@ -1292,7 +1287,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_get_name</span><span class="p">(</span><span class="n">build</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determine the package name for a particular build.</span>
 
 <span class="sd">        For most builds, this will return the RPM name, unless overridden in a specific</span>
@@ -1308,7 +1303,7 @@
 
 <div class="viewcode-block" id="Package.check_existence"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Package.check_existence">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">check_existence</span><span class="p">(</span><span class="n">build</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if the Package instance associated with the build is already in database.</span>
 
 <span class="sd">        Args:</span>
@@ -1325,7 +1320,7 @@
 
 <div class="viewcode-block" id="Package.get_or_create"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Package.get_or_create">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_or_create</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">build</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Identify and return the Package instance associated with the build.</span>
 
 <span class="sd">        For example, given a normal koji build, return a RpmPackage instance.</span>
@@ -1348,7 +1343,7 @@
 
 
 <div class="viewcode-block" id="ContainerPackage"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.ContainerPackage">[docs]</a><span class="k">class</span> <span class="nc">ContainerPackage</span><span class="p">(</span><span class="n">Package</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Represents a Container package.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a Container package.&quot;&quot;&quot;</span>
 
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">container</span><span class="p">,</span>
@@ -1356,7 +1351,7 @@
 
 
 <div class="viewcode-block" id="FlatpakPackage"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.FlatpakPackage">[docs]</a><span class="k">class</span> <span class="nc">FlatpakPackage</span><span class="p">(</span><span class="n">Package</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Represents a Flatpak package.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a Flatpak package.&quot;&quot;&quot;</span>
 
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">flatpak</span><span class="p">,</span>
@@ -1364,7 +1359,7 @@
 
 
 <div class="viewcode-block" id="ModulePackage"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.ModulePackage">[docs]</a><span class="k">class</span> <span class="nc">ModulePackage</span><span class="p">(</span><span class="n">Package</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Represents a Module package.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a Module package.&quot;&quot;&quot;</span>
 
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">module</span><span class="p">,</span>
@@ -1372,7 +1367,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">external_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the package name as it&#39;s known to external services.</span>
 
 <span class="sd">        For modules, this splits the :stream portion back off.</span>
@@ -1384,7 +1379,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_get_name</span><span class="p">(</span><span class="n">build</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determine the name:stream for a particular module build.</span>
 
 <span class="sd">        Args:</span>
@@ -1397,7 +1392,7 @@
 
 
 <div class="viewcode-block" id="RpmPackage"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.RpmPackage">[docs]</a><span class="k">class</span> <span class="nc">RpmPackage</span><span class="p">(</span><span class="n">Package</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Represents a RPM package.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a RPM package.&quot;&quot;&quot;</span>
 
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;polymorphic_identity&#39;</span><span class="p">:</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">rpm</span><span class="p">,</span>
@@ -1405,7 +1400,7 @@
 
 
 <div class="viewcode-block" id="Build"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build">[docs]</a><span class="k">class</span> <span class="nc">Build</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This model represents a specific build of a package.</span>
 
 <span class="sd">    This model uses single-table inheritance to allow for different build types.</span>
@@ -1457,7 +1452,7 @@
     <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_get_kojiinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return Koji build info about this build, from a cache if possible.</span>
 
 <span class="sd">        Returns:</span>
@@ -1469,7 +1464,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kojiinfo</span>
 
     <span class="k">def</span> <span class="nf">_get_n_v_r</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the N, V and R components for a traditionally dash-separated build.</span>
 
 <span class="sd">        Returns:</span>
@@ -1479,7 +1474,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nvr_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the RPM name.</span>
 
 <span class="sd">        Returns:</span>
@@ -1489,7 +1484,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nvr_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the RPM version.</span>
 
 <span class="sd">        Returns:</span>
@@ -1499,7 +1494,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nvr_release</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the RPM release.</span>
 
 <span class="sd">        Returns:</span>
@@ -1508,7 +1503,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_n_v_r</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Build.get_n_v_r"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.get_n_v_r">[docs]</a>    <span class="k">def</span> <span class="nf">get_n_v_r</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the (name, version, release) of this build.</span>
 
 <span class="sd">        Note: This does not directly return the Build&#39;s nvr attribute, which is a str.</span>
@@ -1519,7 +1514,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nvr_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvr_version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvr_release</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Build.get_tags"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.get_tags">[docs]</a>    <span class="k">def</span> <span class="nf">get_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">koji</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a list of koji tags for this build.</span>
 
 <span class="sd">        Args:</span>
@@ -1533,7 +1528,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">tag</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">koji</span><span class="o">.</span><span class="n">listTags</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="p">)]</span></div>
 
 <div class="viewcode-block" id="Build.get_owner_name"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.get_owner_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_owner_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the koji username of the user who built the build.</span>
 
 <span class="sd">        Returns:</span>
@@ -1542,7 +1537,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_kojiinfo</span><span class="p">()[</span><span class="s1">&#39;owner_name&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Build.get_build_id"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.get_build_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_build_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the koji build id of the build.</span>
 
 <span class="sd">        Returns:</span>
@@ -1551,7 +1546,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_kojiinfo</span><span class="p">()[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Build.get_task_id"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.get_task_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_task_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the koji task id of the build.</span>
 
 <span class="sd">        Returns:</span>
@@ -1560,15 +1555,15 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_kojiinfo</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;task_id&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Build.get_changelog"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.get_changelog">[docs]</a>    <span class="k">def</span> <span class="nf">get_changelog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timelimit</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lastupdate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Will be overridden from child classes, when appropriate.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Will be overridden from child classes, when appropriate.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;&quot;</span></div>
 
 <div class="viewcode-block" id="Build.get_creation_time"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.get_creation_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_creation_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">datetime</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the creation time of the build.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the creation time of the build.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_kojiinfo</span><span class="p">()[</span><span class="s1">&#39;creation_time&#39;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="Build.unpush"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.unpush">[docs]</a>    <span class="k">def</span> <span class="nf">unpush</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">koji</span><span class="p">,</span> <span class="n">from_side_tag</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Move this build back to the candidate tag and remove any pending tags.</span>
 
 <span class="sd">        Args:</span>
@@ -1599,7 +1594,7 @@
                 <span class="n">koji</span><span class="o">.</span><span class="n">untagBuild</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Build.is_latest"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.is_latest">[docs]</a>    <span class="k">def</span> <span class="nf">is_latest</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Check if this is the latest build available in the stable tag.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if this is the latest build available in the stable tag.&quot;&quot;&quot;</span>
         <span class="n">koji_session</span> <span class="o">=</span> <span class="n">buildsys</span><span class="o">.</span><span class="n">get_session</span><span class="p">()</span>
         <span class="c1"># Get the latest builds in koji in a tag for a package</span>
         <span class="n">koji_builds</span> <span class="o">=</span> <span class="n">koji_session</span><span class="o">.</span><span class="n">getLatestBuilds</span><span class="p">(</span>
@@ -1614,7 +1609,7 @@
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Build.update_test_cases"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.update_test_cases">[docs]</a>    <span class="k">def</span> <span class="nf">update_test_cases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Update the list of test cases for this build from the wiki.</span>
 
 <span class="sd">        Args:</span>
@@ -1627,30 +1622,26 @@
 
         <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Querying the wiki for test cases of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-
-        <span class="n">wiki</span> <span class="o">=</span> <span class="n">MediaWiki</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;wiki_url&#39;</span><span class="p">))</span>
-        <span class="n">cat_page</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Category:Package </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">external_name</span><span class="si">}</span><span class="s1"> test cases&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">wiki</span> <span class="o">=</span> <span class="n">MediaWiki</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;wiki_url&#39;</span><span class="p">),</span>
+                             <span class="n">user_agent</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;wiki_user_agent&#39;</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ExternalCallException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failed to connect to Fedora Wiki: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">cat_page</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Package </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">package</span><span class="o">.</span><span class="n">external_name</span><span class="si">}</span><span class="s1"> test cases&#39;</span>
 
         <span class="k">def</span> <span class="nf">list_categorymembers</span><span class="p">(</span><span class="n">wiki</span><span class="p">,</span> <span class="n">cat_page</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">500</span><span class="p">):</span>
-            <span class="c1"># Build query arguments and call wiki</span>
-            <span class="n">query</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="nb">list</span><span class="o">=</span><span class="s1">&#39;categorymembers&#39;</span><span class="p">,</span>
-                         <span class="n">cmtitle</span><span class="o">=</span><span class="n">cat_page</span><span class="p">,</span> <span class="n">cmlimit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">response</span> <span class="o">=</span> <span class="n">wiki</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-            <span class="k">except</span> <span class="n">URLError</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">ExternalCallException</span><span class="p">(</span><span class="s1">&#39;Failed retrieving testcases from Wiki&#39;</span><span class="p">)</span>
-            <span class="n">members</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span>
-                       <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;categorymembers&#39;</span><span class="p">,</span> <span class="p">{})</span>
-                       <span class="k">if</span> <span class="s1">&#39;title&#39;</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">]</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">wiki</span><span class="o">.</span><span class="n">categorymembers</span><span class="p">(</span><span class="n">cat_page</span><span class="p">,</span> <span class="n">results</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span> <span class="n">subcategories</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ExternalCallException</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Failed retrieving testcases from Wiki: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">members</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">entry</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
 
             <span class="c1"># Determine whether we need to recurse</span>
-            <span class="k">if</span> <span class="n">limit</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">copy</span><span class="p">(</span><span class="n">members</span><span class="p">)):</span>
-                    <span class="k">if</span> <span class="n">member</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Category:&#39;</span><span class="p">):</span>
-                        <span class="n">members</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">list_categorymembers</span><span class="p">(</span><span class="n">wiki</span><span class="p">,</span> <span class="n">member</span><span class="p">,</span> <span class="n">limit</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
-                        <span class="n">members</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">members</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>  <span class="c1"># remove Category from list</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">members</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">subcat</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">members</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">list_categorymembers</span><span class="p">(</span><span class="n">wiki</span><span class="p">,</span> <span class="n">subcat</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">limit</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">members</span><span class="p">)))</span>
 
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Found the following unit tests: </span><span class="si">{</span><span class="n">members</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Found the following testcases: </span><span class="si">{</span><span class="n">members</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">members</span>
 
         <span class="n">fetched</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">list_categorymembers</span><span class="p">(</span><span class="n">wiki</span><span class="p">,</span> <span class="n">cat_page</span><span class="p">))</span>
@@ -1674,11 +1665,11 @@
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Added testcase &quot;</span><span class="si">{</span><span class="n">case</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
         <span class="n">db</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Finished querying for test cases in </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div></div>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Finished querying for test cases in </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="ContainerBuild"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.ContainerBuild">[docs]</a><span class="k">class</span> <span class="nc">ContainerBuild</span><span class="p">(</span><span class="n">Build</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents a Container build.</span>
 
 <span class="sd">    Note that this model uses single-table inheritance with its Build superclass.</span>
@@ -1690,7 +1681,7 @@
 
 
 <div class="viewcode-block" id="FlatpakBuild"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.FlatpakBuild">[docs]</a><span class="k">class</span> <span class="nc">FlatpakBuild</span><span class="p">(</span><span class="n">Build</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents a Flatpak build.</span>
 
 <span class="sd">    Note that this model uses single-table inheritance with its Build superclass.</span>
@@ -1702,7 +1693,7 @@
 
 
 <div class="viewcode-block" id="ModuleBuild"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.ModuleBuild">[docs]</a><span class="k">class</span> <span class="nc">ModuleBuild</span><span class="p">(</span><span class="n">Build</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents a Module build.</span>
 
 <span class="sd">    Note that this model uses single-table inheritance with its Build superclass.</span>
@@ -1717,7 +1708,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nvr_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the ModuleBuild&#39;s name.</span>
 
 <span class="sd">        Returns:</span>
@@ -1727,7 +1718,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nvr_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the the ModuleBuild&#39;s stream.</span>
 
 <span class="sd">        Returns:</span>
@@ -1737,7 +1728,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nvr_release</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the ModuleBuild&#39;s version and context.</span>
 
 <span class="sd">        Returns:</span>
@@ -1747,7 +1738,7 @@
 
 
 <div class="viewcode-block" id="RpmBuild"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.RpmBuild">[docs]</a><span class="k">class</span> <span class="nc">RpmBuild</span><span class="p">(</span><span class="n">Build</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents an RPM build.</span>
 
 <span class="sd">    Note that this model uses single-table inheritance with its Build superclass.</span>
@@ -1766,7 +1757,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">evr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the RpmBuild&#39;s epoch, version, release, all strings in a 3-tuple.</span>
 
 <span class="sd">        Return:</span>
@@ -1779,7 +1770,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epoch</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nvr_version</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nvr_release</span><span class="p">))</span>
 
 <div class="viewcode-block" id="RpmBuild.get_latest"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.RpmBuild.get_latest">[docs]</a>    <span class="k">def</span> <span class="nf">get_latest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the nvr string of the most recent evr that is less than this RpmBuild&#39;s nvr.</span>
 
 <span class="sd">        If there is no other Build, this returns ``None``.</span>
@@ -1814,7 +1805,7 @@
         <span class="k">return</span> <span class="n">latest</span></div>
 
 <div class="viewcode-block" id="RpmBuild.get_changelog"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.RpmBuild.get_changelog">[docs]</a>    <span class="k">def</span> <span class="nf">get_changelog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timelimit</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">lastupdate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieve the RPM changelog of this package since it&#39;s last update, or since timelimit.</span>
 
 <span class="sd">        Args:</span>
@@ -1866,7 +1857,7 @@
 
 
 <div class="viewcode-block" id="Update"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update">[docs]</a><span class="k">class</span> <span class="nc">Update</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This model represents an update.</span>
 
 <span class="sd">    The update contains not just one package, but a collection of packages. Each</span>
@@ -2028,7 +2019,7 @@
     <span class="n">from_tag</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the Update.</span>
 
 <span class="sd">        We use this as a way to inject an alias into the Update, since it is a required field and</span>
@@ -2053,7 +2044,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version_hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a SHA1 hash of the Builds NVRs.</span>
 
 <span class="sd">        Returns:</span>
@@ -2066,7 +2057,7 @@
     <span class="c1"># WARNING: consumers/composer.py assumes that this validation is performed!</span>
 <div class="viewcode-block" id="Update.validate_builds"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.validate_builds">[docs]</a>    <span class="nd">@validates</span><span class="p">(</span><span class="s1">&#39;builds&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">validate_builds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">build</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validate builds being appended to ensure they are all the same type.</span>
 
 <span class="sd">        Args:</span>
@@ -2084,7 +2075,7 @@
 
 <div class="viewcode-block" id="Update.validate_release"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.validate_release">[docs]</a>    <span class="nd">@validates</span><span class="p">(</span><span class="s1">&#39;release&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">validate_release</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">release</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make sure the release is the same content type as this update.</span>
 
 <span class="sd">        Args:</span>
@@ -2102,7 +2093,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">date_locked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the time that this update became locked.</span>
 
 <span class="sd">        Returns:</span>
@@ -2114,7 +2105,7 @@
 
     <span class="nd">@hybrid_property</span>
     <span class="k">def</span> <span class="nf">date_pushed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the time that this update was pushed in repository.</span>
 
 <span class="sd">        Returns:</span>
@@ -2130,7 +2121,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mandatory_days_in_testing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate and return how many days an update should be in testing before becoming stable.</span>
 
 <span class="sd">        :return: The number of mandatory days in testing.</span>
@@ -2143,7 +2134,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">karma</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate and return the karma for the Update.</span>
 
 <span class="sd">        :return: The Update&#39;s current karma.</span>
@@ -2154,7 +2145,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_composite_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate and return a 2-tuple of the positive and negative karma.</span>
 
 <span class="sd">        Sums the positive karma comments, and then sums the negative karma comments. The total karma</span>
@@ -2179,7 +2170,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">comments_since_karma_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate the comments since the most recent karma reset event.</span>
 
 <span class="sd">        Karma is reset when :class:`Builds &lt;Build&gt;` are added or removed from an update.</span>
@@ -2207,7 +2198,7 @@
 
 <div class="viewcode-block" id="Update.get_critpath_groups"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_critpath_groups">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_critpath_groups</span><span class="p">(</span><span class="n">builds</span><span class="p">,</span> <span class="n">release_branch</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determine which (if any) critpath groups the builds passed in are part of.</span>
 
 <span class="sd">        Args:</span>
@@ -2232,7 +2223,7 @@
 
 <div class="viewcode-block" id="Update.contains_critpath_component"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.contains_critpath_component">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">contains_critpath_component</span><span class="p">(</span><span class="n">builds</span><span class="p">,</span> <span class="n">release_branch</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determine if there is a critpath component in the builds passed in.</span>
 
 <span class="sd">        Args:</span>
@@ -2254,7 +2245,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">greenwave_subject</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Form and return the proper Greenwave API subject field for this Update.</span>
 
 <span class="sd">        Returns:</span>
@@ -2267,7 +2258,7 @@
         <span class="k">return</span> <span class="n">subject</span>
 
 <div class="viewcode-block" id="Update.greenwave_request_batches"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.greenwave_request_batches">[docs]</a>    <span class="k">def</span> <span class="nf">greenwave_request_batches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Form and return the proper Greenwave API requests data for this Update.</span>
 
 <span class="sd">        Returns:</span>
@@ -2290,7 +2281,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">greenwave_request_batches_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Form and return the proper Greenwave API requests data for this Update as JSON.</span>
 
 <span class="sd">        Returns:</span>
@@ -2301,7 +2292,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">greenwave_subject_batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Maximum number of subjects in single Greenwave request.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Maximum number of subjects in single Greenwave request.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;greenwave_batch_size&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -2313,7 +2304,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_greenwave_decision_contexts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return greenwave contexts that should be queried for this update.</span>
 
 <span class="sd">        The base context depends whether the update is going to</span>
@@ -2338,7 +2329,7 @@
         <span class="k">return</span> <span class="n">contexts</span>
 
 <div class="viewcode-block" id="Update.get_test_gating_info"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_test_gating_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_test_gating_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Query Greenwave about this update and return the information retrieved.</span>
 
 <span class="sd">        Returns:</span>
@@ -2352,7 +2343,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_greenwave_requirements_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Query Greenwave about this update and return satisfied and unsatisfied requirements.</span>
 
 <span class="sd">        Returns:</span>
@@ -2373,7 +2364,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_unsatisfied_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Query Greenwave about this update and return all unsatisfied requirements.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query Greenwave about this update and return all unsatisfied requirements.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            list: A list of unsatisfied requirement dicts.</span>
@@ -2389,7 +2380,7 @@
         <span class="k">return</span> <span class="n">ret</span>
 
     <span class="k">def</span> <span class="nf">_get_test_gating_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Query Greenwave about this update and return the information retrieved.</span>
 
 <span class="sd">        Returns:</span>
@@ -2430,7 +2421,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">install_command</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the appropriate command for installing the Update.</span>
 
 <span class="sd">        There are four conditions under which the empty string is returned:</span>
@@ -2463,7 +2454,7 @@
         <span class="k">return</span> <span class="n">command</span>
 
 <div class="viewcode-block" id="Update.update_test_gating_status"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.update_test_gating_status">[docs]</a>    <span class="k">def</span> <span class="nf">update_test_gating_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Query Greenwave about this update and set the test_gating_status as appropriate.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query Greenwave about this update and set the test_gating_status as appropriate.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_test_gating_status</span><span class="p">()</span>
         <span class="k">except</span> <span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">Timeout</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -2475,7 +2466,7 @@
 
 <div class="viewcode-block" id="Update.new"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.new">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a new update.</span>
 
 <span class="sd">        Args:</span>
@@ -2588,7 +2579,7 @@
 
 <div class="viewcode-block" id="Update.edit"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.edit">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Edit the update.</span>
 
 <span class="sd">        Args:</span>
@@ -2777,7 +2768,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">signed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return whether the update is considered signed or not.</span>
 
 <span class="sd">        This will return ``True`` if all :class:`Builds &lt;Build&gt;` associated with this update are</span>
@@ -2795,7 +2786,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">content_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the ContentType associated with this update.</span>
 
 <span class="sd">        If the update has no :class:`Builds &lt;Build&gt;`, this evaluates to ``None``.</span>
@@ -2808,7 +2799,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">test_gating_passed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a boolean representing if this update has passed the test gating.</span>
 
 <span class="sd">        Returns:</span>
@@ -2821,7 +2812,7 @@
         <span class="k">return</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="Update.obsolete_older_updates"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.obsolete_older_updates">[docs]</a>    <span class="k">def</span> <span class="nf">obsolete_older_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Obsolete any older pending/testing updates.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Obsolete any older pending/testing updates.</span>
 
 <span class="sd">        If a build is associated with multiple updates, make sure that</span>
 <span class="sd">        all updates are safe to obsolete, or else just skip it.</span>
@@ -2836,12 +2827,12 @@
             <span class="k">for</span> <span class="n">oldBuild</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Build</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Update</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
                 <span class="n">and_</span><span class="p">(</span><span class="n">Build</span><span class="o">.</span><span class="n">nvr</span> <span class="o">!=</span> <span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">,</span>
                      <span class="n">Build</span><span class="o">.</span><span class="n">package</span> <span class="o">==</span> <span class="n">build</span><span class="o">.</span><span class="n">package</span><span class="p">,</span>
-                     <span class="n">Update</span><span class="o">.</span><span class="n">locked</span> <span class="o">==</span> <span class="kc">False</span><span class="p">,</span>
+                     <span class="n">Update</span><span class="o">.</span><span class="n">locked</span><span class="o">.</span><span class="n">is_</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span>
                      <span class="n">Update</span><span class="o">.</span><span class="n">release</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="p">,</span>
                      <span class="n">or_</span><span class="p">(</span><span class="n">and_</span><span class="p">(</span><span class="n">or_</span><span class="p">(</span><span class="n">Update</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span><span class="p">,</span>
                                   <span class="n">Update</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span><span class="p">),</span>
                               <span class="n">or_</span><span class="p">(</span><span class="n">Update</span><span class="o">.</span><span class="n">request</span> <span class="o">!=</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span><span class="p">,</span>
-                                  <span class="n">Update</span><span class="o">.</span><span class="n">request</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)),</span>
+                                  <span class="n">Update</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">is_</span><span class="p">(</span><span class="kc">None</span><span class="p">))),</span>
                          <span class="n">and_</span><span class="p">(</span><span class="n">or_</span><span class="p">(</span><span class="n">Update</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span><span class="p">,</span>
                                   <span class="n">Update</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span><span class="p">),</span>
                               <span class="n">Update</span><span class="o">.</span><span class="n">request</span> <span class="o">==</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span><span class="p">,</span>
@@ -2913,7 +2904,7 @@
         <span class="k">return</span> <span class="n">caveats</span></div>
 
 <div class="viewcode-block" id="Update.get_tags"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_tags">[docs]</a>    <span class="k">def</span> <span class="nf">get_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return all koji tags for all builds on this update.</span>
 
 <span class="sd">        Returns:</span>
@@ -2923,7 +2914,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">title</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the Update&#39;s title.</span>
 
 <span class="sd">        This is just an alias for get_title with default parameters.</span>
@@ -2932,7 +2923,7 @@
 
 <div class="viewcode-block" id="Update.get_title"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_title">[docs]</a>    <span class="k">def</span> <span class="nf">get_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">after_limit</span><span class="o">=</span><span class="s1">&#39;…&#39;</span><span class="p">,</span>
                   <span class="n">beautify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nvr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">amp</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a title for the update based on the :class:`Builds &lt;Build&gt;` it is associated with.</span>
 
 <span class="sd">        Args:</span>
@@ -2983,7 +2974,7 @@
             <span class="k">return</span> <span class="n">builds</span></div>
 
 <div class="viewcode-block" id="Update.get_bugstring"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_bugstring">[docs]</a>    <span class="k">def</span> <span class="nf">get_bugstring</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_titles</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a space-delimited string of bug numbers for this update.</span>
 
 <span class="sd">        Args:</span>
@@ -3008,7 +2999,7 @@
         <span class="k">return</span> <span class="n">val</span></div>
 
 <div class="viewcode-block" id="Update.get_bug_karma"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_bug_karma">[docs]</a>    <span class="k">def</span> <span class="nf">get_bug_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bug</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the karma for this update for the given bug.</span>
 
 <span class="sd">        Args:</span>
@@ -3031,7 +3022,7 @@
         <span class="k">return</span> <span class="n">bad</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">good</span></div>
 
 <div class="viewcode-block" id="Update.get_testcase_karma"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_testcase_karma">[docs]</a>    <span class="k">def</span> <span class="nf">get_testcase_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">testcase</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the karma for this update for the given TestCase.</span>
 
 <span class="sd">        Args:</span>
@@ -3054,7 +3045,7 @@
         <span class="k">return</span> <span class="n">bad</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">good</span></div>
 
 <div class="viewcode-block" id="Update.set_request"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.set_request">[docs]</a>    <span class="k">def</span> <span class="nf">set_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the update&#39;s request to the given action.</span>
 
 <span class="sd">        Args:</span>
@@ -3250,7 +3241,7 @@
         <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Update.waive_test_results"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.waive_test_results">[docs]</a>    <span class="k">def</span> <span class="nf">waive_test_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tests</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Attempt to waive test results for this update.</span>
 
 <span class="sd">        Args:</span>
@@ -3301,7 +3292,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_status</span> <span class="o">=</span> <span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">waiting</span></div>
 
 <div class="viewcode-block" id="Update.add_tag"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.add_tag">[docs]</a>    <span class="k">def</span> <span class="nf">add_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add the given koji tag to all :class:`Builds &lt;Build&gt;` in this update.</span>
 
 <span class="sd">        Args:</span>
@@ -3319,7 +3310,7 @@
         <span class="k">return</span> <span class="n">koji</span><span class="o">.</span><span class="n">multiCall</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Update.remove_tag"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.remove_tag">[docs]</a>    <span class="k">def</span> <span class="nf">remove_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">koji</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove the given koji tag from all builds in this update.</span>
 
 <span class="sd">        Args:</span>
@@ -3346,7 +3337,7 @@
             <span class="k">return</span> <span class="n">koji</span><span class="o">.</span><span class="n">multiCall</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Update.find_conflicting_builds"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.find_conflicting_builds">[docs]</a>    <span class="k">def</span> <span class="nf">find_conflicting_builds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find if there are any builds conflicting with the stable tag in the update.</span>
 
 <span class="sd">        Returns a list of conflicting builds, empty is none found.</span>
@@ -3359,7 +3350,7 @@
         <span class="k">return</span> <span class="n">conflicting_builds</span></div>
 
 <div class="viewcode-block" id="Update.modify_bugs"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.modify_bugs">[docs]</a>    <span class="k">def</span> <span class="nf">modify_bugs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Comment on and close this update&#39;s bugs as necessary.</span>
 
 <span class="sd">        This typically gets called by the Composer at the end.</span>
@@ -3386,7 +3377,7 @@
                         <span class="n">bug</span><span class="o">.</span><span class="n">close_bug</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Update.status_comment"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.status_comment">[docs]</a>    <span class="k">def</span> <span class="nf">status_comment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a comment to this update about a change in status.</span>
 
 <span class="sd">        Args:</span>
@@ -3402,7 +3393,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s1">&#39;This update has been obsoleted.&#39;</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="s1">&#39;bodhi&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Update.send_update_notice"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.send_update_notice">[docs]</a>    <span class="k">def</span> <span class="nf">send_update_notice</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Send e-mail notices about this update.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send e-mail notices about this update.&quot;&quot;&quot;</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Sending update notice for </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
         <span class="n">mailinglist</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">sender</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bodhi_email&#39;</span><span class="p">)</span>
@@ -3428,7 +3419,7 @@
             <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;release_name = </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">release_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Update.get_url"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_url">[docs]</a>    <span class="k">def</span> <span class="nf">get_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the relative URL to this update.</span>
 
 <span class="sd">        Returns:</span>
@@ -3439,7 +3430,7 @@
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Update.abs_url"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.abs_url">[docs]</a>    <span class="k">def</span> <span class="nf">abs_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the absolute URL to this update.</span>
 
 <span class="sd">        Args:</span>
@@ -3451,7 +3442,7 @@
     <span class="n">url</span> <span class="o">=</span> <span class="n">abs_url</span>
 
 <div class="viewcode-block" id="Update.__str__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a string representation of this update.</span>
 
 <span class="sd">        Returns:</span>
@@ -3460,10 +3451,10 @@
         <span class="n">val</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;=&#39;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wrap</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">initial_indent</span><span class="o">=</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>
             <span class="n">subsequent_indent</span><span class="o">=</span><span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)),</span> <span class="s1">&#39;=&#39;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
-        <span class="n">val</span> <span class="o">+=</span> <span class="s2">&quot;&quot;&quot;    Release: </span><span class="si">%s</span><span class="s2"></span>
-<span class="s2">     Status: </span><span class="si">%s</span><span class="s2"></span>
-<span class="s2">       Type: </span><span class="si">%s</span><span class="s2"></span>
-<span class="s2">   Severity: </span><span class="si">%s</span><span class="s2"></span>
+        <span class="n">val</span> <span class="o">+=</span> <span class="s2">&quot;&quot;&quot;    Release: </span><span class="si">%s</span>
+<span class="s2">     Status: </span><span class="si">%s</span>
+<span class="s2">       Type: </span><span class="si">%s</span>
+<span class="s2">   Severity: </span><span class="si">%s</span>
 <span class="s2">      Karma: </span><span class="si">%d</span><span class="s2">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">long_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
                       <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">severity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath</span><span class="p">:</span>
@@ -3481,7 +3472,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
             <span class="n">username</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span>
         <span class="n">val</span> <span class="o">+=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">  Submitter: </span><span class="si">%s</span><span class="s2"></span>
+<span class="s2">  Submitter: </span><span class="si">%s</span>
 <span class="s2">  Submitted: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_submitted</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">comments_since_karma_reset</span><span class="p">:</span>
             <span class="n">val</span> <span class="o">+=</span> <span class="s2">&quot;   Comments: &quot;</span>
@@ -3499,7 +3490,7 @@
         <span class="k">return</span> <span class="n">val</span></div>
 
 <div class="viewcode-block" id="Update.update_bugs"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.update_bugs">[docs]</a>    <span class="k">def</span> <span class="nf">update_bugs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bug_ids</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make the update&#39;s bugs consistent with the given list of bug ids.</span>
 
 <span class="sd">        Create any new bugs, and remove any missing ones. Destroy removed bugs that are no longer</span>
@@ -3540,7 +3531,7 @@
         <span class="k">return</span> <span class="n">new</span></div>
 
 <div class="viewcode-block" id="Update.obsolete_if_unstable"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.obsolete_if_unstable">[docs]</a>    <span class="k">def</span> <span class="nf">obsolete_if_unstable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Obsolete the update if it reached the negative karma threshold while pending.</span>
 
 <span class="sd">        Args:</span>
@@ -3557,7 +3548,7 @@
 <div class="viewcode-block" id="Update.comment"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.comment">[docs]</a>    <span class="k">def</span> <span class="nf">comment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">karma</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">karma_critpath</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                 <span class="n">bug_feedback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">testcase_feedback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">check_karma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">email_notification</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a comment to this update.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a comment to this update.</span>
 
 <span class="sd">        If the karma reaches the &#39;stable_karma&#39; value, then request that this update be marked</span>
 <span class="sd">        as stable. If it reaches the &#39;unstable_karma&#39;, it is unpushed.</span>
@@ -3670,7 +3661,7 @@
         <span class="k">return</span> <span class="n">comment</span><span class="p">,</span> <span class="n">caveats</span></div>
 
 <div class="viewcode-block" id="Update.unpush"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.unpush">[docs]</a>    <span class="k">def</span> <span class="nf">unpush</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Move this update back to its dist-fX-updates-candidate tag.</span>
 
 <span class="sd">        Args:</span>
@@ -3701,7 +3692,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Update.revoke"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.revoke">[docs]</a>    <span class="k">def</span> <span class="nf">revoke</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Remove pending request for this update.</span>
 
 <span class="sd">        Raises:</span>
@@ -3731,7 +3722,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Update.untag"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.untag">[docs]</a>    <span class="k">def</span> <span class="nf">untag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">preserve_override</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Untag all of the :class:`Builds &lt;Build&gt;` in this update.</span>
 
 <span class="sd">        Args:</span>
@@ -3756,7 +3747,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pushed</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Update.obsolete"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.obsolete">[docs]</a>    <span class="k">def</span> <span class="nf">obsolete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">newer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Obsolete this update.</span>
 
 <span class="sd">        Even though unpushing/obsoletion is an &quot;instant&quot; action, changes in the repository will not</span>
@@ -3778,7 +3769,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="s2">&quot;This update has been obsoleted.&quot;</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="s1">&#39;bodhi&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Update.get_maintainers"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_maintainers">[docs]</a>    <span class="k">def</span> <span class="nf">get_maintainers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a list of maintainers who have commit access on the packages in this update.</span>
 
 <span class="sd">        Returns:</span>
@@ -3789,7 +3780,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">product_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a string of the product version that this update&#39;s release is associated with.</span>
 
 <span class="sd">        The product version is a string, such as &quot;fedora-26&quot;, and is used when querying Greenwave</span>
@@ -3801,7 +3792,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">long_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Update.check_requirements"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.check_requirements">[docs]</a>    <span class="k">def</span> <span class="nf">check_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check that an update meets its self-prescribed policy to be pushed.</span>
 
 <span class="sd">        Args:</span>
@@ -3886,7 +3877,7 @@
         <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;All checks pass.&quot;</span></div>
 
 <div class="viewcode-block" id="Update.check_karma_thresholds"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.check_karma_thresholds">[docs]</a>    <span class="k">def</span> <span class="nf">check_karma_thresholds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if we have reached either karma threshold, and adjust state as necessary.</span>
 
 <span class="sd">        This method will call :meth:`set_request` if necessary. If the update is locked, it will</span>
@@ -3946,7 +3937,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">builds_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a JSON representation of this update&#39;s associated builds.</span>
 
 <span class="sd">        Returns:</span>
@@ -3956,7 +3947,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">requirements_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a JSON representation of this update&#39;s requirements.</span>
 
 <span class="sd">        Returns:</span>
@@ -3966,7 +3957,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">last_modified</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the last time this update was edited or created.</span>
 
 <span class="sd">        This gets used specifically by taskotron/resultsdb queries so we only</span>
@@ -3990,7 +3981,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">critpath_approved</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return whether or not this critpath update has been approved.</span>
 
 <span class="sd">        Returns:</span>
@@ -4012,7 +4003,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">meets_testing_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return whether or not this update meets its release&#39;s testing requirements.</span>
 
 <span class="sd">        If this update&#39;s release does not have a mandatory testing requirement, then</span>
@@ -4048,7 +4039,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">has_stable_comment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return whether Bodhi has commented on the update that the requirements have been met.</span>
 
 <span class="sd">        This is used to determine whether bodhi should add the comment</span>
@@ -4066,7 +4057,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">days_to_stable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the number of days until an update can be pushed to stable.</span>
 
 <span class="sd">        This method will return the number of days until an update can be pushed to stable, or 0.</span>
@@ -4086,7 +4077,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">days_in_testing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the number of days that this update has been in testing.</span>
 
 <span class="sd">        Returns:</span>
@@ -4099,7 +4090,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_admin_approvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the number of Releng/QA approvals of this update.</span>
 
 <span class="sd">        Returns:</span>
@@ -4118,7 +4109,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">test_cases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a list of all TestCase names associated with all packages in this update.</span>
 
 <span class="sd">        Returns:</span>
@@ -4133,7 +4124,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">full_test_cases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a list of all TestCases associated with all packages in this update.</span>
 
 <span class="sd">        Returns:</span>
@@ -4150,7 +4141,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">requested_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the tag the update has requested.</span>
 
 <span class="sd">        Returns:</span>
@@ -4175,7 +4166,7 @@
         <span class="k">return</span> <span class="n">tag</span>
 
 <div class="viewcode-block" id="Update.__json__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.__json__">[docs]</a>    <span class="k">def</span> <span class="nf">__json__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a JSON representation of this update.</span>
 
 <span class="sd">        Args:</span>
@@ -4209,7 +4200,7 @@
 
 <div class="viewcode-block" id="Update.comment_on_test_gating_status_change"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.comment_on_test_gating_status_change">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">comment_on_test_gating_status_change</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">initiator</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Place comment on the update when ``test_gating_status`` changes.</span>
 
 <span class="sd">        Only notify the users by email if the new status is in ``failed``.</span>
@@ -4234,7 +4225,7 @@
             <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_build_group_test_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="o">=</span><span class="s2">&quot;bodhi&quot;</span><span class="p">,</span> <span class="n">retrigger</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build the dictionary sent when an update is ready to be tested.</span>
 
 <span class="sd">        This is used in bodhi.server.models.Update._ready_for_testing and in</span>
@@ -4288,7 +4279,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_ready_for_testing</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">initiator</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Signal that the update has been moved to testing.</span>
 
 <span class="sd">        This happens in the following cases:</span>
@@ -4335,7 +4326,7 @@
 
 
 <div class="viewcode-block" id="Compose"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Compose">[docs]</a><span class="k">class</span> <span class="nc">Compose</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Express the status of an in-progress compose job.</span>
 
 <span class="sd">    This object is used in a few ways:</span>
@@ -4389,7 +4380,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">content_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the content_type of this compose.</span>
 
 <span class="sd">        Returns:</span>
@@ -4401,7 +4392,7 @@
 
 <div class="viewcode-block" id="Compose.from_dict"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Compose.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">compose</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a :class:`Compose` instance from the given dict representation of it.</span>
 
 <span class="sd">        Args:</span>
@@ -4417,7 +4408,7 @@
 
 <div class="viewcode-block" id="Compose.from_updates"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Compose.from_updates">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_updates</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">updates</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a list of Compose objects to compose the given updates.</span>
 
 <span class="sd">        The updates will be collated by release, request, and content type, and will be added to</span>
@@ -4465,7 +4456,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">security</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return whether this compose is a security related compose or not.</span>
 
 <span class="sd">        Returns:</span>
@@ -4479,7 +4470,7 @@
 
 <div class="viewcode-block" id="Compose.update_state_date"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Compose.update_state_date">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">update_state_date</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">initiator</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Update the ``state_date`` when the state changes.</span>
 
 <span class="sd">        Args:</span>
@@ -4494,7 +4485,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">update_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a summary of the updates attribute, suitable for transmitting via the API.</span>
 
 <span class="sd">        Returns:</span>
@@ -4505,7 +4496,7 @@
                 <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">get_title</span><span class="p">(</span><span class="n">nvr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">beautify</span><span class="o">=</span><span class="kc">True</span><span class="p">)}</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">updates</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Compose.__json__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Compose.__json__">[docs]</a>    <span class="k">def</span> <span class="nf">__json__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">composer</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Serialize this compose in JSON format.</span>
 
 <span class="sd">        Args:</span>
@@ -4527,7 +4518,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Compose</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__json__</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="n">exclude</span><span class="p">,</span> <span class="n">include</span><span class="o">=</span><span class="n">include</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Compose.__lt__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Compose.__lt__">[docs]</a>    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return ``True`` if this compose has a higher priority than the other.</span>
 
 <span class="sd">        Args:</span>
@@ -4544,7 +4535,7 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Compose.__str__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Compose.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this compose.</span>
 
 <span class="sd">        Returns:</span>
@@ -4558,7 +4549,7 @@
 
 <span class="c1"># Used for many-to-many relationships between karma and a bug</span>
 <div class="viewcode-block" id="BugKarma"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugKarma">[docs]</a><span class="k">class</span> <span class="nc">BugKarma</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Karma for a bug associated with a comment.</span>
 
 <span class="sd">    Attributes:</span>
@@ -4582,7 +4573,7 @@
 
 <span class="c1"># Used for many-to-many relationships between karma and a TestCase</span>
 <div class="viewcode-block" id="TestCaseKarma"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseKarma">[docs]</a><span class="k">class</span> <span class="nc">TestCaseKarma</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Karma for a TestCase associated with a comment.</span>
 
 <span class="sd">    Attributes:</span>
@@ -4605,7 +4596,7 @@
 
 
 <div class="viewcode-block" id="Comment"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Comment">[docs]</a><span class="k">class</span> <span class="nc">Comment</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An update comment.</span>
 
 <span class="sd">    Attributes:</span>
@@ -4639,7 +4630,7 @@
     <span class="c1"># user backref from User</span>
 
 <div class="viewcode-block" id="Comment.url"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Comment.url">[docs]</a>    <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a URL to this comment.</span>
 
 <span class="sd">        Returns:</span>
@@ -4650,7 +4641,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">unique_testcase_feedback</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">TestCaseKarma</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a list of unique :class:`TestCaseKarma` objects found in the testcase_feedback.</span>
 
 <span class="sd">        This will filter out duplicates for :class:`TestCases &lt;TestCase&gt;`. It will return the</span>
@@ -4671,7 +4662,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">rss_title</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a formatted title for the comment using update alias and comment id.</span>
 
 <span class="sd">        Returns:</span>
@@ -4680,7 +4671,7 @@
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> comment #</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">alias</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Comment.__json__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Comment.__json__">[docs]</a>    <span class="k">def</span> <span class="nf">__json__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a JSON string representation of this comment.</span>
 
 <span class="sd">        Args:</span>
@@ -4706,7 +4697,7 @@
         <span class="k">return</span> <span class="n">result</span></div>
 
 <div class="viewcode-block" id="Comment.__str__"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Comment.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a str representation of this comment.</span>
 
 <span class="sd">        Returns:</span>
@@ -4719,7 +4710,7 @@
 
 
 <div class="viewcode-block" id="Bug"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug">[docs]</a><span class="k">class</span> <span class="nc">Bug</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents a Bugzilla bug.</span>
 
 <span class="sd">    Attributes:</span>
@@ -4751,7 +4742,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a URL to the bug.</span>
 
 <span class="sd">        Returns:</span>
@@ -4760,7 +4751,7 @@
         <span class="k">return</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;buglink&#39;</span><span class="p">]</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">bug_id</span>
 
 <div class="viewcode-block" id="Bug.update_details"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug.update_details">[docs]</a>    <span class="k">def</span> <span class="nf">update_details</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bug</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;bugzilla.bug.Bug&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Grab details from rhbz to populate our bug fields.</span>
 
 <span class="sd">        This is typically called &quot;offline&quot; in the UpdatesHandler task.</span>
@@ -4772,7 +4763,7 @@
         <span class="n">bugs</span><span class="o">.</span><span class="n">bugtracker</span><span class="o">.</span><span class="n">update_details</span><span class="p">(</span><span class="n">bug</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Bug.default_message"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug.default_message">[docs]</a>    <span class="k">def</span> <span class="nf">default_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a default comment to add to a bug with add_comment().</span>
 
 <span class="sd">        Args:</span>
@@ -4809,7 +4800,7 @@
         <span class="k">return</span> <span class="n">message</span></div>
 
 <div class="viewcode-block" id="Bug.add_comment"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug.add_comment">[docs]</a>    <span class="k">def</span> <span class="nf">add_comment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">,</span> <span class="n">comment</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a comment to the bug, pertaining to the given update.</span>
 
 <span class="sd">        Args:</span>
@@ -4827,7 +4818,7 @@
             <span class="n">bugs</span><span class="o">.</span><span class="n">bugtracker</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bug_id</span><span class="p">,</span> <span class="n">comment</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Bug.testing"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug.testing">[docs]</a>    <span class="k">def</span> <span class="nf">testing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Change the status of this bug to ON_QA.</span>
 
 <span class="sd">        Also, comment on the bug with some details on how to test and provide feedback for the given</span>
@@ -4844,7 +4835,7 @@
             <span class="n">bugs</span><span class="o">.</span><span class="n">bugtracker</span><span class="o">.</span><span class="n">on_qa</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bug_id</span><span class="p">,</span> <span class="n">comment</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Bug.close_bug"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug.close_bug">[docs]</a>    <span class="k">def</span> <span class="nf">close_bug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Close the bug.</span>
 
 <span class="sd">        Args:</span>
@@ -4858,7 +4849,7 @@
         <span class="n">bugs</span><span class="o">.</span><span class="n">bugtracker</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bug_id</span><span class="p">,</span> <span class="n">versions</span><span class="o">=</span><span class="n">versions</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">default_message</span><span class="p">(</span><span class="n">update</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Bug.modified"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug.modified">[docs]</a>    <span class="k">def</span> <span class="nf">modified</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">,</span> <span class="n">comment</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Change the status of this bug to MODIFIED unless it is a parent security bug.</span>
 
 <span class="sd">        Also, comment on the bug stating that an update has been submitted.</span>
@@ -4879,7 +4870,7 @@
 
 
 <div class="viewcode-block" id="User"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.User">[docs]</a><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A Bodhi user.</span>
 
 <span class="sd">    Attributes:</span>
@@ -4910,7 +4901,7 @@
     <span class="n">groups</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s2">&quot;Group&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">user_group_table</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;users&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="User.avatar"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.User.avatar">[docs]</a>    <span class="k">def</span> <span class="nf">avatar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="s1">&#39;pyramid.request&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a URL for the User&#39;s avatar, or None if request is falsey.</span>
 
 <span class="sd">        Args:</span>
@@ -4924,7 +4915,7 @@
         <span class="k">return</span> <span class="n">get_avatar</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="User.openid"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.User.openid">[docs]</a>    <span class="k">def</span> <span class="nf">openid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="s1">&#39;pyramid.request&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return an openid identity URL.</span>
 
 <span class="sd">        Args:</span>
@@ -4939,7 +4930,7 @@
 
 
 <div class="viewcode-block" id="Group"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Group">[docs]</a><span class="k">class</span> <span class="nc">Group</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A group of users.</span>
 
 <span class="sd">    Attributes:</span>
@@ -4959,7 +4950,7 @@
 
 
 <div class="viewcode-block" id="BuildrootOverride"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BuildrootOverride">[docs]</a><span class="k">class</span> <span class="nc">BuildrootOverride</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This model represents a Koji buildroot override.</span>
 
 <span class="sd">    A buildroot override is a way to add a build to the Koji buildroot (the set of packages used</span>
@@ -4999,7 +4990,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nvr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the NVR of the :class:`Build` associated with this override.</span>
 
 <span class="sd">        Returns:</span>
@@ -5009,7 +5000,7 @@
 
 <div class="viewcode-block" id="BuildrootOverride.new"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BuildrootOverride.new">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="s1">&#39;pyramid.request&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;BuildrootOverride&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a new buildroot override.</span>
 
 <span class="sd">        Args:</span>
@@ -5048,7 +5039,7 @@
 
 <div class="viewcode-block" id="BuildrootOverride.edit"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BuildrootOverride.edit">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="s1">&#39;pyramid.request&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;BuildrootOverride&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Edit an existing buildroot override.</span>
 
 <span class="sd">        Args:</span>
@@ -5088,7 +5079,7 @@
         <span class="k">return</span> <span class="n">override</span></div>
 
 <div class="viewcode-block" id="BuildrootOverride.enable"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BuildrootOverride.enable">[docs]</a>    <span class="k">def</span> <span class="nf">enable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Mark the BuildrootOverride as enabled.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Mark the BuildrootOverride as enabled.&quot;&quot;&quot;</span>
         <span class="n">koji_session</span> <span class="o">=</span> <span class="n">buildsys</span><span class="o">.</span><span class="n">get_session</span><span class="p">()</span>
         <span class="n">koji_session</span><span class="o">.</span><span class="n">tagBuild</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">override_tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">)</span>
 
@@ -5098,7 +5089,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">expired_date</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="BuildrootOverride.expire"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BuildrootOverride.expire">[docs]</a>    <span class="k">def</span> <span class="nf">expire</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Mark the BuildrootOverride as expired.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Mark the BuildrootOverride as expired.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expired_date</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
 
@@ -5202,11 +5193,11 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2007-2022, Red Hat, Inc..
+      &copy;2007-2023, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
 
