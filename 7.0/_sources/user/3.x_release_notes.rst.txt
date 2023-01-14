@@ -1,0 +1,1346 @@
+=================
+3.x release notes
+=================
+
+These are the release notes for the 3.x series of Bodhi releases.
+
+v3.14.0
+-------
+
+This is a feature release.
+
+Features
+^^^^^^^^
+
+* Use ``flatpaks/`` namespace for Flatpaks, and make it configurable.
+  (:issue:`2924`, :issue:`3052`).
+* Add json response handler for server internal errors (:issue:`3035`).
+
+Bug fixes
+^^^^^^^^^
+
+* Fix HTTP 500 errors when viewing composes (:issue:`2826`).
+* Set log level to ERROR in bodhi-approve-testing (:issue:`3021`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Log why buildroot overrides are expired (:issue:`3060`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.14.0:
+
+* Nils Philippsen
+* Sebastian Wojciechowski
+* Owen Taylor
+
+
+v3.13.3
+-------
+
+This is a bugfix release.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Bug fixes
+^^^^^^^^^
+
+* Mark updates as "tests ignored" if Greenwave fails to respond (:issue:`3044`).
+
+
+v3.13.2
+-------
+
+This is a bugfix release.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Bug fixes
+^^^^^^^^^
+
+* Allow the bugs.private database column to be ``NULL`` (:issue:`3024`).
+* Remove misplaced variable in the update template (:issue:`3025`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.13.2:
+
+* Aurélien Bompard
+* Randy Barlow
+
+
+v3.13.1
+-------
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+No special instructions are needed for this release.
+
+
+Bug fix
+^^^^^^^
+
+
+This is a bugfix release, addressing an issue that was introduced in 3.13.0:
+
+* Gracefully handle private bugs via a different approach than was used in 3.13.0 (:issue:`3016` and
+  :issue:`344`).
+
+
+v3.13.0
+-------
+
+This is a feature release.
+
+
+Deprecations
+^^^^^^^^^^^^
+
+* Authentication with OpenID is deprecated (:issue:`1180`).
+* ``bodhi-untag-branched`` is deprecated (:issue:`1197`).
+* The Update's ``title`` field is deprecated (:issue:`1542`).
+* Integration with pkgdb is deprecated (:issue:`1970`).
+* Support for Python 2 is deprecated (:issue:`1871` and :issue:`2856`).
+* The ``/masher/`` view is deprecated (:issue:`2024`).
+* ``bodhi-monitor-composes`` is deprecated (:issue:`2171`).
+* The stacks feature is deprecated (:issue:`2241`).
+* ``bodhi-manage-releases`` is deprecated (:issue:`2420`).
+* Anonymous comments are deprecated (:issue:`2700`).
+* The ``ci_url`` attribute on Builds is deprecated (:issue:`2782`).
+* The ``active_releases`` query parameter on the Updates query URL is deprecated (:issue:`2815`).
+* Support for fedmsg is deprecated (:issue:`2838`).
+* Support for Bodhi 1's URL scheme is deprecated (:issue:`2869` and :issue:`2903`).
+* The ``/admin/`` API is deprecated (:issue:`2899`).
+* The fedmsg UI integration is deprecated (:issue:`2913`).
+* CVE support is deprecated (:issue:`2915`).
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Bodhi no longer requires ``iniparse`` (:commit:`a910b615`).
+* Bodhi now requires ``fedora_messaging`` (:commit:`e30c5f21`).
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Features
+^^^^^^^^
+
+* A new ``bodhi-shell`` CLI is included with the server package that initialized a Python shell with
+  some handy aliases that are useful for debugging Bodhi (:issue:`1792`).
+* Updates that obsolete security updates will now be set as security updates themselves
+  (:issue:`1798`)
+* The CLI no longer crashes when creating multiple buildroot overrides in one command
+  (:issue:`2031`).
+* The CLI can now display information about waivers (:issue:`2267`).
+* Releases can now be marked as not being composed by Bodhi, which will be useful if we want to use
+  Bodhi to tag builds into releases without composing those releases, e.g., Fedora Rawhide
+  (:issue:`2317`).
+* BuildrootOverrides are now prevented for builds that fail the test gating status (:issue:`2537`).
+* The web interface now displays instructions for installing updates (:issue:`2799`).
+* The CLI now has flags that allow users to override the OpenID API URL to use. This is useful
+  for deployments that aren't for Fedora and also for developers, who can use it to authenticate
+  against a different OpenID server than Fedora's production instance (Fedora's staging instance is
+  nice to use for this) (:issue:`2820`).
+* The web UI search box uses a slightly longer delay before issuing the search request
+  (:commit:`51c2fa8c`).
+* Messages can now be published by ``fedora_messaging``, a replacement for ``fedmsg``
+  (:commit:`e30c5f21`).
+* Associating updates with private Bugzilla tickets is now handled gracefully (:commit:`7ac316ac`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* The ``bodhi-approve-testing`` CLI script is now more resilient against failures (:issue:`1016`).
+* The update edit page will return a HTTP 403 instead of a HTTP 400 if a user tries to edit an
+  update they don't have permissions to edit (:issue:`1737`).
+* The ``bodhi`` CLI now has a ``--wait`` flag when creating BuildrootOverrides that will cause
+  ``bodhi`` to wait on Koji to finish adding the override to the buildroot before exiting
+  (:issue:`1807`).
+* The waive button is now displayed on locked updates (:issue:`2271`).
+* Editing an update with the CLI no longer sets the type back to the default of bugfix
+  (:issue:`2528`).
+* ``bodhi-approve-testing`` now sets up a log handler (:issue:`2698`).
+* Some missing commands were added to the ``bodhi`` man page (:commit:`1e6c2596`).
+* A formatting issue was fixed in the command line client (:commit:`996b4ec5`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* ``bodhi-ci`` now has an integration test suite that launches a live Bodhi server, some of its
+  network dependencies, and tests it with some web and CLI requests (:commit:`24304334`).
+* ``bodhi-ci``'s status report now displays the run time for finished tasks (:commit:`26af5ef4`).
+* ``bodhi-ci`` now prints a continuous status report, which is helpful in knowing what it is
+  currently doing (:commit:`f3ca62ad`).
+* We now do type checking enforcement on ``bodhi-ci`` (:commit:`2c070055`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.13.0:
+
+* Aurélien Bompard
+* Jeremy Cline
+* Mattia Verga
+* Ryan Lerch
+* Sebastian Wojciechowski
+* Vismay Golwala
+* Randy Barlow
+
+
+v3.12.0
+-------
+
+This is a small feature release.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+No special actions are needed when applying this update.
+
+
+Features
+^^^^^^^^
+
+* Add a new ``bugzilla_api_key`` setting so that Bodhi can authenticate with an API key instead of
+  a username and password. It is hoped that this will solve an issue Bodhi has been experiencing
+  with Red Hat's Bugzilla instance since it upgraded to version 5, where Bodhi is often told it
+  needs to log in to Bugzilla when making changes to issues (:issue:`2827`).
+* Logging around Bodhi's use of the Bugzilla API is expanded (:issue:`2831`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.12.0:
+
+* Randy Barlow
+
+
+v3.11.3
+-------
+
+This is a bugfix release.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+No special actions are needed when applying this update.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Correctly handle multiple builds with the search form in the new update JavaScript web UI code
+  (:issue:`2791`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.11.3:
+
+* Mattia Verga
+
+
+v3.11.2
+-------
+
+This is a bugfix release, addressing an issue that was solved incorrectly with 3.11.1.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+No special actions are needed when applying this update.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Correctly catch ``http.client.IncompleteRead`` while Composing and retry (:issue:`2758`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.11.2:
+
+* Randy Barlow
+
+
+v3.11.1
+-------
+
+This is a bugfix release, addressing a few issues with running Bodhi under Python 3.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+No special actions are needed when applying this update.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Pass the correct type, str, to ``smtplib.SMTP.sendmail()`` for its to and from address parameters
+  (:issue:`2756`).
+* Allow ``EnumSymbols`` to be sorted (:issue:`2757`).
+* Catch ``http.client.IncompleteRead`` while Composing and retry (:issue:`2758`).
+* Correctly handle timestamps from Koji (:issue:`2768`).
+* The captcha now works under Python 3 (:issue:`2786`).
+* Do not reverse the logout/reboot options in the web UI on Python 3 (:issue:`2778`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.11.1:
+
+* Patrick Uiterwijk
+* Randy Barlow
+
+
+v3.11.0
+-------
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Bodhi now fully supports Python 3.
+* Bodhi now works with markdown 3 and click 7.
+* Bodhi no longer requires pyramid_tm.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Features
+^^^^^^^^
+
+* It is now possible to query update by more fields: ``alias``, ``approved-before``,
+  ``modified-before``, ``pushed-before``, ``active-releases``, ``severity``, and
+  ``submitted-before``, and the fields are documented in the bindings (:issue:`181`).
+* It is now possible to query by update title (:issue:`251`).
+* It is now possible to filter comments, updates, and overrides with multiple users at once
+  (:issue:`2489`).
+* The ``bodhi releases`` subcommand now has a ``list`` feature (:issue:`2536`).
+* A new compose state was added for waiting on the mirrors to sync updated repositories
+  (:issue:`2550`).
+* A new server CLI script called ``bodhi-sar`` has been added to retrieve personally identifiable
+  information from Bodhi (:issue:`2553`).
+* The ``waive`` subcommand is now documented in the ``bodhi`` man page (:issue:`2610`).
+* ``bodhi-push`` now has a ``--yes/-y`` flag (:issue:`2635`).
+* The ``composes`` and ``releases`` subcommands are now documented in the ``bodhi`` man page
+  (:issue:`2642`).
+* The composer now logs more information when items are missing from the generated ``repomd.xml``
+  file (:issue:`2643`).
+* The comment submit button now renders more clearly on some browsers (:issue:`2649`).
+* Bodhi is now able to determine container repository names from Koji metadata, instead of
+  hard coding it (:issue:`2658`).
+* The ``bodhi`` CLI's pagination features are now documented (:issue:`2663`).
+* There is now a ``bodhi composes info`` subcommand (:issue:`2683`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* Bodhi now disallows empty comments (:issue:`2009`).
+* ``bodhi-check-policies`` now sets up a log handler to silence warnings (:issue:`2156`).
+* The ``test_gating_status`` is now set back to waiting when updates are waived (:issue:`2364`).
+* Bugzilla permission errors should not cause error e-mails to be sent anymore (:issue:`2431`).
+* The waive button is now only displayed if there are failed tests to waive (:issue:`2545`).
+* Correctly handle unicode characters in update notes in the CLI (:issue:`2546`).
+* The test waiver dialog now shows the test case name (:issue:`2571`).
+* Examples were corrected in the ``bodhi`` CLI help text and man page
+  (:issue:`2640` and :issue:`2641`).
+* The new update web form received a number of improvements and bug fixes. Builds and bugs lists are
+  refreshed every time a new package is selected in the input field. Manual added bugs and builds
+  are not added to the lists if they are already present after having been retrieved from package
+  selection. When an error in AJAX query occurs it is now displayed as an error message. AJAX
+  queries now have a timeout. And we now avoid form submit when pressing Enter while entering text
+  in the package text input field (:issue:`2648`).
+* A misleading composer log entry was corrected (:issue:`2667`).
+* An incorrect error message was corrected (:issue:`2703`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Bodhi's CI job now reports each test as an individual GitHub status line, which makes it much
+  easier to identify the cause of test failures when they occur (:issue:`2584`).
+* Due to the above, Mergify is now configured to only enforce passing tests on branched releases,
+  since Rawhide failures are often not due to pull request patches (:issue:`2594`).
+* Use update.get_url() to generate comments URL (:issue:`2596`).
+* Unnecessary repetition was removed from the ``BugTracker`` class (:issue:`2607`).
+* A typo was fixed in the docstring of ``Bugzilla.get_url()`` (:issue:`2608`).
+* CI now uses the Jenkins Pipeline plugin, which allows us to run the CI jobs much more efficiently,
+  and only requires a single node to parallelize the tasks (:issue:`2609`).
+* A new development tool, ``devel/ci/bodhi-ci``, was created to replace ``devel/run_tests.sh`` as
+  the CI test running tool. It is designed to be useful to developers for running the CI suite
+  locally, and has help text to guide you in usage (:issue:`2616`).
+* Do not expose the Duffy key in CI logs (:issue:`2617`).
+* Use markdown's Extension API to register FFMarkdown instead of an undocumented internal API. This
+  allows Bodhi to work with markdown-3.0.0 (:issue:`2618`).
+* Explicitly name the skopeo-lite src/dest_creds parameters. Also fix two unit tests for
+  click-7.0.0. This allows Bodhi to work with click-7.0.0 (:issue:`2621`).
+* Some docstrings were corrected (:issue:`2680`, :issue:`2682`, and :issue:`2689`).
+* Upgraded to Mergify 2 (:issue:`2686`).
+* Bodhi's tests now run about 40% faster (:issue:`2687`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.11.0:
+
+* Mattia Verga
+* Owen W. Taylor
+* Patrick Uiterwijk
+* Ryan Lerch
+* Sebastian Wojciechowski
+* sedrubal
+* Randy Barlow
+
+
+v3.10.1
+-------
+
+This releases fixes a crash while composing modular repositories (:issue:`2631`).
+
+
+v3.10.0
+-------
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+The composer now requires hawkey.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Features
+^^^^^^^^
+
+* It is no longer an error if a developer tries to create an override for a build that already had
+  an override. Instead, Bodhi helpfully edits the old override automatically (:issue:`2030`).
+* The UI displays the date that expired overrides became expired (:issue:`2136`).
+* Security updates now require severity to be set (:issue:`2206`).
+* The Waiver UI now gives the user more context (:issue:`2270` and :issue:`2363`).
+* The CLI can be used to edit Release mail templates (:issue:`2475`).
+* A new ``clean_old_composes`` setting allows admins to disable the automatic compose cleanup
+  feature that was new in Bodhi 3.9.0 (:issue:`2561`).
+* The API can filter releases by state (:commit:`beb69a05`).
+* The CLI now has a ``--debug`` flag on a couple of commands (:commit:`1bd76179`).
+* The bindings have some debug level logging when retrieving Greenwave status (:commit:`b55fa453`).
+* The UI now makes it clear that only authenticated users can leave karma on updates
+  (:commit:`3b551c32`).
+* Bodhi can now manage Flatpaks (:commit:`1a6c4e88`).
+* Bodhi now ships a ``/usr/bin/bodhi-skopeo-lite``, which is intended to be an alternative for use
+  with the ``skopeo.cmd`` setting. It allows for multi-arch containers and Flatpaks to be managed by
+  Bodhi (:commit:`a0496fc9`).
+* The composer now uses librepo/hawkey to do much more extensive testing on the produced yum
+  repositories to ensure they are valid (:commit:`7dda554a`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* More space was added around some buttons so they don't touch on small screens (:issue:`1902`).
+* The ``bodhi releases`` subcommands no longer prompt for password when not necessary
+  (:issue:`2496`).
+* The submit feedback button now appears on low resolution screens (:issue:`2509`).
+* Articles were fixed in a tooltip on the update page (:commit:`075f8a9d`).
+* The CLI can again display missing required tests (:commit:`cf75ff81`).
+* Fix a failure that sometimes occurred when editing multi-build updates (:commit:`d997ed4f`).
+* Unknown Koji tags will no longer cause an Exception when creating new updates
+  (:commit:`78dd4aaf`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Line test coverage has reached 100% (:commit:`2477fc8f`).
+* A fake Pungi is used in the Vagrant environment to speed up ``vagrant up`` (:commit:`1b4f5fcd`).
+* No tests are skipped on Python 3 anymore (:commit:`44d46e37`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.10.0:
+
+* Anatoli Babenia
+* Clement Verna
+* Mattia Verga
+* Owen W. Taylor
+* Patrick Uiterwijk
+* Pierre-Yves Chibon
+* Ralph Bean
+* Rick Elrod
+* Vismay Golwala
+* Randy Barlow
+
+
+v3.9.0
+------
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Deprecation
+^^^^^^^^^^^
+
+``bodhi-manage-releases`` is now deprecated. The ``bodhi`` CLI now has a ``releases`` section that
+performs the tasks that ``bodhi-manage-releases`` is used for.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Cornice must now be at least version 3.1.0 (:issue:`2286`).
+* Greenwave is now a required service for Bodhi deployments that wish to continue displaying test
+  results in the UI (:issue:`2370`).
+* The responses python module is now needed for running tests.
+
+
+Features
+^^^^^^^^
+
+* Bodhi now comments in the same POST as status changes on Bugzilla comments (:issue:`336`).
+* The RSS feeds now have titles (:issue:`1119`).
+* ``bodhi-clean-old-mashes`` is automatically run after each successful compose (:issue:`1304`).
+* The ``bodhi`` CLI can now edit releases' ``pending_signing_tag`` fields (:issue:`1337`).
+* White space is stripped when searching for packages or updates (:issue:`2046`).
+* Severity is displayed in the web UI (:issue:`2108`).
+* Bugzilla bugs are sorted by number on the update bugs tab (:issue:`2222`).
+* The web UI now queries Greenwave with each page load to display the test gating status, rather
+  than displaying the cached value from Bodhi's database. This allows users to see the current
+  status of their update from Greenwave's perspective. This change also causes Bodhi to retrieve the
+  test results from Greenwave rather than from ResultsDB, which means the test results tab now shows
+  the same test results that influence the gating decision (:issue:`2370`, :issue:`2393`, and
+  :issue:`2425`)
+* The waiver API is now documented (:issue:`2390`).
+* The CLI and bindings can now paginate results when querying updates and overrides (:issue:`2405`).
+* The ``bodhi`` CLI can now manage releases (:issue:`2419`).
+* Comments have a mouse hoverover for timestamps (:commit:`60e2cddb`).
+* The compose is now skipped if the repo is already staged (:commit:`9d94edb4`).
+* Update statuses have a descriptive tooltip in the web UI (:commit:`40d04226`).
+* A new ``/updates/{id}/get-test-results`` API endpoint was added
+  that can retrieve the test results for an update from Greenwave (:commit:`9631a9b6`).
+* API users can specify which results they'd like to waive in the waiver API (:commit:`7d51ee54`).
+* Update CI status is now displayed in the CLI (:commit:`4ab03afe`).
+* The CLI can now waive test results (:commit:`833a9c14`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* Do not alter Bugzilla tickets that are not related to an approved product (:issue:`1043` and
+  :issue:`2336`).
+* Only comments after the most recent karma reset event are considered for critpath karma
+  (:issue:`1996`).
+* The homepage now uses correct link for critical path updates (:issue:`2094`).
+* Bug and test case karma is now correctly registered (:issue:`2130`, :issue:`2189`, and
+  :issue:`2456`).
+* The web UI no longer uses a hardcoded Koji URL, and gets it from the new ``koji_web_url`` setting
+  instead (:issue:`2182`).
+* The Bodhi CLI will no longer reset unedited fields to their defaults when editing updates
+  (:issue:`2208`).
+* Return a helpful error when notes are not supplied when creating an update (:issue:`2214`).
+* Removed a conflicting HTTPForbidden handler (:issue:`2258`).
+* The RSS view for an update now works when the update has comments with no text (:issue:`2314`).
+* Composes that fail the sanity check are now thrown out (:issue:`2374`).
+* The uniqueness constraint on e-mail was dropped since it was not useful and did cause occasional
+  problems (:issue:`2387`).
+* e-mail templates are no longer hardcoded and are now stored on the filesystem (:issue:`2396`).
+* Failure to act on private Bugzilla tickets is no longer logged at error level (:issue:`2431`).
+* Block quotes are now correctly styled (:commit:`fd843a4e`).
+* The validators will no longer report spurious errors due to previously failed validations
+  (:commit:`5241205b`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Python 2 line test coverage was raised to 99% (:issue:`2409`).
+* The development build system now implements the addTag and deleteTag calls (:commit:`4787a3ec`).
+* The ``querystring`` validator is now used from Cornice (:commit:`f9900c05`).
+* The tests now initialize the BodhiClient with a username so the tests will pass when there is a
+  cached username (such as on a Fedora system that has Bodhi credentials) (:commit:`773232b6`).
+* A new subclass of ``webtest.TestApp`` was created so tests would pass on Python 3
+  (:commit:`847873f5`).
+* ``devel/Vagrantfile.example`` was renamed to ``Vagrantfile`` (:commit:`e985fa3c`).
+* The tests now pass on systems that don't use UTC (:commit:`63543675`).
+* Python 3 line test coverage was significantly increased, up to 98%.
+* A few warnings have been fixed.
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.9.0:
+
+* Clement Verna
+* Eli Young
+* Lumir Balhar
+* Mattia Verga
+* Miro Hrončok
+* Owen W. Taylor
+* Patrick Uiterwijk
+* Pierre-Yves Chibon
+* Ralph Bean
+* Vismay Golwala
+* Randy Barlow
+
+
+v3.8.1
+------
+
+Bugs
+^^^^
+
+* Fix two incompatibilities with Python 3.7 (:issue:`2436` and :issue:`2438`).
+
+
+Contributor
+^^^^^^^^^^^
+
+Thanks to Miro Hrončok for fixing these issues.
+
+Deprecation
+^^^^^^^^^^^
+
+* ``bodhi-manage-releases`` has been deprecated and will be removed in a future release. Please use
+  ``bodhi releases`` instead (:issue:`2419`).
+
+
+v3.8.0
+------
+
+Features
+^^^^^^^^
+
+* Container releases may now have a trailing "C" in their name (:issue:`2250`).
+* The number of days an update has been in its current state is now displayed by the CLI
+  (:issue:`2176` and :issue:`2269`).
+* Composes are no longer batched by category (security vs. non-security, updates vs. testing)
+  as this was not found to be beneficial and did slow the compose process down (:commit:`68c7936e`).
+* A fedmsg is now transmitted when an update's time in testing is met (:commit:`99923f18`).
+* New states for updates that are related to side tags have been documented (:commit:`d7b54323`).
+
+
+Bugs
+^^^^
+
+* Bodhi no longer considers HTTP codes ``> 200`` and ``< 300`` to be errors (:issue:`2361`).
+* Do not apply null Koji tags to ejected updates during compose (:issue:`2368`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The container composer has been refactored to use a cleaner helper function (:issue:`2259`).
+* Bodhi's models now support side tags, a planned feature for an upcoming Bodhi release
+  (:issue:`2275`).
+* Compose.from_updates() returns a list in Python 3 (:issue:`2291`).
+* Some silliness was removed from the universe, as ``bodhi.server.models.BodhiBase.get()`` no longer
+  requires a database session to be passed to it (:issue:`2298`).
+* The in-memory dogpile cache backend is used for development by default (:issue:`2300`).
+* The CI container no longer installs Pungi, which speeds the CI testing time up (:issue:`2306`).
+* Dropped support for ``str`` arguments from ``util.cmd()`` (:issue:`2332`).
+* Python 3 line test coverage has increased to 85%.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This update contains a migration to add two new updates states for side tags. After installing the
+new server packages, you need to run the migrations::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.8.0:
+
+* Mattia Verga
+* Eli Young
+* Lumir Balhar
+* Patrick Uiterwijk
+* Ralph Bean
+* Paul W. Frields
+* Randy Barlow
+
+
+v3.7.0
+------
+
+Features
+^^^^^^^^
+
+* Include the missing tests in the summary about greenwave's decision
+  (:issue:`2273` and :issue:`2345`).
+* Show waivers about an update on its page for easier access to users and admins
+  (:issue:`2277`).
+* New ``legal_link`` and ``privacy_link`` settings allow Bodhi to link to a legal document and
+  privacy policy (:issue:`2347`).
+
+
+Bugs
+^^^^
+* Properly call the WaiverDB API when waiving tests from the UI (:issue:`2272`).
+* Only ask greenwave about updates in active releases when asking their gating
+  status (:issue:`2121`).
+* Updates can no longer be pushed if they fail the gating tests (:issue:`2346`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.7.0:
+
+* Pierre-Yves Chibon
+* Patrick Uiterwijk
+* Randy Barlow
+
+
+v3.6.1
+------
+
+Bug fixes
+^^^^^^^^^
+
+* The update template no longer crashes on locked updates (:issue:`2288`).
+* Do not cache calculated libravatar links (:issue:`2289`).
+* Warm the release cache at startup to avoid intermingled queries (:issue:`2296`).
+* Warm the home page cache at startup to avoid slow responses and intermingled queries
+  (:issue:`2297`).
+* Interpret the ``dogpile.cache.expiration_time`` as an ``int`` instead of a ``str``
+  (:issue:`2299`).
+* Do not cache the Koji latest candidates (:issue:`2301`).
+* Do not require the web server to have Pungi installed since it does not use it (:issue:`2303`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed patches to Bodhi 3.6.1:
+
+* Patrick Uiterwijk
+* Randy Barlow
+
+
+v3.6.0
+------
+
+Deprecation
+^^^^^^^^^^^
+
+* ``bodhi-monitor-composes`` has been deprecated and will be removed in a future release. Please use
+  ``bodhi composes list`` instead (:issue:`2170`).
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Pungi 4.1.20 or higher is now required.
+* ``six`` is now a required dependency.
+* Skopeo is now a required dependency for Bodhi installations that compose containers.
+
+
+Features
+^^^^^^^^
+
+* The UI no longer lists a user's updates from retired releases by default (:issue:`752`).
+* The CLI now supports update severity (:issue:`1814`).
+* There is now a REST API to find out the status of running or failed composes (:issue:`2015`).
+* The CLI now has a ``composes`` section which is able to query the server to display the status of
+  composes (:issue:`2016`).
+* Bodhi is now able to identify containers in Koji (:issue:`2027`).
+* Bodhi is now able to compose containers (:issue:`2028`).
+* There is now a ``cache_dir`` setting that can be used to direct Bodhi where to store a ``shelve``
+  while generating metadata (:commit:`9b08f7be`).
+* There is now documentation about buildroot overrides (:commit:`3450073c`).
+* Bodhi will now include RPM changelogs in e-mails (:commit:`07b27fe8`).
+* Bodhi's update e-mail now instruct ``dnf`` users to use the ``--advisory`` flag
+  (:commit:`9fd56f99`).
+* A new ``wait_for_repo_sig`` setting will allow Bodhi to work with signed repodata
+  (:commit:`eea40394`).
+
+
+Bugs
+^^^^
+
+* Bodhi will not reopen VERIFIED or CLOSED bugs anymore
+  (:issue:`1091`, :issue:`1349`, :issue:`2168`).
+* Bugzilla tickets will no longer get too much text inserted into their fixedin field
+  (:issue:`1430`).
+* The CLI --close-bugs flag now works correctly (:issue:`1818`).
+* Fix ACL lookup for Module Packages (:issue:`2251`).
+* Captcha errors are now correctly noted on cookies instead of the session, which was incompatible
+  with Cornice 3 (:commit:`900e80a3`).
+* The ``prefer_ssl`` setting now properly works (:commit:`9f55c7d2`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Uniqueness on a release's branch column was dropped, since container releases will likely use the
+  same branch name as RPM releases (:issue:`2216`).
+* Bodhi now learns the Pungi output dir directly from Pungi (:commit:`dbc337e5`).
+* The composer now uses a semaphore to keep track of how many concurrent composes are running
+  (:commit:`66f995e1`).
+* CI tests are now also run against Fedora 28 (:issue:`2215`).
+* Bodhi is now up to 98% line test coverage, from 95% in the 3.5.0 release.
+* It is now possible to run the same tests that CI runs in the Vagrant environment by running
+  ``devel/run_tests.sh``.
+* The Bodhi CLI now supports Python 3 with 100% test coverage.
+* The Bodhi server also now supports Python 3, but only has 78% test coverage with Python 3 as many
+  tests need to be converted to pass on Python 3, thus it is not yet recommended to run Bodhi server
+  on Python 3 even though it is theoretically possible.
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developer contributed patches to Bodhi 3.6.0:
+
+* Lumir Balhar
+* Patrick Uiterwijk
+* Mattia Verga
+* Clément Verna
+* Pierre-Yves Chibon
+* Jan Kaluza
+* Randy Barlow
+
+
+v3.5.2
+------
+
+3.5.2 is an important bug fix release. Users are strongly recommended to use it over 3.5.1, which
+introduced the bug.
+
+
+Bug fix
+^^^^^^^
+
+* Fix loop variable leaking in sorted_updates, which led to packages not being tagged in Koji when
+  they are pushed to a repository (:issue:`2243`).
+
+
+Contributor
+^^^^^^^^^^^
+
+Thanks to Patrick Uiterwijk for submitting the fix for this release.
+
+
+v3.5.1
+------
+
+3.5.1 inadvertently introduced a bug that caused packages not to be tagged properly in Koji. Users
+are advised to skip this release and use 3.5.2 instead.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Use correct N, V, R splitting for module builds and add stream support (:issue:`2226`).
+* Fixed Release.version_int for modular releases (:issue:`2232`).
+
+
+Contributor
+^^^^^^^^^^^
+
+All 3.5.1 fixes were submitted by Patrick Uiterwijk.
+
+
+v3.5.0
+------
+
+Feature
+^^^^^^^
+
+* Allow version-specific repomd url overrides (:issue:`2199`).
+
+
+Bugs
+^^^^
+
+* The location of the release notes was fixed in the developer docs (:issue:`2154`).
+* Use ":"'s instead of "-"'s as the NSV separator for Modules (:issue:`2167`).
+* ``bodhi-push`` no longer authenticates to Koji (:issue:`2190`).
+* Two tag references were fixed in ``bodhi-untag-branched`` (:commit:`59c83fc7`).
+* Ensure there is a Greenwave summary to display before displaying it (:commit:`c07daf96`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The composer was refactored to split Pungi-specific code out into a new intermediate base class,
+  to prepare the way for a coming container composer. This way the future container composer can
+  share code with the RPM and Module composer code, while only using Pungi for the latter two
+  (:issue:`2152`).
+* The Vagrant development environment was upgraded to Fedora 27 (:issue:`2158`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.5.0:
+
+* Patrick Uiterwijk
+* Jan Kaluza
+* Pierre-Yves Chibon
+* Anatoli Babenia
+* Randy Barlow
+
+
+v3.4.0
+------
+
+Features
+^^^^^^^^
+
+* A UI for waiving failed test results has been added to the update page (:commit:`7f7472b6`).
+* A man page was written for ``bodhi-untag-branched`` (:commit:`2b83aeca`).
+* ``bodhi-clean-old-mashes`` now prints directories before deleting them (:commit:`1cfa8a61`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* The mouseover text for severity was fixed on the new update form (:commit:`fe40e387`).
+* It was made clearer in ``production.ini`` that some settings don't have defaults
+  (:commit:`c865af96`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* All of Bodhi's public code now has docblocks that follow PEP-257.
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.4.0:
+
+* Matt Jia
+* Lubomír Sedlář
+* Randy Barlow
+
+
+v3.3.0
+------
+
+Features
+^^^^^^^^
+
+* Test gating status is now polled whenever an update is created or edited (:issue:`1514`).
+* Check the state of updates when they are missing signatures during ``bodhi-push`` (:issue:`1781`).
+* There is now a web interface that displays the status of running composes (:issue:`2022`).
+* There is now an API for waiving test results (:commit:`d52cc1a6`).
+* The :doc:`update_states` are now documented (:commit:`6f4a48a4`).
+* A :doc:`testing` doc was written (:commit:`f1f2d011`).
+* A man page for ``bodhi-expire-overrides`` was written (:commit:`e4402a32`).
+* A man page for ``bodhi-manage-releases`` was written (:commit:`84d01668`).
+* Update status and request fields are now indexed for more performant searching
+  (:commit:`768ccb6c`).
+* ``updateinfo.xml`` now includes the severity level on security updates (:commit:`8c9c1bf9`).
+* Only request the global_component field for critpath PDC lookups (:commit:`46f35882`).
+* Newer updates are checked first by ``bodhi-check-policies`` (:commit:`c8942556`).
+
+
+Bugs
+^^^^
+
+* Ensure that issued_date and updated_date are always present in metadata (:issue:`2137`).
+* A link describing ffmarkdown syntax was fixed (:commit:`70895e52`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Some validation code was cleaned up to share code (:issue:`9f17b6cf`).
+* The database now has a content type enum for containers (:issue:`2026`).
+* Docblocks were written for more code.
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.3.0:
+
+* Matt Jia
+* Jonathan Lebon
+* Yadnyawalkya Tale
+* Patrick Uiterwijk
+* Till Maas
+* Ken Dreyer
+* Randy Barlow
+
+
+v3.2.0
+------
+
+Config change
+^^^^^^^^^^^^^
+
+The default value for ``greenwave_api_url`` was changed from
+``https://greenwave.fedoraproject.org/api/v1.0`` to
+``https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0`` as the old value was a
+non-extant domain.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Bodhi now requires ``cornice>=3`` (:issue:`1922`).
+* pydns is no longer a dependency (:issue:`1959`).
+* Bodhi now formally documents that it requires PostgreSQL >= 9.2.0 in :doc:`../administration`.
+* Bodhi no longer requires ``progressbar``.
+
+
+Features
+^^^^^^^^
+
+* There is now a man page for ``bodhi-dequeue-stable``.
+* The composer backend no longer uses lock files, but instead stores its state in the database. This
+  is a mix of feature, bug fix, and refactor. The feature is that there is now a
+  ``bodhi-monitor-composes`` CLI tool that allows admins to monitor the progress of running composes.
+  This also fixed a few bugs in the process, such as allowing users to comment on updates while they
+  are being composed. More than anything, it is a refactor as it allows us to add a compose management
+  API which will enable Fedora to add container support to Bodhi in the future (:issue:`717`,
+  :issue:`1245`, :issue:`2014`).
+
+
+Bugs
+^^^^
+
+* Pending updates can no longer become batched and must wait until they've been composed into the
+  testing repository (:issue:`1930`).
+* The PDC critpath code was refactored to be more efficient and resilient (:issue:`2035`).
+* A uniqueness constraint that was accidentally dropped for ``packages.{name,type}`` was added back
+  (:issue:`2038`).
+* The CLI help text was corrected to remove spaces between the list of builds in the example for
+  creating multi-build updates (:issue:`2071`).
+* Releases with no configured days in testing no longer crash Bodhi (:issue:`2076`).
+* ``bodhi-check-policies`` now also operates on pushed updates (:issue:`2085`).
+* The client bindings' ``update_str()`` method was refactored and now does cleaner line wrapping
+  (:commit:`3ef05fa9`).
+* Do not fail the compose if there is an error when writing the changelog (:commit:`88fc8405`).
+* Do not fail to write a changelog when Koji returns lists (:commit:`dc7546c0`).
+* The composer now checkpoints adding comments, so they don't get sent twice if a compose is resumed
+  after they were already sent (:commit:`03d87c98`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The link to the developer docs was corrected in the ``README`` file (:issue:`2044`).
+* The :doc:`../developer/index` has been reorganized and is now easier to read (:commit:`243d278f`).
+* There is now autogenerated documentation on the :doc:`../developer/models` (:commit:`7f8121a8`).
+* ``builds.package_id`` is now non-nullable (:commit:`e87201fb`).
+* ``updates.release_id`` is now non-nullable (:commit:`5371bbd1`).
+* Much progress was made towards Python 3 support.
+* Docblocks were written for many more modules.
+* Line test coverage is now up to 95%.
+* Some unused and unreachable code was removed.
+* The devbuildsys now supports el6 and el7 builds.
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.2.0:
+
+* Chenxiong Qi
+* Lumir Balhar
+* Matt Jia
+* Patrick Uiterwijk
+* Till Maas
+* Randy Barlow
+
+
+v3.1.0
+------
+
+Special instructions
+^^^^^^^^^^^^^^^^^^^^
+
+* The Alembic configuration file has changed to use the Python path of the migrations.
+  In order to run the new migrations, you should ensure your alembic.ini has
+  ``script_location = bodhi:server/migrations``.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* The client formally depends on ``iniparse`` now. It needed this before but the dependency was
+  undocumented (:commit:`ddf47eb2`).
+* Bodhi no longer uses or requires ``webhelpers``. RSS feeds are now generated by ``feedgen``, a new
+  required dependency.
+* Bodhi no longer uses or requires ``bunch``.
+
+
+Features
+^^^^^^^^
+
+* The CLI now prints a helpful hint about how to use ``koji wait-repo`` when creating or editing a
+  buildroot override, or when a query for overrides returns exactly one result (:issue:`1376`).
+* Bodhi now uses connection pooling when making API requests to other services (:issue:`1753`).
+* The bindings now conditionally import ``dnf`` (:issue:`1812`).
+* It is now possible to query for Releases by a list of primary keys, by using the querystring
+  ``ids`` with the ``releases/`` API.
+* Builds now serialize their ``release_id`` field.
+* It is now possible to configure a maximum number of mash threads that Bodhi will run at once,
+  which is handy if the new Pungi masher has been mean to your NAS. There is a new
+  ``max_concurrent_mashes`` setting in production.ini, which defaults to ``2``.
+* There is now a man page for ``bodhi-clean-old-mashes``.
+* The documentation was reorganized by type of reader (:commit:`14e81a81`).
+* The documentation now uses the Alabaster theme (:commit:`f15351e2`).
+* The CLI now has a ``--arch`` flag that can be used when downloading updates to specify which
+  architecture is desired (:commit:`6538c9e9`).
+* Bodhi's documentation now includes an :doc:`../administration` section which includes
+  documentation on its various settings (:commit:`310f56d4`).
+
+
+Bugs
+^^^^
+
+* Bodhi now uses the correct comment on critical path updates regarding how many days are required
+  in testing (:issue:`1361`).
+* All home page update types now have mouseover titles (:issue:`1620`).
+* e-mail subjects again include the version of the updates (:issue:`1635`).
+* The bindings will re-attempt authentication upon captcha failures (:issue:`1787`).
+* The formatting is fixed on mobile for the edit/create update form (:issue:`1791`).
+* The "Push to Stable" button is now rendered in the web UI on batched updates (:issue:`1907`).
+* Do not fail the mash if a changelog is malformed (:issue:`1989`).
+* ``bodhi-dequeue-stable`` no longer dies if it encounters updates that can't be pushed
+  stable (:issue:`2004`).
+* Unreachable RSS Accept-header based redirects were fixed (:commit:`6f3db0c0`).
+* Fixed an unsafe default in ``bodhi.server.util.call_api()`` (:commit:`9461b3a4`).
+* Bodhi now distinguishes between testing and stable when asking Greenwave for gating decisions
+  (:commit:`6d907a7a`).
+* The CLI now renders the correct URL for updates without aliases (:commit:`caaa0e6e`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The database migrations are now shipped as part of the Python distribution
+  (:pr:`1777`).
+* The developer docs pertaining to using virtualenvs have been corrected and improved
+  (:issue:`1797`).
+* The ``test_utils.py`` tests now use the ``BaseTestCase``, which allows them to pass when run by
+  themselves (:issue:`1817`).
+* An obsolete mash check for symlinks was removed (:issue:`1819`).
+* A mock was moved inside of a test to avoid inter-test dependencies (:issue:`1848`).
+* Bodhi is now compliant with ``flake8``'s ``E722`` check (:issue:`1927`).
+* The JJB YAML file is now tested to ensure it is valid YAML (:issue:`1934`).
+* Some code has been prepared for Python 3 compatibility (:commit:`d7763560`).
+* Developers are now required to sign the `DCO`_ (:commit:`34d0ceb0`).
+* There is now formal documentation on how to submit patches to Bodhi (:commit:`bb20a0ee`).
+* Bodhi is now tested by Fedora containers in the CentOS CI environment (:commit:`36d603f0`).
+* Bodhi is now tested against dependencies from PyPI (:commit:`1e8fb65d`).
+* The ``development.ini.example`` file has been reduced to a minimal form, which means we no longer
+  need to document the settings in two places (:commit:`2b7dc4e5`).
+* Bodhi now runs CI tests for different PRs in parallel (:commit:`6427309f`).
+* ``Vagrantfile.example`` has been moved to ``devel/`` for tidiness (:commit:`21ff2e58`).
+* It is now easier to replicate the CI environment locally by using the ``devel/run_tests.sh``
+  script.
+* Many more docblocks have been written across the codebase.
+* Line test coverage is now at 93%.
+
+
+.. _DCO: https://developercertificate.org/
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.1.0:
+
+* Alena Volkova
+* Aman Sharma
+* Caleigh Runge-Hottman
+* Dusty Mabe
+* František Zatloukal
+* Jeremy Cline
+* Ken Dreyer
+* Lumir Balhar
+* Martin Curlej
+* Patrick Uiterwijk
+* Pierre-Yves Chibon
+* Ralph Bean
+* Ryan Lerch
+* Randy Barlow
+
+
+3.0.0
+-----
+
+Backwards incompatible changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Support for the ``USERNAME`` environment variable in all of Bodhi's CLI tools has been dropped, as
+  it conflicts with GDM's variable by the same name. Many users do not have the same FAS username as
+  they use on their desktop, and this variable causes confusion in the CLI
+  (:issue:`1789`).
+* The layout of the repositories after mash is now different.
+* The following settings have been removed from Bodhi, as Pungi now manages
+  comps files instead of Bodhi::
+
+    * ``compose_atomic_trees``
+    * ``comps_dir``
+    * ``comps_url``
+    * ``mash_conf``
+
+* ``bodhi-push`` no longer has a ``--staging`` flag as it was not needed. It was used to determine
+  the mashing directory to look for lock files, but the directories it looked in were hardcoded
+  instead of using the ``mash_dir`` setting. With 3.0.0, ``mash_dir`` is used and the ``--staging``
+  flag is no longer needed.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Bodhi no longer uses or requires mash.
+* Bodhi no longer uses or requires fedmsg-atomic-composer.
+* Pungi is now a required dependency for Bodhi, replacing mash.
+* jinja2 is now a required dependency for Bodhi, used by its masher.
+
+
+New settings
+^^^^^^^^^^^^
+
+The ``production.ini`` file supports some new settings:
+
+* ``pungi.basepath`` specifies which path Bodhi should find Pungi config files inside. Defaults to
+  ``/etc/bodhi``.
+* ``pungi.cmd`` specifies the command to run ``pungi`` with. Defaults to ``/usr/bin/pungi-koji``.
+* ``pungi.conf.module`` should be the name of a jinja2 template file found in ``pungi.basepath``
+  that will be rendered to generate a Pungi config file that will be used to mash RPM repositories
+  (yum, dnf, and atomic repositories). Defaults to ``pungi.module.conf``, meaning that an
+  ``/etc/bodhi/pungi.module.conf`` is the default config file for Modules.
+* ``pungi.conf.rpm`` should be the name of a jinja2 template file found in ``pungi.basepath`` that
+  will be rendered to generate a Pungi config file that will be used to mash RPM repositories (yum,
+  dnf, and atomic repositories). Defaults to ``pungi.rpm.conf``, meaning that an
+  ``/etc/bodhi/pungi.rpm.conf`` is the default config file for RPMs.
+* The ``pungi.conf.*`` setting files above have the following jinja2 template variables available to
+  them::
+
+    * 'id': The id of the Release being mashed.
+    * 'release': The Release being mashed.
+    * 'request': The request being mashed.
+    * 'updates': The Updates being mashed.
+
+You will need to create ``variants.xml`` templates inside ``pungi.basepath`` as well. These
+templates will have access to the same template variables described above, and should be named
+``variants.rpm.xml.j2`` and ``variants.module.xml.j2``, for RPM composes and module composes,
+respectively.
+
+
+Features
+^^^^^^^^
+
+The 3.0.0 release is focused on delivering one big change that enables a variety of features: the
+use of Pungi to do mashing rather than mash. The most notable feature this enables is the ability to
+deliver update repositories for modules, but in general all of Pungi's feature set is now available
+for Bodhi to use.
+
+* Bodhi now supports non-RPM artifacts, namely, modules
+  (:issue:`653`, :issue:`1330`).
+* Via Pungi, Bodhi is now able to use Koji signed repos
+  (:issue:`909`).
+* Via Pungi, Bodhi is now able to generate OSTrees that are more consistent with Fedora's release
+  day OSTrees
+  (:issue:`1182`).
+* Bodhi now uses Pungi instead of the retiring mash project
+  (:issue:`1219`).
+
+
+Bugs
+^^^^
+
+* Bodhi, via Pungi, will now reliably produce repomd files
+  (:issue:`887`).
+* Bodhi's CLI no longer uses USERNAME, which conflicted with GDM for users who use a different local
+  system username than their FAS username. For such users, there was no workaround other than to
+  constantly use the ``--user`` flag, and the environment variable wasn't particularly useful
+  anymore now that the Bodhi CLI remembers usernames after one successful authentication
+  (:issue:`1789`).
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.0.0:
+
+* Patrick Uiterwijk
+* Adam Miller
+* Dusty Mabe
+* Kushal Das
+* Randy Barlow
+
+
+Older releases
+--------------
+
+.. toctree::
+   :maxdepth: 2
+
+   2.x_release_notes
