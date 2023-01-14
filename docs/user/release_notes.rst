@@ -4,6 +4,28 @@ Release notes
 
 .. towncrier release notes start
 
+v7.0.1
+======
+
+Released on 2023-01-14.
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed template in overrides list page which prevents the display of filters
+  dropdown (:pr:`4844`).
+* Fixed a possible XSS attack vector in update_form.js (:pr:`4845`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Mattia Verga
+
+
 v7.0.0
 ======
 

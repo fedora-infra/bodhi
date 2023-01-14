@@ -63,6 +63,7 @@ line-length = 100
 
 [tool.towncrier]
 package = "bodhi"
+package_dir = "./bodhi-server"
 filename = "docs/user/release_notes.rst"
 directory = "news/"
 title_format = "v{version}"
