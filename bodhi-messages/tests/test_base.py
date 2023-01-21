@@ -22,6 +22,9 @@ import json
 import pytest
 
 from bodhi.messages.schemas import base
+from bodhi.messages.schemas.update import UpdateCompleteStableV1
+
+from .utils import check_message
 
 
 class TestFedMsgEncoder:
@@ -44,3 +47,31 @@ class TestFedMsgEncoder:
         """Fallback to the superclasses' default."""
         with pytest.raises(TypeError):
             base.FedMsgEncoder().default(object())
+
+
+class TestAgentDeprecationWarning:
+    """ Test the agent deprecation warning """
+    expected = {
+        "agent": 'mohanboddu',
+        "agent_name": 'mohanboddu',
+    }
+    msg = UpdateCompleteStableV1(
+        body={
+            "update": {
+                "alias": "FEDORA-2019-d64d0caab3",
+                "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
+                           {'nvr': 'texworks-0.6.3-1.fc29'}],
+                "title": "fedmsg-0.2.7-2.el6",
+                'release': {"name": "F29"},
+                'request': None,
+                "status": "stable",
+                "user": {"name": "eclipseo"}
+            },
+            'agent': 'mohanboddu'
+        }
+    )
+    with pytest.warns(DeprecationWarning) as w:
+        check_message(msg, expected)
+
+    assert len(w) == 1
+    assert w[0].message.args[0] == "agent property is deprecated, please use agent_name instead"
