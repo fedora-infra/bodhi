@@ -28,7 +28,9 @@ class TestBuildrootOverrideMessage:
         expected = {
             "topic": "bodhi.buildroot_override.tag",
             "summary": "lmacken submitted a buildroot override for libxcrypt-4.4.4-2.fc28",
+            "__str__": "lmacken submitted a buildroot override for libxcrypt-4.4.4-2.fc28",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/overrides/libxcrypt-4.4.4-2.fc28",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -39,7 +41,7 @@ class TestBuildrootOverrideMessage:
             "packages": ["libxcrypt"],
             'build': base.BuildV1('libxcrypt-4.4.4-2.fc28'),
             'submitter': base.UserV1('lmacken'),
-            'agent': 'lmacken'
+            'agent_name': 'lmacken'
         }
         msg = BuildrootOverrideTagV1(
             body={
@@ -56,6 +58,7 @@ class TestBuildrootOverrideMessage:
             "topic": "bodhi.buildroot_override.untag",
             "summary": "lmacken expired a buildroot override for libxcrypt-4.4.4-2.fc28",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/overrides/libxcrypt-4.4.4-2.fc28",
             "agent_avatar": (
                 "https://seccdn.libravatar.org/avatar/"
@@ -66,7 +69,7 @@ class TestBuildrootOverrideMessage:
             "packages": ["libxcrypt"],
             'build': base.BuildV1('libxcrypt-4.4.4-2.fc28'),
             'submitter': base.UserV1('lmacken'),
-            'agent': 'lmacken'
+            'agent_name': 'lmacken'
         }
         msg = BuildrootOverrideUntagV1(
             body={

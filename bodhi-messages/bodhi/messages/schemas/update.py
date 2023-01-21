@@ -82,6 +82,18 @@ class UpdateMessage(BodhiMessage):
         """Return a dictionary from the body representing an update."""
         return self.body['update']
 
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return self.summary
+
 
 class UpdateCommentV1(UpdateMessage):
     """Sent when a comment is made on an update."""
@@ -154,7 +166,7 @@ class UpdateCommentV1(UpdateMessage):
                 f"(karma: {self.karma})")
 
     @property
-    def agent(self) -> str:
+    def agent_name(self) -> str:
         """
         Return the agent's username for this message.
 
@@ -208,6 +220,23 @@ class UpdateCompleteStableV1(UpdateMessage):
             f"{self.update.user.name}'s {truncate(' '.join([b.nvr for b in self.update.builds]))} "
             f"bodhi update completed push to {self.update.status}")
 
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        new_line = "\n"
+        return (
+            f"{self.update.user.name}'s Bodhi update {self.update.alias}"
+            f"completed push to {self.update.status}\n"
+            f"Builds:\n"
+            f"{new_line.join([b.nvr for b in self.update.builds])} ")
+
 
 class UpdateCompleteTestingV1(UpdateMessage):
     """Sent when an update is available in the testing repository."""
@@ -242,6 +271,23 @@ class UpdateCompleteTestingV1(UpdateMessage):
         return (
             f"{self.update.user.name}'s {truncate(' '.join([b.nvr for b in self.update.builds]))} "
             f"bodhi update completed push to {self.update.status}")
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        new_line = "\n"
+        return (
+            f"{self.update.user.name}'s Bodhi update {self.update.alias}"
+            f"completed push to {self.update.status}\n"
+            f"Builds:\n"
+            f"{new_line.join([b.nvr for b in self.update.builds])} ")
 
 
 class UpdateEditV1(UpdateMessage):
@@ -296,7 +342,22 @@ class UpdateEditV1(UpdateMessage):
         Returns:
             A summary for this message.
         """
-        return f"{self.agent} edited {self.update.alias}"
+        return f"{self.agent_name} edited {self.update.alias}"
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return (
+            f"{self.agent_name} edited {self.update.alias} "
+            f"adding {len(self.body['new_bugs'])} new bugs"
+        )
 
 
 class UpdateEjectV1(UpdateMessage):
@@ -413,9 +474,9 @@ class UpdateRequestMessage(UpdateMessage):
         if status in ('unpush', 'obsolete', 'revoke'):
             # make our status past-tense
             status = status + (status[-1] == 'e' and 'd' or 'ed')
-            return f"{self.agent} {status} {self.update.alias}"
+            return f"{self.agent_name} {status} {self.update.alias}"
         else:
-            return f"{self.agent} submitted {self.update.alias} to {status}"
+            return f"{self.agent_name} submitted {self.update.alias} to {status}"
 
 
 class UpdateRequestRevokeV1(UpdateRequestMessage):
@@ -713,6 +774,22 @@ class UpdateReadyForTestingV1(BodhiMessage):
             f"{truncate(' '.join([b['nvr'] for b in self.body['artifact']['builds']]))} "
             f"bodhi update is ready for testing")
 
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        new_line = "\n"
+        return (
+            f"{self.body['contact']['name']}'s Bodhi update is ready for testing\n"
+            f"Builds:\n"
+            f"{new_line.join([b['nvr'] for b in self.body['artifact']['builds']])} ")
+
     @property
     def url(self) -> str:
         """
@@ -732,8 +809,8 @@ class UpdateReadyForTestingV1(BodhiMessage):
             A list of affected usernames.
         """
         usernames = set([b['issuer'] for b in self.body['artifact']['builds']])
-        if self.agent:
-            usernames.add(self.agent)
+        if self.agent_name:
+            usernames.add(self.agent_name)
         return sorted(usernames)
 
     @property
@@ -748,7 +825,7 @@ class UpdateReadyForTestingV1(BodhiMessage):
         return sorted(packages)
 
     @property
-    def agent(self) -> typing.Union[str, None]:
+    def agent_name(self) -> typing.Union[str, None]:
         """Return the agent's username for this message.
 
         Returns:
