@@ -1979,13 +1979,14 @@ class TestEditBuildrootOverrides:
     Test the edit_buildroot_overrides() function.
     """
 
-    def test_expired_override(self, mocked_client_class):
+    def test_expire(self, mocked_client_class, mocker):
         """
         Assert that a successful overrides edit request expires the request
         when --expired flag is set.
         """
         mocked_client_class.send_request.return_value = \
             client_test_data.EXAMPLE_EXPIRED_OVERRIDE_MUNCH
+        call = mocker.patch('bodhi.client.cli.subprocess.call', return_value=0)
         runner = testing.CliRunner()
 
         result = runner.invoke(
@@ -1998,6 +1999,7 @@ class TestEditBuildrootOverrides:
 
         assert result.exit_code == 0
         assert result.output == client_test_data.EXPECTED_EXPIRED_OVERRIDES_OUTPUT
+        call.assert_not_called()
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = mocked_client_class.send_request.mock_calls[0][2]['data']['expiration_date']

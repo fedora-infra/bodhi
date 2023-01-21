@@ -300,7 +300,9 @@ def _save_override(url: str, staging: bool, edit: bool = False,
                                 edit=edit,
                                 expired=kwargs.get('expire', False))
 
-    if kwargs['wait']:
+    if kwargs.get('expire', False):
+        print_resp(resp, client, override_hint=False)
+    elif kwargs['wait']:
         print_resp(resp, client, override_hint=False)
         command = _generate_wait_repo_command(resp, client)
         if command:
