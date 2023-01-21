@@ -63,7 +63,7 @@ class ErrataPublishV1(BodhiMessage):
         return self.body['body']
 
     @property
-    def agent(self) -> str:
+    def agent_name(self) -> str:
         """Return the agent's username for this message.
 
         Returns:
