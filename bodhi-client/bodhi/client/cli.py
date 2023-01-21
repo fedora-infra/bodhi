@@ -315,7 +315,7 @@ def _save_override(url: str, staging: bool, edit: bool = False,
 
 
 @click.group(help="Command line tool for interacting with Bodhi.")
-@click.version_option(message='%(version)s')
+@click.version_option(message='%(version)s', package_name='bodhi_client')
 def cli():
     """Create the main CLI group."""
     pass  # pragma: no cover
