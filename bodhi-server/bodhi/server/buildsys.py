@@ -511,7 +511,10 @@ class DevBuildsys:
 
     def listSideTags(self, **kw):
         """Return a list of side-tags."""
-        return self.__side_tags__
+        if kw.get('user', None) == 'unknown':
+            raise koji.GenericError("No such user: 'unknown'")
+        else:
+            return self.__side_tags__
 
     def createTag(self, tag: str, **opts):
         """Emulate tag adding."""
