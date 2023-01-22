@@ -50,16 +50,6 @@ pull_request_rules:
   - status-success=Build Documentation (f37)
   - status-success=Build Documentation (pip)
 
-- name: backport 6.0
-  actions:
-    backport:
-      branches:
-      - '6.0'
-  conditions:
-  - label!=WIP
-  - -draft
-  - label=6.0-backports
-
 - name: backport 7.0
   actions:
     backport:
@@ -69,6 +59,16 @@ pull_request_rules:
   - label!=WIP
   - -draft
   - label=7.0-backports
+
+- name: backport 7.1
+  actions:
+    backport:
+      branches:
+      - '7.1'
+  conditions:
+  - label!=WIP
+  - -draft
+  - label=7.1-backports
 
 - name: dependabot
   actions:
