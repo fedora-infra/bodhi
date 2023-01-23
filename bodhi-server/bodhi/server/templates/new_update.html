@@ -1,5 +1,6 @@
 <%inherit file="master.html"/>
 <%
+  from bodhi.server.config import config
   from bodhi.server.util import json_escape, eol_releases
 
   eol_list = eol_releases()
@@ -145,13 +146,18 @@ ${parent.css()}
                 </div>
               </div>
             </h6>
-            <textarea class="form-control" id="notes" name="notes" rows="6"
+            <textarea class="form-control" id="notes" name="notes" rows="6" maxlength="${config.get('update_notes_maxlength')}"
               placeholder="Update notes go here.  Please be as descriptive as possible.  Help testers know what to test, and users know why this update is available and what major changes it brings (if any)." required="true">
 % if update:
 ${update.notes}
 % endif
 </textarea>
-<p class="mb-1 text-right"><small>Description field uses <a href="#" data-bs-toggle="modal" data-bs-target="#markdown-help">Fedora-Flavored Markdown</a>.</small></p>
+<small>
+<p class="mb-1">
+<span id="notes_length" class="float-start fw-bold"></span>
+<span class="float-end">Description field uses <a href="#" data-bs-toggle="modal" data-bs-target="#markdown-help">Fedora-Flavored Markdown</a>.</span>
+</p>
+</small>
 
           </div>
           
@@ -420,5 +426,22 @@ ${parent.javascript()}
 
 <script>$("#js-warning").hide();$("#new-update-form").show();</script>
 <script> $(document).ready(function() { $('.panel-heading > span, dt').tooltip(); }); </script>
+<script>
+$(document).ready(function() {
+  var maxLength = $("#notes").attr("maxlength");
+  $("#notes_length").html($("#notes").val().length + "/" + maxLength);
+  $("#notes").bind('input propertychange', function() {
+    $("#notes_length").html($("#notes").val().length + "/" + maxLength);
+    if ($(this).val().length > maxLength) {
+      $("#notes_length").addClass('text-danger');
+      $("#notes").addClass('border-danger');
+    }
+    else {
+      $("#notes_length").removeClass('text-danger');
+      $("#notes").removeClass('border-danger');
+    }
+  })
+});
+</script>
 </%block>
 
