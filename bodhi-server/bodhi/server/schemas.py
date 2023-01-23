@@ -205,7 +205,7 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
     notes = colander.SchemaNode(
         colander.String(),
-        validator=colander.Length(min=2),
+        validator=colander.Length(min=2, max=config.get('update_notes_maxlength')),
         missing_msg='A description is required for the update.'
     )
     autokarma = colander.SchemaNode(
