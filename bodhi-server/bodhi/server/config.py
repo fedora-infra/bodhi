@@ -605,6 +605,9 @@ class BodhiConfig(dict):
         'test_gating.url': {
             'value': '',
             'validator': str},
+        'update_notes_maxlength': {
+            'value': 10000,
+            'validator': int},
         'updateinfo_rights': {
             'value': 'Copyright (C) {} Red Hat, Inc. and others.'.format(datetime.now().year),
             'validator': str},
