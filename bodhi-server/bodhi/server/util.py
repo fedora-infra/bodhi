@@ -43,6 +43,7 @@ import libcomps
 import libravatar
 import librepo
 import markdown
+import packaging
 import pkg_resources
 import requests
 import rpm
@@ -541,6 +542,9 @@ def markup(context, text, bodhi=True):
         "img",
         "a",
     ]
+    bleach_v = pkg_resources.get_distribution('bleach').version
+    if packaging.version.parse(bleach_v) >= packaging.version.parse("6.0.0"):
+        markdown_tags = set(markdown_tags)
 
     extensions = ['markdown.extensions.fenced_code', ]
     if bodhi is True:
