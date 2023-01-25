@@ -129,7 +129,7 @@ if can_edit and update.release.composed_by_bodhi:
 
   % if update.test_cases:
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tests-tab" data-bs-toggle="tab" data-bs-target="#tests-tab-pane" type="button" role="tab">Test Cases <span class="badge text-bg-secondary">${len(update.test_cases)}</span></button>
+    <button class="nav-link" id="testcases-tab" data-bs-toggle="tab" data-bs-target="#testcases-tab-pane" type="button" role="tab">Test Cases <span class="badge text-bg-secondary">${len(update.test_cases)}</span></button>
   </li>
   % endif
 
@@ -643,7 +643,7 @@ if can_edit and update.release.composed_by_bodhi:
     </div>
 
     % if update.test_cases:
-    <div class="tab-pane" id="tests" role="tabpanel">
+    <div class="tab-pane" id="testcases-tab-pane" role="tabpanel" aria-labelledby="testcases-tab" tabindex="0">
     <h3>Test Cases</h3>
     <table class="table">
       <colgroup class='strip' span="1"></colgroup>
