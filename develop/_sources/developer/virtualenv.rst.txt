@@ -79,7 +79,7 @@ Set the configuration key
 to point to the postgresql database. Something like:
 ::
 
-    sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2
+    sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2 # gitleaks:allow
 
 
 Upgrade the database
