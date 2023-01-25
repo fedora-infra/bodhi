@@ -26,6 +26,7 @@ import tempfile
 
 from webob.multidict import MultiDict
 import bleach
+import packaging
 import pkg_resources
 import pytest
 
@@ -1218,6 +1219,9 @@ class TestUtils(base.BasePyTestCase):
             "div", "blockquote", "code", "hr", "pre", "ul", "ol", "li", "dd", "dt", "img", "a"]
         expected_attributes = {
             "img": ["src", "alt", "title"], "a": ["href", "alt", "title"], "div": ["class"]}
+        bleach_v = pkg_resources.get_distribution('bleach').version
+        if packaging.version.parse(bleach_v) >= packaging.version.parse("6.0.0"):
+            expected_tags = set(expected_tags)
         # The bleach 2 API should get these attrs passed.
         clean.assert_called_once_with(expected_text, tags=expected_tags,
                                       attributes=expected_attributes)
