@@ -890,14 +890,14 @@ test = ["cython", "html5lib", "pytest (>=4.6)"]
 
 [[package]]
 name = "sphinxcontrib-applehelp"
-version = "1.0.3"
+version = "1.0.4"
 description = "sphinxcontrib-applehelp is a Sphinx extension which outputs Apple help books"
 category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "sphinxcontrib.applehelp-1.0.3-py3-none-any.whl", hash = "sha256:ba0f2a22e6eeada8da6428d0d520215ee8864253f32facf958cca81e426f661d"},
-    {file = "sphinxcontrib.applehelp-1.0.3.tar.gz", hash = "sha256:83749f09f6ac843b8cb685277dbc818a8bf2d76cc19602699094fe9a74db529e"},
+    {file = "sphinxcontrib-applehelp-1.0.4.tar.gz", hash = "sha256:828f867945bbe39817c210a1abfd1bc4895c8b73fcaade56d45357a348a07d7e"},
+    {file = "sphinxcontrib_applehelp-1.0.4-py3-none-any.whl", hash = "sha256:29d341f67fb0f6f586b23ad80e072c8e6ad0b48417db2bde114a4c9746feb228"},
 ]
 
 [package.extras]
