@@ -1,0 +1,976 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>5.x release notes &#8212; bodhi 7.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="4.x release notes" href="4.x_release_notes.html" />
+    <link rel="prev" title="Release notes" href="release_notes.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="x-release-notes">
+<h1>5.x release notes<a class="headerlink" href="#x-release-notes" title="Permalink to this heading">¶</a></h1>
+<p>These are the release notes for the 5.x series of Bodhi releases.</p>
+<section id="v5-7-5">
+<h2>v5.7.5<a class="headerlink" href="#v5-7-5" title="Permalink to this heading">¶</a></h2>
+<p>This is a feature release.</p>
+<section id="features">
+<h3>Features<a class="headerlink" href="#features" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Prepare the Bodhi client to be compatible with an OIDC-enabled server.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4391">PR#4391</a>).</p></li>
+</ul>
+</section>
+<section id="contributors">
+<h3>Contributors<a class="headerlink" href="#contributors" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Aurélien Bompard</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-7-4">
+<h2>v5.7.4<a class="headerlink" href="#v5-7-4" title="Permalink to this heading">¶</a></h2>
+<p>This is a bugfix release that should help with several more problems after 7.5.3 release.</p>
+<section id="id1">
+<h3>Features<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Automatic updates consumer can now identify new packages and mark updates
+with the appropriate type (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4324">PR#4324</a>).</p></li>
+<li><p>Detect stuck updates with builds that were never been sent to pending-signing
+and unstuck them (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4307">#4307</a>).</p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h3>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bodhi will now retry to get a build changelog if Koji returns empty rpm
+headers. See also <a class="reference external" href="https://pagure.io/koji/issue/3178">https://pagure.io/koji/issue/3178</a> (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4316">#4316</a>).</p></li>
+<li><p>Fixed an issue about some bug title never fetched from Bugzilla
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4317">#4317</a>).</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>Contributors<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Adam Saleh</p></li>
+<li><p>Aurélien Bompard</p></li>
+<li><p>Adam Williamson</p></li>
+<li><p>Lenka Segura</p></li>
+<li><p>Mattia Verga</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-7-3">
+<h2>v5.7.3<a class="headerlink" href="#v5-7-3" title="Permalink to this heading">¶</a></h2>
+<p>This is a bugfix release that should help with several more problems after 7.5.2 release.</p>
+<section id="id3">
+<h3>Bug fixes<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed an issue where Bodhi was throwing 5xx “NoSuchColumnError testcases.id” errors because of a misconfigured table (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4302">#4302</a>).</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-7-2">
+<h2>v5.7.2<a class="headerlink" href="#v5-7-2" title="Permalink to this heading">¶</a></h2>
+<p>This is a bugfix release that should help with several problems after 7.5.1 release.</p>
+<section id="id4">
+<h3>Bug fixes<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed an issue where JSON serialization of a TestCase object hangs the server
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4278">PR#4278</a>).</p></li>
+<li><p>Fixed a possible call to Koji listTagged() passing an empty tag name
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4280">PR#4280</a>).</p></li>
+<li><p>Bodhi will now try to resubmit a build to signing if it detects that is stuck
+in pending signing for some time (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4300">PR#4300</a>).</p></li>
+</ul>
+</section>
+<section id="id5">
+<h3>Contributors<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Adam Saleh</p></li>
+<li><p>Mattia Verga</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-7-1">
+<h2>v5.7.1<a class="headerlink" href="#v5-7-1" title="Permalink to this heading">¶</a></h2>
+<p>This is a bugfix release.</p>
+<section id="server-upgrade-instructions">
+<h3>Server upgrade instructions<a class="headerlink" href="#server-upgrade-instructions" title="Permalink to this heading">¶</a></h3>
+<p>This release contains database migrations. To apply them, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+</pre></div>
+</div>
+<p>Summary of the migrations:</p>
+<ul class="simple">
+<li><p>Add End of life (eol) field to the releases (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4241">PR#4241</a>).</p></li>
+</ul>
+</section>
+<section id="backwards-incompatible-changes">
+<h3>Backwards incompatible changes<a class="headerlink" href="#backwards-incompatible-changes" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Query on both relevant Greenwave decision contexts for critical-path updates.
+<cite>Update.get_test_gating_info()</cite> now returns a list of decision dictionaries,
+not a single decision dictionary. The API endpoint
+<cite>/updates/{id}/get-test-results</cite> similarly now returns a single-key
+dictionary whose value is a list of decisions, not a single decision
+dictionary. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4259">#4259</a>).</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>Features<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Added support for release names ending with “N” such as EPEL next
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4222">PR#4222</a>).</p></li>
+<li><p>Set a <cite>delta</cite> parameter of 30 days when quering datagrepper for bodhi-related
+user activity (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4255">PR#4255</a>).</p></li>
+<li><p>Added support for setting flags in generated advisories to require logging
+out and logging back in for the update to take effect (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4213">#4213</a>).</p></li>
+<li><p>Replace Greenwave decision change message consumer with ResultsDB and
+WaiverDB message consumers (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4230">#4230</a>).</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>Bug fixes<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fix an issue that caused the builds in a side-tag update to not be tagged
+correctly when the build list of the update was modified (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4161">PR#4161</a>).</p></li>
+<li><p>Bodhi will now delete the side-tag in Koji when an update is pushed to
+stable. Builds that were tagged in the side-tag but were not pushed as part
+of the update will be untagged. This is required to make sure to not leave
+stale side-tags in the Koji database (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4228">PR#4228</a>).</p></li>
+<li><p>Updates for archived releases cannot be edited anymore (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4236">PR#4236</a>).</p></li>
+<li><p>Correctly mark automatic updates as critpath when appropriate
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4177">#4177</a>).</p></li>
+<li><p>Fixed an issue with validators that prevents inconsistent refusal of bodhi
+override with maximum duration (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4182">#4182</a>).</p></li>
+<li><p>Fixed an issue where the search result box was cutted off out of screen
+borders (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4206">#4206</a>).</p></li>
+<li><p>Fixed a javascript bug which prevented the “waive tests” button to be
+displayed in UI (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4208">#4208</a>).</p></li>
+<li><p>Fixed an issue with validators that prevented a side-tag update owner to edit
+their update after adding a build for which they don’t have commit access
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4209">#4209</a>).</p></li>
+<li><p>Avoid gating status ping-pong on update creation, assume status ‘waiting’ for
+2 hours or until first failed test (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4221">#4221</a>).</p></li>
+<li><p>For new packages submitted to repositories, the changelog was not generated
+and attached to the automatic Update. This prevented the bugs mentioned in
+the changelog to be closed by Bodhi (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4232">#4232</a>).</p></li>
+<li><p>Staging Bodhi now uses staging Bugzilla URL for bug links (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4238">#4238</a>).</p></li>
+<li><p>Fixed an issue where editing Updates always caused to set the request to
+Testing (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4263">#4263</a>).</p></li>
+</ul>
+</section>
+<section id="development-improvements">
+<h3>Development improvements<a class="headerlink" href="#development-improvements" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Add End of life (eol) field to the releases (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4240">#4240</a>).</p></li>
+</ul>
+</section>
+<section id="id8">
+<h3>Contributors<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Adam Saleh</p></li>
+<li><p>Adam Williamson</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>dalley</p></li>
+<li><p>Justin Caratzas</p></li>
+<li><p>Jonathan Wakely</p></li>
+<li><p>Karma Dolkar</p></li>
+<li><p>Kevin Fenzi</p></li>
+<li><p>Lenka Segura</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Miro Hrončok</p></li>
+<li><p>Michael Scherer</p></li>
+<li><p>Andrea Misuraca</p></li>
+<li><p>Neal Gompa</p></li>
+<li><p>Patrick Uiterwijk</p></li>
+<li><p>Pierre-Yves Chibon</p></li>
+<li><p>Rayan Das</p></li>
+<li><p>Samyak Jain</p></li>
+<li><p>Sebastian Wojciechowski</p></li>
+<li><p>Tomas Hrcka</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-7-0">
+<h2>v5.7.0<a class="headerlink" href="#v5-7-0" title="Permalink to this heading">¶</a></h2>
+<p>This is a feature release.</p>
+<section id="id9">
+<h3>Features<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Query different Greenwave contexts for critical path updates, allowing for
+stricter policies to apply (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4180">PR#4180</a>).</p></li>
+<li><p>Use Pagure’s <cite>hascommit</cite> new endpoint API to check user’s rights to
+create/edit updates. This allow collaborators to push updates for releases
+for which they have commit access. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4181">PR#4181</a>).</p></li>
+</ul>
+</section>
+<section id="id10">
+<h3>Bug fixes<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed an error about handling bugs in automatic updates (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4170">PR#4170</a>).</p></li>
+<li><p>Side-tag wheren’t emptied when updates for current releases were pushed to
+stable (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4173">PR#4173</a>).</p></li>
+<li><p>Bodhi will avoid sending both ‘update can now be pushed’ and ‘update has been
+pushed’ notifications at the same time on updates pushed automatically
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3846">#3846</a>).</p></li>
+<li><p>Clear request status when release goes EOL (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4039">#4039</a>).</p></li>
+<li><p>Allow bodhi to not operate automatically on bugs linked to in changelog for
+specific releases (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4094">#4094</a>).</p></li>
+<li><p>Use the release git branch name to query PDC for critpath components
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4177">#4177</a>).</p></li>
+<li><p>Avoid using datetime.utcnow() for updateinfo &lt;updated_date&gt; and &lt;issued_date&gt;
+elements, use “date_submitted” instead. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4189">#4189</a>).</p></li>
+<li><p>Updates which already had a comment that they can be pushed to stable were
+not automatically pushed to stable when the <cite>stable_days</cite> threshold was
+reached (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4042">#4042</a>).</p></li>
+</ul>
+</section>
+<section id="id11">
+<h3>Contributors<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Adam Saleh</p></li>
+<li><p>Adam Williamson</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>Daniel Alley</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Andrea Misuraca</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-6-1">
+<h2>v5.6.1<a class="headerlink" href="#v5-6-1" title="Permalink to this heading">¶</a></h2>
+<p>This is a bugfix release.</p>
+<section id="id12">
+<h3>Bug fixes<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h3>
+<p>Fix two reflected XSS vulnerabilities - CVE: CVE-2020-15855</p>
+</section>
+<section id="id13">
+<h3>Contributors<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Patrick Uiterwijk</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-6">
+<h2>v5.6<a class="headerlink" href="#v5-6" title="Permalink to this heading">¶</a></h2>
+<p>This is a feature release.</p>
+<section id="dependency-changes">
+<h3>Dependency changes<a class="headerlink" href="#dependency-changes" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Drop support for bleach 1.0 api (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3875">PR#3875</a>).</p></li>
+<li><p>Markdown &gt;= 3.0 is now required (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4134">PR#4134</a>).</p></li>
+</ul>
+</section>
+<section id="id14">
+<h3>Server upgrade instructions<a class="headerlink" href="#id14" title="Permalink to this heading">¶</a></h3>
+<p>This release contains database migrations. To apply them, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+</pre></div>
+</div>
+</section>
+<section id="id15">
+<h3>Features<a class="headerlink" href="#id15" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Added a <cite>from_side_tag</cite> bool search parameter for Updates and allow searching
+for that and for gating status from WebUI (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4119">PR#4119</a>).</p></li>
+<li><p>Allow overriding <cite>critpath.stable_after_days_without_negative_karma</cite> based on
+release status (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4135">PR#4135</a>).</p></li>
+<li><p>Users which owns a side-tag can now create updates from that side-tag even if
+it contains builds for which they haven’t commit access (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4014">#4014</a>).</p></li>
+</ul>
+</section>
+<section id="id16">
+<h3>Bug fixes<a class="headerlink" href="#id16" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fix encoding of package and user names in search results (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4104">PR#4104</a>).</p></li>
+<li><p>Fix autotime display on update page (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4110">PR#4110</a>).</p></li>
+<li><p>Set update.stable_days to 0 for Releases not composed by Bodhi itself
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4111">PR#4111</a>).</p></li>
+<li><p>Ignore builds in Unpushed updates when checking for duplicate builds
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1809">#1809</a>).</p></li>
+<li><p>Make automatic updates obsolete older updates stuck in testing due to failing
+gating tests (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3916">#3916</a>).</p></li>
+<li><p>Fix 404 pages for bot users with nonstandard characters in usernames
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3993">#3993</a>).</p></li>
+<li><p>Fixed documentation build with Sphinx3 (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4020">#4020</a>).</p></li>
+<li><p>Serve the documentation directly from the WSGI application using WhiteNoise.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4066">#4066</a>).</p></li>
+<li><p>Updates from side-tag for non-rawhide releases were not pushed to testing
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4087">#4087</a>).</p></li>
+<li><p>Side-tag updates builds were not editable in the WebUI (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4122">#4122</a>).</p></li>
+<li><p>Fixed “re-trigger tests” button not showed on update page (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4144">#4144</a>).</p></li>
+<li><p>Fixed a crash in automatic_updates handler due to <cite>get_changelog()</cite> returning
+an unhandled exception (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4146">#4146</a>).</p></li>
+<li><p>Fixed a crash in automatic_updates handler due to trying access update.alias
+after the session was closed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4147">#4147</a>).</p></li>
+<li><p>Some comments orphaned from their update where causing internal server
+errors. We now enforce a not null check so that a comment cannot be created
+without associating it to an update. The orphaned comments are removed from
+the database by the migration script. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4155">#4155</a>).</p></li>
+<li><p>Dockerfile for pip CI tests has been fixed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4158">#4158</a>).</p></li>
+</ul>
+</section>
+<section id="id17">
+<h3>Development improvements<a class="headerlink" href="#id17" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Rename <cite>Release.get_testing_side_tag()</cite> to <cite>get_pending_testing_side_tag()</cite>
+to avoid confusion (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4109">PR#4109</a>).</p></li>
+<li><p>Added F33 to tests pipeline (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4132">PR#4132</a>).</p></li>
+</ul>
+</section>
+<section id="id18">
+<h3>Contributors<a class="headerlink" href="#id18" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Adam Saleh</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>Justin Caratzas</p></li>
+<li><p>Jonathan Wakely</p></li>
+<li><p>Karma Dolkar</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Pierre-Yves Chibon</p></li>
+<li><p>Rayan Das</p></li>
+<li><p>Sebastian Wojciechowski</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-5">
+<h2>v5.5<a class="headerlink" href="#v5-5" title="Permalink to this heading">¶</a></h2>
+<p>This is a bugfix release.</p>
+<section id="id19">
+<h3>Bug fixes<a class="headerlink" href="#id19" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Disable manual creation of updates for releases not composed by Bodhi and add
+some bits in the docs on how to handle automatic updates not being created
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4058">#4058</a>).</p></li>
+<li><p>Fix TestCase validation upon feedback submission (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4088">#4088</a>).</p></li>
+<li><p>Do not let update through when bodhi fails to talk to greenwave.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4089">#4089</a>).</p></li>
+<li><p>Fix package name encoding in URLs (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4095">#4095</a>).</p></li>
+</ul>
+</section>
+<section id="id20">
+<h3>Contributors<a class="headerlink" href="#id20" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Adam Saleh</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>Karma Dolkar</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Pierre-Yves Chibon</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-4-1">
+<h2>v5.4.1<a class="headerlink" href="#v5-4-1" title="Permalink to this heading">¶</a></h2>
+<p>This is a {major|feature|bugfix} release that adds [short summary].</p>
+<section id="id21">
+<h3>Bug fixes<a class="headerlink" href="#id21" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Make sure to close the bugs associated to a rawhide update. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4067">#4067</a>).</p></li>
+</ul>
+</section>
+<section id="id22">
+<h3>Contributors<a class="headerlink" href="#id22" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Clement Verna</p></li>
+<li><p>Mattia Verga</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-4-0">
+<h2>v5.4.0<a class="headerlink" href="#v5-4-0" title="Permalink to this heading">¶</a></h2>
+<p>This is a minor release.</p>
+<section id="id23">
+<h3>Server upgrade instructions<a class="headerlink" href="#id23" title="Permalink to this heading">¶</a></h3>
+<p>This release contains database migrations. To apply them, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+</pre></div>
+</div>
+<p>Summary of the migrations:</p>
+<ul class="simple">
+<li><p>Migrate relationship between TestCase and Package to TestCase and Build. The migration script will take care of migrate existing data to the new relation.</p></li>
+<li><p>The user_id column in comments table has been set to be not nullable.</p></li>
+<li><p>The notes column in buildroot_overrides table has been converted to UnicodeText (from Unicode).</p></li>
+</ul>
+</section>
+<section id="id24">
+<h3>Bug fixes<a class="headerlink" href="#id24" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Associate TestCase to Build instead of Package, allowing to remove old
+testcases from updates (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1794">#1794</a>).</p></li>
+<li><p>Replace koji krb_login with gssapi_login. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4029">#4029</a>).</p></li>
+<li><p>Making sure that builds of side tag update for normal releases are marked as
+signed. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4032">#4032</a>).</p></li>
+<li><p>Handle Cornice 5.0 JSON error handling. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4033">#4033</a>).</p></li>
+<li><p>Cap buildroot overrides notes to a maximum of 2k characters and convert the
+database field to UnicodeText (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4044">#4044</a>).</p></li>
+</ul>
+</section>
+<section id="id25">
+<h3>Development improvements<a class="headerlink" href="#id25" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The user_id field in the comments table has been made not nullable. Some
+database joins have been tweaked to get better performance (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4046">PR#4046</a>).</p></li>
+<li><p>Always use koji.multiCall for untag/unpush for better handle updates with a
+lot of builds (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4052">PR#4052</a>).</p></li>
+</ul>
+</section>
+<section id="id26">
+<h3>Contributors<a class="headerlink" href="#id26" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Clement Verna</p></li>
+<li><p>Karma Dolkar</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Miro Hrončok</p></li>
+<li><p>Sebastian Wojciechowski</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-3-0">
+<h2>v5.3.0<a class="headerlink" href="#v5-3-0" title="Permalink to this heading">¶</a></h2>
+<p>This is a minor release.</p>
+<section id="id27">
+<h3>Dependency changes<a class="headerlink" href="#id27" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Splitted handle_update task into two celery tasks for bugs and testcases.
+These two new tasks will make use of Celery’s <cite>autoretry_for</cite> and
+<cite>retry_backoff</cite> features to circumvent external services connection problems.
+<cite>retry_backoff</cite> needs Celery &gt;= 4.2 (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3989">PR#3989</a>).</p></li>
+</ul>
+</section>
+<section id="id28">
+<h3>Features<a class="headerlink" href="#id28" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Associate bugs mentioned in rpm changelog to automatically created Rawhide
+updates; the bugs mentioned with the format <cite>fix(es)|close(s)
+(fedora|epel|rh|rhbz)#BUG_ID</cite> will be associated to the update and
+automatically closed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3925">#3925</a>).</p></li>
+</ul>
+</section>
+<section id="id29">
+<h3>Bug fixes<a class="headerlink" href="#id29" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Use jquery-typeahead for bodhi searchbar and always show the input field
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1455">#1455</a>).</p></li>
+<li><p>Reset update.date_testing when editing builds (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3493">#3493</a>).</p></li>
+<li><p>Removed pending_testing tag when self.request is still in
+UpdateRequest.testing (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3944">#3944</a>).</p></li>
+<li><p>Fix the broken privacy policy link for update’s comment box. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3971">#3971</a>).</p></li>
+<li><p>Do not bound the database session created using TransactionalSessionMaker
+class to the object created.
+Since threads are sharing the memory binding to the session object, it makes
+it possible for threads to
+override a previous session leading to unexpected behaviours.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3979">#3979</a>).</p></li>
+<li><p>Editing builds in an update should not remove override tags (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3988">#3988</a>).</p></li>
+<li><p>Make Test Cases look clickable. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4003">#4003</a>).</p></li>
+<li><p>If an update include no builds, use alias as title (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4012">#4012</a>).</p></li>
+</ul>
+</section>
+<section id="id30">
+<h3>Development improvements<a class="headerlink" href="#id30" title="Permalink to this heading">¶</a></h3>
+<ul>
+<li><p>Revise display for update’s settings</p>
+<p>Showed a ‘stable by karma: disabled’ and a ‘stable by time: disabled’ in
+the UI when appropriate. Also added a ‘Autotime: &lt;Bool&gt;’ to the CLI output.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3957">#3957</a>).</p>
+</li>
+<li><p>Avoid using a database session in the tag_update_builds_task.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3981">#3981</a>).</p></li>
+<li><p>Avoid using a database session in the handle side tag task. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3983">#3983</a>).</p></li>
+<li><p>Ignore celery task’s results we don’t use. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3995">#3995</a>).</p></li>
+</ul>
+</section>
+<section id="documentation-improvements">
+<h3>Documentation improvements<a class="headerlink" href="#documentation-improvements" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Reference the state that happens when an update is revoked (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2902">#2902</a>).</p></li>
+<li><p>Document the full set of bug trackers that can be reference in Bodhi’s
+markdown.
+Also added a section to Bodhi’s Sphinx docs about Bodhi markdown,
+and listed the bug trackers there as well. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3209">#3209</a>).</p></li>
+<li><p>Add information to Bodhi docs that Bodhi has frozen release state
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3505">#3505</a>).</p></li>
+</ul>
+</section>
+<section id="id31">
+<h3>Contributors<a class="headerlink" href="#id31" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Clement Verna</p></li>
+<li><p>Karma Dolkar</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Richard O. Gregory</p></li>
+<li><p>Tomas Kopecek</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-2-2">
+<h2>v5.2.2<a class="headerlink" href="#v5-2-2" title="Permalink to this heading">¶</a></h2>
+<p>This is a bugfix release.</p>
+<section id="id32">
+<h3>Bug fixes<a class="headerlink" href="#id32" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Only pass scalar argument to celery (part 2). Avoid the celery enqueuer
+emitting SQL queries to resolve attributes, and therefore opening new
+transactions. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/8b30a825">#8b30a825</a>).</p></li>
+</ul>
+</section>
+<section id="id33">
+<h3>Contributors<a class="headerlink" href="#id33" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Clement Verna</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-2-1">
+<h2>v5.2.1<a class="headerlink" href="#v5-2-1" title="Permalink to this heading">¶</a></h2>
+<p>This is a bugfix release.</p>
+<section id="id34">
+<h3>Bug fixes<a class="headerlink" href="#id34" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Get the update object in the celery worker from the database.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3966">#3966</a>).</p></li>
+</ul>
+</section>
+<section id="id35">
+<h3>Contributors<a class="headerlink" href="#id35" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Clement Verna</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-2-0">
+<h2>v5.2.0<a class="headerlink" href="#v5-2-0" title="Permalink to this heading">¶</a></h2>
+<p>This is a feature and bugfix release.</p>
+<section id="id36">
+<h3>Features<a class="headerlink" href="#id36" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Added <cite>__current__</cite>, <cite>__pending__</cite> and <cite>__archived__</cite> macro filters to
+quickly filter Updates by Release status (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3892">PR#3892</a>).</p></li>
+<li><p>Added search filtering capabilities to the Overrides page (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3903">PR#3903</a>).</p></li>
+<li><p>Output the update install command into the bugs comments. Also change the
+<cite>stable_bug_msg</cite> and <cite>testing_bug_msg</cite> settings format to use placeholders in
+place of <cite>%s</cite>: if you have customized these settings you will need to adjust
+them to the new format. Here it is the list of the available placeholders:
+<cite>{update_title}, {update_beauty_title}, {update_alias}, {repo},
+{install_instructions}, {update_url}</cite> (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/740">#740</a>).</p></li>
+<li><p>Tag builds for updates asynchronously using Celery tasks. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3061">#3061</a>).</p></li>
+<li><p>Add a Liveness and Readyness endpoints for OpenShift probes. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3854">#3854</a>).</p></li>
+<li><p>Allow revoking the <cite>push to stable</cite> action (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3921">#3921</a>).</p></li>
+</ul>
+</section>
+<section id="id37">
+<h3>Bug fixes<a class="headerlink" href="#id37" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Place 404 Not Found in the middle of the website (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3835">PR#3835</a>).</p></li>
+<li><p>RPM changelog was not automatically added in the notes for Rawhide updates as
+expected (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3931">PR#3931</a>).</p></li>
+<li><p>Add back the ability to add abitairy text as a build. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3707">#3707</a>,
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3765">#3765</a>).</p></li>
+<li><p>Allow to comment on update that were pushed to stable. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3748">#3748</a>).</p></li>
+<li><p>Make comments submission to use common code with other forms and avoid
+clearing the spinner until the page refreshes (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3837">#3837</a>).</p></li>
+<li><p>Try to avoid timeout error when requesting latest_candidates with
+<cite>hide_existing=true</cite> (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3841">#3841</a>).</p></li>
+<li><p>Allow task id to be null in the bodhi.update.status.testing message schema.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3852">#3852</a>).</p></li>
+<li><p>Sent UpdateReadyForTestingV1 only for rpm (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3855">#3855</a>).</p></li>
+<li><p>Prevent whitespaces string to be set as display name of an update
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3877">#3877</a>).</p></li>
+<li><p>Fixed pagination issue when using multiple values for the same filter
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3885">#3885</a>).</p></li>
+<li><p>Make sure we send the fedora-messaging messages before trigerring a celery
+task. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3904">#3904</a>).</p></li>
+<li><p>Prevent updates from sidetags being stuck in Testing (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3912">#3912</a>).</p></li>
+<li><p>Do not allow to push back to testing a stable update (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3936">#3936</a>).</p></li>
+</ul>
+</section>
+<section id="id38">
+<h3>Development improvements<a class="headerlink" href="#id38" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Use existing db session when creating a package: <cite>Package.get_or_create()</cite>
+now requires a session object in input (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3860">PR#3860</a>).</p></li>
+<li><p>Use koji’s multicall in <cite>tag_update_builds</cite> task (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3958">PR#3958</a>).</p></li>
+</ul>
+</section>
+<section id="other-changes">
+<h3>Other changes<a class="headerlink" href="#other-changes" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Use Celery Beat instead of cron jobs. The corresponding CLIs have been
+adjusted
+to trigger the task. They will still block until the task is done, but it may
+not be running on the host that the CLI was called on. The affected CLIs are:
+<code class="docutils literal notranslate"><span class="pre">bodhi-clean-old-composes</span></code>, <code class="docutils literal notranslate"><span class="pre">bodhi-expire-overrides</span></code>,
+<code class="docutils literal notranslate"><span class="pre">bodhi-approve-testing</span></code>, and <code class="docutils literal notranslate"><span class="pre">bodhi-check-policies</span></code> (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2867">#2867</a>).</p></li>
+</ul>
+</section>
+<section id="id39">
+<h3>Contributors<a class="headerlink" href="#id39" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Adam Saleh</p></li>
+<li><p>Aurélien Bompard</p></li>
+<li><p>Adam Williamson</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>Eli Young</p></li>
+<li><p>Karma Dolkar</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Michal Konečný</p></li>
+<li><p>Nils Philippsen</p></li>
+<li><p>Pierre-Yves Chibon</p></li>
+<li><p>Elliott Sales de Andrade</p></li>
+<li><p>Richard O. Gregory</p></li>
+<li><p>Rick Elrod</p></li>
+<li><p>Ryan Lerch</p></li>
+<li><p>Stephen Coady</p></li>
+<li><p>subhamkrai</p></li>
+<li><p>Sebastian Wojciechowski</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-1-1">
+<h2>v5.1.1<a class="headerlink" href="#v5-1-1" title="Permalink to this heading">¶</a></h2>
+<p>This is a bugfix release.</p>
+<section id="id40">
+<h3>Bug fixes<a class="headerlink" href="#id40" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fix the Fedora Messaging exception caught for publish backoff (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3871">PR#3871</a>).</p></li>
+<li><p>Only pass scalar arguments to celery tasks to avoid lingering database
+transactions (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3902">PR#3902</a>).</p></li>
+<li><p>Fix bug title escaping to prevent a JS crash while editing updates
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3714">#3714</a>).</p></li>
+<li><p>Fix potential race condition with the celery worker accessing an update
+before the web request was commited. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3858">#3858</a>).</p></li>
+</ul>
+</section>
+<section id="id41">
+<h3>Contributors<a class="headerlink" href="#id41" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Aurélien Bompard</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>Mattia Verga</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-1-0">
+<h2>v5.1.0<a class="headerlink" href="#v5-1-0" title="Permalink to this heading">¶</a></h2>
+<p>This is a feature and bugfix release.</p>
+<section id="id42">
+<h3>Features<a class="headerlink" href="#id42" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Include the task id for each build when notifying that an update is ready to
+be tested (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3724">#3724</a>).</p></li>
+<li><p>Linkify update aliases in comments (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/776">#776</a>).</p></li>
+</ul>
+</section>
+<section id="id43">
+<h3>Bug fixes<a class="headerlink" href="#id43" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fix BuildrootOverrides editing/expiring from the UI (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3710">#3710</a>).</p></li>
+<li><p>Fix the traceback when builds are being signed without being included in an
+update (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3720">#3720</a>).</p></li>
+<li><p>Increase the size of the update alias column (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3779">#3779</a>).</p></li>
+<li><p>Fix JS error when removing a bug from the list in the update form
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3796">PR#3796</a>).</p></li>
+<li><p>Disable warnings when adding <cite>Security Response</cite> bugs to an update
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3789">#3789</a>).</p></li>
+<li><p>Manage single build update conflicting builds. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3828">#3828</a>).</p></li>
+</ul>
+</section>
+<section id="id44">
+<h3>Contributors<a class="headerlink" href="#id44" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Aurélien Bompard</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Pierre-Yves Chibon</p></li>
+<li><p>Rick Elrod</p></li>
+<li><p>Ryan Lerch</p></li>
+</ul>
+</section>
+</section>
+<section id="v5-0-0">
+<h2>v5.0.0<a class="headerlink" href="#v5-0-0" title="Permalink to this heading">¶</a></h2>
+<p>This is a major release with many backwards incompatible changes.</p>
+<section id="id45">
+<h3>Backwards incompatible changes<a class="headerlink" href="#id45" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Celery is introduced to handle the long-running tasks (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2851">#2851</a>).</p></li>
+<li><p>Fedmenu was removed from the UI (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2194">#2194</a>).</p></li>
+<li><p>Remove deprecated <code class="docutils literal notranslate"><span class="pre">search_packages</span></code> path (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3411">PR#3411</a>).</p></li>
+<li><p>Remove <code class="docutils literal notranslate"><span class="pre">critpath_karma</span></code> from the UI (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2194">#2194</a>).</p></li>
+<li><p>Remove unused and incorrect <code class="docutils literal notranslate"><span class="pre">server.bugs.Bugzilla.get_url()</span></code> function.</p></li>
+<li><p>Print errors to stderr in command line tools.</p></li>
+</ul>
+</section>
+<section id="id46">
+<h3>Dependency changes<a class="headerlink" href="#id46" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Celery is a new required dependency (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2851">#2851</a>).</p></li>
+</ul>
+</section>
+<section id="id47">
+<h3>Server upgrade instructions<a class="headerlink" href="#id47" title="Permalink to this heading">¶</a></h3>
+<p>This release contains database migrations. To apply them, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+</pre></div>
+</div>
+</section>
+<section id="id48">
+<h3>Features<a class="headerlink" href="#id48" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Update fedora-bootstrap to latest 1.5.0.</p></li>
+<li><p>Add ctype to the ComposeComplete (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3297">#3297</a>).</p></li>
+<li><p>Add knowledge of branch freezes to the Release model (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1038">#1038</a>, <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1563">#1563</a>).</p></li>
+<li><p>API: Create/edit updates from Koji tags (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3009">#3009</a>).</p></li>
+<li><p>Add javascript confirmation for unpushing updates.</p></li>
+<li><p>Use versioned dir name for static files.</p></li>
+<li><p>Improve the performance of validate_build_uniqueness.</p></li>
+<li><p>Add option to create/edit updates side tags to CLI (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2325">#2325</a>).</p></li>
+<li><p>Overhaul the new update form.</p></li>
+<li><p>Mark updates not composed by bodhi as pushed when stable.</p></li>
+<li><p>Allow multiple status params for update list views (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3429">#3429</a>).</p></li>
+<li><p>Send a message when an update is ready to be tested (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3428">#3428</a>).</p></li>
+<li><p>Create additional side tags on multi build tag (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3473">#3473</a>).</p></li>
+<li><p>Create comment when CI tests starts, but don’t send an email (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3403">#3403</a>).</p></li>
+<li><p>Add support for creating sidetag updates to webui.</p></li>
+<li><p>Create a Dashboard for logged in users.</p></li>
+<li><p>Clean up Javascript, CSS and fonts.</p></li>
+<li><p>Add a new config item, <code class="docutils literal notranslate"><span class="pre">automatic_updates_blacklist</span></code>, which is a list of
+users to not process auto updates from.</p></li>
+<li><p>Document what the update states mean for rawhide.</p></li>
+<li><p>Add a filtering/searching interface to the updates query view.</p></li>
+<li><p>Add the list of packages in the update description to rss feed.</p></li>
+<li><p>Transform markdown code to html for better readability of the rss feed.</p></li>
+<li><p>Add frozen release state to bodhi releases list.</p></li>
+<li><p>Add API call to retrigger update tests.</p></li>
+<li><p>Tidy up the UI.</p></li>
+<li><p>Add –user and –password to all actions of the bodhi CLI supporting
+–openid-api (for example: waive and trigger) (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3550">PR#3550</a>).</p></li>
+<li><p>Update ChartJS package and redesign Release page (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3671">PR#3671</a>).</p></li>
+<li><p>Automatically created updates (e.g. Fedora Rawhide single package updates)
+now include a changelog entry in the update notes. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3192">#3192</a>).</p></li>
+<li><p>Move multi build update that failed to merge in rawhide to pending.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3514">#3514</a>).</p></li>
+</ul>
+</section>
+<section id="id49">
+<h3>Bug fixes<a class="headerlink" href="#id49" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Handle connection problems when talking to Wiki (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3361">#3361</a>).</p></li>
+<li><p>Make Bodhi able to clear models.Release._all_releases cache (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2177">#2177</a>).</p></li>
+<li><p>Query Greenwave in batches to avoid timeouts.</p></li>
+<li><p>Template, js and style fixes.</p></li>
+<li><p>Allow to configure a release without an override tag (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3447">#3447</a>).</p></li>
+<li><p>Determine a release for sidetag updates (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3480">#3480</a>).</p></li>
+<li><p>Change update status to testing if every build is signed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3475">#3475</a>).</p></li>
+<li><p>Delete additional tags once an side tag update was pushed to stable (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3476">#3476</a>).</p></li>
+<li><p>Turn off autokarma and autotime for automatic updates (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3424">#3424</a>).</p></li>
+<li><p>Make <code class="docutils literal notranslate"><span class="pre">display_name</span></code> optional in template (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3470">#3470</a>).</p></li>
+<li><p>Sign new builds to <code class="docutils literal notranslate"><span class="pre">&lt;sidetag&gt;-pending-signing</span></code> (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3485">#3485</a>).</p></li>
+<li><p>Allow only 1 update per side tag (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3484">#3484</a>).</p></li>
+<li><p>Disable comments on updates when update is pushed and stable (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2050">#2050</a>).</p></li>
+<li><p>Unify rawhide simple build update with multi build update (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3513">#3513</a>).</p></li>
+<li><p>Prevent crash when compose contains update without builds (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3471">#3471</a>).</p></li>
+<li><p>Added build.update.pushed = True for the signed consumer so that it can be
+unpushed. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3625">#3625</a>).</p></li>
+</ul>
+</section>
+<section id="id50">
+<h3>Development improvements<a class="headerlink" href="#id50" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Rename bteststyle to blint.</p></li>
+<li><p>Update developer documentation.</p></li>
+<li><p>Run mypy directly in Vagrant (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3335">#3335</a>).</p></li>
+<li><p>More type annotations.</p></li>
+<li><p>Add WaiverDB and Greenwave to development environment (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3011">#3011</a>).</p></li>
+<li><p>Provide authentication in the integration testing environment.</p></li>
+<li><p>Make it easier to develop using VS Code.</p></li>
+<li><p>Add option to vagrant provisioning to use stg infra.</p></li>
+<li><p>Introduction of <a class="reference external" href="https://github.com/hawkowl/towncrier/">Towncrier</a> to
+manage the release notes (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3562">#3562</a>).</p></li>
+</ul>
+</section>
+<section id="id51">
+<h3>Other changes<a class="headerlink" href="#id51" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>List items in RSS feed starting from the most recent (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/3621">PR#3621</a>).</p></li>
+</ul>
+</section>
+<section id="id52">
+<h3>Contributors<a class="headerlink" href="#id52" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to Bodhi 5.0.0:</p>
+<ul class="simple">
+<li><p>Anatoli Babenia</p></li>
+<li><p>Aurélien Bompard</p></li>
+<li><p>Randy Barlow</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>David Fan</p></li>
+<li><p>dimitraz</p></li>
+<li><p>Lukas Holecek</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Michal Konečný</p></li>
+<li><p>Nils Philippsen</p></li>
+<li><p>Ondrej Nosek</p></li>
+<li><p>Pierre-Yves Chibon</p></li>
+<li><p>Rick Elrod</p></li>
+<li><p>Ryan Lerch</p></li>
+<li><p>Robert Scheck</p></li>
+<li><p>Rob Shelly</p></li>
+<li><p>Sam Robbins</p></li>
+<li><p>Stephen Coady</p></li>
+<li><p>siddharthvipul</p></li>
+<li><p>subhamkrai</p></li>
+<li><p>Sebastian Wojciechowski</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="release_notes.html">Release notes</a><ul>
+      <li>Previous: <a href="release_notes.html" title="previous chapter">Release notes</a></li>
+      <li>Next: <a href="4.x_release_notes.html" title="next chapter">4.x release notes</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2023, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/user/5.x_release_notes.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

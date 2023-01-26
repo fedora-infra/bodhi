@@ -1,0 +1,311 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Developer documentation &#8212; bodhi 7.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release process" href="releases.html" />
+    <link rel="prev" title="Python bindings" href="../python_bindings.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="developer-documentation">
+<h1>Developer documentation<a class="headerlink" href="#developer-documentation" title="Permalink to this heading">¶</a></h1>
+<p>This page contains information for developers who wish to contribute to Bodhi.</p>
+<section id="contribution-guidelines">
+<h2>Contribution guidelines<a class="headerlink" href="#contribution-guidelines" title="Permalink to this heading">¶</a></h2>
+<p>Before you submit a pull request to Bodhi, please ensure that it meets these criteria:</p>
+<ul>
+<li><p>All tests must pass.</p></li>
+<li><p>New code must have 100% test coverage. This one is particularly important, as we don’t want to
+deploy any broken code into production. At the end of <code class="docutils literal notranslate"><span class="pre">btest</span></code> run, you can see your code coverage.
+If you are not using Vagrant environment you can check the code coverage by running
+<code class="docutils literal notranslate"><span class="pre">diff-cover</span> <span class="pre">coverage.xml</span> <span class="pre">--compare-branch=origin/develop</span> <span class="pre">--fail-under=100</span></code>.</p></li>
+<li><p>New functions, methods, and classes must have docblocks that explain what the code block is, and
+describing any parameters it accepts and what it returns (if anything). You can use the
+<code class="docutils literal notranslate"><span class="pre">pydocstyle</span></code> utility to automatically check your code for this. You can also run <code class="docutils literal notranslate"><span class="pre">pydocstyle</span> <span class="pre">bodhi</span></code>
+in Vagrant.</p></li>
+<li><p>Parameter and return value types should be declared using <a class="reference external" href="https://docs.python.org/3/library/typing.html">type hints</a>. You can test this by running
+<code class="docutils literal notranslate"><span class="pre">bci</span> <span class="pre">mypy</span></code> in Vagrant.</p></li>
+<li><p>New code must follow <a class="reference external" href="https://www.python.org/dev/peps/pep-0008/">PEP-8</a>. You can use the
+<code class="docutils literal notranslate"><span class="pre">flake8</span></code> utility to automatically check your code. Alternatively you can run <code class="docutils literal notranslate"><span class="pre">flake8-3</span></code>
+in Vagrant.</p></li>
+<li><p>If you want to run the three above at once you can use <code class="docutils literal notranslate"><span class="pre">blint</span></code> alias in Vagrant.</p></li>
+<li><p>Make sure your commits are atomic. With only rare exceptions, each improvement or bug fix should
+have exactly one commit. This makes it much easier to peruse the git history to find out which
+changes relate to a feature or bugfix implementation, and is particularly valuable when commits
+need to be cherry picked. If you need to build upon prior unmerged commits while fixing a
+different issue, feel free to send more than one commit in the same pull request.</p></li>
+<li><p>Your commit messages must include a Signed-off-by tag with your name and e-mail address,
+indicating that you agree to the
+<a class="reference external" href="https://developercertificate.org/">Developer Certificate of Origin</a>. Bodhi uses version 1.1 of
+the certificate, which reads:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Developer</span> <span class="n">Certificate</span> <span class="n">of</span> <span class="n">Origin</span>
+<span class="n">Version</span> <span class="mf">1.1</span>
+
+ <span class="n">Copyright</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="mi">2004</span><span class="p">,</span> <span class="mi">2006</span> <span class="n">The</span> <span class="n">Linux</span> <span class="n">Foundation</span> <span class="ow">and</span> <span class="n">its</span> <span class="n">contributors</span><span class="o">.</span>
+ <span class="mi">1</span> <span class="n">Letterman</span> <span class="n">Drive</span>
+ <span class="n">Suite</span> <span class="n">D4700</span>
+ <span class="n">San</span> <span class="n">Francisco</span><span class="p">,</span> <span class="n">CA</span><span class="p">,</span> <span class="mi">94129</span>
+
+ <span class="n">Everyone</span> <span class="ow">is</span> <span class="n">permitted</span> <span class="n">to</span> <span class="n">copy</span> <span class="ow">and</span> <span class="n">distribute</span> <span class="n">verbatim</span> <span class="n">copies</span> <span class="n">of</span> <span class="n">this</span>
+ <span class="n">license</span> <span class="n">document</span><span class="p">,</span> <span class="n">but</span> <span class="n">changing</span> <span class="n">it</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">allowed</span><span class="o">.</span>
+
+
+ <span class="n">Developer</span><span class="s1">&#39;s Certificate of Origin 1.1</span>
+
+ <span class="n">By</span> <span class="n">making</span> <span class="n">a</span> <span class="n">contribution</span> <span class="n">to</span> <span class="n">this</span> <span class="n">project</span><span class="p">,</span> <span class="n">I</span> <span class="n">certify</span> <span class="n">that</span><span class="p">:</span>
+
+ <span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="n">The</span> <span class="n">contribution</span> <span class="n">was</span> <span class="n">created</span> <span class="ow">in</span> <span class="n">whole</span> <span class="ow">or</span> <span class="ow">in</span> <span class="n">part</span> <span class="n">by</span> <span class="n">me</span> <span class="ow">and</span> <span class="n">I</span>
+     <span class="n">have</span> <span class="n">the</span> <span class="n">right</span> <span class="n">to</span> <span class="n">submit</span> <span class="n">it</span> <span class="n">under</span> <span class="n">the</span> <span class="nb">open</span> <span class="n">source</span> <span class="n">license</span>
+     <span class="n">indicated</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">file</span><span class="p">;</span> <span class="ow">or</span>
+
+ <span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="n">The</span> <span class="n">contribution</span> <span class="ow">is</span> <span class="n">based</span> <span class="n">upon</span> <span class="n">previous</span> <span class="n">work</span> <span class="n">that</span><span class="p">,</span> <span class="n">to</span> <span class="n">the</span> <span class="n">best</span>
+     <span class="n">of</span> <span class="n">my</span> <span class="n">knowledge</span><span class="p">,</span> <span class="ow">is</span> <span class="n">covered</span> <span class="n">under</span> <span class="n">an</span> <span class="n">appropriate</span> <span class="nb">open</span> <span class="n">source</span>
+     <span class="n">license</span> <span class="ow">and</span> <span class="n">I</span> <span class="n">have</span> <span class="n">the</span> <span class="n">right</span> <span class="n">under</span> <span class="n">that</span> <span class="n">license</span> <span class="n">to</span> <span class="n">submit</span> <span class="n">that</span>
+     <span class="n">work</span> <span class="k">with</span> <span class="n">modifications</span><span class="p">,</span> <span class="n">whether</span> <span class="n">created</span> <span class="ow">in</span> <span class="n">whole</span> <span class="ow">or</span> <span class="ow">in</span> <span class="n">part</span>
+     <span class="n">by</span> <span class="n">me</span><span class="p">,</span> <span class="n">under</span> <span class="n">the</span> <span class="n">same</span> <span class="nb">open</span> <span class="n">source</span> <span class="n">license</span> <span class="p">(</span><span class="n">unless</span> <span class="n">I</span> <span class="n">am</span>
+     <span class="n">permitted</span> <span class="n">to</span> <span class="n">submit</span> <span class="n">under</span> <span class="n">a</span> <span class="n">different</span> <span class="n">license</span><span class="p">),</span> <span class="k">as</span> <span class="n">indicated</span>
+     <span class="ow">in</span> <span class="n">the</span> <span class="n">file</span><span class="p">;</span> <span class="ow">or</span>
+
+ <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">The</span> <span class="n">contribution</span> <span class="n">was</span> <span class="n">provided</span> <span class="n">directly</span> <span class="n">to</span> <span class="n">me</span> <span class="n">by</span> <span class="n">some</span> <span class="n">other</span>
+     <span class="n">person</span> <span class="n">who</span> <span class="n">certified</span> <span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">and</span> <span class="n">I</span> <span class="n">have</span> <span class="ow">not</span> <span class="n">modified</span>
+     <span class="n">it</span><span class="o">.</span>
+
+ <span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="n">I</span> <span class="n">understand</span> <span class="ow">and</span> <span class="n">agree</span> <span class="n">that</span> <span class="n">this</span> <span class="n">project</span> <span class="ow">and</span> <span class="n">the</span> <span class="n">contribution</span>
+     <span class="n">are</span> <span class="n">public</span> <span class="ow">and</span> <span class="n">that</span> <span class="n">a</span> <span class="n">record</span> <span class="n">of</span> <span class="n">the</span> <span class="n">contribution</span> <span class="p">(</span><span class="n">including</span> <span class="nb">all</span>
+     <span class="n">personal</span> <span class="n">information</span> <span class="n">I</span> <span class="n">submit</span> <span class="k">with</span> <span class="n">it</span><span class="p">,</span> <span class="n">including</span> <span class="n">my</span> <span class="n">sign</span><span class="o">-</span><span class="n">off</span><span class="p">)</span> <span class="ow">is</span>
+     <span class="n">maintained</span> <span class="n">indefinitely</span> <span class="ow">and</span> <span class="n">may</span> <span class="n">be</span> <span class="n">redistributed</span> <span class="n">consistent</span> <span class="k">with</span>
+     <span class="n">this</span> <span class="n">project</span> <span class="ow">or</span> <span class="n">the</span> <span class="nb">open</span> <span class="n">source</span> <span class="n">license</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">involved</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>For example, Randy Barlow’s commit messages include this line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Signed</span><span class="o">-</span><span class="n">off</span><span class="o">-</span><span class="n">by</span><span class="p">:</span> <span class="n">Randy</span> <span class="n">Barlow</span> <span class="o">&lt;</span><span class="n">randy</span><span class="nd">@electronsweatshop</span><span class="o">.</span><span class="n">com</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p>Code may be submitted by opening a pull request at
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/">github.com/fedora-infra/bodhi</a>, or you may e-mail a
+patch to the
+<a class="reference external" href="https://lists.fedoraproject.org/archives/list/bodhi&#64;lists.fedorahosted.org/">mailing list</a>.</p></li>
+<li><p>If your changes contain database migrations, you must add a file named <code class="docutils literal notranslate"><span class="pre">summary.migration</span></code>
+in the <code class="docutils literal notranslate"><span class="pre">news</span></code> directory, where <code class="docutils literal notranslate"><span class="pre">summary</span></code> is a short textual description of the change
+(or the issue number you’re fixing).</p></li>
+<li><p>If it is not present already, add a file in the <code class="docutils literal notranslate"><span class="pre">news</span></code> directory named <code class="docutils literal notranslate"><span class="pre">username.author</span></code>
+where <code class="docutils literal notranslate"><span class="pre">username</span></code> is the first part of your commit’s email address, and containing the name
+you want to be credited as.</p></li>
+<li><p>If you think that the changes you make should be in release notes, add a file in the <code class="docutils literal notranslate"><span class="pre">news</span></code>
+directory with the format explained below.</p></li>
+</ul>
+<section id="release-notes">
+<h3>Release Notes<a class="headerlink" href="#release-notes" title="Permalink to this heading">¶</a></h3>
+<p>To add entries to the release notes, create a file in the <code class="docutils literal notranslate"><span class="pre">news</span></code> directory in the
+<code class="docutils literal notranslate"><span class="pre">source.type</span></code> name format, where the <code class="docutils literal notranslate"><span class="pre">source</span></code> part of the filename is:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">42</span></code> when the change is described in issue <code class="docutils literal notranslate"><span class="pre">42</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PR42</span></code> when the change has been implemented in pull request <code class="docutils literal notranslate"><span class="pre">42</span></code>, and
+there is no associated issue</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Cabcdef</span></code> when the change has been implemented in changeset <code class="docutils literal notranslate"><span class="pre">abcdef</span></code>, and
+there is no associated issue or pull request.</p></li>
+</ul>
+<p>And where the extension <code class="docutils literal notranslate"><span class="pre">type</span></code> is one of:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bic</span></code>: for backwards incompatible changes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dependency</span></code>: for dependency changes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">feature</span></code>: for new features</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bug</span></code>: for bug fixes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dev</span></code>: for development improvements</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs</span></code>: for documentation improvements</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">other</span></code>: for other changes</p></li>
+</ul>
+<p>The content of the file will end up in the release notes. It should not end with a <code class="docutils literal notranslate"><span class="pre">.</span></code>
+(full stop). A preview of the release notes can be generated with <code class="docutils literal notranslate"><span class="pre">towncrier</span> <span class="pre">--draft</span></code>.</p>
+</section>
+</section>
+<section id="issues">
+<h2>Issues<a class="headerlink" href="#issues" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi uses GitHub’s <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues">issue tracker</a> and
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/projects">kanban boards</a> to track and plan issues and work.
+If you aren’t sure what you’d like to work on, take a look at Bodhi’s
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/labels">labels</a> which are used to categorize the various
+issues. Each label has a short description explaining its purpose.</p>
+<section id="easy-fix">
+<h3>Easy Fix<a class="headerlink" href="#easy-fix" title="Permalink to this heading">¶</a></h3>
+<p>If you are looking for some easy tasks to get started with Bodhi development, have a look at Bodhi’s
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues?q=is%3Aopen+is%3Aissue+label%3AEasyFix">EasyFix</a> tickets.</p>
+</section>
+</section>
+<section id="ci-tests">
+<h2>CI Tests<a class="headerlink" href="#ci-tests" title="Permalink to this heading">¶</a></h2>
+<p>All Bodhi pull requests are tested in a <a class="reference external" href="https://ci.centos.org/">Jenkins instance</a>
+that is graciously hosted for us by the CentOS Project. Sometimes tests fail, and when they do you
+can visit the test job that failed and view its console output by visiting the
+<a class="reference external" href="https://ci.centos.org/job/bodhi-pipeline/">bodhi-pipeline job</a>. Links to individual pull request
+builds can be found on your pull request on GitHub by clicking the “Details” link next to
+<code class="docutils literal notranslate"><span class="pre">continuous-integration/jenkins/pr-merge</span></code>. From there you can inspect the full console output, or
+you can click into the “Pipeline Steps” on the left to see the output of each individual job.</p>
+<p>Bodhi’s CI pipeline workflow is described in <a class="reference external" href="http://www.groovy-lang.org/">Groovyscript</a> in
+<code class="docutils literal notranslate"><span class="pre">devel/ci/cico.pipeline</span></code>. This file is fairly well self-documented, and described to Jenkins how
+it should run Bodhi’s tests. It defines the various GitHub contexts that our <code class="docutils literal notranslate"><span class="pre">.mergify.yml</span></code>
+configuration is set to block merges on, and it runs the individual build and test jobs in parallel.</p>
+<p>It is possible for you to run these same tests locally. There is a <code class="docutils literal notranslate"><span class="pre">devel/ci/bodhi-ci</span></code> script
+that is used by the pipeline to do the heavy lifting. This script is intended to be
+run as root since it uses <code class="docutils literal notranslate"><span class="pre">docker</span></code> (or optionally, <code class="docutils literal notranslate"><span class="pre">podman</span></code>). It has a handy <code class="docutils literal notranslate"><span class="pre">-x</span></code> flag that
+will cause it to exit immediately upon failure. You can also choose to test specific releases, and
+there are a variety of other features. Be sure to check out its <code class="docutils literal notranslate"><span class="pre">--help</span></code> flag to learn how to use
+it. Thus, if I want to run the tests on only f28 and f29 and I want it to exit immediately upon
+failure, I can execute the script like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo devel/ci/bodhi-ci all -r f28 -r f29 -x
+</pre></div>
+</div>
+<p>Note that if you are using the Vagrant development environment, there is a handy <code class="docutils literal notranslate"><span class="pre">bci</span></code> shell alias
+that runs <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">devel/ci/bodhi-ci</span></code> for you.</p>
+</section>
+<section id="create-a-bodhi-development-environment">
+<h2>Create a Bodhi development environment<a class="headerlink" href="#create-a-bodhi-development-environment" title="Permalink to this heading">¶</a></h2>
+<p>There are two ways to bootstrap a Bodhi development environment. You can use Vagrant, or you can use
+virtualenv on an existing host. <a class="reference external" href="https://www.vagrantup.com">Vagrant</a> allows contributors to get quickly up and running with a
+Bodhi development environment by automatically configuring a virtual machine. <a class="reference external" href="https://virtualenv.pypa.io/en/stable/">Virtualenv</a> is
+a more manual option for building a development environment on an existing system. If you aren’t
+sure which development environment you would like to use, Vagrant is recommended as it get you a
+working system more quickly and with less effort. If you would like to use Vagrant, see the
+<a class="reference internal" href="vagrant.html"><span class="doc">Bodhi Vagrant Guide</span></a>. If you would like to use Virtualenv, see the
+<a class="reference internal" href="virtualenv.html"><span class="doc">Bodhi Virtualenv Guide</span></a>.</p>
+<p>If you use Vagrant, you can configure Visual Studio Code to run unit-tests inside with <a class="reference internal" href="vagrant_vscode.html"><span class="doc">Bodhi Vagrant - VS Code Guide</span></a>.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Developer documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#contribution-guidelines">Contribution guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#issues">Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ci-tests">CI Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#create-a-bodhi-development-environment">Create a Bodhi development environment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../python_bindings.html" title="previous chapter">Python bindings</a></li>
+      <li>Next: <a href="releases.html" title="next chapter">Release process</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2023, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/developer/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

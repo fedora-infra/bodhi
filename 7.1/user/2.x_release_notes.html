@@ -1,0 +1,1247 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>2.x release notes &#8212; bodhi 7.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Bodhi Server APIs" href="../server_api/index.html" />
+    <link rel="prev" title="3.x release notes" href="3.x_release_notes.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="x-release-notes">
+<h1>2.x release notes<a class="headerlink" href="#x-release-notes" title="Permalink to this heading">¶</a></h1>
+<p>This document contains release notes for the old 2.x release series.</p>
+<section id="id1">
+<h2>2.12.2<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
+<section id="bugs">
+<h3>Bugs<a class="headerlink" href="#bugs" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Positive karma on stable updates no longer sends them back to batched
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1881">#1881</a>).</p></li>
+<li><p>Push to batched buttons now appear on pushed updates when appropriate
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1875">#1875</a>).</p></li>
+</ul>
+</section>
+<section id="release-contributors">
+<h3>Release contributors<a class="headerlink" href="#release-contributors" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to Bodhi 2.12.2:</p>
+<ul class="simple">
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id2">
+<h2>2.12.1<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
+<section id="id3">
+<h3>Bugs<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Use separate directories to clone the comps repositories
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1885">PR#1885</a>).</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>Release contributors<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to Bodhi 2.12.1:</p>
+<ul class="simple">
+<li><p>Patrick Uiterwijk</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id5">
+<h2>2.12.0<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
+<section id="features">
+<h3>Features<a class="headerlink" href="#features" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bodhi now asks Pagure to expand group membership when Pagure is used for ACLs
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1810">#1810</a>).</p></li>
+<li><p>Bodhi now displays Atomic CI pipeline results
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1847">PR#1847</a>).</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>Bugs<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Use generic superclass models where possible
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1793">#1793</a>).</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>Release contributors<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to Bodhi 2.12.0:</p>
+<ul class="simple">
+<li><p>Pierre-Yves Chibon</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id8">
+<h2>2.11.0<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
+<section id="id9">
+<h3>Features<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bodhi now batches non-urgent updates together for less frequent churn. There is a new
+<code class="docutils literal notranslate"><span class="pre">bodhi-dequeue-stable</span></code> CLI that is intended be added to cron that looks for batched updates and
+moves them to stable
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1157">#1157</a>).</p></li>
+</ul>
+</section>
+<section id="id10">
+<h3>Bugs<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Improved bugtracker linking in markdown input
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1406">#1406</a>).</p></li>
+<li><p>Don’t disable autopush when the update is already requested for stable
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1570">#1570</a>).</p></li>
+<li><p>There is now a timeout on fetching results from ResultsDB in the backend
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1597">#1597</a>).</p></li>
+<li><p>Critical path updates now have positive days_to_stable and will only comment about pushing to
+stable when appropriate
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1708">#1708</a>).</p></li>
+</ul>
+</section>
+<section id="development-improvements">
+<h3>Development improvements<a class="headerlink" href="#development-improvements" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>More docblocks have been written.</p></li>
+</ul>
+</section>
+<section id="id11">
+<h3>Release contributors<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to Bodhi 2.11.0:</p>
+<ul class="simple">
+<li><p>Caleigh Runge-Hottman</p></li>
+<li><p>Ryan Lerch</p></li>
+<li><p>Rimsha Khan</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id12">
+<h2>2.10.1<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h2>
+<section id="bug-fixes">
+<h3>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Adjust the Greenwave subject query to include the original NVR of the builds
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1765">PR#1765</a>).</p></li>
+</ul>
+</section>
+<section id="id13">
+<h3>Release contributors<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to Bodhi 2.10.1:</p>
+<ul class="simple">
+<li><p>Ralph Bean</p></li>
+</ul>
+</section>
+</section>
+<section id="id14">
+<h2>2.10.0<a class="headerlink" href="#id14" title="Permalink to this heading">¶</a></h2>
+<section id="compatibility-changes">
+<h3>Compatibility changes<a class="headerlink" href="#compatibility-changes" title="Permalink to this heading">¶</a></h3>
+<p>This release of Bodhi has a few changes that are technically backward incompatible in some senses,
+but it was determined that each of these changes are justified without raising Bodhi’s major
+version, often due to features not working at all or being unused. Justifications for each are given
+inline.</p>
+<ul class="simple">
+<li><p>dnf and iniparse are now required dependencies for the Python bindings. Justification:
+Technically, these were needed before for some of the functionality, and the bindings would
+traceback if that functionality was used without these dependencies being present. With this
+change, the module will fail to import without them, and they are now formal dependencies.</p></li>
+<li><p>Support for EL 5 has been removed in this release. Justification: EL 5 has become end of life.</p></li>
+<li><p>The pkgtags feature has been removed. Justification: It did not work correctly and enabling it was
+devastating
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1634">#1634</a>).</p></li>
+<li><p>Some bindings code that could log into Koji with TLS certificates was removed. Justification: It
+was unused
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/b4474676">b4474676</a>).</p></li>
+<li><p>Bodhi’s short-lived <code class="docutils literal notranslate"><span class="pre">ci_gating</span></code> feature has been removed, in favor of the new
+Greenwave integration feature. Thus, the <code class="docutils literal notranslate"><span class="pre">ci.required</span></code> and <code class="docutils literal notranslate"><span class="pre">ci.url</span></code> settings no longer
+function in Bodhi. The <code class="docutils literal notranslate"><span class="pre">bodhi-babysit-ci</span></code> utility has also been removed. Justification: The
+feature was never completed and thus no functionality is lost
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1733">PR#1733</a>).</p></li>
+</ul>
+</section>
+<section id="id15">
+<h3>Features<a class="headerlink" href="#id15" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>There are new search endpoints in the REST API that perform ilike queries to support case
+insensitive searching. Bodhi’s web interface now uses these endpoints
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/997">#997</a>).</p></li>
+<li><p>It is now possible to search by update alias in the web interface
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1258">#1258</a>).</p></li>
+<li><p>Exact matches are now sorted first in search results
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/692">#692</a>).</p></li>
+<li><p>The CLI now has a <code class="docutils literal notranslate"><span class="pre">--mine</span></code> flag when searching for updates or overrides
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/811">#811</a>,
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1382">#1382</a>).</p></li>
+<li><p>The CLI now has more search parameters when querying overrides
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1679">#1679</a>).</p></li>
+<li><p>The new case insensitive search is also used when hitting enter in the search box in the web UI
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/870">#870</a>).</p></li>
+<li><p>Bodhi is now able to query Pagure for FAS groups for ACL info
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/f9414601">f9414601</a>).</p></li>
+<li><p>The Python bindings’ <code class="docutils literal notranslate"><span class="pre">candidates()</span></code> method now automatically initializes the username
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/6e8679b6">6e8679b6</a>).</p></li>
+<li><p>CLI errors are now printed in red text
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/431b9078">431b9078</a>).</p></li>
+<li><p>The graphs on the metrics page now have mouse hovers to indicate numerical values
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/209">#209</a>).</p></li>
+<li><p>Bodhi now has support for using <a class="reference external" href="https://pagure.io/greenwave/">Greenwave</a> to gate updates based
+on test results. See the new <code class="docutils literal notranslate"><span class="pre">test_gating.required</span></code>, <code class="docutils literal notranslate"><span class="pre">test_gating.url</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">greenwave_api_url</span></code> settings in <code class="docutils literal notranslate"><span class="pre">production.ini</span></code> for details on how to enable it. Note also
+that this feature introduces a new server CLI tool, <code class="docutils literal notranslate"><span class="pre">bodhi-check-policies</span></code>, which is intended to
+be run via cron on a regular interval. This CLI tool communicates with Greenwave to determine if
+updates are passing required tests or not
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1733">PR#1733</a>).</p></li>
+</ul>
+</section>
+<section id="id16">
+<h3>Bug fixes<a class="headerlink" href="#id16" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The autokarma check box’s value now persists when editing updates
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1692">#1692</a>,
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1482">#1482</a>, and
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1308">#1308</a>).</p></li>
+<li><p>The CLI now catches a variety of Exceptions and prints user readable errors instead of tracebacks
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1126">#1126</a>,
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1626">#1626</a>).</p></li>
+<li><p>The Python bindings’ <code class="docutils literal notranslate"><span class="pre">get_releases()</span></code> method now uses a GET request
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/784">#784</a>).</p></li>
+<li><p>The HTML sanitization code has been refactored, which fixed a couple of issues where Bodhi didn’t
+correctly escape things like e-mail addresses
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1656">#1656</a>,
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1721">#1721</a>).</p></li>
+<li><p>The bindings’ docstring for the <code class="docutils literal notranslate"><span class="pre">comment()</span></code> method was corrected to state that the <code class="docutils literal notranslate"><span class="pre">email</span></code>
+parameter is used to make anonymous comments, rather than to enable or disable sending of e-mails
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/289">#289</a>).</p></li>
+<li><p>The web interface now links directly to libravatar’s login page instead of POSTing to it
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1674">#1674</a>).</p></li>
+<li><p>The new/edit update form in the web interface now works with the new typeahead library
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1731">#1731</a>).</p></li>
+</ul>
+</section>
+<section id="id17">
+<h3>Development improvements<a class="headerlink" href="#id17" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Several more modules have been documented with PEP-257 compliant docblocks.</p></li>
+<li><p>Several new tests have been added to cover various portions of the code base, and Bodhi now has
+89% line test coverage. The goal is to reach 100% line coverage within the next 12 months, and
+then begin to work towards 100% branch coverage.</p></li>
+</ul>
+</section>
+<section id="id18">
+<h3>Release contributors<a class="headerlink" href="#id18" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to Bodhi 2.10.0:</p>
+<ul class="simple">
+<li><p>Ryan Lerch</p></li>
+<li><p>Matt Jia</p></li>
+<li><p>Matt Prahl</p></li>
+<li><p>Jeremy Cline</p></li>
+<li><p>Ralph Bean</p></li>
+<li><p>Caleigh Runge-Hottman</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id19">
+<h2>2.9.1<a class="headerlink" href="#id19" title="Permalink to this heading">¶</a></h2>
+<p>2.9.1 is a security release for
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1740">CVE-2017-1002152</a>.</p>
+<section id="id20">
+<h3>Release contributors<a class="headerlink" href="#id20" title="Permalink to this heading">¶</a></h3>
+<p>Thanks to Marcel for reporting the issue. Randy Barlow wrote the fix.</p>
+</section>
+</section>
+<section id="id21">
+<h2>2.9.0<a class="headerlink" href="#id21" title="Permalink to this heading">¶</a></h2>
+<section id="id22">
+<h3>Features<a class="headerlink" href="#id22" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>It is now possible to set required Taskotron tests with the <code class="docutils literal notranslate"><span class="pre">--requirements</span></code> CLI flag
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1319">#1319</a>).</p></li>
+<li><p>The CLI now has tab completion in bash
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1188">#1188</a>).</p></li>
+<li><p>Updates that are pending testing now go straight to stable if they reach required karma
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/632">#632</a>).</p></li>
+<li><p>The automated tests tab now shows a count on info results
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/1de12f6a">1de12f6a</a>).</p></li>
+<li><p>The UI now displays a spinner while a search is in progress
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/436">#436</a>).</p></li>
+<li><p>It is now possible to middle click on search results in the web UI
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/461">#461</a>).</p></li>
+<li><p>Pending releases are now displayed on the home page
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1619">#1619</a>).</p></li>
+<li><p>Links without an explicit scheme can now be detected as links
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1721">#1721</a>).</p></li>
+</ul>
+</section>
+<section id="id23">
+<h3>Bugs<a class="headerlink" href="#id23" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Wiki test cases are no longer duplicated
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/780">#780</a>).</p></li>
+<li><p>The server bodhi-manage-releases script now uses the new Bodhi bindings
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1338">#1338</a>).</p></li>
+<li><p>The server bodhi-manage-releases script now supports the <code class="docutils literal notranslate"><span class="pre">--url</span></code> flag
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/0181a344">0181a344</a>).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">--help</span></code> output from the Bodhi CLI is cleaner and more informative
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1457">#1457</a>).</p></li>
+<li><p>The CLI now provides more informative error messages when creating duplicate overrides
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1377">#1377</a>).</p></li>
+<li><p>E-mail subjects now include build versions again
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1635">#1635</a>).</p></li>
+<li><p>Taskotron results with the same scenario key are now all displayed
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/d5b0bfa3">d5b0bfa3</a>).</p></li>
+<li><p>The front page UI elements now line up
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1659">#1659</a>).</p></li>
+<li><p>The UI now properly urlencodes search URLs to properly escape characters such as “+”
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1015">#1015</a>).</p></li>
+<li><p>e-mail addresses are now properly processed by the markdown system
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1656">#1656</a>).</p></li>
+</ul>
+</section>
+<section id="id24">
+<h3>Development improvements<a class="headerlink" href="#id24" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The bundled typeahead JavaScript library is rebased to version 1.1.1 from the maintained
+fork at <a class="reference external" href="https://github.com/corejavascript/typeahead.js">https://github.com/corejavascript/typeahead.js</a> . The main typeahead repo
+appears to be unmaintained and contained a bug that we were hitting:
+<a class="reference external" href="https://github.com/twitter/typeahead.js/issues/1381">https://github.com/twitter/typeahead.js/issues/1381</a></p></li>
+<li><p>Docblocks were written for several more modules.</p></li>
+<li><p>Bodhi now hard depends on rpm instead of conditionally importing it
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1166">#1166</a>).</p></li>
+<li><p>Bodhi now has CI provided by CentOS that is able to test pull requests. Thanks to Brian Stinson
+and CentOS for providing this service to the Bodhi project!</p></li>
+<li><p>Some ground work has been done in order to enable batched updates, so that medium and low priority
+updates can be pushed on a less frequent interval than high priority (security or urgent) updates.</p></li>
+<li><p>Bodhi now uses py.test as the test runner instead of nose.</p></li>
+<li><p>Tox is now used to run the style tests.</p></li>
+<li><p>There is now a unified test base class that creates a single TestApp for the tests to use. The
+TestApp was the source of a significant memory leak in Bodhi’s tests. As a result of this
+refactor, Bodhi’s tests now consume about 450 MB instead of about 4.5 GB. As a result, the example
+Vagrantfile now uses 2 GB of RAM instead of 5 GB. It is likely possible to squeeze it down to 1 GB
+or so, if desired.</p></li>
+<li><p>Bodhi now supports both the bleach 1 and bleach 2 APIs
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1718">#1718</a>).</p></li>
+</ul>
+</section>
+<section id="id25">
+<h3>Release contributors<a class="headerlink" href="#id25" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to Bodhi 2.9.0:</p>
+<ul class="simple">
+<li><p>Ryan Lerch</p></li>
+<li><p>Jeremy Cline</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>Caleigh Runge-Hottman</p></li>
+<li><p>Kamil Páral</p></li>
+<li><p>Brian Stinson</p></li>
+<li><p>Martin Curlej</p></li>
+<li><p>Trishna Guha</p></li>
+<li><p>Brandon Gray</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id26">
+<h2>2.8.1<a class="headerlink" href="#id26" title="Permalink to this heading">¶</a></h2>
+<section id="id27">
+<h3>Bugs<a class="headerlink" href="#id27" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Restore defaults for three settings back to the values they had in Bodhi 2.7.0 (
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1633">PR#1633</a>,
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1640">PR#1640</a>, and
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1641">PR#1641</a>).</p></li>
+</ul>
+</section>
+<section id="id28">
+<h3>Release contributors<a class="headerlink" href="#id28" title="Permalink to this heading">¶</a></h3>
+<p>The following contributors submitted patches for Bodhi 2.8.1:</p>
+<ul class="simple">
+<li><p>Patrick Uiterwijk (the true 2.8.1 hero)</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id29">
+<h2>2.8.0<a class="headerlink" href="#id29" title="Permalink to this heading">¶</a></h2>
+<section id="special-instructions">
+<h3>Special instructions<a class="headerlink" href="#special-instructions" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>There is a new setting, <code class="docutils literal notranslate"><span class="pre">ci.required</span></code> that defaults to False. If you wish to use CI, you must
+add a cron task to call the new <code class="docutils literal notranslate"><span class="pre">bodhi-babysit-ci</span></code> CLI periodically.</p></li>
+</ul>
+</section>
+<section id="deprecation">
+<h3>Deprecation<a class="headerlink" href="#deprecation" title="Permalink to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">/search/packages</span></code> API call has been deprecated.</p>
+</section>
+<section id="new-dependencies">
+<h3>New Dependencies<a class="headerlink" href="#new-dependencies" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bodhi now uses Bleach to sanitize markdown input from the user.
+python-bleach 1.x is a new dependency in this release of Bodhi.</p></li>
+</ul>
+</section>
+<section id="id30">
+<h3>Features<a class="headerlink" href="#id30" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The API, fedmsg messages, bindings, and CLI now support non-RPM content (
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1325">#1325</a>,
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1326">#1326</a>,
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1327">#1327</a>, and
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1328">#1328</a>).
+Bodhi now knows about Fedora’s new module format, and is able to handle everything they need
+except publishing (which will appear in a later release). This release is also the first Bodhi
+release that is able to handle multiple content types.</p></li>
+<li><p>Improved OpenQA support in the web UI
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1471">#1471</a>).</p></li>
+<li><p>The type icons are now aligned in the web UI
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/4b6b7597">4b6b7597</a> and
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/d0940323">d0940323</a>).</p></li>
+<li><p>There is now a man page for <code class="docutils literal notranslate"><span class="pre">bodhi-approve-testing</span></code>
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/cf8d897f">cf8d897f</a>).</p></li>
+<li><p>Bodhi can now automatically detect whether to use DDL table locks if BDR is present during
+migrations (<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/059b5ab7">059b5ab7</a>).</p></li>
+<li><p>Locked updates now grey out the edit buttons with a tooltip to make the lock more obvious to the
+user (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1492">#1492</a>).</p></li>
+<li><p>Users can now do multi-line literal code blocks in comments
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1509">#1509</a>).</p></li>
+<li><p>The web UI now has more descriptive placeholder text
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/1a7122cd">1a7122cd</a>).</p></li>
+<li><p>All icons now have consistent width in the web UI
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/6dfe6ff3">6dfe6ff3</a>).</p></li>
+<li><p>The front page has a new layout
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/6afb6b07">6afb6b07</a>).</p></li>
+<li><p>Bodhi is now able to use Pagure and PDC as sources for ACL and package information
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/59551861">59551861</a>).</p></li>
+<li><p>Bodhi’s configuration loader now validates all values and centralizes defaults. Thus, it is now
+possible to comment most of Bodhi’s settings file and achieve sane defaults. Some settings are
+still required, see the default <code class="docutils literal notranslate"><span class="pre">production.ini</span></code> file for documentation of all settings and
+their defaults. A few unused settings were removed
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1488">#1488</a>,
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1489">#1489</a>, and
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/263b7b7f">263b7b7f</a>).</p></li>
+<li><p>The web UI now displays the content type of the update
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1329">#1329</a>).</p></li>
+<li><p>Bodhi now has a new <code class="docutils literal notranslate"><span class="pre">ci.required</span></code> setting that defaults to False. If enabled. updates will gate
+based on Continuous Integration test results and will not proceed to updates-testing unless the
+tests pass
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/0fcb73f8">0fcb73f8</a>).</p></li>
+<li><p>Update builds are now sorted by NVR
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1441">#1441</a>).</p></li>
+<li><p>The backend code is reworked to allow gating on resultsdb data and requirement validation
+performance is improved
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1550">#1550</a>).</p></li>
+<li><p>Bodhi is now able to map distgit commits to Builds, which helps map CI results to Builds. There is
+a new <code class="docutils literal notranslate"><span class="pre">bodhi-babysit-ci</span></code> CLI that must be run periodically in cron if <code class="docutils literal notranslate"><span class="pre">ci.required</span></code> is
+<code class="docutils literal notranslate"><span class="pre">True</span></code>
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/ae01e5d1">ae01e5d1</a>).</p></li>
+</ul>
+</section>
+<section id="id31">
+<h3>Bugs<a class="headerlink" href="#id31" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>A half-hidden button is now fully visible on mobile devices
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1467">#1467</a>).</p></li>
+<li><p>The signing status is again visible on the update page
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1469">#1469</a>).</p></li>
+<li><p>The edit update form will not be presented to users who are not auth’d
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1521">#1521</a>).</p></li>
+<li><p>The CLI <code class="docutils literal notranslate"><span class="pre">--autokarma</span></code> flag now works correctly
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1378">#1378</a>).</p></li>
+<li><p>E-mail subjects are now shortened like the web UI titles
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/882">#882</a>).</p></li>
+<li><p>The override editing form is no longer displayed unless the user is logged in
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1541">#1541</a>).</p></li>
+</ul>
+</section>
+<section id="id32">
+<h3>Development improvements<a class="headerlink" href="#id32" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Several more modules now pass pydocstyle PEP-257 tests.</p></li>
+<li><p>The development environment has a new <code class="docutils literal notranslate"><span class="pre">bshell</span></code> alias that sets up a usable Python shell,
+initialized for Bodhi.</p></li>
+<li><p>Lots of warnings from the unit tests have been fixed.</p></li>
+<li><p>The dev environment cds to the source folder upon <code class="docutils literal notranslate"><span class="pre">vagrant</span> <span class="pre">ssh</span></code>.</p></li>
+<li><p>There is now a <code class="docutils literal notranslate"><span class="pre">bfedmsg</span></code> development alias to see fedmsgs.</p></li>
+<li><p>A new <code class="docutils literal notranslate"><span class="pre">bresetdb</span></code> development alias will reset the database to the same state as when
+<code class="docutils literal notranslate"><span class="pre">vagrant</span> <span class="pre">up</span></code> completed.</p></li>
+<li><p>Some unused code was removed
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/afe5bd8c">afe5bd8c</a>).</p></li>
+<li><p>Test coverage was raised significantly, from 85% to 88%.</p></li>
+<li><p>The development environment now has httpie by default.</p></li>
+<li><p>The default Vagrant memory was raised
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1588">#1588</a>).</p></li>
+<li><p>Bodhi now has a Jenkins Job Builder template for use with CentOS CI.</p></li>
+<li><p>A new <code class="docutils literal notranslate"><span class="pre">bdiff-cover</span></code> development alias helps compare test coverage in current branch to the
+<code class="docutils literal notranslate"><span class="pre">develop</span></code> branch, and will alert the developer if there are any lines missing coverage.</p></li>
+</ul>
+</section>
+<section id="id33">
+<h3>Release contributors<a class="headerlink" href="#id33" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to Bodhi 2.8.0:</p>
+<ul class="simple">
+<li><p>Ryan Lerch</p></li>
+<li><p>Ralph Bean</p></li>
+<li><p>Pierre-Yves Chibon</p></li>
+<li><p>Matt Prahl</p></li>
+<li><p>Martin Curlej</p></li>
+<li><p>Adam Williamson</p></li>
+<li><p>Kamil Páral</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>Jeremy Cline</p></li>
+<li><p>Matthew Miller</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id34">
+<h2>2.7.0<a class="headerlink" href="#id34" title="Permalink to this heading">¶</a></h2>
+<section id="id35">
+<h3>Features<a class="headerlink" href="#id35" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The bodhi CLI now supports editing an override.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1049">#1049</a>).</p></li>
+<li><p>The Update model is now capable of being associated with different Build types
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1394">#1394</a>).</p></li>
+<li><p>The bodhi CLI now supports editing an update using the update alias.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1409">#1409</a>).</p></li>
+<li><p>The web UI now uses Fedora 26 in its example text instead of Fedora 20
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/ec0c619a">ec0c619a</a>).</p></li>
+<li><p>The Build model is now polymorphic to support non-RPM content
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1393">#1393</a>).</p></li>
+</ul>
+</section>
+<section id="id36">
+<h3>Bugs<a class="headerlink" href="#id36" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Correctly calculate days to stable for critical path updates
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1386">#1386</a>).</p></li>
+<li><p>Bodhi now logs some messages at info instead of error
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1412">#1412</a>).</p></li>
+<li><p>Only show openQA results since last update modification
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1435">#1435</a>).</p></li>
+</ul>
+</section>
+<section id="id37">
+<h3>Development improvements<a class="headerlink" href="#id37" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>SQL queries are no longer logged by default.</p></li>
+<li><p>fedmsgs are now viewable in the development environment.</p></li>
+<li><p>There is a new test to ensure there is only one Alembic head.</p></li>
+<li><p>There is a new bash alias, bteststyle, that runs the code style tests.</p></li>
+<li><p>The BuildrootOverride model is now documented.</p></li>
+</ul>
+</section>
+<section id="id38">
+<h3>Release contributors<a class="headerlink" href="#id38" title="Permalink to this heading">¶</a></h3>
+<p>The following contributors submitted patches for Bodhi 2.7.0:</p>
+<ul class="simple">
+<li><p>Clement Verna</p></li>
+<li><p>Jeremy Cline</p></li>
+<li><p>Bianca Nenciu</p></li>
+<li><p>Caleigh Runge-Hottman</p></li>
+<li><p>Adam Williamson</p></li>
+<li><p>Robert Scheck</p></li>
+<li><p>Ryan Lerch</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id39">
+<h2>2.6.2<a class="headerlink" href="#id39" title="Permalink to this heading">¶</a></h2>
+<p>This release focused on CLI authentication issues. One of the issues requires users to also update
+their python-fedora installation to at least 0.9.0.</p>
+<section id="id40">
+<h3>Bugs<a class="headerlink" href="#id40" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The CLI is now able to appropriately handle expiring sessions
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1474">#1474</a>).</p></li>
+<li><p>The CLI now only prompts for a password when needed
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1500">PR#1500</a>).</p></li>
+<li><p>Don’t traceback if the user doesn’t use the <code class="docutils literal notranslate"><span class="pre">--user</span></code> flag
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1505">PR#1505</a>).</p></li>
+</ul>
+</section>
+<section id="id41">
+<h3>Release contributors<a class="headerlink" href="#id41" title="Permalink to this heading">¶</a></h3>
+<p>The following contributors submitted patches for Bodhi 2.6.2:</p>
+<ul class="simple">
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id42">
+<h2>2.6.1<a class="headerlink" href="#id42" title="Permalink to this heading">¶</a></h2>
+<p>This release fixes 4 issues with three commits.</p>
+<section id="id43">
+<h3>Bugs<a class="headerlink" href="#id43" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Web requests now use the correct session for transactions
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1470">#1470</a>,
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1473">#1473</a>).</p></li>
+<li><p>fedmsgs are now converted to dictionaries before queuing
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1472">#1472</a>).</p></li>
+<li><p>Error messages are still logged if rolling back the transaction raises an Exception
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1475">#1475</a>).</p></li>
+</ul>
+</section>
+<section id="id44">
+<h3>Release contributors<a class="headerlink" href="#id44" title="Permalink to this heading">¶</a></h3>
+<p>The following contributors submitted patches for Bodhi 2.6.1:</p>
+<ul class="simple">
+<li><p>Jeremy Cline</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id45">
+<h2>2.6.0<a class="headerlink" href="#id45" title="Permalink to this heading">¶</a></h2>
+<section id="id46">
+<h3>Special instructions<a class="headerlink" href="#id46" title="Permalink to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p>The database migrations have been trimmed in this release. To upgrade to this version of Bodhi
+from a version prior to 2.3, first upgrade to Bodhi 2.3, 2.4, or 2.5, run the database
+migrations, and then upgrade to this release.</p></li>
+<li><p>Bodhi cookies now expire, but cookies created before 2.6.0 will not automatically expire. To
+expire all existing cookies so that only expiring tickets exist, you will need to change
+<code class="docutils literal notranslate"><span class="pre">authtkt.secret</span></code> to a new value in your settings file.</p></li>
+</ol>
+</section>
+<section id="dependency-adjustments">
+<h3>Dependency adjustments<a class="headerlink" href="#dependency-adjustments" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>zope.sqlalchemy is no longer a required dependency
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1414">PR#1414</a>).</p></li>
+<li><p>WebOb is no longer a directly required dependency, though it is still indirectly required through
+pyramid.</p></li>
+</ul>
+</section>
+<section id="id47">
+<h3>Features<a class="headerlink" href="#id47" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The web UI footer has been restyled to fit better with the new theme
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1366">PR#1366</a>).</p></li>
+<li><p>A link to documentation has been added to the web UI footer
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1321">#1321</a>).</p></li>
+<li><p>The bodhi CLI now supports editing updates
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/937">#937</a>).</p></li>
+<li><p>The CLI’s <code class="docutils literal notranslate"><span class="pre">USERNAME</span></code> environment variable is now documented, and its <code class="docutils literal notranslate"><span class="pre">--user</span></code> flag is
+clarified (<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/28dd380a">28dd380a</a>).</p></li>
+<li><p>The icons that we introduced in the new theme previously didn’t have titles.
+Consequently, a user might not have know what these icons meant. Now if a user
+hovers over these icons, they get a description of what they mean, for
+example: “This is a bugfix update” or “This update is in the critical path”
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1362">#1362</a>).</p></li>
+<li><p>Update pages with lots of updates look cleaner
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1351">#1351</a>).</p></li>
+<li><p>Update page titles are shorter now for large updates
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/957">#957</a>).</p></li>
+<li><p>Add support for alternate architectures to the MasherThread.wait_for_sync()
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1343">#1343</a>).</p></li>
+<li><p>Update lists now also include type icons next to the updates
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/5983d99c">5983d99c</a>).</p></li>
+<li><p>Testing updates use a consistent label color now
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/62330644">62330644</a>).</p></li>
+<li><p>openQA results are now displayed in the web ui
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/450dbafe">450dbafe</a>).</p></li>
+<li><p>Bodhi cookies now expire. There is a new <code class="docutils literal notranslate"><span class="pre">authtkt.timeout</span></code> setting that sets Bodhi’s session
+lifetime, defaulting to 1 day.</p></li>
+</ul>
+</section>
+<section id="id48">
+<h3>Bugs<a class="headerlink" href="#id48" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Comments that don’t carry karma don’t count as a user’s karma vote
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/829">#829</a>).</p></li>
+<li><p>The web UI now uses the update alias instead of the title so editors of large updates can click
+the edit button (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1161">#1161</a>).</p></li>
+<li><p>Initialize the bugtracker in <code class="docutils literal notranslate"><span class="pre">main()</span></code> instead of on import so that docs can be built without
+installing Bodhi (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1359">PR#1359</a>).</p></li>
+<li><p>Make the release graph easier to read when there are many datapoints
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1172">#1172</a>).</p></li>
+<li><p>Optimize the JavaScript that loads automated test results from ResultsDB
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/983">#983</a>).</p></li>
+<li><p>Bodhi’s testing approval comment now respects the karma reset event
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1310">#1310</a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pop</span></code> and <code class="docutils literal notranslate"><span class="pre">copy</span></code> now lazily load the configuration
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1423">#1423</a>).</p></li>
+</ul>
+</section>
+<section id="id49">
+<h3>Development improvements<a class="headerlink" href="#id49" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>A new automated PEP-257 test has been introduced to enforce docblocks across the codebase.
+Converting the code will take some time, but the code will be expanded to fully support PEP-257
+eventually. A few modules have now been documented.</p></li>
+<li><p>Test coverage is now 84%.</p></li>
+<li><p>The Vagrant environment now has vim with a simple vim config to make sure spaces are used instead
+of tabs (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1372">PR#1372</a>).</p></li>
+<li><p>The Package database model has been converted into a single-table inheritance model, which will
+aid in adding multi-type support to Bodhi. A new RpmPackage model has been added.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1392">PR#1392</a>).</p></li>
+<li><p>The database initialization code is unified
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/e9a26042">e9a26042</a>).</p></li>
+<li><p>The base model class now has a helpful query property
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/8167f262">8167f262</a>).</p></li>
+<li><p>.pyc files are now removed when running the tests in the dev environment
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/9e9adb61">9e9adb61</a>).</p></li>
+<li><p>An unused inherited column has been dropped from the builds table
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/e8a95b12">e8a95b12</a>).</p></li>
+</ul>
+</section>
+<section id="id50">
+<h3>Release contributors<a class="headerlink" href="#id50" title="Permalink to this heading">¶</a></h3>
+<p>The following contributors submitted patches for Bodhi 2.6.0:</p>
+<ul class="simple">
+<li><p>Jeremy Cline</p></li>
+<li><p>Ryan Lerch</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>Caleigh Runge-Hottman</p></li>
+<li><p>Bianca Nenciu</p></li>
+<li><p>Adam Williamson</p></li>
+<li><p>Ankit Raj Ojha</p></li>
+<li><p>Jason Taylor</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id51">
+<h2>2.5.0<a class="headerlink" href="#id51" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi 2.5.0 is a feature and bugfix release.</p>
+<section id="id52">
+<h3>Features<a class="headerlink" href="#id52" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The web interface now uses the Fedora Bootstrap theme. The layout of the
+update page has also been revamped to display the information about an update
+in a clearer manner.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1313">#1313</a>).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">bodhi</span></code> CLI now has a <code class="docutils literal notranslate"><span class="pre">--url</span></code> flag that can be used to switch which Bodhi server it
+communicates with. The <code class="docutils literal notranslate"><span class="pre">BODHI_URL</span></code> environment can also be used to configure this flag.</p></li>
+<li><p>The documentation has been reorganized.</p></li>
+<li><p>The Python bindings are now documented.</p></li>
+<li><p>Bodhi will now announce that karma has been reset to 0 when builds are added or removed from
+updates (<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/6d6de4bc">6d6de4bc</a>).</p></li>
+<li><p>Bodhi will now announce that autokarma has been disabled when an update received negative karma
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/d3ccc579">d3ccc579</a>).</p></li>
+<li><p>The docs theme is now Alabaster
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/57a80f42">57a80f42</a>).</p></li>
+<li><p>The Bodhi documentation now has a description of Bodhi on the landing page
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1322">#1322</a>).</p></li>
+<li><p>The REST API is now documented
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1323">#1323</a>).</p></li>
+<li><p>The client Python bindings can now accept a <code class="docutils literal notranslate"><span class="pre">base_url</span></code> that doesn’t end in a slash
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/1087939b">1087939b</a>).</p></li>
+</ul>
+</section>
+<section id="id53">
+<h3>Bugs<a class="headerlink" href="#id53" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The position of the Add Comment button is now the bottom right.
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/902">#902</a>).</p></li>
+<li><p>An unusuable <code class="docutils literal notranslate"><span class="pre">--request</span></code> flag has been removed from a CLI command
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1187">#1187</a>).</p></li>
+<li><p>The cursor is now a pointer when hovering over Releases button
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1296">#1296</a>).</p></li>
+<li><p>The number of days to stable is now correctly calculated on updates
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1305">#1305</a>).</p></li>
+<li><p>Fix a query regular expression so that Fedora update ids work
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/d5bec3fa">d5bec3fa</a>).</p></li>
+<li><p>Karma thresholds can now be set when autopush is disabled
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1033">#1033</a>).</p></li>
+</ul>
+</section>
+<section id="id54">
+<h3>Development improvements<a class="headerlink" href="#id54" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The Vagrant development environment automatically configures the BODHI_URL environment
+variable so that the client talks to the local server instead of production or staging.</p></li>
+<li><p>Test coverage is up another percentage to 82%.</p></li>
+<li><p>Bodhi is now PEP-8 compliant.</p></li>
+<li><p>The development environment now displays all Python warnings once.</p></li>
+</ul>
+</section>
+<section id="id55">
+<h3>Release contributors<a class="headerlink" href="#id55" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to Bodhi 2.5.0:</p>
+<ul class="simple">
+<li><p>Ryan Lerch</p></li>
+<li><p>Trishna Guha</p></li>
+<li><p>Jeremy Cline</p></li>
+<li><p>Ankit Raj Ojha</p></li>
+<li><p>Ariel O. Barria</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id56">
+<h2>2.4.0<a class="headerlink" href="#id56" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi 2.4.0 is a feature and bugfix release.</p>
+<section id="id57">
+<h3>Features<a class="headerlink" href="#id57" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The web interface now displays whether an update has autopush enabled
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/999">#999</a>).</p></li>
+<li><p>Autopush is now disabled on any update that receives authenticated negative karma
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1191">#1191</a>).</p></li>
+<li><p>Bodhi now links to Koji builds via TLS instead of plaintext
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1246">#1246</a>).</p></li>
+<li><p>Some usage examples have been added to the <code class="docutils literal notranslate"><span class="pre">bodhi</span></code> man page.</p></li>
+<li><p>Bodhi’s server package has a new script called <code class="docutils literal notranslate"><span class="pre">bodhi-clean-old-mashes</span></code> that can recursively
+delete any folders with names that end in a dash followed by a string that can be interpreted as a
+float, sparing the newest 10 by lexigraphical sorting. This should help release engineers keep the
+Koji mashing folder clean.</p></li>
+<li><p>There is now a <code class="docutils literal notranslate"><span class="pre">bodhi.client.bindings</span></code> module provided by the Bodhi client package. It contains
+Python bindings to Bodhi’s REST API.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">bodhi</span></code> CLI now prints autokarma and thresholds when displaying updates.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code> now has a <code class="docutils literal notranslate"><span class="pre">--version</span></code> flag.</p></li>
+<li><p>There are now man pages for <code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code> and <code class="docutils literal notranslate"><span class="pre">initialize_bodhi_db</span></code>.</p></li>
+</ul>
+</section>
+<section id="id58">
+<h3>Bugs<a class="headerlink" href="#id58" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Users’ e-mail addresses will now be updated when they log in to Bodhi
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/902">#902</a>).</p></li>
+<li><p>The masher now tests for <code class="docutils literal notranslate"><span class="pre">repomd.xml</span></code> instead of the directory that contains it
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/908">#908</a>).</p></li>
+<li><p>Users can now only upvote an update once
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1018">#1018</a>).</p></li>
+<li><p>Only comment on non-autokarma updates when they meet testing requirements
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1009">#1009</a>).</p></li>
+<li><p>Autokarma can no longer be set to NULL
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1048">#1048</a>).</p></li>
+<li><p>Users can now be more fickle than ever about karma
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1064">#1064</a>).</p></li>
+<li><p>Critical path updates can now be free of past negative karma ghosts
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1065">#1065</a>).</p></li>
+<li><p>Bodhi now comments on non-autokarma updates after enough time has passed
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1094">#1094</a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code> now does not crash when users abort a push
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1107">#1107</a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code> now does not print updates when resuming a push
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1113">#1113</a>).</p></li>
+<li><p>Bodhi now says “Log in” and “Log out” instead of “Login” and “Logout”
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1146">#1146</a>).</p></li>
+<li><p>Bodhi now configures the Koji client to retry, which should help make the masher more reliable
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1201">#1201</a>).</p></li>
+<li><p>Bodhi is now compatible with Pillow-4.0.0
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1262">#1262</a>).</p></li>
+<li><p>The bodhi cli no longer prints update JSON when setting the request
+(<a class="reference external" href="https://bugzilla.redhat.com/show_bug.cgi?id=1408195">#1408195</a>).</p></li>
+<li><p>Bodhi’s signed handler now skips builds that were not assigned to a release.</p></li>
+<li><p>The comps file is now cloned into an explicit path during mashing.</p></li>
+<li><p>The buildsystem is now locked during login.</p></li>
+</ul>
+</section>
+<section id="id60">
+<h3>Development improvements<a class="headerlink" href="#id60" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>A great deal of tests were written for Bodhi. Test coverage is now up to 81% and is enforced by
+the test suite.</p></li>
+<li><p>Bodhi’s server code is now PEP-8 compliant.</p></li>
+<li><p>The docs now contain contribution guidelines.</p></li>
+<li><p>The build system will now fail with a useful Exception if used without being set up.</p></li>
+<li><p>The Vagrantfile is a good bit fancier, with hostname, dnf caching, unsafe but performant disk I/O,
+and more.</p></li>
+<li><p>The docs now include a database schema image.</p></li>
+<li><p>Bodhi is now run by systemd in the Vagrant guest.</p></li>
+<li><p>The Vagrant environment now has several helpful shell aliases and a helpful MOTD to advertise
+them to developers.</p></li>
+<li><p>The development environment now uses Fedora 25 by default.</p></li>
+<li><p>The test suite is less chatty, as several unicode warnings have been fixed.</p></li>
+</ul>
+</section>
+<section id="dependency-change">
+<h3>Dependency change<a class="headerlink" href="#dependency-change" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bodhi server now depends on click for <code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code>.</p></li>
+</ul>
+</section>
+<section id="id61">
+<h3>Release contributors<a class="headerlink" href="#id61" title="Permalink to this heading">¶</a></h3>
+<p>The following contributors submitted patches for Bodhi 2.4.0:</p>
+<ul class="simple">
+<li><p>Trishna Guha</p></li>
+<li><p>Patrick Uiterwijk</p></li>
+<li><p>Jeremy Cline</p></li>
+<li><p>Till Mass</p></li>
+<li><p>Josef Sukdol</p></li>
+<li><p>Clement Verna</p></li>
+<li><p>andreas</p></li>
+<li><p>Ankit Raj Ojha</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id62">
+<h2>2.3.3<a class="headerlink" href="#id62" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi 2.3.3 converts koji auth to be done with krb5 and fixes one bug:</p>
+<ul class="simple">
+<li><p>Use krb5 for koji
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1129">PR#1129</a>).</p></li>
+<li><p>Disable caching koji sessions during mashing process
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1134">PR#1134</a>).</p></li>
+</ul>
+<p>Thanks to Patrick Uiterwijk for contributing both of these commits!</p>
+</section>
+<section id="id63">
+<h2>2.3.2<a class="headerlink" href="#id63" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi 2.3.2 is a bugfix release that addresses the following issues:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">push.py</span></code> now defaults to the current releases
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1071">#1071</a>).</p></li>
+<li><p>Fixed a typo in the masher in sending an ostree compose message
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1072">PR#1072</a>).</p></li>
+<li><p>Fixed a typo in looking up an e-mail template
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1073">#1073</a>).</p></li>
+<li><p>The fedmsg name is now passed explicitly
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1079">PR#1079</a>).</p></li>
+<li><p>The man page was corrected to state that builds should be comma separated
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1095">PR#1095</a>).</p></li>
+<li><p>Fixed a race condition between robosignatory and the signed handler
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1111">#1111</a>).</p></li>
+<li><p>Fix querying the updates for resumption in <code class="docutils literal notranslate"><span class="pre">push.py</span></code>
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/e7cb3f13">e7cb3f13</a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">push.py</span></code> now prompts for the username if not given
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/abeca57e">abeca57e</a>).</p></li>
+</ul>
+<section id="id64">
+<h3>Release contributors<a class="headerlink" href="#id64" title="Permalink to this heading">¶</a></h3>
+<p>The following contributors authored patches for 2.3.2:</p>
+<ul class="simple">
+<li><p>Patrick Uiterwijk</p></li>
+<li><p>Randy Barlow</p></li>
+</ul>
+</section>
+</section>
+<section id="id65">
+<h2>2.3.1<a class="headerlink" href="#id65" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi 2.3.1 fixes <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1067">#1067</a>,
+such that edited updates now tag new builds into the <code class="docutils literal notranslate"><span class="pre">pending_signing_tag</span></code>
+instead of the <code class="docutils literal notranslate"><span class="pre">pending_testing_tag</span></code>. This is needed for automatic signing
+gating to work.</p>
+</section>
+<section id="id66">
+<h2>2.3.0<a class="headerlink" href="#id66" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi 2.3.0 is a feature and bug fix release.</p>
+<section id="id67">
+<h3>Features<a class="headerlink" href="#id67" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The package input field is now autofocused when creating new updates
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/876">PR#876</a>).</p></li>
+<li><p>Releases now have a <code class="docutils literal notranslate"><span class="pre">pending_signing_tag</span></code>
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/3fe3e219">3fe3e219</a>).</p></li>
+<li><p>fedmsg notifications are now sent during ostree compositions
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/b972cad0">b972cad0</a>).</p></li>
+<li><p>Critical path updates will have autopush disabled if they receive negative karma
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/b1f71006">b1f71006</a>).</p></li>
+<li><p>The e-mail templates reference dnf for Fedora and yum for Enterprise Linux
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/1c1f2ab7">1c1f2ab7</a>).</p></li>
+<li><p>Updates are now obsoleted if they reach the unstable threshold while pending
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/f033c74c">f033c74c</a>).</p></li>
+<li><p>Bodhi now gates Updates based on whether they are signed yet or not
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/1011">PR#1011</a>).</p></li>
+</ul>
+</section>
+<section id="id68">
+<h3>Bugs<a class="headerlink" href="#id68" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Candidate builds and bugs are no longer duplicated while searching
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/897">#897</a>).</p></li>
+<li><p>The Bugzilla connection is only initialized when needed
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/950eee2c">950eee2c</a>).</p></li>
+<li><p>A sorting issue was fixed on the metrics page so the data is presented correctly
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/487acaaf">487acaaf</a>).</p></li>
+<li><p>The Copyright date in the footer of the web interface is updated
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/1447b6c7">1447b6c7</a>).</p></li>
+<li><p>Bodhi will comment with the required time instead of the elapsed time on updates
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1017">#1017</a>).</p></li>
+<li><p>Bodhi will only comment once to say that non-autopush updates have reached the threshold
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1009">#1009</a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/masher/</span></code> is now allowed in addition to <code class="docutils literal notranslate"><span class="pre">/masher</span></code> for GET requests
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/cdb621ba">cdb621ba</a>).</p></li>
+</ul>
+</section>
+<section id="dependencies">
+<h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading">¶</a></h3>
+<p>Bodhi now depends on fedmsg-atomic-composer &gt;= 2016.3, which addresses a few issues during mashing.</p>
+</section>
+<section id="id69">
+<h3>Development improvements<a class="headerlink" href="#id69" title="Permalink to this heading">¶</a></h3>
+<p>Bodhi 2.3.0 also has a few improvements to the development environment that make it easier to
+contribute to Bodhi or improve Bodhi’s automated tests:</p>
+<ul class="simple">
+<li><p>Documentation was added to describe how to connect development Bodhi to staging Koji
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/7f3b5fa2">7f3b5fa2</a>).</p></li>
+<li><p>An unused <code class="docutils literal notranslate"><span class="pre">locked_date_for_update()</span></code> method was removed
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/b87a6395">b87a6395</a>).</p></li>
+<li><p>The development.ini.example base_address was changed to localhost so requests would be allowed
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/0fd5901d">0fd5901d</a>).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> file has more complete metadata, making it more suitable for submission to PyPI
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/5c201ac2">5c201ac2</a>).</p></li>
+<li><p>The #bodhi and #fedora-apps channels are now documented in the readme file
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/52093069">52093069</a>).</p></li>
+<li><p>A new test has been added to enforce PEP-8 style and a few modules have been converted to conform
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/bbafc9e6">bbafc9e6</a>).</p></li>
+</ul>
+</section>
+<section id="id70">
+<h3>Release contributors<a class="headerlink" href="#id70" title="Permalink to this heading">¶</a></h3>
+<p>The following contributors authored patches for 2.3.0:</p>
+<ul class="simple">
+<li><p>Josef Sukdol</p></li>
+<li><p>Julio Faracco</p></li>
+<li><p>Patrick Uiterwijk</p></li>
+<li><p>Randy Barlow</p></li>
+<li><p>Richard Fearn</p></li>
+<li><p>Trishna Guha</p></li>
+</ul>
+</section>
+</section>
+<section id="id71">
+<h2>2.2.4<a class="headerlink" href="#id71" title="Permalink to this heading">¶</a></h2>
+<p>This release fixes two issues:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/989">#989</a>, where Karma on
+non-autopush updates would reset the request to None.</p></li>
+<li><p><a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/994">#994</a>, allowing Bodhi to
+be built on setuptools-28.</p></li>
+</ul>
+</section>
+<section id="id72">
+<h2>2.2.3<a class="headerlink" href="#id72" title="Permalink to this heading">¶</a></h2>
+<p>This release fixes <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/951">#951</a>, which prevented
+updates with large numbers of packages to be viewable in web browsers.</p>
+</section>
+<section id="id73">
+<h2>2.2.2<a class="headerlink" href="#id73" title="Permalink to this heading">¶</a></h2>
+<p>This is another in a series of bug fix releases for Bodhi this week. In this release, we’ve fixed
+the following issues:</p>
+<ul class="simple">
+<li><p>Disallow comment text to be set to the NULL value in the database
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/949">#949</a>).</p></li>
+<li><p>Fix autopush on updates that predate the 2.2.0 release
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/950">#950</a>).</p></li>
+<li><p>Don’t wait on mashes when there aren’t any
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/68de510c">68de510c</a>).</p></li>
+</ul>
+</section>
+<section id="id74">
+<h2>2.2.1<a class="headerlink" href="#id74" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi 2.2.1 is a bug fix release, primarily focusing on mashing issues:</p>
+<ul class="simple">
+<li><p>Register date locked during mashing (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/952">#952</a>).</p></li>
+<li><p>UTF-8 encode the updateinfo before writing it to disk (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/955">#955</a>).</p></li>
+<li><p>Improved logging during updateinfo generation (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/956">#956</a>).</p></li>
+<li><p>Removed some unused code
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/07ff664f">07ff664f</a>).</p></li>
+<li><p>Fix some incorrect imports
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/9dd5bdbc">9dd5bdbc</a> and
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/b1cc12ad">b1cc12ad</a>).</p></li>
+<li><p>Rely on self.skip_mash to detect when it is ok to skip a mash
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/ad65362e">ad65362e</a>).</p></li>
+</ul>
+</section>
+<section id="id75">
+<h2>2.2.0<a class="headerlink" href="#id75" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi 2.2.0 is a security and feature release, with a few bug fixes as well.</p>
+<section id="security">
+<h3>Security<a class="headerlink" href="#security" title="Permalink to this heading">¶</a></h3>
+<p>This update addresses <a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/857">CVE-2016-1000008</a> by
+disallowing the re-use of solved captchas. Additionally, the captcha is
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/f0122855">warped</a> to make it more difficult to
+solve through automation. Thanks to Patrick Uiterwijk for discovering and reporting this issue.</p>
+</section>
+<section id="id76">
+<h3>Features<a class="headerlink" href="#id76" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bodhi’s <code class="docutils literal notranslate"><span class="pre">approve_testing.py</span></code> script will now comment on updates when they have reached a stable
+karma threshold
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/5b0d1c7c">5b0d1c7c</a>).</p></li>
+<li><p>The web interface now displays a push to stable button when the karma reaches the right level when
+autokarma is disabled
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/772">#772</a> and
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/796">#796</a>).</p></li>
+<li><p>Masher messages now have an “agent”, so it is possible to tell which user ran the mash
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/45e4fc9f">45e4fc9f</a>).</p></li>
+<li><p>Locked updates now list the time they were locked
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/831">#831</a>).</p></li>
+<li><p>Bugs are closed and commented on in the same Bugzilla POST
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/404">#404</a>).</p></li>
+<li><p>Karma values equal to 0 are no longer displayed with a green background to better distinguish them
+from positive karma reports (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/799">#799</a>).</p></li>
+<li><p>Updates display a link to the feedback guidelines
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/865">#865</a>).</p></li>
+<li><p>The new CLI now has a man page
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/95574831">95574831</a>).</p></li>
+<li><p>The CLI now has a <code class="docutils literal notranslate"><span class="pre">--version</span></code> flag (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/895">#895</a>).</p></li>
+</ul>
+</section>
+<section id="id77">
+<h3>Bugs<a class="headerlink" href="#id77" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Locked updates that aren’t part of a current push will now be pushed and warnings will be logged
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/bf4bdeef">bf4bdeef</a>). This should help us to fix
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/838">#838</a>.</p></li>
+<li><p>Don’t show users an option to push to stable on obsoleted updates
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/848">#848</a>).</p></li>
+<li><p>taskotron updates are shown per build, rather than per update
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/ce2394c6">ce2394c6</a>,
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/8e199668">8e199668</a>).</p></li>
+<li><p>The Sphinx documentation now builds again
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/commit/b3f80b1b">b3f80b1b</a>).</p></li>
+<li><p>Validator messages are now more useful and helpful
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/630">#630</a>).</p></li>
+<li><p>The Bodhi CLI no longer depends on the server code to function
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/900">#900</a>).</p></li>
+<li><p>Private bugs will no longer prevent the updates consumer from continuing
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/905">#905</a>).</p></li>
+<li><p>bootstrap is now included in the setuptools manifest for the server package
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/919">#919</a>).</p></li>
+</ul>
+</section>
+<section id="commit-log">
+<h3>Commit log<a class="headerlink" href="#commit-log" title="Permalink to this heading">¶</a></h3>
+<p>The above lists are the highlights of what changed. For a full list of the changes since 2.1.8,
+please see the
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/compare/2.1.8...2.2.0">changelog</a>.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="release_notes.html">Release notes</a><ul>
+  <li><a href="4.x_release_notes.html">4.x release notes</a><ul>
+  <li><a href="3.x_release_notes.html">3.x release notes</a><ul>
+      <li>Previous: <a href="3.x_release_notes.html" title="previous chapter">3.x release notes</a></li>
+      <li>Next: <a href="../server_api/index.html" title="next chapter">Bodhi Server APIs</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2023, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/user/2.x_release_notes.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

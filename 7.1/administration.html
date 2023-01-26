@@ -1,0 +1,972 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Administration &#8212; bodhi 7.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="bodhi.server.models" href="developer/docblocks/bodhi.server.models.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="administration">
+<h1>Administration<a class="headerlink" href="#administration" title="Permalink to this heading">¶</a></h1>
+<section id="system-requirements">
+<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi is currently only supported on active Fedora releases. It requires PostgreSQL &gt;= 9.2.0.</p>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">¶</a></h2>
+<p>The Bodhi server is configured via an INI file found at <code class="docutils literal notranslate"><span class="pre">/etc/bodhi/production.ini</span></code>. Bodhi ships
+an example <code class="docutils literal notranslate"><span class="pre">production.ini</span></code> file that has all settings documented. Most settings have reasonable
+defaults if not defined, and the example settings file describes the default values in the
+commented settings. Here is a copy of the example config file with in-line documentation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># The commented values in this config file represent the defaults.
+#
+# Note that under Python 3, you will need to use %% instead of % to put a literal % into the value
+# of the config. Many settings use a %s for positional substitution, and those will need to be
+# encoded as %%s.
+
+[app:main]
+use = egg:bodhi-server
+
+##
+## Messages
+##
+
+# The approve-testing scheduled task will post this message as a comment from the bodhi user on
+# updates that reach the required time in testing if they are not stable yet. Positional
+# substitution is used, and the %%d will be replaced with the time in testing required for the
+# update.
+# testing_approval_msg = This update can be pushed to stable now if the maintainer wishes
+
+# not_yet_tested_msg = This update has not yet met the minimum testing requirements defined in the &lt;a href=&quot;https://fedoraproject.org/wiki/Package_update_acceptance_criteria&quot;&gt;Package Update Acceptance Criteria&lt;/a&gt;
+
+# not_yet_tested_epel_msg = This update has not yet met the minimum testing requirements defined in the &lt;a href=&quot;https://fedoraproject.org/wiki/EPEL_Updates_Policy&quot;&gt;EPEL Update Policy&lt;/a&gt;
+
+# The comment that Bodhi will post on updates when a user posts negative karma.
+# disable_automatic_push_to_stable = Bodhi is disabling automatic push to stable due to negative karma. The maintainer may push manually if they determine that the issue is not severe.
+
+
+# Libravatar - If this is true libravatar will work as normal. Otherwise, all
+# libravatar links will be replaced with the string &quot;libravatar.org&quot; so that
+# the tests can still pass.
+# libravatar_enabled = True
+
+# Set this to true if you want to do federated dns libravatar lookup
+# libravatar_dns = False
+
+# If libravatar_dns is True, libravatar_prefer_tls will define what gets handed to
+# libravatar.libravatar_url()&#39;s https setting. It may be set to True or False, but defaults to None,
+# which is effectively False.
+# libravatar_prefer_tls = True
+
+##
+## Legal
+##
+
+# If you set this, Bodhi will display a link in the footer called &quot;Legal&quot; that points to the
+# supplied link.
+# legal_link =
+# If you set this, Bodhi will display a link in the footer called &quot;Privacy policy&quot; that points to
+# the supplied link. It will also link the privacy policy under the comment box.
+# privacy_link =
+
+# Cache_dir is used for writing temporary cache files used in the composer process.
+# cache_dir =
+
+
+# The URL for a datagrepper to use in various templates.
+
+##
+## Testing
+##
+
+## Query the wiki for test cases
+# query_wiki_test_cases = False
+# wiki_url = https://fedoraproject.org/w/api.php
+# test_case_base_url = https://fedoraproject.org/wiki/
+
+# URL of the resultsdb for integrating checks and stuff
+# resultsdb_api_url = https://taskotron.fedoraproject.org/resultsdb_api/
+
+# Set this to True to enable gating based on policies enforced by Greenwave. If you set this to
+# True, be sure to add a cron job to run the bodhi-check-policies CLI periodically.
+# test_gating.required = False
+
+# If this is set to a URL, a &quot;More information about test gating&quot; link will appear on update pages for users
+# to click and learn more.
+# test_gating.url =
+
+# The API url of Greenwave.
+# greenwave_api_url = https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0
+
+# The URL for waiverdb&#39;s API
+# waiverdb_api_url = https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0
+
+# An access token used to authenticate to waiverdb
+# waiverdb.access_token =
+
+# Email domain to prepend usernames to
+# default_email_domain = fedoraproject.org
+
+# domain for generated message IDs
+# message_id_email_domain = admin.fedoraproject.org
+
+# Where to search for e-mail templates. Each release has a mail_template attribute that defines the
+# name of a mail template, and Bodhi will look in the path defined by this setting to find the named
+# template.
+# mail.templates_basepath = bodhi.server:email/templates/
+
+
+##
+## Composer settings
+##
+
+# Where to initially compose repositories. You can use %(here)s to reference the location of this file.
+# compose_dir =
+
+# The max number of compose threads running at the same time
+# max_concurrent_composes = 2
+
+# Whether to clean old composes at the end of each run.
+# clean_old_composes = true
+
+# Where to symlink the latest repos by their tag name. You can use %(here)s to reference the
+# location of this file.
+# compose_stage_dir =
+
+# Whether to wait for repomd.xml.asc signature files in the repo when composing updates or not
+# wait_for_repo_sig = False
+
+# The following jinja2 template variables are available for use to customize the Pungi configs and
+# variants files to the Release and Updates:
+#
+#  * &#39;id&#39;: The id of the Release being composed.
+#  * &#39;release&#39;: The Release being composed.
+#  * &#39;request&#39;: The request being composed.
+#  * &#39;updates&#39;: The Updates being composed.
+#
+# NOTE: The jinja2 configuration for these templates replaces the {&#39;s and }&#39;s with [&#39;s and ]&#39;.
+# e.g.: a block becomes [% if &lt;something %], and a variable is [[ varname ]].
+
+# The base path where pungi configs will be stored. You will need to put variants.xml templates
+# inside pungi.basepath as well. These templates will have access to the same template variables
+# described above, and should be named variants.rpm.xml.j2 and variants.module.xml.j2, for RPM
+# composes and module composes, respectively.
+# pungi.basepath = /etc/bodhi
+
+# The Pungi executable to use when composing.
+# pungi.cmd = /usr/bin/pungi-koji
+
+# The following settings reference filenames of jinja2 templates found in pungi.basepath to be used
+# as Pungi configs for composing modules or RPMs (The RPM config includes dnf, yum, and atomic repos).
+# pungi.conf.module = pungi.module.conf
+# pungi.conf.rpm = pungi.rpm.conf
+
+# A space separated list of extra arguments to be passed on to Pungi during composing.
+# pungi.extracmdline =
+
+# What to pass to Pungi&#39;s --label flag, which is metadata included in its composeinfo.json.
+# pungi.labeltype = Update
+
+# The skopeo executable to use to copy container images.
+# You can put credentials for skopeo to use in $HOME/.docker/config.json
+# https://github.com/projectatomic/skopeo#private-registries-with-authentication
+#
+# An alternative command is bodhi-skopeo-lite, installed by bodhi. It has various limitations
+# (including not reading $HOME/.docker/config.json - it supports certificate authentication
+# and credentials passed on the command line), but supports manifest lists and OCI image indexes,
+# allowing copying multi-arch containers. See https://github.com/containers/image/pull/400 for
+# work to add such support to skopeo proper.
+#
+# skopeo.cmd = /usr/bin/skopeo
+
+# Comma separated list of extra flags to pass to the skopeo copy command.
+# skopeo.extra_copy_flags =
+
+# Container hostnames. You can specify a port as well, using the traditional syntax (i.e., localhost:5000).
+# container.destination_registry = registry.fedoraproject.org
+# container.source_registry = candidate-registry.fedoraproject.org
+
+
+##
+## Mirror settings
+##
+# file_url: Used in the repo metadata to set RPM URLs.
+# file_url = https://download.fedoraproject.org/pub/fedora/linux/updates
+
+# {release}_({version}_){request}_master_repomd: This is used by the composer to determine when a
+#     primary architecture push has been synchronized to the master mirror for a given release and
+#     request. The composer will verify that the checksum of repomd.xml at the master URL matches the
+#     expected value, and will poll the URL until this test passes. Substitute release and request
+#     for each release id (replacing -&#39;s with _&#39;s) and request (stable, testing). Used for the
+#     arches listed in {release}_{version}_primary_arches when it is defined, else used for all
+#     arches. You must put two %%s&#39;s in this setting - the first will be replaced with the release
+#     version and the second will be replaced with the architecture.
+# If a version of the option exists with a matching version, it has priority over one without.
+# examples (these settings do not have defaults):
+#     fedora_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%%s/%%s/repodata/repomd.xml
+#     fedora_28_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/%%s/Everything/%%s/repodata/repomd.xml
+#     fedora_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora/linux/updates/testing/%%s/%%s/repodata/repomd.xml
+#     fedora_epel_stable_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/%%s/%%s/repodata/repomd.xml
+#     fedora_epel_testing_master_repomd = http://download01.phx2.fedoraproject.org/pub/epel/testing/%%s/%%s/repodata/repomd.xml
+
+# {release}_({version}_){request}_alt_master_repomd: This is used by the composer to determine when a
+#     secondary architecture push has been synchronized to the master mirror for a given release and
+#     request. The composer will verify that the checksum of repomd.xml at the master URL matches the
+#     expected value, and will poll the URL until this test passes. Substitute release and request
+#     for each release id (replacing -&#39;s with _&#39;s) and request (stable, testing). Used for the
+#     arches not listed in {release}_{version}_primary_arches if it is defined. You must put two
+#     %%s&#39;s in this setting - the first will be replaced with the release version and the second will
+#     be replaced with the architecture.
+# If a version of the option exists with a matching version, it has priority over one without.
+# examples (these settings do not have defaults):
+#     fedora_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%%s/%%s/repodata/repomd.xml
+#     fedora_28_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%%s/Everything/%%s/repodata/repomd.xml
+#     fedora_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%%s/%%s/repodata/repomd.xml
+
+
+## The base url of this application
+# base_address = https://admin.fedoraproject.org/updates/
+
+
+## Primary architechures by release
+##
+## {release}_{version}_primary_arches: Releases that have alternative arches must define their
+##      primary arches here. Any arches found during composing that are not present here are assumed
+##      to be alternative arches. This is used during the wait_for_repo() step of the compose where
+##      Bodhi polls the master repo to find out whether the compose has made it to the repo or not.
+##      Bodhi looks for primary arches with the {release}_{request}_master_repomd setting above, and
+##      for alternative arches at the {release}_{request}_alt_master_repomd setting above. If this
+##      is not set, Bodhi will assume the release only has primary arches.
+# example (not a default): fedora_26_primary_arches = armhfp x86_64
+
+##
+## Email setting
+##
+
+# The hostname of an SMTP server Bodhi can use to deliver e-mail.
+# smtp_server =
+
+# The updates system itself. This e-mail address is used as the From address for e-mails that Bodhi
+# sends. It is also used as the username for Bugzilla if bugzilla_api_key is undefined and
+# bodhi_password is defined.
+# bodhi_email = updates@fedoraproject.org
+
+# An API key that Bodhi should use when accessing Bugzilla. If set, the bodhi_password setting is
+# ignored.
+# bugzilla_api_key =
+
+# This is the password used to access Bodhi&#39;s bugzilla account. Ignored if bugzilla_api_key is set.
+# bodhi_password =
+
+# The address that gets the requests
+# release_team_address = bodhiadmin-members@fedoraproject.org
+
+# Public lists where we send update announcements.
+# These variables should be named per: Release.prefix_id.lower()_announce_list
+# fedora_announce_list = package-announce@lists.fedoraproject.org
+# fedora_test_announce_list = test@lists.fedoraproject.org
+# fedora_epel_announce_list = epel-package-announce@lists.fedoraproject.org
+# fedora_epel_test_announce_list = epel-devel@lists.fedoraproject.org
+
+# Superuser groups
+#
+# Defined in and tied to the Fedora Account System (limited to 16 characters)
+# admin_groups = proventesters security_respons bodhiadmin sysadmin-main
+
+# Users that we don&#39;t want to show up in the &quot;leaderboard(s)&quot;
+# stats_blacklist = bodhi anonymous autoqa taskotron
+
+# A list of non-person users
+# system_users = bodhi autoqa taskotron
+
+# The number of days used for calculating the &#39;top testers&#39; metric
+# top_testers_timeframe = 7
+
+# These are the default requirements that we apply to packages and updates.
+# Users have free-reign to override them for each kind of entity.  At
+# the end of the day, we only consider the requirements defined by single
+# updates themselves when gating in the backend composer process.
+# site_requirements = dist.rpmdeplint
+
+# Cache settings
+# dogpile.cache.backend = dogpile.cache.dbm
+# dogpile.cache.expiration_time = 100
+# dogpile.cache.arguments.filename = /var/cache/bodhi-dogpile-cache.dbm
+
+# If True (the default), warm up caches when the Bodhi process starts up. Otherwise, they will get warmed
+# on first use.
+# warm_cache_on_start = True
+
+# Exclude sending emails to these users
+# exclude_mail = autoqa taskotron
+
+##
+## Buildsystem settings
+##
+
+# What buildsystem do we want to use?  For development, we&#39;ll use a fake
+# buildsystem that always does what we tell it to do.  For production, we&#39;ll
+# want to use &#39;koji&#39;.
+# buildsystem = dev
+
+# The base URL to Koji, used to construct HTML links to Koji builds in the web UI
+# koji_web_url = https://koji.fedoraproject.org/koji/
+
+# Koji&#39;s XML-RPC hub
+# koji_hub = https://koji.stg.fedoraproject.org/kojihub
+
+
+# URL of where users should go to set up their notifications
+# fmn_url = https://apps.fedoraproject.org/notifications/
+
+
+# Koji krb5
+# krb_principal =
+# krb_keytab =
+# krb_ccache=
+
+##
+## ACL system
+## Choices are &#39;pagure&#39;, which will query the pagure_url below, or &#39;dummy&#39;, which will
+## always return guest credentials (used for local development).
+##
+# acl_system = dummy
+
+# Add your username here to enable ACL rights in the development environment. Only has an effect if
+# you are using the dummy acl_system.
+# acl_dummy_committer =
+
+##
+## Pagure
+##
+# pagure_url = https://src.fedoraproject.org/pagure/
+
+# This is the namespace where we expect to find the git sources for packages.
+# Values are in the form `PackageType:PagureNamespace`
+# pagure_namespaces = rpm:rpms, module:modules, container:container, flatpak:flatpaks
+
+##
+## Product Definition Center (PDC)
+##
+# pdc_url = https://pdc.fedoraproject.org/
+
+
+##
+## Bug tracker settings
+##
+# Set this to bugzilla to turn on Bugzilla integration.
+# bugtracker =
+
+# A template that Bodhi will use when commenting on Bugzilla tickets when Updates that reference
+# them are created. Positional substitution is used, and the three %%s&#39;s will be filled in with the
+# update title, the release&#39;s long name, and the URL to the update, respectively.
+# initial_bug_msg = %%s has been submitted as an update to %%s. %%s
+
+# A template that Bodhi will use when commenting on Bugzilla tickets when Updates that reference
+# them are marked stable. Positional substitution is used, and the first %%s will be filled in with
+# the update title and the second will be filled in with the release&#39;s long name and the update
+# status.
+# stable_bug_msg = %%s has been pushed to the %%s repository. If problems still persist, please make note of it in this bug report.
+
+# The following two templates are used to comment on Bugzilla tickets. %%s will be substituted with
+# the update&#39;s URL. The first is used for all updates, unless the epel setting in defined, which
+# will be used for all Updates on Releases that have an id_prefix of FEDORA-EPEL.
+# testing_bug_msg =
+#     See https://fedoraproject.org/wiki/QA:Updates_Testing for
+#     instructions on how to install test updates.
+#     You can provide feedback for this update here: %%s
+# testing_bug_epel_msg =
+#     See https://fedoraproject.org/wiki/QA:Updates_Testing for
+#     instructions on how to install test updates.
+#     You can provide feedback for this update here: %%s
+
+
+##
+## Bugzilla settings.
+##
+
+# The username/password for our bugzilla account comes
+# from the bodhi_{email,password} fields.
+
+# A URL to a Bugzilla instance&#39;s xmlrpc.cgi script for Bodhi to use.
+# bz_server = https://bugzilla.redhat.com/xmlrpc.cgi
+
+# A URL to a Bugzilla instance&#39;s REST api for Bodhi to use.
+# bz_server_rest = https://bugzilla.redhat.com/rest/
+
+# Bodhi will avoid touching bugs that are not against the following comma-separated products.
+# Fedora&#39;s production Bodhi instance sets this to Fedora,Fedora EPEL
+# bz_products =
+
+# Exclude some Releases where Updates are created automatically to touch bugs.
+# Comma separated list of Release.name values
+# bz_exclude_rels = ELN
+
+# A template to use for links to Bugzilla tickets. %%s will be filled in with the bug number.
+# buglink = https://bugzilla.redhat.com/show_bug.cgi?id=%%s
+
+# A regex used to recognize bug numbers in build changelog to be associated to automatic updates.
+# Since this is not treated as raw string, remember to use double backslash.
+# bz_regex = (?:fix(?:es)?|close(?:s)?)\\s(?:fedora|epel|rh(?:bz)?)#(\\d{5,})
+
+
+##
+## Critical Path Packages
+## https://fedoraproject.org/wiki/Critical_path_package
+##
+
+# You can allow Bodhi to query for critpath packages from the Product Definition
+# Center by setting this value to `pdc`, or to read critpath packages from JSON
+# files (expected to be generated by the `critpath.py` script from the releng
+# repo) by setting this value to `json`. If it isn&#39;t set, it&#39;ll just use the
+# hardcoded list below.
+# critpath.type =
+
+# If critpath.type is set to `json`, this value sets the directory where Bodhi
+# will look for the JSON files. The filenames should match Bodhi release
+# &#39;branch&#39; values, which should be the name of the git branch for the release.
+# critpath.jsonpath = /etc/bodhi/critpath
+
+# You can hardcode a list of critical path packages instead of using the PkgDB
+# or PDC. This is used if critpath.type is not defined.
+# critpath_pkgs =
+
+# The number of admin approvals it takes to be able to push a critical path
+# update to stable for a pending release.
+# critpath.num_admin_approvals = 2
+
+# The net karma required to submit a critical path update to a pending release.
+# critpath.min_karma = 2
+
+# Allow critpath to submit for stable after 2 weeks with no negative karma
+# critpath.stable_after_days_without_negative_karma = 14
+
+# The minimum amount of time an update must spend in testing before
+# it can reach the stable repository
+fedora.mandatory_days_in_testing = 7
+fedora_epel.mandatory_days_in_testing = 14
+
+##
+## Release status
+##
+
+# You can define alternative policies than the defaults for specific Releases by defining a setting
+# of the form Release.name.status (with -&#39;s removed from the name). You can set the status to any
+# string you like, and then for each status, you can override the mandatory days in testing, the
+# critpath number of admin approvals, and the critpath minimum karma. For example, if we want to set
+# Fedora 28 as a pre-beta, and we want it to have different rules in pre-beta and post-beta, we
+# could do something like this:
+#f28.status = pre_beta
+#f28.pre_beta.mandatory_days_in_testing = 3
+#f28.pre_beta.critpath.num_admin_approvals = 0
+#f28.pre_beta.critpath.min_karma = 1
+#f28.pre_beta.critpath.stable_after_days_without_negative_karma = 3
+#f28.post_beta.mandatory_days_in_testing = 7
+#f28.post_beta.critpath.num_admin_approvals = 0
+#f28.post_beta.critpath.min_karma = 2
+#f28.post_beta.critpath.stable_after_days_without_negative_karma = 5
+
+
+##
+## Buildroot Override
+##
+
+# Maximum number of days a buildroot override may expire in, from creation time.
+# buildroot_limit = 31
+
+
+##
+## Groups
+##
+
+# FAS Groups that we want to pay attention to
+# When a user logs in, bodhi will look for any of these groups and associate
+# them with the user. They will then appear as the users effective principals in
+# the format &quot;group:groupname&quot; and can be used in Pyramid ACE&#39;s.
+#
+# Defined in and tied to the Fedora Account System (limited to 16 characters)
+# important_groups = proventesters provenpackager releng security_respons packager bodhiadmin
+
+# Groups that can push updates for any package
+#
+# Defined in and tied to the Fedora Account System (limited to 16 characters)
+# admin_packager_groups = provenpackager releng security_respons
+
+# User must be a member of this group to submit updates
+# mandatory_packager_groups = packager
+
+
+##
+## updateinfo.xml configuration
+##
+# updateinfo_rights = Copyright (C) {CURRENT_YEAR} Red Hat, Inc. and others.
+
+##
+## Authentication &amp; Authorization
+##
+
+# pyramid.openid settings.
+# openid.success_callback = bodhi.server.auth.utils:remember_me
+# openid.provider = https://id.fedoraproject.org/openid/
+# openid.url = https://id.fedoraproject.org/
+# openid_template = {username}.id.fedoraproject.org
+# openid.sreg_required = email nickname
+# If this is undefined, Bodhi will concatenate the groups listed in the following other settings
+# from this file: important_groups, admin_packager_groups, mandatory_packager_groups, and
+# admin_groups. You likely want this default, but can override it here if you know what you are
+# doing. You can also override it here if you do not know what you are doing, but that would be
+# inadvisable.
+# openid.groups = DEFAULT_DOCUMENTED_ABOVE
+
+# OIDC (OpenID Connect)
+oidc.fedora.client_id = oidc-client_id
+oidc.fedora.client_secret = oidc-client_secret
+oidc.fedora.server_metadata_url = http://id.dev.fedoraproject.org/openidc/.well-known/openid-configuration
+
+
+# CORS allowed origins for cornice services
+# This can be wide-open.  read-only, we don&#39;t care as much about.
+cors_origins_ro = *
+# This should be more locked down to avoid cross-site request forgery.
+cors_origins_rw = https://bodhi.fedoraproject.org
+
+cors_connect_src = https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/
+
+
+##
+## Pyramid settings
+##
+pyramid.reload_templates = false
+pyramid.debug_authorization = false
+pyramid.debug_notfound = false
+pyramid.debug_routematch = false
+pyramid.default_locale_name = en
+
+debugtoolbar.hosts = 127.0.0.1 ::1
+
+##
+## Database
+##
+# This must be a PostgreSQL database. You can encode a username and password in the URL. For
+# example, postgresql://username:password@hostname/database_name
+# sqlalchemy.url = postgresql://localhost/bodhi
+
+##
+## Templates
+##
+# Where Bodhi&#39;s templates are stored. You likely don&#39;t want or need to adjust this setting.
+# mako.directories = bodhi.server:templates
+
+##
+## Authentication &amp; Sessions
+##
+
+# CHANGE THESE IN PRODUCTION!
+# authtkt.secret = CHANGEME
+# session.secret = CHANGEME
+# authtkt.secure = True
+# How long should an authorization ticket be valid for, in seconds? Defaults to one day.
+# authtkt.timeout = 86400
+
+
+# pyramid_beaker
+session.type = file
+session.data_dir = %(here)s/data/sessions/data
+session.lock_dir = %(here)s/data/sessions/lock
+session.key = mykey
+session.cookie_on_exception = true
+# Tell the browser to only send the cookie over TLS
+session.secure = true
+# Create a cookie that is only valid for one day
+session.timeout = 86400
+cache.regions = default_term, second, short_term, long_term
+cache.type = memory
+cache.second.expire = 1
+cache.short_term.expire = 60
+cache.default_term.expire = 300
+cache.long_term.expire = 3600
+
+# Celery configuration file
+celery_config = /etc/bodhi/celeryconfig.py
+
+
+[server:main]
+use = egg:waitress#main
+host = 0.0.0.0
+port = 6543
+
+[pshell]
+m = bodhi.server.models
+#db = bodhi.server.util.pshell_db
+t = transaction
+
+
+# Begin logging configuration
+
+[loggers]
+keys = root, bodhi, sqlalchemy, celery, celery_worker_job
+
+[handlers]
+keys = console
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = INFO
+handlers = console
+
+[logger_bodhi]
+level = DEBUG
+handlers =
+qualname = bodhi
+
+[logger_sqlalchemy]
+level = INFO
+handlers =
+qualname = sqlalchemy.engine
+# &quot;level = INFO&quot; logs SQL queries.
+# &quot;level = DEBUG&quot; logs SQL queries and results.
+# &quot;level = WARN&quot; logs neither.  (Recommended for production systems.)
+
+[logger_celery]
+level = INFO
+handlers =
+qualname = celery
+
+[logger_celery_worker_job]
+level = ERROR
+handlers =
+qualname = celery.worker.job
+propagate = 1
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[formatter_generic]
+format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s
+
+# End logging configuration
+</pre></div>
+</div>
+<section id="logging">
+<h3>Logging<a class="headerlink" href="#logging" title="Permalink to this heading">¶</a></h3>
+<p>The example configuration above includes an example default logging configuration. However, you may
+wish to do something more advanced, such as e-mail error messages to an address with rate limiting.
+Bodhi provides a rate limiting Python logging Filter at <code class="docutils literal notranslate"><span class="pre">`bodhi.server.logging.RateLimiter`</span></code>.</p>
+<p>Unfortunately, it is not possible to use Python logging filters with Pyramid’s ini file, so if you
+wish to use Bodhi’s <code class="docutils literal notranslate"><span class="pre">`RateLimiter`</span></code> log filter, you will need to configure Pyramid to use
+<a class="reference external" href="https://pypi.org/project/pyramid_sawing/">pyramid_sawing</a> so that it can use more advanced logging configuration. As a quick example, you
+might put something like this into <code class="docutils literal notranslate"><span class="pre">/etc/bodhi/production.ini</span></code> to configure Pyramid to use
+<code class="docutils literal notranslate"><span class="pre">`pyramid_sawing`</span></code> and to look for a logging config at <code class="docutils literal notranslate"><span class="pre">`/etc/bodhi/logging.yaml`</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pyramid</span><span class="o">.</span><span class="n">includes</span> <span class="o">=</span>
+    <span class="n">pyramid_sawing</span>
+<span class="n">pyramid_sawing</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">bodhi</span><span class="o">/</span><span class="n">logging</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+<p>Then you could configure all of you logging in <code class="docutils literal notranslate"><span class="pre">`/etc/bodhi/logging.yaml`</span></code>. Here is a snippet you
+could use in that file to get Bodhi to e-mail error logs, but to limit them to one e-mail per hour
+per process per spot in the code that logs errors:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">---</span>
+<span class="n">version</span><span class="p">:</span> <span class="mi">1</span>
+
+<span class="n">formatters</span><span class="p">:</span>
+  <span class="n">generic</span><span class="p">:</span>
+    <span class="nb">format</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)-5.5s</span><span class="s1"> [</span><span class="si">%(name)s</span><span class="s1">][</span><span class="si">%(threadName)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+<span class="n">filters</span><span class="p">:</span>
+  <span class="n">rate_limit</span><span class="p">:</span>
+    <span class="p">():</span> <span class="n">bodhi</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">RateLimiter</span>
+    <span class="n">rate</span><span class="p">:</span> <span class="mi">3600</span>
+<span class="n">handlers</span><span class="p">:</span>
+  <span class="n">smtp</span><span class="p">:</span>
+    <span class="n">class</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">SMTPHandler</span>
+    <span class="n">mailhost</span><span class="p">:</span> <span class="s2">&quot;smtp.example.com&quot;</span>
+    <span class="n">fromaddr</span><span class="p">:</span> <span class="s2">&quot;bodhi@example.com&quot;</span>
+    <span class="n">toaddrs</span><span class="p">:</span>
+        <span class="o">-</span> <span class="s2">&quot;admin@example.com&quot;</span>
+    <span class="n">subject</span><span class="p">:</span> <span class="s2">&quot;Bodhi had a sad&quot;</span>
+    <span class="n">level</span><span class="p">:</span> <span class="n">ERROR</span>
+    <span class="n">formatter</span><span class="p">:</span> <span class="n">generic</span>
+    <span class="n">filters</span><span class="p">:</span> <span class="p">[</span><span class="n">rate_limit</span><span class="p">]</span>
+<span class="n">loggers</span><span class="p">:</span>
+  <span class="n">bodhi</span><span class="p">:</span>
+    <span class="n">level</span><span class="p">:</span> <span class="n">INFO</span>
+    <span class="n">handlers</span><span class="p">:</span> <span class="p">[</span><span class="n">smtp</span><span class="p">]</span>
+    <span class="n">propagate</span><span class="p">:</span> <span class="mi">0</span>
+<span class="n">root</span><span class="p">:</span>
+  <span class="n">level</span><span class="p">:</span> <span class="n">NOTSET</span>
+  <span class="n">handlers</span><span class="p">:</span> <span class="p">[]</span>
+</pre></div>
+</div>
+<p>You can read more detail about the <code class="docutils literal notranslate"><span class="pre">`RateLimiter`</span></code> below:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="bodhi.server.logging.RateLimiter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.server.logging.</span></span><span class="sig-name descname"><span class="pre">RateLimiter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3600</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/server/logging.html#RateLimiter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.logging.RateLimiter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Filter</span></code></p>
+<p>Log filter that rate-limits logs based on time.</p>
+<p>The rate limit is applied to records by filename and line number.</p>
+<p>Filters can be applied to handlers and loggers. Configuring this via
+dictConfig is possible, but has somewhat odd syntax:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">log_config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;60_second_filter&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;()&quot;</span><span class="p">:</span> <span class="s2">&quot;fedmsg_migration_tools.filters.RateLimiter&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;rate&quot;</span><span class="p">:</span> <span class="s2">&quot;60&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="s2">&quot;handlers&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;rate_limited&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;60_second_filter&quot;</span><span class="p">],</span>
+            <span class="o">...</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="s2">&quot;loggers&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;fedmsg_migration_tools&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;60_second_filter&quot;</span><span class="p">],</span>
+            <span class="o">...</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This was shamelessly stolen from
+<a class="reference external" href="https://github.com/fedora-infra/fedmsg-migration-tools/blob/0cafc8f/fedmsg_migration_tools/filters.py">https://github.com/fedora-infra/fedmsg-migration-tools/blob/0cafc8f/fedmsg_migration_tools/filters.py</a>
+which is also licensed GPLv2+.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.server.logging.RateLimiter.rate">
+<span class="sig-name descname"><span class="pre">rate</span></span><a class="headerlink" href="#bodhi.server.logging.RateLimiter.rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>How often, in seconds, to allow records. Defaults to hourly.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.server.logging.RateLimiter.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3600</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/server/logging.html#RateLimiter.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.logging.RateLimiter.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the log filter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>rate</strong> – How often, in seconds, to allow records. Defaults to hourly.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.server.logging.RateLimiter.filter">
+<span class="sig-name descname"><span class="pre">filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">LogRecord</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/bodhi/server/logging.html#RateLimiter.filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.logging.RateLimiter.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Record call sites and filter based on time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>record</strong> – The log record we are filtering on.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the record should be emitted, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="components">
+<h2>Components<a class="headerlink" href="#components" title="Permalink to this heading">¶</a></h2>
+<section id="web-server">
+<h3>Web Server<a class="headerlink" href="#web-server" title="Permalink to this heading">¶</a></h3>
+<p>Bodhi has a web server component that runs its REST API and serves the web interface.</p>
+</section>
+<section id="message-consumers">
+<h3>Message Consumers<a class="headerlink" href="#message-consumers" title="Permalink to this heading">¶</a></h3>
+<p>The following sections document the list of messaging consumers.</p>
+<section id="automatic-updates">
+<h4>Automatic updates<a class="headerlink" href="#automatic-updates" title="Permalink to this heading">¶</a></h4>
+<p>This consumer will create updates automatically when builds are tagged to a Release’s candidate tag,
+if the Release associated with that tag is configured to do so by having its
+<code class="docutils literal notranslate"><span class="pre">create_automatic_updates</span></code> boolean set to True.</p>
+</section>
+<section id="composer">
+<h4>Composer<a class="headerlink" href="#composer" title="Permalink to this heading">¶</a></h4>
+<p>Bodhi has a process called the “composer” that is responsible for generating the repositories that
+move packages along the path to their destiny. For each release, there are two composes that get
+run, one for the release’s testing repository, and the other for the release’s stable repository.</p>
+<p>Administrators can use the <code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code> tool to start composes. To view the status of composes
+once they have been started, users can use <code class="docutils literal notranslate"><span class="pre">bodhi</span> <span class="pre">composes</span> <span class="pre">list</span></code> or they can visit the
+<code class="docutils literal notranslate"><span class="pre">/composes/</span></code> URL on the server. Composes can be in the following states:</p>
+<ul class="simple">
+<li><p><strong>requested</strong>: The compose has been created by <code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code>, but the composer has not yet
+started working on the task.</p></li>
+<li><p><strong>pending</strong>: The composer has received the task and will start it when it has free threads to do
+so.</p></li>
+<li><p><strong>initializing</strong>: The composer has started working on the task.</p></li>
+<li><p><strong>updateinfo</strong>: The composer is generating the <code class="docutils literal notranslate"><span class="pre">updateinfo.xml</span></code> file.</p></li>
+<li><p><strong>punging</strong>: The composer is waiting for Pungi to finish creating the
+repository.</p></li>
+<li><p><strong>syncing_repo</strong>: The composer is polling the master mirror and waiting until the newly composed
+repository is present there.</p></li>
+<li><p><strong>notifying</strong>: The composer is sending out notifications about the updates.</p></li>
+<li><p><strong>success</strong>: The composer has successfully finished the task. This state does not last long as
+the records of successful composes are deleted shortly after reaching this state.</p></li>
+<li><p><strong>failed</strong>: The composer has failed. An administrator will usually have to inspect the error
+message associated with the compose to determine what action to take to correct the problem, and
+then the compose can be resumed with <code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code>.</p></li>
+<li><p><strong>signing_repo</strong>: The composer is waiting on the repository to be signed.</p></li>
+<li><p><strong>cleaning</strong>: The composer is cleaning up old composes. This state only occurs if
+<code class="docutils literal notranslate"><span class="pre">clean_old_composes</span></code> is set to True in the settings.</p></li>
+</ul>
+</section>
+<section id="greenwave-handler">
+<h4>Greenwave Handler<a class="headerlink" href="#greenwave-handler" title="Permalink to this heading">¶</a></h4>
+<p>Bodhi’s greenwave handler watches for messages sent from greenwave about bodhi updates that have
+been tested. When a message is recieved, the appropriate update is updated with the greenwave test
+status.</p>
+</section>
+<section id="signed-handler">
+<h4>Signed Handler<a class="headerlink" href="#signed-handler" title="Permalink to this heading">¶</a></h4>
+<p>Bodhi’s signed handler is responsible for watching for messages from Robosignatory when it signs
+builds, and marking those builds as signed in the Bodhi database.</p>
+</section>
+<section id="update-handler">
+<h4>Update Handler<a class="headerlink" href="#update-handler" title="Permalink to this heading">¶</a></h4>
+<p>Bodhi’s update handler watches for messages sent from the web server when updates are created or
+edited. When it sees these messages, it does background tasks, such as querying bugzilla to
+determine the titles on associated tickets, or querying the Wiki to retrieve test case information.</p>
+</section>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user/release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/models.html">Database models</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Administration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#components">Components</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="developer/docblocks/bodhi.server.models.html" title="previous chapter">bodhi.server.models</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2023, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/administration.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,283 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Virtualenv &#8212; bodhi 7.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Database models" href="models.html" />
+    <link rel="prev" title="Debugging with Visual Studio Code" href="vagrant_vscode.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="virtualenv">
+<h1>Virtualenv<a class="headerlink" href="#virtualenv" title="Permalink to this heading">¶</a></h1>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">dnf</span> <span class="pre">install</span> <span class="pre">libffi-devel</span> <span class="pre">postgresql-devel</span> <span class="pre">openssl-devel</span> <span class="pre">koji</span> <span class="pre">pcaro-hermit-fonts</span> <span class="pre">freetype-devel</span> <span class="pre">libjpeg-turbo-devel</span> <span class="pre">zeromq-devel</span> <span class="pre">git</span> <span class="pre">gcc</span> <span class="pre">redhat-rpm-config</span> <span class="pre">fedora-cert</span> <span class="pre">python2-dnf</span> <span class="pre">yum</span></code></p>
+</section>
+<section id="setup-virtualenvwrapper">
+<h2>Setup virtualenvwrapper<a class="headerlink" href="#setup-virtualenvwrapper" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">dnf</span> <span class="pre">-y</span> <span class="pre">install</span> <span class="pre">python-virtualenvwrapper</span> <span class="pre">python-createrepo_c</span> <span class="pre">createrepo_c</span></code></p>
+<p>Add the following to your <cite>~/.bashrc</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>export WORKON_HOME=$HOME/.virtualenvs
+source /usr/bin/virtualenvwrapper.sh
+</pre></div>
+</div>
+</section>
+<section id="set-pythonpath">
+<h2>Set PYTHONPATH<a class="headerlink" href="#set-pythonpath" title="Permalink to this heading">¶</a></h2>
+<p>Add the following to your <cite>~/.bashrc</cite></p>
+<p><code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">PYTHONPATH=$PYTHONPATH:$HOME/.virtualenvs</span></code></p>
+<p>Then on the terminal</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="o">~/.</span><span class="n">bashrc</span>
+</pre></div>
+</div>
+</section>
+<section id="clone-the-source">
+<h2>Clone the source<a class="headerlink" href="#clone-the-source" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">fedora</span><span class="o">-</span><span class="n">infra</span><span class="o">/</span><span class="n">bodhi</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">bodhi</span>
+</pre></div>
+</div>
+</section>
+<section id="bootstrap-the-virtualenv">
+<h2>Bootstrap the virtualenv<a class="headerlink" href="#bootstrap-the-virtualenv" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">bootstrap</span><span class="o">.</span><span class="n">py</span>
+<span class="n">workon</span> <span class="n">bodhi</span><span class="o">-</span><span class="n">python2</span><span class="mf">.7</span>
+</pre></div>
+</div>
+</section>
+<section id="setting-up">
+<h2>Setting up<a class="headerlink" href="#setting-up" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">develop</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">psycopg2</span> <span class="pre">pyramid_debugtoolbar</span></code></p>
+</section>
+<section id="create-the-development-ini-file">
+<h2>Create the <a class="reference external" href="https://github.com/fedora-infra/bodhi/blob/develop/devel/development.ini.example">development.ini</a> file<a class="headerlink" href="#create-the-development-ini-file" title="Permalink to this heading">¶</a></h2>
+<p>Copy <code class="docutils literal notranslate"><span class="pre">devel/development.ini.example</span></code> to <code class="docutils literal notranslate"><span class="pre">development.ini</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="n">devel</span><span class="o">/</span><span class="n">development</span><span class="o">.</span><span class="n">ini</span><span class="o">.</span><span class="n">example</span> <span class="n">development</span><span class="o">.</span><span class="n">ini</span>
+</pre></div>
+</div>
+</section>
+<section id="run-the-test-suite">
+<h2>Run the test suite<a class="headerlink" href="#run-the-test-suite" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">py.test</span></code></p>
+</section>
+<section id="import-the-bodhi2-database">
+<h2>Import the bodhi2 database<a class="headerlink" href="#import-the-bodhi2-database" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">curl</span> <span class="o">-</span><span class="n">O</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">infrastructure</span><span class="o">.</span><span class="n">fedoraproject</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">infra</span><span class="o">/</span><span class="n">db</span><span class="o">-</span><span class="n">dumps</span><span class="o">/</span><span class="n">bodhi2</span><span class="o">.</span><span class="n">dump</span><span class="o">.</span><span class="n">xz</span>
+<span class="n">sudo</span> <span class="o">-</span><span class="n">u</span> <span class="n">postgres</span> <span class="n">createdb</span> <span class="n">bodhi2</span>
+<span class="n">sudo</span> <span class="o">-</span><span class="n">u</span> <span class="n">postgres</span> <span class="n">psql</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;create role bodhi2;&quot;</span>
+<span class="n">xzcat</span> <span class="n">bodhi2</span><span class="o">.</span><span class="n">dump</span><span class="o">.</span><span class="n">xz</span> <span class="o">|</span> <span class="n">sudo</span> <span class="o">-</span><span class="n">u</span> <span class="n">postgres</span> <span class="n">psql</span> <span class="n">bodhi2</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you do not have a PostgreSQL server running, please see the
+instructions at the bottom of the file.</p>
+</div>
+</section>
+<section id="adjust-database-configuration-in-development-ini-file">
+<h2>Adjust database configuration in <a class="reference external" href="https://github.com/fedora-infra/bodhi/blob/develop/devel/development.ini.example">development.ini</a> file<a class="headerlink" href="#adjust-database-configuration-in-development-ini-file" title="Permalink to this heading">¶</a></h2>
+<p>Set the configuration key
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/blob/02d0a883c156d9a27a4dbac994409ecf726d00a9/development.ini#L413">sqlalchemy.url</a>
+to point to the postgresql database. Something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sqlalchemy</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">postgresql</span><span class="p">:</span><span class="o">//</span><span class="n">postgres</span><span class="p">:</span><span class="n">anypasswordworkslocally</span><span class="nd">@localhost</span><span class="o">/</span><span class="n">bodhi2</span> <span class="c1"># gitleaks:allow</span>
+</pre></div>
+</div>
+</section>
+<section id="upgrade-the-database">
+<h2>Upgrade the database<a class="headerlink" href="#upgrade-the-database" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">alembic</span> <span class="pre">upgrade</span> <span class="pre">head</span></code></p>
+</section>
+<section id="run-the-web-app">
+<h2>Run the web app<a class="headerlink" href="#run-the-web-app" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pserve</span> <span class="pre">development.ini</span> <span class="pre">--reload</span></code></p>
+</section>
+<section id="setup-the-postgresql-server">
+<h2>Setup the postgresql server<a class="headerlink" href="#setup-the-postgresql-server" title="Permalink to this heading">¶</a></h2>
+<section id="install-postgresql">
+<h3>1. Install postgresql<a class="headerlink" href="#install-postgresql" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dnf</span> <span class="n">install</span> <span class="n">postgresql</span><span class="o">-</span><span class="n">server</span>
+</pre></div>
+</div>
+</section>
+<section id="setup-the-database">
+<h3>2. Setup the Database<a class="headerlink" href="#setup-the-database" title="Permalink to this heading">¶</a></h3>
+<p>As a privileged user on a Fedora system run the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">postgresql</span><span class="o">-</span><span class="n">setup</span> <span class="n">initdb</span>
+</pre></div>
+</div>
+</section>
+<section id="adjust-postgresql-connection-settings">
+<h3>3. Adjust PostgreSQL Connection Settings<a class="headerlink" href="#adjust-postgresql-connection-settings" title="Permalink to this heading">¶</a></h3>
+<p>As a privileged user on a Fedora system modify the pg_hba.conf file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vi</span> <span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">pgsql</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">pg_hba</span><span class="o">.</span><span class="n">conf</span>
+</pre></div>
+</div>
+<p>Then adjust the content at the bottom of the file to match the following.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># TYPE  DATABASE        USER            ADDRESS                 METHOD</span>
+
+<span class="c1"># &quot;local&quot; is for Unix domain socket connections only</span>
+<span class="n">local</span>   <span class="nb">all</span>             <span class="nb">all</span>                                     <span class="n">peer</span>
+<span class="c1"># IPv4 local connections are *trusted*, any password will work.</span>
+<span class="n">host</span>    <span class="nb">all</span>             <span class="nb">all</span>             <span class="mf">127.0.0.1</span><span class="o">/</span><span class="mi">32</span>            <span class="n">trust</span>
+<span class="c1"># IPv6 local connections are *trusted*, any password will work.</span>
+<span class="n">host</span>    <span class="nb">all</span>             <span class="nb">all</span>             <span class="p">::</span><span class="mi">1</span><span class="o">/</span><span class="mi">128</span>                 <span class="n">trust</span>
+</pre></div>
+</div>
+<p>If you need to make other modifications to postgresql please make them now.</p>
+</section>
+<section id="start-postgresql">
+<h3>4. Start PostgreSQL<a class="headerlink" href="#start-postgresql" title="Permalink to this heading">¶</a></h3>
+<p>As a privileged user on a Fedora system run the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">systemctl</span> <span class="n">start</span> <span class="n">postgresql</span><span class="o">.</span><span class="n">service</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Virtualenv</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup-virtualenvwrapper">Setup virtualenvwrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#set-pythonpath">Set PYTHONPATH</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#clone-the-source">Clone the source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bootstrap-the-virtualenv">Bootstrap the virtualenv</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setting-up">Setting up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#create-the-development-ini-file">Create the development.ini file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-the-test-suite">Run the test suite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#import-the-bodhi2-database">Import the bodhi2 database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adjust-database-configuration-in-development-ini-file">Adjust database configuration in development.ini file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#upgrade-the-database">Upgrade the database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-the-web-app">Run the web app</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup-the-postgresql-server">Setup the postgresql server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="vagrant_vscode.html" title="previous chapter">Debugging with Visual Studio Code</a></li>
+      <li>Next: <a href="models.html" title="next chapter">Database models</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2023, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/developer/virtualenv.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

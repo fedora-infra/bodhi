@@ -1,0 +1,790 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Python bindings &#8212; bodhi 7.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Developer documentation" href="developer/index.html" />
+    <link rel="prev" title="Update" href="server_api/messages/update.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-bodhi.client.bindings">
+<span id="python-bindings"></span><h1>Python bindings<a class="headerlink" href="#module-bodhi.client.bindings" title="Permalink to this heading">¶</a></h1>
+<p>This module provides Python bindings to the Bodhi REST API.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.client.bindings.</span></span><span class="sig-name descname"><span class="pre">BodhiClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://bodhi.fedoraproject.org/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'bodhi-client'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_provider</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://id.fedoraproject.org/openidc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">staging</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oidc_storage_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Python bindings to the Bodhi server REST API.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.__dict__">
+<span class="sig-name descname"><span class="pre">__dict__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">mappingproxy({'__module__':</span> <span class="pre">'bodhi.client.bindings',</span> <span class="pre">'__doc__':</span> <span class="pre">'Python</span> <span class="pre">bindings</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">Bodhi</span> <span class="pre">server</span> <span class="pre">REST</span> <span class="pre">API.',</span> <span class="pre">'__init__':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.__init__&gt;,</span> <span class="pre">'_build_oidc_client':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient._build_oidc_client&gt;,</span> <span class="pre">'send_request':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.send_request&gt;,</span> <span class="pre">'ensure_auth':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.ensure_auth&gt;,</span> <span class="pre">'clear_auth':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.clear_auth&gt;,</span> <span class="pre">'username':</span> <span class="pre">&lt;property</span> <span class="pre">object&gt;,</span> <span class="pre">'save':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.save&gt;,</span> <span class="pre">'request':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.request&gt;,</span> <span class="pre">'waive':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.waive&gt;,</span> <span class="pre">'trigger_tests':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.trigger_tests&gt;,</span> <span class="pre">'query':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.query&gt;,</span> <span class="pre">'get_test_status':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.get_test_status&gt;,</span> <span class="pre">'comment':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.comment&gt;,</span> <span class="pre">'save_override':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.save_override&gt;,</span> <span class="pre">'get_compose':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.get_compose&gt;,</span> <span class="pre">'list_composes':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.list_composes&gt;,</span> <span class="pre">'list_overrides':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.list_overrides&gt;,</span> <span class="pre">'csrf':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.csrf&gt;,</span> <span class="pre">'parse_file':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.parse_file&gt;,</span> <span class="pre">'latest_builds':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.latest_builds&gt;,</span> <span class="pre">'testable':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.testable&gt;,</span> <span class="pre">'compose_str':</span> <span class="pre">&lt;staticmethod(&lt;function</span> <span class="pre">BodhiClient.compose_str&gt;)&gt;,</span> <span class="pre">'override_str':</span> <span class="pre">&lt;staticmethod(&lt;function</span> <span class="pre">BodhiClient.override_str&gt;)&gt;,</span> <span class="pre">'update_str':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.update_str&gt;,</span> <span class="pre">'get_releases':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.get_releases&gt;,</span> <span class="pre">'get_koji_session':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.get_koji_session&gt;,</span> <span class="pre">'koji_session':</span> <span class="pre">&lt;property</span> <span class="pre">object&gt;,</span> <span class="pre">'candidates':</span> <span class="pre">&lt;function</span> <span class="pre">BodhiClient.candidates&gt;,</span> <span class="pre">'__dict__':</span> <span class="pre">&lt;attribute</span> <span class="pre">'__dict__'</span> <span class="pre">of</span> <span class="pre">'BodhiClient'</span> <span class="pre">objects&gt;,</span> <span class="pre">'__weakref__':</span> <span class="pre">&lt;attribute</span> <span class="pre">'__weakref__'</span> <span class="pre">of</span> <span class="pre">'BodhiClient'</span> <span class="pre">objects&gt;,</span> <span class="pre">'__annotations__':</span> <span class="pre">{}})</span></em><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://bodhi.fedoraproject.org/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'bodhi-client'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_provider</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://id.fedoraproject.org/openidc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">staging</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oidc_storage_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the Bodhi client.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_url</strong> – The URL of the Bodhi server to connect to. Ignored if
+<code class="docutils literal notranslate"><span class="pre">`staging`</span></code> is True.</p></li>
+<li><p><strong>client_id</strong> – The OpenID Connect Client ID.</p></li>
+<li><p><strong>staging</strong> – If True, use the staging server. If False, use base_url.</p></li>
+<li><p><strong>oidc_storage_path</strong> – Path to a file were OIDC credentials are stored</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.__module__">
+<span class="sig-name descname"><span class="pre">__module__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bodhi.client.bindings'</span></em><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.__weakref__">
+<span class="sig-name descname"><span class="pre">__weakref__</span></span><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.candidates">
+<span class="sig-name descname"><span class="pre">candidates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.candidates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.candidates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list list of update candidates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of koji builds (dictionaries returned by koji.listTagged()) that are tagged
+as candidate builds and are owned by the current user.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.clear_auth">
+<span class="sig-name descname"><span class="pre">clear_auth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.clear_auth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.clear_auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the authentication information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.comment">
+<span class="sig-name descname"><span class="pre">comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">karma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.comment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.comment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a comment to an update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>update</strong> – The alias of the update comment on.</p></li>
+<li><p><strong>comment</strong> – The text of the comment to add to the update.</p></li>
+<li><p><strong>karma</strong> – The amount of karma to leave. May be -1, 0, or 1. Defaults to 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The response from the post to comments/.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.compose_str">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compose_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.compose_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.compose_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string representation of a compose.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>compose</strong> – A dictionary representation of a Compose.</p></li>
+<li><p><strong>minimal</strong> – If True, return a minimal one-line representation of the compose.
+Otherwise, return a more verbose string. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A human readable string describing the compose.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.csrf">
+<span class="sig-name descname"><span class="pre">csrf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.csrf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.csrf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return CSRF token if already acquired, otherwise login, get a CSRF, cache it, and return.</p>
+<p>If there is already a CSRF token, this method returns it.</p>
+<p>If there is not, this method ensures that we know the username, logs in if we aren’t already
+logged in acquires and caches a CSRF token, and returns it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The CSRF token.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.ensure_auth">
+<span class="sig-name descname"><span class="pre">ensure_auth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.ensure_auth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.ensure_auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make sure we are authenticated.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.get_compose">
+<span class="sig-name descname"><span class="pre">get_compose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">release</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.get_compose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.get_compose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get information about compose.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>release</strong> – The name of the release.</p></li>
+<li><p><strong>request</strong> – The request (<code class="docutils literal notranslate"><span class="pre">testing</span></code>, <code class="docutils literal notranslate"><span class="pre">stable</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The response from Bodhi to the request.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#bodhi.client.bindings.ComposeNotFound" title="bodhi.client.bindings.ComposeNotFound"><strong>ComposeNotFound</strong></a> – If the server returns a 404 error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.get_koji_session">
+<span class="sig-name descname"><span class="pre">get_koji_session</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ClientSession</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.get_koji_session"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.get_koji_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an authenticated koji session.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An initialized authenticated koji client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.get_releases">
+<span class="sig-name descname"><span class="pre">get_releases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.get_releases"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.get_releases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of bodhi releases.</p>
+<p>This method returns a dictionary in the following format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;releases&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;dist_tag&quot;</span><span class="p">:</span> <span class="s2">&quot;dist-f12&quot;</span><span class="p">,</span> <span class="s2">&quot;id_prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;FEDORA&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;locked&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;F12&quot;</span><span class="p">,</span> <span class="s2">&quot;long_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Fedora 12&quot;</span><span class="p">}]}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kwargs</strong> – A dictionary of extra parameters to pass along with the request.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary describing Bodhi’s release objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.get_test_status">
+<span class="sig-name descname"><span class="pre">get_test_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.get_test_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.get_test_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query bodhi for the test status of the specified update..</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>update</strong> – The alias of the update to retrieve the test status of.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The response from Bodhi describing the query results.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.koji_session">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">koji_session</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClientSession</span></em><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.koji_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an authenticated koji session.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An initialized authenticated koji client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.latest_builds">
+<span class="sig-name descname"><span class="pre">latest_builds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.latest_builds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.latest_builds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the latest builds for a package.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>package</strong> – The package name, for example “kernel”.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dict-like object of the release dist tag to the latest build.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.list_composes">
+<span class="sig-name descname"><span class="pre">list_composes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.list_composes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.list_composes" title="Permalink to this definition">¶</a></dt>
+<dd><p>List composes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary-like representation of the Composes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.list_overrides">
+<span class="sig-name descname"><span class="pre">list_overrides</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">packages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expired</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">releases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">builds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows_per_page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.list_overrides"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.list_overrides" title="Permalink to this definition">¶</a></dt>
+<dd><p>List buildroot overrides.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>user</strong> – A username whose buildroot overrides you want returned.</p></li>
+<li><p><strong>packages</strong> – Comma separated package names to filter buildroot overrides by.</p></li>
+<li><p><strong>expired</strong> – If True, only return expired overrides. If False, only return active
+overrides.</p></li>
+<li><p><strong>releases</strong> – Comma separated Release shortnames to filter buildroot overrides by.</p></li>
+<li><p><strong>builds</strong> – Comma separated build NVRs to filter overrides by.</p></li>
+<li><p><strong>rows_per_page</strong> – Limit the results to a certain number of rows per page.</p></li>
+<li><p><strong>page</strong> – Return a specific page of results.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary-like representation of the Overrides.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.override_str">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">override_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">override</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.override_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.override_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string representation of a given override dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>override</strong> – An override dictionary.</p></li>
+<li><p><strong>minimal</strong> – If True, return a minimal one-line representation of the override.
+Otherwise, return a more verbose string. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A human readable string describing the given override.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.parse_file">
+<span class="sig-name descname"><span class="pre">parse_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.parse_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.parse_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse an update template file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_file</strong> – The filename of the update template.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A list of dictionaries of parsed update values which</dt><dd><p>can be directly passed to the <code class="docutils literal notranslate"><span class="pre">save</span></code> method.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the <code class="docutils literal notranslate"><span class="pre">input_file</span></code> does not exist, or if it cannot be parsed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.query">
+<span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query bodhi for a list of updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alias</strong> (<em>str</em>) – The update alias.</p></li>
+<li><p><strong>updateid</strong> (<em>str</em>) – The update ID (eg: FEDORA-2015-0001).</p></li>
+<li><p><strong>content_type</strong> (<em>str</em>) – A content type (rpm, module) to limit the query to.</p></li>
+<li><p><strong>releases</strong> (<em>str</em>) – A comma separated list of releases that you wish to query updates
+for.</p></li>
+<li><p><strong>status</strong> (<em>str</em>) – The update status (<code class="docutils literal notranslate"><span class="pre">pending</span></code>, <code class="docutils literal notranslate"><span class="pre">testing</span></code>, <code class="docutils literal notranslate"><span class="pre">stable</span></code>,
+<code class="docutils literal notranslate"><span class="pre">obsolete</span></code>, <code class="docutils literal notranslate"><span class="pre">unpushed</span></code>)</p></li>
+<li><p><strong>type</strong> (<em>str</em>) – The type of the update: <code class="docutils literal notranslate"><span class="pre">security</span></code>, <code class="docutils literal notranslate"><span class="pre">bugfix</span></code>,
+<code class="docutils literal notranslate"><span class="pre">enhancement</span></code>, and <code class="docutils literal notranslate"><span class="pre">newpackage</span></code>.</p></li>
+<li><p><strong>bugs</strong> (<em>str</em>) – A comma separated list of Red Hat Bugzilla IDs.</p></li>
+<li><p><strong>request</strong> (<em>str</em>) – An update request to query for
+<code class="docutils literal notranslate"><span class="pre">testing</span></code>, <code class="docutils literal notranslate"><span class="pre">stable</span></code>, <code class="docutils literal notranslate"><span class="pre">unpush</span></code>, <code class="docutils literal notranslate"><span class="pre">obsolete</span></code> or None.</p></li>
+<li><p><strong>mine</strong> (<em>bool</em>) – If True, only query the users updates. Default: False.</p></li>
+<li><p><strong>packages</strong> (<em>str</em>) – A space or comma delimited list of package names.</p></li>
+<li><p><strong>limit</strong> (<em>int</em>) – A deprecated argument, sets <code class="docutils literal notranslate"><span class="pre">rows_per_page</span></code>. See its docstring for more
+info.</p></li>
+<li><p><strong>approved_before</strong> (<em>str</em>) – A datetime string.</p></li>
+<li><p><strong>approved_since</strong> (<em>str</em>) – A datetime string.</p></li>
+<li><p><strong>builds</strong> (<em>str</em>) – A space or comma delimited string of build nvrs.</p></li>
+<li><p><strong>critpath</strong> (<em>bool</em>) – A boolean to query only critical path updates.</p></li>
+<li><p><strong>locked</strong> (<em>bool</em>) – A boolean to filter only locked updates.</p></li>
+<li><p><strong>modified_before</strong> (<em>str</em>) – A datetime string to query updates that have been modified
+before a certain time.</p></li>
+<li><p><strong>modified_since</strong> (<em>str</em>) – A datetime string to query updates that have been modified
+since a certain time.</p></li>
+<li><p><strong>pushed</strong> (<em>bool</em>) – A boolean to filter only pushed updates.</p></li>
+<li><p><strong>pushed_before</strong> (<em>str</em>) – A datetime string to filter updates pushed before a certain
+time.</p></li>
+<li><p><strong>pushed_since</strong> (<em>str</em>) – A datetime string to filter updates pushed since a
+certain time.</p></li>
+<li><p><strong>severity</strong> (<em>str</em>) – A severity type to filter by (<code class="docutils literal notranslate"><span class="pre">unspecified</span></code>,
+<code class="docutils literal notranslate"><span class="pre">urgent</span></code>, <code class="docutils literal notranslate"><span class="pre">high</span></code>, <code class="docutils literal notranslate"><span class="pre">medium</span></code>, <code class="docutils literal notranslate"><span class="pre">low</span></code>).</p></li>
+<li><p><strong>submitted_before</strong> (<em>str</em>) – A datetime string to filter updates submitted
+before a certain time.</p></li>
+<li><p><strong>submitted_since</strong> (<em>str</em>) – A datetime string to filter updates submitted
+after a certain time.</p></li>
+<li><p><strong>suggest</strong> (<em>str</em>) – Query for updates that suggest a user restart
+(<code class="docutils literal notranslate"><span class="pre">logout</span></code>, <code class="docutils literal notranslate"><span class="pre">reboot</span></code>).</p></li>
+<li><p><strong>gating</strong> (<em>str</em>) – filter by TestGatingStatus description.</p></li>
+<li><p><strong>from_side_tag</strong> (<em>bool</em>) – A boolean to filter updates created from side tag or from
+normal workflow.</p></li>
+<li><p><strong>user</strong> (<em>str</em>) – Query for updates submitted by a specific user.</p></li>
+<li><p><strong>rows_per_page</strong> (<em>int</em>) – Limit the results to a certain number of rows per page
+(min:1 max: 100 default: 20).</p></li>
+<li><p><strong>page</strong> (<em>int</em>) – Return a specific page of results.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The response from Bodhi describing the query results.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.request">
+<span class="sig-name descname"><span class="pre">request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.request"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request an update state change.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>update</strong> – The alias of the update.</p></li>
+<li><p><strong>request</strong> – The request (<code class="docutils literal notranslate"><span class="pre">testing</span></code>, <code class="docutils literal notranslate"><span class="pre">stable</span></code>, <code class="docutils literal notranslate"><span class="pre">obsolete</span></code>, <code class="docutils literal notranslate"><span class="pre">unpush</span></code>, <code class="docutils literal notranslate"><span class="pre">revoke</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The response from Bodhi to the request.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#bodhi.client.bindings.UpdateNotFound" title="bodhi.client.bindings.UpdateNotFound"><strong>UpdateNotFound</strong></a> – If the server returns a 404 error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save an update.</p>
+<p>This entails either creating a new update, or editing an existing one.
+To edit an existing update, you must specify the update alias in
+the <code class="docutils literal notranslate"><span class="pre">edited</span></code> keyword argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>display_name</strong> (<em>str</em>) – The name of the update.</p></li>
+<li><p><strong>builds</strong> (<em>str</em>) – A list of koji builds for this update.</p></li>
+<li><p><strong>type</strong> (<em>str</em>) – The type of this update: <code class="docutils literal notranslate"><span class="pre">security</span></code>, <code class="docutils literal notranslate"><span class="pre">bugfix</span></code>,
+<code class="docutils literal notranslate"><span class="pre">enhancement</span></code>, and <code class="docutils literal notranslate"><span class="pre">newpackage</span></code>.</p></li>
+<li><p><strong>bugs</strong> (<em>str</em>) – A list of Red Hat Bugzilla ID’s associated with this
+update.</p></li>
+<li><p><strong>notes</strong> (<em>str</em>) – Details as to why this update exists.</p></li>
+<li><p><strong>request</strong> (<em>str</em>) – Request for this update to change state, either to
+<code class="docutils literal notranslate"><span class="pre">testing</span></code>, <code class="docutils literal notranslate"><span class="pre">stable</span></code>, <code class="docutils literal notranslate"><span class="pre">unpush</span></code>, <code class="docutils literal notranslate"><span class="pre">obsolete</span></code> or None.</p></li>
+<li><p><strong>close_bugs</strong> (<em>bool</em>) – Close bugs when update is stable.</p></li>
+<li><p><strong>suggest</strong> (<em>str</em>) – Suggest that the user reboot or logout after update.
+(<code class="docutils literal notranslate"><span class="pre">reboot</span></code>, <code class="docutils literal notranslate"><span class="pre">logout</span></code>).</p></li>
+<li><p><strong>autotime</strong> (<em>bool</em>) – Allow bodhi to automatically change the state of this
+update based on the time spent in testing by this update. It
+will push your update to <code class="docutils literal notranslate"><span class="pre">stable</span></code> once it reaches the <code class="docutils literal notranslate"><span class="pre">stable_days</span></code>.</p></li>
+<li><p><strong>stable_days</strong> (<em>int</em>) – The minimun amount of time an update has to spend in
+<code class="docutils literal notranslate"><span class="pre">testing</span></code> before being automatically pushed to <code class="docutils literal notranslate"><span class="pre">stable</span></code>.</p></li>
+<li><p><strong>autokarma</strong> (<em>bool</em>) – Allow bodhi to automatically change the state of this
+update based on the <code class="docutils literal notranslate"><span class="pre">karma</span></code> from user feedback.  It will
+push your update to <code class="docutils literal notranslate"><span class="pre">stable</span></code> once it reaches the <code class="docutils literal notranslate"><span class="pre">stable_karma</span></code>
+and unpush your update when reaching <code class="docutils literal notranslate"><span class="pre">unstable_karma</span></code>.</p></li>
+<li><p><strong>stable_karma</strong> (<em>int</em>) – The upper threshold for marking an update as
+<code class="docutils literal notranslate"><span class="pre">stable</span></code>.</p></li>
+<li><p><strong>unstable_karma</strong> (<em>int</em>) – The lower threshold for unpushing an update.</p></li>
+<li><p><strong>edited</strong> (<em>str</em>) – The update alias of the existing update that we are
+editing.</p></li>
+<li><p><strong>severity</strong> (<em>str</em>) – The severity of this update (<code class="docutils literal notranslate"><span class="pre">urgent</span></code>, <code class="docutils literal notranslate"><span class="pre">high</span></code>,
+<code class="docutils literal notranslate"><span class="pre">medium</span></code>, <code class="docutils literal notranslate"><span class="pre">low</span></code>).</p></li>
+<li><p><strong>requirements</strong> (<em>str</em>) – A list of required Taskotron tests that must pass
+for this update to reach stable. (e.g. <code class="docutils literal notranslate"><span class="pre">dist.rpmdeplint</span></code>,
+<code class="docutils literal notranslate"><span class="pre">dist.upgradepath</span></code>, <code class="docutils literal notranslate"><span class="pre">dist.rpmlint</span></code>, etc).</p></li>
+<li><p><strong>require_bugs</strong> (<em>bool</em>) – A boolean to require that all of the bugs in your
+update have been confirmed by testers.</p></li>
+<li><p><strong>require_testcases</strong> (<em>bool</em>) – A boolean to require that this update passes
+all test cases before reaching stable.</p></li>
+<li><p><strong>from_tag</strong> (<em>str</em>) – The name of a Koji tag from which to pull builds
+instead of providing them manually in <cite>builds</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Bodhi server’s response to the request.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.save_override">
+<span class="sig-name descname"><span class="pre">save_override</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nvr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expiration_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expired</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.save_override"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.save_override" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a buildroot override.</p>
+<p>This entails either creating a new buildroot override, or editing an
+existing one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nvr</strong> – The nvr of a koji build.</p></li>
+<li><p><strong>notes</strong> – Notes about why this override is in place.</p></li>
+<li><p><strong>duration</strong> – Number of days from now that this override should expire.</p></li>
+<li><p><strong>expiration_date</strong> – Date when this override should expire. This argument or the
+<code class="docutils literal notranslate"><span class="pre">duration</span></code> argument must be provided.</p></li>
+<li><p><strong>edit</strong> – True if we are editing an existing override, False otherwise. Defaults to False.</p></li>
+<li><p><strong>expired</strong> – Set to True to expire an override. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary-like representation of the saved override.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.send_request">
+<span class="sig-name descname"><span class="pre">send_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GET'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.send_request"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.send_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the request to the Bodhi server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – The relative URL on the Bodhi server</p></li>
+<li><p><strong>verb</strong> (<em>str</em><em>, </em><em>optional</em>) – The HTTP method. Defaults to “GET”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The response as returned by python-requests.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>requests.Response</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.testable">
+<span class="sig-name descname"><span class="pre">testable</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.testable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.testable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a generator that iterates installed testing updates.</p>
+<p>This method is a generator that yields packages that you currently
+have installed that you have yet to test and provide feedback for.</p>
+<p>Only works on systems with dnf.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>An iterable of dictionaries describing updates that match builds installed on</dt><dd><p>the local system.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>generator</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – If the dnf Python bindings are not installed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.trigger_tests">
+<span class="sig-name descname"><span class="pre">trigger_tests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.trigger_tests"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.trigger_tests" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trigger tests for update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>update</strong> – The alias of the update to run tests for.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The response from the post to trigger_tests/.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.update_str">
+<span class="sig-name descname"><span class="pre">update_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.update_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.update_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string representation of a given update dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>update</strong> – An update dictionary, acquired by the <code class="docutils literal notranslate"><span class="pre">list</span></code> method.</p></li>
+<li><p><strong>minimal</strong> – If True, return a minimal one-line representation of the update.
+Otherwise, return a more verbose representation. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A human readable string describing the given update.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.username">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">username</span></span><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.username" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the authenticated username.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClient.waive">
+<span class="sig-name descname"><span class="pre">waive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tests</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">munch.Munch</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClient.waive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClient.waive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Waive unsatisfied requirements on an update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>update</strong> – The alias of the update.</p></li>
+<li><p><strong>comment</strong> – A comment explaining the waiver.</p></li>
+<li><p><strong>tests</strong> – The list of unsatisfied requirements to waive. If not specified, all unsatisfied
+requirements of this update will be waived.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The response from Bodhi to the request.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#bodhi.client.bindings.UpdateNotFound" title="bodhi.client.bindings.UpdateNotFound"><strong>UpdateNotFound</strong></a> – If the server returns a 404 error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClientException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.client.bindings.</span></span><span class="sig-name descname"><span class="pre">BodhiClientException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/client/bindings.html#BodhiClientException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.BodhiClientException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RequestException</span></code></p>
+<p>Used to indicate there was an error in the client.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.client.bindings.BodhiClientException.__module__">
+<span class="sig-name descname"><span class="pre">__module__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bodhi.client.bindings'</span></em><a class="headerlink" href="#bodhi.client.bindings.BodhiClientException.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="bodhi.client.bindings.ComposeNotFound">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.client.bindings.</span></span><span class="sig-name descname"><span class="pre">ComposeNotFound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">release</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/client/bindings.html#ComposeNotFound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.ComposeNotFound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.client.bindings.BodhiClientException" title="bodhi.client.bindings.BodhiClientException"><code class="xref py py-class docutils literal notranslate"><span class="pre">BodhiClientException</span></code></a></p>
+<p>Used to indicate that a referenced Compose is not found on the server.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.client.bindings.ComposeNotFound.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.client.bindings.ComposeNotFound.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.ComposeNotFound.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">release</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/client/bindings.html#ComposeNotFound.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.ComposeNotFound.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the Exception.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>release</strong> – The release component of the compose that was not found.</p></li>
+<li><p><strong>request</strong> – The request component of the compose that was not found.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.client.bindings.ComposeNotFound.__module__">
+<span class="sig-name descname"><span class="pre">__module__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bodhi.client.bindings'</span></em><a class="headerlink" href="#bodhi.client.bindings.ComposeNotFound.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.ComposeNotFound.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#ComposeNotFound.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.ComposeNotFound.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a human readable error message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An error message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="bodhi.client.bindings.UpdateNotFound">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.client.bindings.</span></span><span class="sig-name descname"><span class="pre">UpdateNotFound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/client/bindings.html#UpdateNotFound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.UpdateNotFound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.client.bindings.BodhiClientException" title="bodhi.client.bindings.BodhiClientException"><code class="xref py py-class docutils literal notranslate"><span class="pre">BodhiClientException</span></code></a></p>
+<p>Used to indicate that a referenced Update is not found on the server.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.client.bindings.UpdateNotFound.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.client.bindings.UpdateNotFound.__annotations__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.UpdateNotFound.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">update</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bodhi/client/bindings.html#UpdateNotFound.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.UpdateNotFound.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the Exception.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>update</strong> – The alias of the update that was not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.client.bindings.UpdateNotFound.__module__">
+<span class="sig-name descname"><span class="pre">__module__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bodhi.client.bindings'</span></em><a class="headerlink" href="#bodhi.client.bindings.UpdateNotFound.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.client.bindings.UpdateNotFound.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#UpdateNotFound.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.UpdateNotFound.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a human readable error message.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An error message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bodhi.client.bindings.errorhandled">
+<span class="sig-prename descclassname"><span class="pre">bodhi.client.bindings.</span></span><span class="sig-name descname"><span class="pre">errorhandled</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="_modules/bodhi/client/bindings.html#errorhandled"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.client.bindings.errorhandled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raise exceptions on failure. Used as a decorator for BodhiClient methods.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user/release_notes.html">Release notes</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python bindings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#bodhi.client.bindings.BodhiClient"><code class="docutils literal notranslate"><span class="pre">BodhiClient</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bodhi.client.bindings.BodhiClientException"><code class="docutils literal notranslate"><span class="pre">BodhiClientException</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bodhi.client.bindings.ComposeNotFound"><code class="docutils literal notranslate"><span class="pre">ComposeNotFound</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bodhi.client.bindings.UpdateNotFound"><code class="docutils literal notranslate"><span class="pre">UpdateNotFound</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bodhi.client.bindings.errorhandled"><code class="docutils literal notranslate"><span class="pre">errorhandled()</span></code></a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="server_api/messages/update.html" title="previous chapter">Update</a></li>
+      <li>Next: <a href="developer/index.html" title="next chapter">Developer documentation</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2023, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/python_bindings.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

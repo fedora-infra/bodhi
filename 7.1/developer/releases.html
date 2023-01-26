@@ -1,0 +1,598 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Release process &#8212; bodhi 7.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Vagrant" href="vagrant.html" />
+    <link rel="prev" title="Developer documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="release-process">
+<h1>Release process<a class="headerlink" href="#release-process" title="Permalink to this heading">¶</a></h1>
+<p>This document describes the process for making a Bodhi release.</p>
+<section id="branches">
+<h2>Branches<a class="headerlink" href="#branches" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi follows <a class="reference external" href="https://semver.org">semantic versioning</a>, and so <a class="reference external" href="https://www.theonion.com/craftsman-confirms-new-hammer-backwards-compatible-with-1834722479">backwards incompatible</a> changes get a major release,
+releases with new features get a minor release, and releases that only contain bug fixes get a patch
+release.</p>
+<p>To aid in maintaining this scheme, Bodhi uses branches named with the scheme <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> to keep
+track of feature releases. Once a <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch is created and a release is tagged, only
+bugfixes should be added to that branch.</p>
+<p>When you wish to make a patch release, simply cherry pick (described below) the patches you wish to
+include in the release to the appropriate <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch.</p>
+<p>If you wish to make a minor release, you will need to create a new <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch.
+Typically we would do this by branching from a desired commit on the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch, unless
+there are backwards incompatible changes in <code class="docutils literal notranslate"><span class="pre">develop</span></code>. If <code class="docutils literal notranslate"><span class="pre">develop</span></code> has backwards incompatible
+commits that we don’t want to release with, you should branch from the most recent <code class="docutils literal notranslate"><span class="pre">major.minor</span></code>
+branch, and then cherry pick the desired commits from <code class="docutils literal notranslate"><span class="pre">develop</span></code>.</p>
+<p>Of course, if you want to make a new major release, simply create a <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch from the
+desired commit on <code class="docutils literal notranslate"><span class="pre">develop</span></code>.</p>
+<section id="backporting-patches-with-mergify">
+<h3>Backporting Patches with Mergify<a class="headerlink" href="#backporting-patches-with-mergify" title="Permalink to this heading">¶</a></h3>
+<p>To simplify the release process, almost all patches are sent to the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch. Once they
+are reviewed and merged, they can be cherry picked to a <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch if desired. To aid in
+this process, we use <a class="reference external" href="https://mergify.com">Mergify</a>’s <a class="reference external" href="https://docs.mergify.com/actions/backport">patch backporting feature</a>. For each actively maintained
+release there should be a backporting action in the Mergify config and an associated GitHub label.
+For example, as of the time of this writing we have active 3.12 and 3.13 branches, so we have GitHub
+labels called <code class="docutils literal notranslate"><span class="pre">3.12-backports</span></code> and <code class="docutils literal notranslate"><span class="pre">3.13-backports</span></code>. Any pull requests tagged with either of
+these tags will cause Mergify to backport the associated patch to the relevant branch via a new pull
+request.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The backporting feature is configured in <code class="docutils literal notranslate"><span class="pre">.mergify.yml</span></code>.</p>
+</div>
+</section>
+</section>
+<section id="deploying-a-development-snapshot-to-staging">
+<h2>Deploying a development snapshot to Staging<a class="headerlink" href="#deploying-a-development-snapshot-to-staging" title="Permalink to this heading">¶</a></h2>
+<p>On the Fedora Infrastructure, the <a class="reference external" href="https://bodhi.stg.fedoraproject.org">Bodhi Staging instance</a> is
+used to test out Bodhi in an enviroment as close to production as possible.</p>
+<p>To run this procedure, you will need the ability to run playbooks on batcave, and your Fedora Account
+on needs to be a member the <cite>sysadmin-bodhi</cite> group on both <a class="reference external" href="https://accounts.stg.fedoraproject.org/group/sysadmin-bodhi/">accounts staging</a>
+and <a class="reference external" href="https://accounts.fedoraproject.org/group/sysadmin-bodhi/">accounts production</a></p>
+<p>To deploy to staging:</p>
+<ol class="arabic">
+<li><p>Merge the changes into the <cite>staging</cite> branch.</p></li>
+<li><p>After the changes are pushed,the
+<a class="reference external" href="https://github.com/fedora-infra/bodhi/actions/workflows/staging.yml">Build Staging snapshot in Koji</a>
+github action generates SRPMs, and submits them to build in koji. Once successfully built, The
+packages (bodhi-server, bodhi-client, and bodhi messages) are then automatically tagged into the
+f34-infra-stg koji tag.</p>
+<p>Note that each snapshot package will have the following version format appended to the current version:
+<cite>^&lt;YYYYMMDDHHMM&gt;git&lt;githash&gt;</cite>. For example:</p>
+<ul class="simple">
+<li><p>bodhi-client-5.7.5^202203102341gite878e73-1.fc34</p></li>
+<li><p>bodhi-server-5.7.5^202203102341gite878e73-1.fc34</p></li>
+<li><p>bodhi-messages-5.7.5^202203102341gite878e73-1.fc34</p></li>
+</ul>
+</li>
+<li><p>Sometimes it takes a couple of minutes for the builds to appear in the f34-infra koji repo, so check
+that the newly built packages are available to the bodhi-backend01 machine with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>ssh bodhi-backend01.stg.iad2.fedoraproject.org
+[bodhi-backend01 ~][STG]$ dnf list bodhi-server bodhi-client --refresh --all
+Installed Packages
+bodhi-client.noarch                 5.7.5^202202010001gitabcdefg-1.fc34                  @infrastructure-tags-stg
+bodhi-server.noarch                 5.7.5^202202010001gitabcdefg-1.fc34                  @infrastructure-tags-stg
+Available Packages
+bodhi-client.noarch                 5.7.5^202203102341gite878e73-1.fc34                 @infrastructure-tags-stg
+bodhi-server.noarch                 5.7.5^202203102341gite878e73-1.fc34                 @infrastructure-tags-stg
+</pre></div>
+</div>
+<p>The packages listed in <code class="docutils literal notranslate"><span class="pre">available</span> <span class="pre">packages</span></code> should be the ones just built in koji after pushing to the staging branch</p>
+</li>
+<li><p>With the packages available, run the following four playbooks on batcave01:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Run the bodhi-backend playbook to ensure everything is up to date
+$ sudo rbac-playbook -l staging groups/bodhi-backend.yml
+
+# Synchronize the database from production to staging
+$ sudo rbac-playbook manual/staging-sync/bodhi.yml -l staging
+
+# Upgrade the Bodhi backend on staging
+$ sudo rbac-playbook manual/upgrade/bodhi.yml -l staging
+
+# Upgrade the Bodhi frontend on staging
+$ sudo rbac-playbook openshift-apps/bodhi.yml -l staging
+</pre></div>
+</div>
+</li>
+<li><p>The final playbook in that run will cause the openshift images for bodhi to rebuild and redeploy.
+In a few minutes the new version of bodhi will appear on <a class="reference external" href="https://bodhi.stg.fedoraproject.org">https://bodhi.stg.fedoraproject.org</a>.</p>
+<p>You can check the status of the openshift image builds and deployment on <a class="reference external" href="https://os.stg.fedoraproject.org">https://os.stg.fedoraproject.org</a></p>
+</li>
+</ol>
+</section>
+<section id="how-to-make-a-release">
+<h2>How to make a release<a class="headerlink" href="#how-to-make-a-release" title="Permalink to this heading">¶</a></h2>
+<section id="preparation">
+<h3>Preparation<a class="headerlink" href="#preparation" title="Permalink to this heading">¶</a></h3>
+<p>If you are making a new major or new minor release:</p>
+<ol class="arabic simple">
+<li><p>Prepare the <code class="docutils literal notranslate"><span class="pre">.mergify.yml</span></code> file for the new <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch as described above.</p></li>
+<li><p>Raise the version to the appropriate value in <code class="docutils literal notranslate"><span class="pre">bodhi-*/pyproject.toml</span></code> and in the spec files
+in <code class="docutils literal notranslate"><span class="pre">bodhi-*/*.spec</span></code>.</p></li>
+<li><p>Add missing authors to the release notes fragments by changing to the <code class="docutils literal notranslate"><span class="pre">news</span></code> directory and
+running the <code class="docutils literal notranslate"><span class="pre">get-authors.py</span></code> script, but check for duplicates and errors</p></li>
+<li><p>Generate the release notes by running <code class="docutils literal notranslate"><span class="pre">towncrier</span> <span class="pre">build</span> <span class="pre">--version</span> <span class="pre">VERSION</span></code>. Be aware that any
+commits that were cherry picked to a previous release branch will show up again, and we wouldn’t
+want to mark those commits as being new</p></li>
+<li><p>Add a note to all the associated issues and pull requests to let them know they will be included
+in this release.</p></li>
+<li><p>Push those changes to the upstream repository (via a PR or not)</p></li>
+<li><p>Create the branch protection rule in <a class="reference external" href="https://github.com/fedora-infra/bodhi/settings/branches">GitHub’s UI</a> and tick the following boxes:</p>
+<ul class="simple">
+<li><p>Require pull request reviews before merging</p></li>
+<li><p>Require status checks to pass before merging</p></li>
+<li><p>Require branches to be up to date before merging</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DCO</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fXX-diff-cover</span></code>, <code class="docutils literal notranslate"><span class="pre">fXXdocs</span></code>, <code class="docutils literal notranslate"><span class="pre">fXX-integration</span></code>, and <code class="docutils literal notranslate"><span class="pre">fXX-unit</span></code> where <code class="docutils literal notranslate"><span class="pre">XX</span></code> is the
+Fedora version that this Bodhi release is going to run on.</p></li>
+</ul>
+</li>
+<li><p>Create the new <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch in the repository, and switch to that branch.</p></li>
+<li><p>Adjust <code class="docutils literal notranslate"><span class="pre">diff-cover</span></code> to use the new <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch for comparison in
+<code class="docutils literal notranslate"><span class="pre">devel/ci/bodhi-ci</span></code>. You can find the spot to edit by searching for the <code class="docutils literal notranslate"><span class="pre">--compare-branch</span></code>
+flag being passed to <code class="docutils literal notranslate"><span class="pre">diff-cover</span></code>. This change should remain in that release branch only.</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">.github/workflows/tests.yml</span></code>, add the new <code class="docutils literal notranslate"><span class="pre">major.minor</span></code> branch in the list of branches
+on which CI is run.</p></li>
+<li><p>Push that new branch to the upstream repository</p></li>
+</ol>
+</section>
+<section id="build-a-beta">
+<h3>Build a beta<a class="headerlink" href="#build-a-beta" title="Permalink to this heading">¶</a></h3>
+<p>Bodhi uses the <a class="reference external" href="https://src.fedoraproject.org/rpms/bodhi/blob/master/f/bodhi.spec">Fedora Rawhide spec file</a> to build production RPMs for the
+<a class="reference external" href="https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/bodhi/">Fedora Infrastructure repositories</a>. As upstream Bodhi does not have any infrastructure of its own
+for beta testing, we use <a class="reference external" href="https://bodhi.stg.fedoraproject.org">Fedora’s staging instance</a> of Bodhi to do our beta testing. Thus, in
+order to build and test the beta using these instructions, you will need administrative access to
+the staging Bodhi deployment and you will need access to build in the staging infrastructure
+repository.</p>
+<p>To build the beta, follow these steps:</p>
+<ol class="arabic">
+<li><p>Clone the Bodhi spec file repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ fedpkg clone bodhi
+</pre></div>
+</div>
+</li>
+<li><p>Alter the spec file to build the commit you want to test rather than a tagged release. Use a
+value less than one for the release field on betas (for example the first might be 0.0, the
+second might be 0.1, and so on). For example, to test
+<code class="docutils literal notranslate"><span class="pre">e0ca5bc5d36e8cca5bd126879a036006356645e6</span></code> (which is a 3.13 beta), a patch like this will
+work:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git diff
+diff --git a/bodhi.spec b/bodhi.spec
+index eaf3415..d3684be 100644
+--- a/bodhi.spec
++++ b/bodhi.spec
+@@ -1,16 +1,21 @@
+ %global bashcompdir     %(pkg-config --variable=completionsdir bash-completion 2&gt;/dev/null)
+ %global bashcomproot    %(dirname %{bashcompdir} 2&gt;/dev/null)
+
++%global commit e0ca5bc5d36e8cca5bd126879a036006356645e6
++%global commit_short %(c=%{commit}; echo ${c:0:7})
++
+ Name:           bodhi
+-Version:        3.12.0
+-Release:        100%{?dist}
++Version:        3.13.0
++Release:        0.0.beta.%{commit_short}%{?dist}
+ BuildArch:      noarch
+
+ License:        GPLv2+
+ Summary:        A modular framework that facilitates publishing software updates
+ Group:          Applications/Internet
+ URL:            https://github.com/fedora-infra/bodhi
+-Source0:        %{url}/archive/%{version}/%{name}-%{version}.tar.gz
++Source0:        %{url}/archive/%{commit}/%{name}-%{commit}.tar.gz
++Patch0:         0000-Set-the-version-to-beta-0.patch
+
+ BuildRequires: %{py2_dist click}
+ BuildRequires: %{py2_dist iniparse}
+@@ -241,7 +248,7 @@ updates for a software distribution.
+
+
+ %prep
+-%autosetup -p1 -n bodhi-%{version}
++%autosetup -p1 -n bodhi-%{commit}
+
+ # Kill some dev deps
+ sed -i &#39;/pyramid_debugtoolbar/d&#39; setup.py
+@@ -270,7 +277,7 @@ make %{?_smp_mflags} -C docs man
+ %install
+ %py2_install
+ # Let&#39;s remove all the server stuff since we don&#39;t ship Python 2 version of the server anymore.
+-rm -rf %{buildroot}/%{python2_sitelib}/%{name}_server-%{version}-py%{python2_version}.egg-info
++rm -rf %{buildroot}/%{python2_sitelib}/%{name}_server-%{version}b0-py%{python2_version}.egg-info
+ rm -rf %{buildroot}/%{python2_sitelib}/%{name}/server
+ %py3_install
+
+@@ -346,7 +353,7 @@ rm .coveragerc
+ %doc README.rst
+ %dir %{python2_sitelib}/%{name}/
+ %{python2_sitelib}/%{name}/__init__.py*
+-%{python2_sitelib}/%{name}-%{version}-py%{python2_version}.egg-info
++%{python2_sitelib}/%{name}-%{version}b0-py%{python2_version}.egg-info
+
+
+ %files -n python3-bodhi
+@@ -355,21 +362,21 @@ rm .coveragerc
+ %dir %{python3_sitelib}/%{name}/
+ %{python3_sitelib}/%{name}/__init__.py
+ %{python3_sitelib}/%{name}/__pycache__
+-%{python3_sitelib}/%{name}-%{version}-py%{python3_version}.egg-info
++%{python3_sitelib}/%{name}-%{version}b0-py%{python3_version}.egg-info
+
+
+ %files -n python2-bodhi-client
+ %license COPYING
+ %doc README.rst
+ %{python2_sitelib}/%{name}/client
+-%{python2_sitelib}/%{name}_client-%{version}-py%{python2_version}.egg-info
++%{python2_sitelib}/%{name}_client-%{version}b0-py%{python2_version}.egg-info
+
+
+ %files -n python3-bodhi-client
+ %license COPYING
+ %doc README.rst
+ %{python3_sitelib}/%{name}/client
+-%{python3_sitelib}/%{name}_client-%{version}-py%{python3_version}.egg-info
++%{python3_sitelib}/%{name}_client-%{version}b0-py%{python3_version}.egg-info
+
+
+ %files server
+@@ -392,7 +400,7 @@ rm .coveragerc
+ %config(noreplace) %{_sysconfdir}/fedmsg.d/*
+ %dir %{_sysconfdir}/bodhi/
+ %{python3_sitelib}/%{name}/server
+-%{python3_sitelib}/%{name}_server-%{version}-py%{python3_version}.egg-info
++%{python3_sitelib}/%{name}_server-%{version}b0-py%{python3_version}.egg-info
+ %{_mandir}/man1/bodhi-*.1*
+ %{_mandir}/man1/initialize_bodhi_db.1*
+ %attr(-,bodhi,root) %{_datadir}/%{name}
+@@ -406,6 +414,10 @@ rm .coveragerc
+
+
+ %changelog
++* Fri Jan 11 2019 Randy Barlow &lt;bowlofeggs@fedoraproject.org&gt; - 3.13.0-0.0.beta.e0ca5bc
++- Update to 3.13.0.
++- https://github.com/fedora-infra/bodhi/releases/tag/3.13.0
++
+ * Mon Dec 17 2018 Randy Barlow &lt;bowlofeggs@fedoraproject.org&gt; - 3.12.0-100
+ - Upgrade to 3.12.0.
+ - https://github.com/fedora-infra/bodhi/releases/tag/3.12.0
+$ cat 0000-Set-the-version-to-beta-0.patch
+From 77f54fee023fcbfb06f7e72b3b993d39f7678efa Mon Sep 17 00:00:00 2001
+From: Randy Barlow &lt;randy@electronsweatshop.com&gt;
+Date: Fri, 11 Jan 2019 09:19:47 -0500
+Subject: [PATCH] Set the version to beta 0.
+
+Signed-off-by: Randy Barlow &lt;randy@electronsweatshop.com&gt;
+---
+ docs/conf.py | 2 +-
+ setup.py     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/docs/conf.py b/docs/conf.py
+index 59edc0a8..1ba87387 100644
+--- a/docs/conf.py
++++ b/docs/conf.py
+@@ -63,7 +63,7 @@ copyright = u&#39;2007-{}, Red Hat, Inc.&#39;.format(datetime.datetime.utcnow().year)
+ # The short X.Y version.
+ version = &#39;3.13&#39;
+ # The full version, including alpha/beta/rc tags.
+-release = &#39;3.13.0&#39;
++release = &#39;3.13.0b0&#39;
+
+ # The language for content autogenerated by Sphinx. Refer to documentation
+ # for a list of supported languages.
+diff --git a/setup.py b/setup.py
+index 44566ff5..74297bb5 100644
+--- a/setup.py
++++ b/setup.py
+@@ -42,7 +42,7 @@ def get_requirements(requirements_file=&#39;requirements.txt&#39;):
+
+ here = os.path.abspath(os.path.dirname(__file__))
+ README = open(os.path.join(here, &#39;README.rst&#39;)).read()
+-VERSION = &#39;3.13.0&#39;
++VERSION = &#39;3.13.0b0&#39;
+ # Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
+ CLASSIFIERS = [
+    &#39;Development Status :: 5 - Production/Stable&#39;,
+--
+2.20.1
+</pre></div>
+</div>
+</li>
+<li><p>Perform any other spec file alterations that might be needed for this release (such as adding or
+removing dependencies).</p></li>
+<li><p>Build the beta for Fedora Infrastructure’s staging repository. At the time of writing, Bodhi runs
+on Fedora 29, so here’s an example of building for the f29-infra-stg repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ rpmbuild --define &quot;dist .fc29.infra&quot; -bs bodhi.spec
+Wrote: /home/bowlofeggs/rpmbuild/SRPMS/bodhi-3.13.0-0.0.beta.e0ca5bc.fc29.src.rpm
+$ koji build f29-infra /home/bowlofeggs/rpmbuild/SRPMS/bodhi-3.13.0-0.0.beta.e0ca5bc.fc29.src.rpm
+</pre></div>
+</div>
+</li>
+<li><p>Build the beta for bowlofegg’s bodhi-pre-release Copr repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ copr build bowlofeggs/bodhi-pre-release /home/bowlofeggs/rpmbuild/SRPMS/bodhi-3.13.0-0.0.beta.e0ca5bc.fc29.src.rpm
+</pre></div>
+</div>
+</li>
+<li><p>It’s a good idea to also do a scratch build against Fedora Rawhide just to make sure things build
+there:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ koji build --scratch rawhide /home/bowlofeggs/rpmbuild/SRPMS/bodhi-3.13.0-0.0.beta.e0ca5bc.fc29.src.rpm
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="deploy-the-beta-to-staging">
+<h3>Deploy the beta to staging<a class="headerlink" href="#deploy-the-beta-to-staging" title="Permalink to this heading">¶</a></h3>
+<p>To deploy to beta to staging, read the <a class="reference external" href="https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/bodhi/#_performing_a_bodhi_upgrade">Fedora Infrastructure Bodhi SOP</a>.</p>
+<p>Notify people that the beta has been deployed so they can test and provide feedback.
+You can notify the tickets that are referenced in the release notes, Fedora IRC channels (
+<code class="docutils literal notranslate"><span class="pre">#bodhi</span></code>, <code class="docutils literal notranslate"><span class="pre">#fedora-admin</span></code>, <code class="docutils literal notranslate"><span class="pre">#fedora-apps</span></code>, <code class="docutils literal notranslate"><span class="pre">#fedora-devel</span></code>, <code class="docutils literal notranslate"><span class="pre">#fedora-releng</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">#fedora-qa</span></code>), and the Fedora infrastructure mailing list.</p>
+</section>
+<section id="test-the-beta">
+<h3>Test the beta<a class="headerlink" href="#test-the-beta" title="Permalink to this heading">¶</a></h3>
+<p>Testing beta builds in staging can be a bit tricky. One problem you may encounter is that the
+staging Koji instance doesn’t have all the data from production, and its database most likely wasn’t
+synchronized with production data at the same time that Bodhi’s database was. The latter means that
+Bodhi may reference some data that isn’t in the staging Koji database. To overcome this problem,
+I’ve found it to be best to make a fresh build of a package in the staging Koji database so I can be
+sure that Koji has the RPM and that Bodhi can be synchronized with Koji about the resulting update.</p>
+<p>I personally update with a small package that I have ACLs on called <a class="reference external" href="https://src.stg.fedoraproject.org/rpms/python-rpdb">python-rpdb</a>. I usually just
+bump the release on it and make another build, being careful to do this in the staging git
+repository and not production. Then I make an update in staging Bodhi with that build and do my
+testing from there. I don’t do extremely extensive testing, since that is what our unit and
+integration tests are for.</p>
+<p>One test I recommend, however, is to run a compose with the newly minted update. At the time of this
+writing, our integration test suite does not test integration with Koji or Pungi, and this is a
+critical function of Bodhi. To do this, you will need to mark the build as being signed using
+<code class="docutils literal notranslate"><span class="pre">bodhi-shell</span></code> because we don’t sign builds in staging. Then run <code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code> on
+<code class="docutils literal notranslate"><span class="pre">bodhi-backend01.stg.fedoraproject.org</span></code>. As an example, if I had built a test update for
+<code class="docutils literal notranslate"><span class="pre">python-rpdb-2.3-3.fc29</span></code> and I wanted to sign and then compose it, I would run this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo -u apache bodhi-shell
+&gt;&gt;&gt; b = m.Build.query.filter_by(nvr=&#39;python-rpdb-2.3-3.fc29&#39;).one()
+&gt;&gt;&gt; b.signed = True
+&gt;&gt;&gt; m.Session().commit()
+$ sudo -u apache bodhi-push --builds python-rpdb-2.3-3.fc29
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We limit to just the build we built for testing here, because a full compose will fail due
+to the issues described earlier between staging and production Koji.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If there are existing composes in the database due to the production to staging database
+sync, you will not be able to create a new compose as described above. <code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code> will
+force you to resume the existing composes. Unfortunately, they will also fail due to
+referencing builds from production Koji that are not in the staging Koji. You will need to
+use <code class="docutils literal notranslate"><span class="pre">bodhi-shell</span></code> to clear our these composes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo -u apache bodhi-shell
+&gt;&gt;&gt; for u in m.Update.query.filter_by(locked=True):
+...     u.locked = False
+...
+&gt;&gt;&gt; m.Session().commit()
+</pre></div>
+</div>
+<p>Now you should be able to resume the composes, and bodhi-push will see that there’s
+nothing to do in any of them and will remove them.</p>
+</div>
+<p>Of course, if you find issues during testing you should fix those issues upstream and produce a new
+beta and test again.</p>
+</section>
+<section id="release-bodhi-upstream">
+<h3>Release Bodhi upstream<a class="headerlink" href="#release-bodhi-upstream" title="Permalink to this heading">¶</a></h3>
+<p>Once you are satisfied with the quality of the beta and the beta has been in staging for a while (a
+week is typical) to give people time to test and provide feedback, it is time to make a release.</p>
+<p>We start by checking out the branch we want to make a release on, and we use <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span></code> to create a
+tag. Be sure to use the -s flag to sign the commit with your GPG key:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git tag -s 3.13.0
+</pre></div>
+</div>
+<p>Your <code class="docutils literal notranslate"><span class="pre">$EDITOR</span></code> will be opened for you to write the release notes into the tag. You can copy the
+release notes into there, and I typically change the format from RST to markdown for this because
+it’s a little easier to read in plain text, and we will also paste the release notes into GitHub in
+a bit and it’ll be useful to have a markdown version anyway. You don’t need to use markdown if you
+prefer not to, it’s just a suggestion.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you do use markdown in the git tag notes, don’t use the <code class="docutils literal notranslate"><span class="pre">#</span></code> character to specify
+headings because git will interpret those lines as comments.</p>
+</div>
+<p>Push the tag up to GitHub:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git push origin --tags
+</pre></div>
+</div>
+<p>Now go to the releases page in GitHub, click the tags submenu, find the tag you just made, click the
+“…“‘s next to it, and choose “Create release”. I usually just make the title along the lines of
+“Bodhi 3.13.0 released”. It’d be nice if GitHub used the tag message you just wrote in git, but it
+does not. Fortunately, you might have just formatting it with markdown anyway and can copy and paste
+it into the GitHub release notes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git show 3.13.0
+</pre></div>
+</div>
+<p>The next step is to release Bodhi to PyPI. To do this, we will make a source build:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python3 setup.py sdist
+</pre></div>
+</div>
+<p>This will drop source tarballs into the <code class="docutils literal notranslate"><span class="pre">dist/</span></code> folder for the various bodhi packages. Now you can
+use <code class="docutils literal notranslate"><span class="pre">twine</span></code> to sign the builds and upload them to PyPI, substituting your GPG key ID where mine is
+below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ twine upload -s -i 3BDD2462 dist/*
+</pre></div>
+</div>
+</section>
+<section id="release-bodhi-downstream">
+<h3>Release Bodhi downstream<a class="headerlink" href="#release-bodhi-downstream" title="Permalink to this heading">¶</a></h3>
+<p>Next it is time to release Bodhi downstream. Don’t forget to remove the patch you made earlier to
+set its version to a beta, and all the code that used commit hashes instead of versions.</p>
+<ol class="arabic">
+<li><p>Build the release for all targeted Fedora versions.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Be sure to consider whether the version you are releasing would be backwards
+incompatible for the various stable releases of Bodhi. Major releases should only go to
+Rawhide.</p>
+</div>
+</li>
+<li><p>Build the release for bowlofegg’s bodhi Copr repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ copr build bowlofeggs/bodhi /home/bowlofeggs/rpmbuild/SRPMS/bodhi-3.13.0-1.fc29.src.rpm
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="deploy-the-beta-to-staging-and-production">
+<h3>Deploy the beta to staging and production<a class="headerlink" href="#deploy-the-beta-to-staging-and-production" title="Permalink to this heading">¶</a></h3>
+<p>As before, read the <a class="reference external" href="https://docs.fedoraproject.org/en-US/infra/sysadmin_guide/bodhi/#_performing_a_bodhi_upgrade">Fedora Infrastructure Bodhi SOP</a> for details on how we deploy Bodhi in
+Fedora Infrastructure.</p>
+<p>It is wise to deploy the real release to staging as a sanity check before deploying to production.</p>
+</section>
+<section id="notifications">
+<h3>Notifications<a class="headerlink" href="#notifications" title="Permalink to this heading">¶</a></h3>
+<p>Notify people that the release and deployment are done. You can notify the tickets that are
+referenced in the release notes, Fedora IRC channels (<code class="docutils literal notranslate"><span class="pre">#bodhi</span></code>, <code class="docutils literal notranslate"><span class="pre">#fedora-admin</span></code>,
+<code class="docutils literal notranslate"><span class="pre">#fedora-apps</span></code>, <code class="docutils literal notranslate"><span class="pre">#fedora-devel</span></code>, <code class="docutils literal notranslate"><span class="pre">#fedora-releng</span></code>, and <code class="docutils literal notranslate"><span class="pre">#fedora-qa</span></code>), and the Fedora
+infrastructure mailing list.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Developer documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Release process</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#branches">Branches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deploying-a-development-snapshot-to-staging">Deploying a development snapshot to Staging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-make-a-release">How to make a release</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Developer documentation</a></li>
+      <li>Next: <a href="vagrant.html" title="next chapter">Vagrant</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2023, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/developer/releases.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

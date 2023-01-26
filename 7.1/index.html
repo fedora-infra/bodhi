@@ -1,0 +1,285 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Bodhi &#8212; bodhi 7.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Testing updates" href="user/testing.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="bodhi">
+<h1>Bodhi<a class="headerlink" href="#bodhi" title="Permalink to this heading">¶</a></h1>
+<p>Bodhi is designed to democratize the package update testing and release process for RPM based Linux
+distributions. It provides an interface for developers to propose updates to a distribution, and an
+interface for testers to leave feedback about updates through a +1/-1 karma system.</p>
+<p>Bodhi’s main features are:</p>
+<ul class="simple">
+<li><p>Provides an interface for developers and release engineers to manage pushing out
+package updates for multiple distribution versions.</p></li>
+<li><p>Generates pre-release test repositories for end users and testers to install proposed updates.</p></li>
+<li><p>Gives testers an interface to leave feedback about package updates, leading to
+higher quality package updates.</p></li>
+<li><p>Announces the arrival of new packages entering the collection.</p></li>
+<li><p>Publishes end-user release notes known as errata.</p></li>
+<li><p>Generates yum repositories.</p></li>
+<li><p>Queries ResultsDB for automated test results and displays them on updates.</p></li>
+</ul>
+<section id="user-guide">
+<h2>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user/testing.html">Testing updates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/testing.html#karma">Karma</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/testing.html#automated-tests">Automated tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/testing.html#stable-push">Stable push</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/update_states.html">Update states</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/update_states.html#pending">Pending</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/update_states.html#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/update_states.html#testing-stable">Testing/Stable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/update_states.html#frozen">Frozen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/update_states.html#stable">Stable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/update_states.html#obsolete">Obsolete</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/update_states.html#revoked">Revoked</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/update_states.html#unpushed">Unpushed</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/automatic_updates.html">Automatic Updates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/automatic_updates.html#associate-bugs-to-automatic-updates">Associate bugs to automatic updates</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/fedora-flavored-markdown.html#description">Description</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user/release_notes.html">Release notes</a></li>
+</ul>
+</div>
+</section>
+<section id="api-guide">
+<h2>API Guide<a class="headerlink" href="#api-guide" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="server_api/index.html">Bodhi Server APIs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="server_api/index.html#message-api">Message API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="python_bindings.html">Python bindings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="python_bindings.html#bodhi.client.bindings.BodhiClient"><code class="docutils literal notranslate"><span class="pre">BodhiClient</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_bindings.html#bodhi.client.bindings.BodhiClientException"><code class="docutils literal notranslate"><span class="pre">BodhiClientException</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_bindings.html#bodhi.client.bindings.ComposeNotFound"><code class="docutils literal notranslate"><span class="pre">ComposeNotFound</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_bindings.html#bodhi.client.bindings.UpdateNotFound"><code class="docutils literal notranslate"><span class="pre">UpdateNotFound</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_bindings.html#bodhi.client.bindings.errorhandled"><code class="docutils literal notranslate"><span class="pre">errorhandled()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="contributor-guide">
+<h2>Contributor Guide<a class="headerlink" href="#contributor-guide" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer/index.html">Developer documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/index.html#contribution-guidelines">Contribution guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/index.html#issues">Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/index.html#ci-tests">CI Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/index.html#create-a-bodhi-development-environment">Create a Bodhi development environment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/releases.html">Release process</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/releases.html#branches">Branches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/releases.html#deploying-a-development-snapshot-to-staging">Deploying a development snapshot to Staging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/releases.html#how-to-make-a-release">How to make a release</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/vagrant.html">Vagrant</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/vagrant.html#authentication">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/vagrant.html#quick-tips-about-the-bodhi-vagrant-environment">Quick tips about the Bodhi Vagrant environment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/vagrant_vscode.html">Debugging with Visual Studio Code</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/vagrant_vscode.html#configure-vs-code-for-remote-ssh">Configure VS Code for Remote SSH</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/vagrant_vscode.html#debugging-application-running-in-vagrant">Debugging application running in Vagrant</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/vagrant_vscode.html#debugging-unit-tests">Debugging unit-tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/vagrant_vscode.html#debugging-celery">Debugging celery</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/virtualenv.html">Virtualenv</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#setup-virtualenvwrapper">Setup virtualenvwrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#set-pythonpath">Set PYTHONPATH</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#clone-the-source">Clone the source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#bootstrap-the-virtualenv">Bootstrap the virtualenv</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#setting-up">Setting up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#create-the-development-ini-file">Create the development.ini file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#run-the-test-suite">Run the test suite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#import-the-bodhi2-database">Import the bodhi2 database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#adjust-database-configuration-in-development-ini-file">Adjust database configuration in development.ini file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#upgrade-the-database">Upgrade the database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#run-the-web-app">Run the web app</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/virtualenv.html#setup-the-postgresql-server">Setup the postgresql server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer/models.html">Database models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer/docblocks/bodhi.server.models.html">bodhi.server.models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer/models.html#database-schema">Database Schema</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="admin-guide">
+<h2>Admin Guide<a class="headerlink" href="#admin-guide" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="administration.html">Administration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="administration.html#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="administration.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="administration.html#components">Components</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="community">
+<h2>Community<a class="headerlink" href="#community" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi is maintained by the Fedora Project and its <a class="reference external" href="https://github.com/fedora-infra/bodhi">source code</a> and <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues">issue tracker</a> are on GitHub.
+There is a <a class="reference external" href="https://lists.fedoraproject.org/archives/list/bodhi&#64;lists.fedorahosted.org/">mailing list</a> and an IRC channel on <a class="reference external" href="https://libera.chat/">Libera</a>, <code class="docutils literal notranslate"><span class="pre">#bodhi</span></code> for discussion about Bodhi.
+Fedora runs a <a class="reference external" href="https://bodhi.fedoraproject.org/">production instance</a> and <a class="reference external" href="https://bodhi.stg.fedoraproject.org/">staging instance</a>. <a class="reference external" href="https://fedora-infra.github.io/bodhi/">Online documentation</a> is available.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="#">
+    <img class="logo" src="_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user/release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="user/testing.html" title="next chapter">Testing updates</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2023, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

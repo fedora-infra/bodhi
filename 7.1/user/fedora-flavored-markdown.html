@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Fedora-Flavored Markdown &#8212; bodhi 7.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release notes" href="release_notes.html" />
+    <link rel="prev" title="Automatic Updates" href="automatic_updates.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="fedora-flavored-markdown">
+<h1>Fedora-Flavored Markdown<a class="headerlink" href="#fedora-flavored-markdown" title="Permalink to this heading">¶</a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p>Text fields in Bodhi2 support an enhanced version of <a class="reference external" href="http://daringfireball.net/projects/markdown/syntax">markdown</a>. This is a cheat
+sheet for your reference.</p>
+<p>Be advised that, even if Bodhi supports a wide set of markups, the update notes
+will be used for the description field in appstream tag, which instead supports
+only a <a class="reference external" href="https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-description">reduced set</a>
+of markups. Unsupported markup may be showed as plain text
+or lead to unexpected beahvior in package managers GUI!</p>
+<p>You can do <strong>HEADERS</strong> by underlining or by prefixing with the <code class="docutils literal notranslate"><span class="pre">#</span></code> character:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>This is an H1
+=============
+
+This is an H2
+-------------
+
+# This is another H1
+
+## This is another H2
+</pre></div>
+</div>
+<p>You can do <strong>BLOCKQUOTES</strong> using email-style prefixes with the <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> character:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; This is a quotation
+&gt; over many lines
+&gt; &gt; and it can be nested(!)
+</pre></div>
+</div>
+<p><strong>LISTS</strong> work like you’d expect, by prefixing with any of the <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">+</span></code>,
+or <code class="docutils literal notranslate"><span class="pre">-</span></code> characters:</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>Check out this list:
+
+* This
+* is
+* a list...
+</pre></div>
+</div>
+<p>You need a blank line between a paragraph and the start of a list for the
+renderer to pick up on it.</p>
+<p><strong>EMPHASIS</strong> can be addedd like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">*</span><span class="n">italics</span><span class="o">*</span>
+<span class="n">_italics_</span>
+<span class="o">**</span><span class="n">bold</span><span class="o">**</span>
+<span class="n">__bold__</span>
+</pre></div>
+</div>
+<p>You can save your code references from being misinterpreted as emphasis by
+surrounding them with backtick characters (<code class="docutils literal notranslate"><span class="pre">`</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Use `the_best_function()` and _not_ that crummy one
+</pre></div>
+</div>
+<p><strong>LINKS</strong> look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">text</span><span class="p">](</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">getfedora</span><span class="o">.</span><span class="n">org</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>…but we also support bare links if you just provide a URL.</p>
+<p>You can create <strong>CODE BLOCKS</strong> by indenting every line of the block by at
+least 4 spaces or 1 tab.</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>Here is a code block:
+  for i in range(4):
+    print i
+  print(&quot;done&quot;)
+</pre></div>
+</div>
+<p>You can reference <strong>BUG REPORTS</strong> by simply writing something of the form
+<code class="docutils literal notranslate"><span class="pre">tracker#ticketid</span></code>.</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>This fixes PHP#1234 and Python#2345
+</pre></div>
+</div>
+<p>…we will automatically generate links to the tickets in the appropriate
+trackers in place. The supported bug tracker prefixes are:
+(these are all case-insensitive)</p>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span>Fedora, RHBZ and RH (all point to the Red Hat Bugzilla)
+GCC
+GNOME
+KDE
+Mozilla
+PEARL
+PEAR
+PHP
+Python
+SOURCEWARE
+</pre></div>
+</div>
+<p>And you can refer to <strong>OTHER USERS</strong> by prefixing their username with the
+<code class="docutils literal notranslate"><span class="pre">&#64;</span></code> symbol.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Thanks</span> <span class="nd">@mattdm</span>
+</pre></div>
+</div>
+<p>This will generate a link to their profile, but it won’t necessarily send
+them a notification unless they have a special
+<a class="reference external" href="https://apps.fedoraproject.org/notifications">FMN</a> rule set up to catch it.</p>
+<p>Lastly, you can embed inline <strong>IMAGES</strong> with syntax like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>![Alt text](/path/to/img.jpg)
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Fedora-Flavored Markdown</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#description">Description</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="automatic_updates.html" title="previous chapter">Automatic Updates</a></li>
+      <li>Next: <a href="release_notes.html" title="next chapter">Release notes</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2023, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/user/fedora-flavored-markdown.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

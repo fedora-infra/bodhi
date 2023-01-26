@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Bodhi Server APIs &#8212; bodhi 7.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Base" href="messages/base.html" />
+    <link rel="prev" title="2.x release notes" href="../user/2.x_release_notes.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="bodhi-server-apis">
+<h1>Bodhi Server APIs<a class="headerlink" href="#bodhi-server-apis" title="Permalink to this heading">¶</a></h1>
+<section id="message-api">
+<h2>Message API<a class="headerlink" href="#message-api" title="Permalink to this heading">¶</a></h2>
+<p>Bodhi sends a number of AMQP messages. Each message has a formally defined schema. Bodhi provides a
+convenient <code class="docutils literal notranslate"><span class="pre">bodhi.messages</span></code> Python package that allows you to interact with messages
+via handy Python classes. If you are unable to use Python 3.6+, Bodhi also publishes its message
+schemas via <a class="reference external" href="https://json-schema.org/">JSON Schema</a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Bodhi’s messages do contain fields that are not documented in its JSON schemas. Bodhi
+does not make any guarantees about data that is not documented in its schema, and thus it is
+subject to change. Please work with the Bodhi project if you need data that is not part of
+Bodhi’s schemas.</p>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="messages/base.html">Base</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="messages/base.html#python-objects">Python objects</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="messages/buildroot_override.html">Buildroot overrides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="messages/buildroot_override.html#module-bodhi.messages.schemas.buildroot_override">Python objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messages/buildroot_override.html#json-schemas">JSON schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="messages/compose.html">Compose</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="messages/compose.html#module-bodhi.messages.schemas.compose">Python objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messages/compose.html#json-schemas">JSON schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="messages/errata.html">Errata</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="messages/errata.html#module-bodhi.messages.schemas.errata">Python objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messages/errata.html#json-schemas">JSON schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="messages/update.html">Update</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="messages/update.html#module-bodhi.messages.schemas.update">Python objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messages/update.html#json-schemas">JSON schemas</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo"/>
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/update_states.html">Update states</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/release_notes.html">Release notes</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Bodhi Server APIs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#message-api">Message API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/vagrant.html">Vagrant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/virtualenv.html">Virtualenv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../user/2.x_release_notes.html" title="previous chapter">2.x release notes</a></li>
+      <li>Next: <a href="messages/base.html" title="next chapter">Base</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2007-2023, Red Hat, Inc..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/server_api/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
