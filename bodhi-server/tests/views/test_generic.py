@@ -20,6 +20,8 @@ from unittest import mock
 import copy
 
 from pyramid.testing import DummyRequest
+import packaging
+import pkg_resources
 import pytest
 import webtest
 
@@ -259,9 +261,22 @@ class TestGenericViews(base.BasePyTestCase):
         res = self.app.get('/markdown', {
             'text': 'email me at <dude@mcpants.org>',
         }, status=200)
-        assert res.json_body['html'] == \
-            ('<div class="markdown">'
-             '<p>email me at <a href="mailto:dude@mcpants.org">dude@mcpants.org</a></p></div>')
+        # markdown tries to obfuscate email addresses, bleach versions prior to
+        # 6.0.0 restored the email in plain text
+        bleach_v = pkg_resources.get_distribution('bleach').version
+        if packaging.version.parse(bleach_v) >= packaging.version.parse("6.0.0"):
+            assert res.json_body['html'] == \
+                ('<div class="markdown">'
+                 '<p>email me at <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#100;&#117;'
+                 '&#100;&#101;&#64;&#109;&#99;&#112;&#97;&#110;&#116;&#115;&#46;&#111;&#114;'
+                 '&#103;">&amp;#100;&amp;#117;&amp;#100;&amp;#101;&amp;#64;&amp;#109;&amp;#99;'
+                 '&amp;#112;&amp;#97;&amp;#110;&amp;#116;&amp;#115;&amp;#46;&amp;#111;&amp;#114;'
+                 '&amp;#103;</a></p></div>')
+        else:
+            assert res.json_body['html'] == \
+                ('<div class="markdown">'
+                 '<p>email me at <a href="mailto:dude@mcpants.org">dude@mcpants.org</a></p>'
+                 '</div>')
 
     def test_markdown_with_autolink(self):
         res = self.app.get('/markdown', {
