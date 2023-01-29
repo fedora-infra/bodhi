@@ -4978,6 +4978,61 @@ class TestUpdate(ModelTest):
         assert msg.body["artifact"]["type"] == "koji-build-group"
         assert msg.packages == ['TurboGears']
 
+    @mock.patch('bodhi.server.models.Update.obsolete')
+    @mock.patch('bodhi.server.models.Update.comment')
+    def test_obsolete_older_updates(self, comment, obsolete):
+        """Assert notes from previous update are copied into the newer."""
+        old_update = self.db.query(model.Update).first()
+        assert old_update.builds[0].nvr == 'TurboGears-1.0.8-3.fc11'
+        assert old_update.notes == 'foobar'
+        new_update = self.get_update(name='TurboGears-1.0.9-1.fc11',
+                                     override_args={'notes': 'These notes are new.'})
+        new_update.obsolete_older_updates(self.db)
+        assert new_update.notes == "These notes are new.\n\n----\n\nfoobar"
+
+    @mock.patch('bodhi.server.models.Update.obsolete')
+    @mock.patch('bodhi.server.models.Update.comment')
+    def test_obsolete_older_updates_with_changelog(self, comment, obsolete):
+        """Assert old changelog is not copied into newer notes."""
+        old_update = self.db.query(model.Update).first()
+        assert old_update.builds[0].nvr == 'TurboGears-1.0.8-3.fc11'
+        changelog = ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2\n'
+                     '- Added a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo>'
+                     ' - 2.0.1-2\n- Make users ☺\n')
+        old_update.notes = f"""Automatic update for {old_update.builds[0].nvr}.
+
+##### **Changelog**
+
+```
+{changelog}
+```"""
+        changelog = ('* Sat Aug  3 2018 Fedora Releng <rel-eng@lists.fedoraproject.org> - 3\n'
+                     '- Just having fun.\n' + changelog)
+        new_update = self.get_update(name='TurboGears-1.0.9-1.fc11')
+        new_notes = new_update.notes = f"""Automatic update for {new_update.builds[0].nvr}.
+
+##### **Changelog**
+
+```
+{changelog}
+```"""
+        new_update.obsolete_older_updates(self.db)
+        assert new_update.notes == (
+            new_notes + f"\n\n----\n\nAutomatic update for {old_update.builds[0].nvr}.\n")
+
+    @mock.patch('bodhi.server.models.Update.obsolete')
+    @mock.patch('bodhi.server.models.Update.comment')
+    def test_obsolete_older_updates_with_notes_too_long(self, comment, obsolete):
+        """Assert notes from previous update are not copied into the newer
+        if the resultant notes are too long."""
+        old_update = self.db.query(model.Update).first()
+        assert old_update.builds[0].nvr == 'TurboGears-1.0.8-3.fc11'
+        old_update.notes = 'a' * (config.get('update_notes_maxlength') - 100)
+        new_update = self.get_update(name='TurboGears-1.0.9-1.fc11')
+        new_update.notes = 'b' * 101
+        new_update.obsolete_older_updates(self.db)
+        assert new_update.notes == 'b' * 101
+
 
 class TestUser(ModelTest):
     klass = model.User
