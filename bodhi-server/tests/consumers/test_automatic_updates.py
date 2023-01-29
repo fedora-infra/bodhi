@@ -148,6 +148,27 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
             assert update.notes == "Automatic update for colord-1.3.4-1.fc26."
 
     @mock.patch('bodhi.server.models.RpmBuild.get_changelog')
+    def test_changelog_too_long(self, mock_generate_changelog):
+        """The changelog must be omitted if it's too long."""
+        mock_generate_changelog.return_value = 'a' * config.get('update_notes_maxlength')
+
+        # process the message
+        self.handler(self.sample_message)
+
+        # check if the update exists...
+        update = self.db.query(Update).join(Build).filter(
+            Update.builds.any(Build.nvr == self.sample_nvr)
+        ).first()
+
+        assert update.notes == """Automatic update for colord-1.3.4-1.fc26.
+
+##### **Changelog**
+
+```
+[CHANGELOG OMITTED BECAUSE TOO LONG]
+```"""
+
+    @mock.patch('bodhi.server.models.RpmBuild.get_changelog')
     def test_bug_added(self, mock_generate_changelog):
         """Assert that a bug is added to the update if proper string is in changelog."""
         changelog = ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2\n'

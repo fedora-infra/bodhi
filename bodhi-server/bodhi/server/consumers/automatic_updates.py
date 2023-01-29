@@ -167,9 +167,11 @@ class AutomaticUpdateHandler:
 ##### **Changelog**
 
 ```
-{changelog}
+{{}}
 ```"""
-
+                if len(changelog) > config.get('update_notes_maxlength') - len(notes):
+                    changelog = '[CHANGELOG OMITTED BECAUSE TOO LONG]'
+                notes = notes.format(changelog)
                 if rel.name not in config.get('bz_exclude_rels'):
                     for b in re.finditer(config.get('bz_regex'), changelog, re.IGNORECASE):
                         idx = int(b.group(1))
