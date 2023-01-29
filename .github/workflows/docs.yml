@@ -3,9 +3,8 @@ on:
   push:
     branches:
       - 'develop'
-      - '5.7'
-      - '6.0'
       - '7.0'
+      - '7.1'
     paths:
       - docs/**
 
