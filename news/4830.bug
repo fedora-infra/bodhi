@@ -1,0 +1,1 @@
+bodhi-client: do not run `koji wait-repo` when expiring a buildroot override
