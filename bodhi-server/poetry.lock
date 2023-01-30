@@ -1650,14 +1650,14 @@ test = ["flaky", "pretend", "pytest (>=3.0.1)"]
 
 [[package]]
 name = "pyramid"
-version = "2.0"
+version = "2.0.1"
 description = "The Pyramid Web Framework, a Pylons project"
 category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "pyramid-2.0-py3-none-any.whl", hash = "sha256:de7f097fa2fa43bead1f690761e56594d24954ae7dc7cbf69a5d84bb75c5a099"},
-    {file = "pyramid-2.0.tar.gz", hash = "sha256:45431b387587ed0fac6213b54d6e9f0936f0cc85238a8f5af7852fc9484c5c77"},
+    {file = "pyramid-2.0.1-py3-none-any.whl", hash = "sha256:2f902589405ddc775e908bfdafebc92e836ffd85e1fd2a81dd724832cfae4d81"},
+    {file = "pyramid-2.0.1.tar.gz", hash = "sha256:fabfd745039e26ad5b0915fc396e8725c0f8a3d17b941f9611ecd1ed76cfe7da"},
 ]
 
 [package.dependencies]
