@@ -451,6 +451,18 @@ class TestGenericViews(base.BasePyTestCase):
         body = res.json_body
         assert len(body) == 0
 
+    @mock.patch('bodhi.server.views.generic.log.info')
+    def test_get_sidetags_user_not_found(self, log_info):
+        """The get_sidetags endpoint should handle gracefully the case when a user
+        is not known to Koji.
+        """
+        res = self.app.get('/get_sidetags', {'user': 'unknown'})
+        body = res.json_body
+        assert len(body) == 0
+        log_info.assert_called_with(
+            "Unable to retrieve sidetags for user 'unknown' not found in Koji"
+        )
+
     def test_latest_builds_in_tag(self):
         """Test the latest_builds_in_tag endpoint."""
 
