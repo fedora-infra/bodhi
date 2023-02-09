@@ -757,6 +757,8 @@ ${parent.javascript()}
       ABORTED: 'warning',
       CRASHED: 'warning',
       ABSENT: 'danger',
+      QUEUED: 'info',
+      RUNNING: 'info',
     }
     var icons = {
       PASSED: 'check-circle',
@@ -766,6 +768,8 @@ ${parent.javascript()}
       ABORTED: 'trash',
       CRASHED: 'fire', // no joke.
       ABSENT: 'question-circle',
+      QUEUED: 'hourglass-top',
+      RUNNING: 'hourglass-split'
     }
 
     var update = '${update.alias}';
