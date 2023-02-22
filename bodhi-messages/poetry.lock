@@ -309,14 +309,14 @@ tox = ["tox"]
 
 [[package]]
 name = "diff-cover"
-version = "7.4.0"
+version = "7.5.0"
 description = "Run coverage and linting reports on diffs"
 category = "dev"
 optional = false
 python-versions = ">=3.7.2,<4.0.0"
 files = [
-    {file = "diff_cover-7.4.0-py3-none-any.whl", hash = "sha256:e1bfc69e7f9d5ed6e0239013a220fee78af0c490b89dc5f177293bb9de6a55bb"},
-    {file = "diff_cover-7.4.0.tar.gz", hash = "sha256:3d98800ea3198ab8450733050dd98dec802c9028c7164aace990f2f13a160e98"},
+    {file = "diff_cover-7.5.0-py3-none-any.whl", hash = "sha256:332f31d0892279de33bcc33dd1c75d318244af440dc1ce519984279682669691"},
+    {file = "diff_cover-7.5.0.tar.gz", hash = "sha256:a4b3024a831e4f38c22e809945f09d0a6a7ba662dc8e30d28f1a6b21a3edebfc"},
 ]
 
 [package.dependencies]
@@ -791,14 +791,14 @@ tests = ["coverage[toml] (>=5.0.2)", "pytest"]
 
 [[package]]
 name = "setuptools"
-version = "67.3.3"
+version = "67.4.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "setuptools-67.3.3-py3-none-any.whl", hash = "sha256:9d3de8591bd6f6522594406fa46a6418eabd0562dacb267f8556675762801514"},
-    {file = "setuptools-67.3.3.tar.gz", hash = "sha256:ed4e75fafe103c79b692f217158ba87edf38d31004b9dbc1913debb48793c828"},
+    {file = "setuptools-67.4.0-py3-none-any.whl", hash = "sha256:f106dee1b506dee5102cc3f3e9e68137bbad6d47b616be7991714b0c62204251"},
+    {file = "setuptools-67.4.0.tar.gz", hash = "sha256:e5fd0a713141a4a105412233c63dc4e17ba0090c8e8334594ac790ec97792330"},
 ]
 
 [package.extras]
