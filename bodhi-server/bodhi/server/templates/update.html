@@ -409,7 +409,7 @@ if can_edit and update.release.composed_by_bodhi:
                     </div>
                 <div class="pb-1">
                   <div id="test_status_badge">
-                    <a class="gating-summary notblue" href="#automatedtests-tab">${update.test_gating_status}</a>
+                    <a class="gating-summary notblue" href="#">${update.test_gating_status}</a>
                     <i class="spinner fa fa-spinner fa-spin fa-fw"></i>
                   </div>
                   % if can_edit and update.test_gating_status == models.TestGatingStatus.failed and update.status == models.UpdateStatus.testing:
@@ -636,9 +636,11 @@ if can_edit and update.release.composed_by_bodhi:
 
     <div class="tab-pane" id="automatedtests-tab-pane" role="tabpanel" aria-labelledby="automatedtests-tab" tabindex="0">
       <div id="resultsdb">
-      <h3>Automated Test Results</h3>
-      <a class="gating-summary notblue">${update.test_gating_status}</a>
-      <i class="fa spinner fa-spinner fa-spin fa-fw"></i>
+        <h3>Automated Test Results</h3>
+        <div id="gating-summary-tab">
+          <a class="gating-summary notblue">${update.test_gating_status}</a>
+          <i class="fa spinner fa-spinner fa-spin fa-fw"></i>
+        </div>
       </div>
     </div>
 
@@ -739,10 +741,10 @@ ${parent.javascript()}
     // Initialize popovers
     const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
     const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+    const tabTrigger = new bootstrap.Tab($('#automatedtests-tab'))
 
     $('.gating-summary').click(function(e){
       e.preventDefault();
-      const tabTrigger = new bootstrap.Tab($('#automatedtests-tab'))
       tabTrigger.show();
     });
 
@@ -832,7 +834,7 @@ ${parent.javascript()}
         var html = '<span class="badge text-bg-' + label_class + '">' +
           '<span class="fa fa-' + icon_class + '">' +
           '</span></span> ';
-        html += '<a class="gating-summary notblue" href="#automatedtests-tab">' + summary;
+        html += '<a class="gating-summary notblue" href="#">' + summary;
         html += '</a>';
         if (Object.keys(waivers).length != 0) {
             var seensubjects = [];
@@ -856,9 +858,12 @@ ${parent.javascript()}
                 });
             });
         }
-        $('#test_status_badge .gating-summary').replaceWith(html);
-        $('#resultsdb .gating-summary').replaceWith(html);
-
+        $('#test_status_badge').html(html);
+        $('#gating-summary-tab').html(html);
+        $('.gating-summary').click(function(e){
+          e.preventDefault();
+          tabTrigger.show();
+        });
     };
 
     var get_greenwave_information = function(request, after_success) {
