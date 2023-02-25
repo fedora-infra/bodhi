@@ -50,7 +50,7 @@ def waiverdb_container(docker_backend, docker_network, db_container, rabbitmq_co
     container = image.run_via_binary(additional_opts=run_opts)
     container.start()
     # Add sample data in the database
-    container.execute(["waiverdb", "db", "upgrade"])
+    container.execute(["./entrypoint.sh", "waiverdb", "db", "upgrade"])
     # we need to wait for the webserver to start serving
     container.wait_for_port(8080, timeout=30)
     yield container
