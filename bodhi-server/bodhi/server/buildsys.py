@@ -282,6 +282,14 @@ class DevBuildsys:
             if token.startswith("el"):
                 tag = "dist-%sE-epel-testing-candidate" % token.replace("el", "")
                 break
+
+            if name == 'fedora-release':
+                if testing:
+                    tag = f'f{version}-updates-testing'
+                    break
+                else:
+                    tag = f'f{version}-updates-candidate'
+                    break
         else:
             raise ValueError("Couldn't determine dist for build '%s'" % build)
 
@@ -389,7 +397,10 @@ class DevBuildsys:
                  'name': 'f28F'},
             ]
         else:
-            release = build.split('.')[-1].replace('fc', 'f').replace('~bootstrap', '')
+            if build.startswith('fedora-release'):
+                release = f'f{build.split("-")[2]}'
+            else:
+                release = build.split('.')[-1].replace('fc', 'f').replace('~bootstrap', '')
             result = [
                 {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                  'name': '%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
