@@ -2,19 +2,31 @@
 """
 Generate an image of the database schema
 """
+from packaging import version
+from sqlalchemy import __version__ as sqlaver
 from sqlalchemy_schemadisplay import create_schema_graph
 
-from bodhi.server import models
+from bodhi.server import models, Session
 
 
 def write_graph(filename):
-    graph = create_schema_graph(
-        metadata=models.metadata,
-        show_datatypes=False,
-        show_indexes=False,
-        rankdir='LR',
-        concentrate=False
-    )
+    if version.parse(sqlaver) >= version.parse('2.0.0'):
+        graph = create_schema_graph(
+            session=Session,
+            metadata=models.metadata,
+            show_datatypes=False,
+            show_indexes=False,
+            rankdir='LR',
+            concentrate=False
+        )
+    else:
+        graph = create_schema_graph(
+            metadata=models.metadata,
+            show_datatypes=False,
+            show_indexes=False,
+            rankdir='LR',
+            concentrate=False
+        )
     graph.write_png(filename)
 
 
