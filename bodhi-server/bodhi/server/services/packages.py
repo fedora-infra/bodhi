@@ -20,7 +20,7 @@ import math
 
 from cornice import Service
 from cornice.validators import colander_querystring_validator
-from sqlalchemy import distinct, func
+from sqlalchemy import distinct, func, LABEL_STYLE_TABLENAME_PLUS_COL
 from sqlalchemy.sql.expression import case
 
 from bodhi.server.models import Package
@@ -78,8 +78,8 @@ def query_packages(request):
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
-    count_query = query.with_labels().statement\
-        .with_only_columns([func.count(distinct(Package.name))])\
+    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
+        .with_only_columns(func.count(distinct(Package.name)))\
         .order_by(None)
     total = db.execute(count_query).scalar()
 
