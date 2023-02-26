@@ -22,7 +22,7 @@ import math
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
 from pyramid.httpexceptions import HTTPForbidden
-from sqlalchemy import func, distinct
+from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
 from sqlalchemy.sql import or_, and_
 
 from bodhi.server import log
@@ -166,8 +166,8 @@ def query_comments(request):
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
-    count_query = query.with_labels().statement\
-        .with_only_columns([func.count(distinct(Comment.id))])\
+    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
+        .with_only_columns(func.count(distinct(Comment.id)))\
         .order_by(None)
     total = db.execute(count_query).scalar()
 

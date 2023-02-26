@@ -86,7 +86,7 @@ def _configure_test_db(db_uri):
         @event.listens_for(engine, "begin")
         def begin_event(conn):
             """Emit our own 'BEGIN' instead of letting pysqlite do it."""
-            conn.execute('BEGIN')
+            conn.exec_driver_sql('BEGIN')
 
     @event.listens_for(Session, 'after_transaction_end')
     def restart_savepoint(session, transaction):
@@ -241,7 +241,7 @@ class BaseTestCaseMixin:
             self.engine = engine
 
         self.connection = self.engine.connect()
-        models.Base.metadata.create_all(bind=self.connection)
+        models.Base.metadata.create_all(self.engine)
         self.transaction = self.connection.begin()
 
         Session.remove()
