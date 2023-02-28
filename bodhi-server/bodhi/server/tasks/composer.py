@@ -371,13 +371,14 @@ class ComposerThread(threading.Thread):
         # https://docs.python.org/2/library/threading.html#thread-objects
         self.name = self.id
 
-        # For 'pending' branched releases, we only want to perform repo-related
+        # For 'pending' or 'frozen' branched releases, we only want to perform repo-related
         # tasks for testing updates. For stable updates, we should just add the
         # dist_tag and do everything else other than composing/updateinfo, since
         # the nightly build-branched cron job composes for us.
         self.skip_compose = False
-        if self.compose.release.state is ReleaseState.pending \
-                and self.compose.request is UpdateRequest.stable:
+        if self.compose.request is UpdateRequest.stable \
+            and (self.compose.release.state is ReleaseState.pending
+                 or self.compose.release.state is ReleaseState.frozen):
             self.skip_compose = True
 
         log.info('Running ComposerThread(%s)' % self.id)
