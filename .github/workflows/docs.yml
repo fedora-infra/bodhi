@@ -18,7 +18,7 @@ jobs:
     name: Build Documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install deps
         run: pip install click sphinx sqlalchemy_schemadisplay
