@@ -78,7 +78,7 @@ class Runner:
         progress_reporter = ProgressReporter(jobs)
         progress_reporter.print_status()
 
-        processes = [j.run() for j in jobs]
+        processes = [self.loop.create_task(j.run()) for j in jobs]
 
         return_when: str = asyncio.ALL_COMPLETED
         if self.options["failfast"]:
@@ -150,7 +150,11 @@ class Runner:
         """
         args = [self.options["container_runtime"], 'ps', f'--filter=label={CONTAINER_LABEL}', '-q']
         processes = subprocess.check_output(args).decode()
-        stop_jobs = [StopJob(process).run() for process in processes.split('\n') if process]
+        stop_jobs = [
+            self.loop.create_task(StopJob(process).run())
+            for process in processes.split('\n')
+            if process
+        ]
 
         # If you give run_until_complete a future with no tasks, you will haz a sad (that's the
         # technical wording for a ValueError).
