@@ -4,6 +4,29 @@ Release notes
 
 .. towncrier release notes start
 
+v7.1.2
+======
+
+Released on 2023-04-12.
+This is a minor feature release.
+
+
+Features
+^^^^^^^^
+
+* A new metadata file `frequencyupdateinfo.json` will be released as a 
+  part of the composer process which has a more comprehensive list of 
+  updates than updateinfo.xml and is not architecture 
+  specific (:pr:`5172`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Rishabh Saini
+
+
 v7.1.1
 ======
 

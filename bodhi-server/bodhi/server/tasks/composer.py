@@ -47,7 +47,10 @@ from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import buildsys, mail, notifications
 from bodhi.server.config import config, validate_path
 from bodhi.server.exceptions import BodhiException
-from bodhi.server.metadata import UpdateInfoMetadata
+from bodhi.server.metadata import (
+    UpdateInfoMetadata,
+    FrequencyInfoMetadata
+)
 from bodhi.server.models import (
     Compose,
     ComposeState,
@@ -126,12 +129,12 @@ class ComposerHandler(object):
     Things to do while we're waiting on compose:
 
     - Add testing updates to updates-testing digest
-    - Generate/update updateinfo.xml
+    - Generate/update updateinfo.xml and frequencyUpdateInfo.json
     - Have a coffee. Have 7 coffees.
 
     Once compose is done:
 
-    - inject the updateinfo it into the repodata
+    - inject the updateinfo and frequencyUpdateInfo it into the repodata
     - Sanity check the repo
     - Flip the symlinks to the new repo
     - Cache the new repodata
@@ -373,7 +376,7 @@ class ComposerThread(threading.Thread):
 
         # For 'pending' or 'frozen' branched releases, we only want to perform repo-related
         # tasks for testing updates. For stable updates, we should just add the
-        # dist_tag and do everything else other than composing/updateinfo, since
+        # dist_tag and do everything else other than composing/updateinfo/frequencyUpdateInfo, since
         # the nightly build-branched cron job composes for us.
         self.skip_compose = False
         if self.compose.request is UpdateRequest.stable \
@@ -941,7 +944,7 @@ class PungiComposerThread(ComposerThread):
         log.info('Resuming push without any completed repos')
 
     def _compose_updates(self):
-        """Start pungi, generate updateinfo, wait for pungi, and wait for the mirrors."""
+        """Start pungi, generate updateinfo and frequencyUpdateInfo, wait for pungi, and wait for the mirrors."""
         if not os.path.exists(self.compose_dir):
             log.info('Creating %s' % self.compose_dir)
             os.makedirs(self.compose_dir)
@@ -956,10 +959,12 @@ class PungiComposerThread(ComposerThread):
 
         if not self.skip_compose and not composedone:
             uinfo = self._generate_updateinfo()
+            finfo = self._generate_frequencyUpdateInfo()
 
             self._wait_for_pungi(pungi_process)
 
             uinfo.insert_updateinfo(self.path)
+            finfo.insert_frequencyUpdateInfo(self.path)
 
             self._sanity_check_repo()
             self._wait_for_repo_signature()
@@ -1012,6 +1017,19 @@ class PungiComposerThread(ComposerThread):
             conffile.write(template.render())
 
         self._copy_additional_pungi_files(self._pungi_conf_dir, env)
+
+    def _generate_frequencyUpdateInfo(self):
+         """
+        Create the frequencyUpdateInfo.xml file for this repository.
+
+        Returns:
+            bodhi.server.metadata.frequencyUpdateInfoMetadata: The frequencyUpdateInfo model that was created for this
+                repository.
+        """
+        log.info('Generating frequency updateinfo for %s' % self.compose.release.name)
+        fuinfo = FrequencyUpdateInfoMetadata(self.compose.release, Update, UpdateStatus)
+        log.info('FrequencyUpdateinfo generation for %s complete' % self.compose.release.name)
+        return fuinfo
 
     def _generate_updateinfo(self):
         """

@@ -95,6 +95,73 @@ def modifyrepo(comp_type, compose_path, filetype, extension, source, zchunk):
             repodata = os.path.join(repo_path, arch, 'os', 'repodata')
         insert_in_repo(comp_type, repodata, filetype, extension, source, zchunk)
 
+class FrequencyUpdateInfoMetadata(object):
+    """
+    This class represents the frequencyupdateinfo.json metadata
+    """
+
+    def __init__(release, update, update_status):
+        """
+        Initialize the FrequencyUpdateInfoMetadata object.
+
+        Args:
+            release (bodhi.server.models.Release): The Release that is being composed.
+            update (bodhi.server.models.Update):
+            update_status (bodhi.server.models.UpdateStatus):
+        """
+        updates = update.query.filter(
+            update.status.in_(
+                [update_status.stable])
+        ).filter(
+            update.release_id == release.id
+        ).order_by(
+            update.date_submitted
+        )
+        modified_updates = []
+        for update in updates:
+            simplified_update = {
+                "release" : {
+                    "name" : update.release.name, 
+                    "version" : update.release.version,
+                },
+                "alias" : update.alias,
+                "date_stable" : update.date_stable,
+                "builds" : [{"nvr_name" : build.nvr_name()} for build in update.builds],
+            } 
+            modified_updates.push(simplified_update)
+        self.comp_type = cr.XZ
+        
+        # Some repos such as FEDORA-EPEL, are primarily targeted at
+        # distributions that use the yum client, which does not support zchunk metadata
+        self.legacy_repos = ['FEDORA-EPEL']
+        self.zchunk = True
+
+        if release.id_prefix in self.legacy_repos:
+            # FIXME: I'm not sure which versions of RHEL support xz metadata
+            # compression, so use the lowest common denominator for now.
+            self.comp_type = cr.BZ2
+
+            log.warning(
+                'Zchunk data is disabled for repo {release.id_prefix} until it moves to a client'
+                ' with Zchunk support'
+            )
+            self.zchunk = False
+
+        self.finfo = modified_updates
+    
+    def insert_frequencyupdateinfo(self, compose_path):
+        """
+        Add the frequencyupdateinfo.xml file to the repository.
+
+        Args:
+            compose_path (str): The path to the compose where the metadata will be inserted.
+        """
+        fd, tmp_file_path = tempfile.mkstemp()
+        tmp_file_path.write(json.dumps(self.finfo))
+        repo_path = os.path.join(compose_path, 'compose', 'Everything')
+        repodata = os.path.join(repo_path, 'source', 'tree', 'repodata')
+        insert_in_repo(self.comp_type, repodata, 'frequencyupdateinfo', 'json', tmp_file_path, self.zchunk)
+        os.unlink(tmp_file_path)
 
 class UpdateInfoMetadata(object):
     """
