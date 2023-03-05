@@ -8,7 +8,6 @@ def inherit(context):
 
 <%namespace name="fragments" file="fragments.html"/>
 
-
 % if chrome:
 <%block name="css">
 ${parent.css()}
@@ -148,7 +147,8 @@ ${parent.css()}
                             % endif
                             >${macrocat[1]}</option>
                           %endfor
-                          % for rstatus in ['current', 'pending', "archived"]:
+                          % for rstatus in ['current', 'pending', 'frozen', 'archived']:
+                            % if len(releases[rstatus]) > 0:
                             <optgroup label="${rstatus}">
                             % for value in releases[rstatus]:
                             <option value="${value['name']}"
@@ -158,6 +158,7 @@ ${parent.css()}
                             >${value['long_name']}</option>
                             % endfor
                             </optgroup>
+                            % endif
                           %endfor
                       </select>
                   </div>
