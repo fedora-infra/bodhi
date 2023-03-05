@@ -780,7 +780,9 @@ def validate_releases(request, **kwargs):
 
     if '__pending__' in releases:
         releases.remove('__pending__')
-        active_releases = db.query(Release).filter(Release.state == ReleaseState.pending).all()
+        active_releases = db.query(Release).filter(
+            or_(Release.state == ReleaseState.pending,
+                Release.state == ReleaseState.frozen)).all()
         validated_releases.extend(active_releases)
 
     if '__archived__' in releases:
