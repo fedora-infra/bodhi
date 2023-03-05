@@ -124,6 +124,7 @@ class SignedHandler(object):
 
             # For rawhide updates, if every build in update is signed change status to testing
             if build.update \
+                    and build.update.status != UpdateStatus.obsolete \
                     and not build.update.release.composed_by_bodhi \
                     and build.update.signed:
                 log.info("Every build in update is signed, set status to testing")
