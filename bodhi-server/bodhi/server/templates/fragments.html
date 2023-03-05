@@ -20,37 +20,37 @@
   % if karma < 0:
   <span class="text-danger">
     % if show_details:
-    <span class="min-width-3 d-inline-block text-center">
+    <span class="min-width-3 d-inline-block d-md-block d-xl-inline-block text-center">
       % if show_details[0] > 0:
       <sup class="text-success"><i class="fa fa-thumbs-up"></i></sup>
       % endif
     % endif
-    <i class="fa fa-thumbs-down pe-1"></i>
+    <i class="fa fa-thumbs-down pe-1 pe-md-0 pe-xl-1"></i>
   % elif karma > 0:
   <span class="text-success">
     % if show_details:
-    <span class="min-width-3 d-inline-block text-center">
+    <span class="min-width-3 d-inline-block d-md-block d-xl-inline-block text-center">
       % if show_details[1] < 0:
       <i class="fa fa-thumbs-up"></i>
-      <sub class="text-danger"><i class="fa fa-thumbs-down pe-1"></i></sub>
+      <sub class="text-danger"><i class="fa fa-thumbs-down pe-1 pe-md-0 pe-xl-1"></i></sub>
       % else:
-      <i class="fa fa-thumbs-up pe-1"></i>
+      <i class="fa fa-thumbs-up pe-1 pe-md-0 pe-xl-1"></i>
       % endif
     % else:
-    <i class="fa fa-thumbs-up pe-1"></i>
+    <i class="fa fa-thumbs-up pe-1 pe-md-0 pe-xl-1"></i>
     % endif
   % else:
   <span class="text-muted">
     % if show_details:
-    <span class="min-width-3 d-inline-block text-center">
+    <span class="min-width-3 d-inline-block d-md-block d-xl-inline-block text-center">
     % endif
     % if show_details and show_details != (0,0):
       <sup class="text-success"><i class="fa fa-thumbs-up"></i></sup>
-      <sub class="text-danger"><i class="fa fa-thumbs-down pe-1"></i></sub>
+      <sub class="text-danger"><i class="fa fa-thumbs-down pe-1 pe-md-0 pe-xl-1"></i></sub>
     % elif zero_thumbsup:
-      <i class="fa fa-thumbs-up text-muted pe-1"></i>
+      <i class="fa fa-thumbs-up text-muted pe-1 pe-md-0 pe-xl-1"></i>
     % else:
-      <i class="fa fa-thumbs-down text-muted pe-1"></i>
+      <i class="fa fa-thumbs-down text-muted pe-1 pe-md-0 pe-xl-1"></i>
     % endif
   %endif
     % if show_details:
@@ -232,19 +232,19 @@ ${statusmap[status]}\
                   </div>
               </div>
             </div>
-            <div class="col-auto me-3 me-md-0">
+            <div class="col-6 col-md-auto">
                 <div>
                   <span class="me-3 font-size-09 p-1 fw-normal badge text-bg-${status_context(update.status.value)}">${status_text(update)}</span>
                 </div>
             </div>
             %if display_commentcount:
-              <div class="col-auto text-muted min-width-3 fw-bold me-3">
-                  <div><i class="fa fa-comment-o pe-1"></i> ${sum(1 for c in update.comments if c.user.name != 'bodhi')}</div>
+              <div class="col-3 col-md-1 text-muted text-center fw-bold">
+                  <div><i class="d-inline-block d-md-block d-xl-inline-block fa fa-comment-o pe-1 pe-md-0 pe-xl-1"></i> ${sum(1 for c in update.comments if c.user.name != 'bodhi')}</div>
               </div>
             %endif
             %if display_karma:
-            <div class="col-auto min-width-5 fw-bold me-3">
-                <div>${karma(update.karma, show_digit=True, show_details=update._composite_karma)}</div>
+            <div class="col-3 col-md-1 col-lg-1 fw-bold">
+                <div class="text-center">${karma(update.karma, show_digit=True, show_details=update._composite_karma)}</div>
             </div>
             %endif
       </div>
