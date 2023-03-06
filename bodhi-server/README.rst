@@ -27,13 +27,13 @@ Documentation
 =============
 
 You can read Bodhi's
-`release notes <https://fedora-infra.github.io/bodhi/user/release_notes.html>`_
+`release notes <https://fedora-infra.github.io/bodhi/7.0/user/release_notes.html>`_
 and documentation `online <https://fedora-infra.github.io/bodhi>`_.
 
 If you are interested in contributing to Bodhi, you can read the
 `developer documentation`_.
 
-.. _developer documentation: https://fedora-infra.github.io/bodhi/docs/developer/index.html
+.. _developer documentation: https://fedora-infra.github.io/bodhi/7.0/developer/index.html
 
 
 IRC
