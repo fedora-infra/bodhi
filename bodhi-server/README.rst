@@ -33,7 +33,7 @@ and documentation `online <https://fedora-infra.github.io/bodhi>`_.
 If you are interested in contributing to Bodhi, you can read the
 `developer documentation`_.
 
-.. _developer documentation: https://fedora-infra.github.io/bodhi/7.0/developer/index.html
+.. _developer documentation: https://fedora-infra.github.io/bodhi/develop/developer/index.html
 
 
 IRC
