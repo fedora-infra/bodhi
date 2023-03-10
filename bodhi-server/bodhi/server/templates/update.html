@@ -785,6 +785,7 @@ ${parent.javascript()}
     var reqs_counter = 0;
     var unsatisfied_reqs_counter = 0;
     var missing_reqs_counter = 0;
+    var running_reqs_counter = 0;
     var greenwave_errors = 0;
 
     // handle Greenwave decision
@@ -792,10 +793,15 @@ ${parent.javascript()}
         $.each(data['unsatisfied_requirements'], function(i, requirement) {
             unsatisfied_reqs_counter++;
             if (requirement.type == 'test-result-missing') {
-                missing_reqs_counter++;
-                if (missing_tests[requirement.subject_identifier] === undefined)
-                    missing_tests[requirement.subject_identifier] = [];
-                missing_tests[requirement.subject_identifier].push(requirement);
+                if (requirement.result_id) {
+                    running_reqs_counter++;
+                }
+                else {
+                    missing_reqs_counter++;
+                    if (missing_tests[requirement.subject_identifier] === undefined)
+                        missing_tests[requirement.subject_identifier] = [];
+                    missing_tests[requirement.subject_identifier].push(requirement);
+                }
             }
             // the user may have already specified this in the required taskotron tests
             if ($.inArray(requirement.testcase, requirements) == -1) {
@@ -812,6 +818,9 @@ ${parent.javascript()}
         if (missing_reqs_counter > 0) {
           label_class = classes['ABSENT'];
           icon_class = icons['ABSENT'];
+        } else if (running_reqs_counter > 0) {
+          label_class = classes['RUNNING'];
+          icon_class = icons['RUNNING'];
         } else if (unsatisfied_reqs_counter > 0) {
           label_class = classes['FAILED'];
           icon_class = icons['FAILED'];
@@ -819,21 +828,25 @@ ${parent.javascript()}
           label_class = classes['PASSED'];
           icon_class = icons['PASSED'];
         }
-        var summary = '';
-        failed_reqs_counter = unsatisfied_reqs_counter - missing_reqs_counter;
+        var summary = [];
+        failed_reqs_counter = unsatisfied_reqs_counter - missing_reqs_counter - running_reqs_counter;
         if (reqs_counter == 0) {
-            summary = 'no tests are required';
-        } else if (failed_reqs_counter > 0 && missing_reqs_counter > 0) {
-            summary = failed_reqs_counter + ' of ' + reqs_counter + ' required tests failed, ' + missing_reqs_counter + ' results missing';
-        } else if (missing_reqs_counter > 0) {
-            summary = missing_reqs_counter + ' of ' + reqs_counter + ' required test results missing';
+            summary = ['no tests are required'];
+        } else {
+            if (failed_reqs_counter > 0) {
+                summary.push(failed_reqs_counter + ' of ' + reqs_counter + ' required tests failed');
+            }
+            if (running_reqs_counter > 0) {
+                summary.push(running_reqs_counter + ' of ' + reqs_counter + ' required tests running');
+            }
+            if (missing_reqs_counter > 0) {
+                summary.push(missing_reqs_counter + ' of ' + reqs_counter + ' required test results missing');
+            }
+            if (summary.length == 0) {
+                summary = ['All required tests passed'];
+            }
         }
-        else if (failed_reqs_counter > 0) {
-            summary = failed_reqs_counter + ' of ' + reqs_counter + ' required tests failed';
-        }
-        else {
-            summary = 'All required tests passed';
-        }
+        summary = summary.join(', ')
 
         var html = '<span class="badge text-bg-' + label_class + '">' +
           '<span class="fa fa-' + icon_class + '">' +
