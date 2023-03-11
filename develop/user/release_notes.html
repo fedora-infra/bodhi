@@ -34,20 +34,72 @@
             
   <section id="release-notes">
 <h1>Release notes<a class="headerlink" href="#release-notes" title="Permalink to this heading">¶</a></h1>
+<section id="v7-1-0">
+<h2>v7.1.0<a class="headerlink" href="#v7-1-0" title="Permalink to this heading">¶</a></h2>
+<p>Released on 2023-03-11.
+This is a feature release.</p>
+<section id="dependency-changes">
+<h3>Dependency changes<a class="headerlink" href="#dependency-changes" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bodhi now uses pymediawiki instead of the unmaintained simplemediawiki to
+fetch test cases (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4852">PR#4852</a>).</p></li>
+</ul>
+</section>
+<section id="features">
+<h3>Features<a class="headerlink" href="#features" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>bodhi-messages is updated to include additional properties in the message
+schemas. The additional properties are: app_name, agent_name, and __str__
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4950">#4950</a>).</p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h3>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Retrieving sidetags list for a user not known to Koji caused an exception in
+bodhi-server (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4994">PR#4994</a>).</p></li>
+<li><p>Added support for bleach &gt;= 6.0.0 (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/5003">PR#5003</a>).</p></li>
+<li><p>bodhi-client: do not run <cite>koji wait-repo</cite> when expiring a buildroot override
+(<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4830">#4830</a>).</p></li>
+<li><p>bodhi-client: fix <cite>–version</cite> option (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4981">#4981</a>).</p></li>
+<li><p>Update notes are now capped to a default of 10k characters, the value can be
+customized in config (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4982">#4982</a>).</p></li>
+<li><p>Fixed webUI template where karma and comment icons where misaligned at highly
+commented discussions (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4986">#4986</a>).</p></li>
+<li><p>Fixed the template of the update details page, where the testcases tab was
+always empty (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/5000">#5000</a>).</p></li>
+<li><p>The link to the test gating tab in the update page was fixed (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/5032">#5032</a>).</p></li>
+<li><p>The composer is now safer about not triggering stable composes for frozen
+releases (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/5080">#5080</a>).</p></li>
+<li><p>Rawhide updates which are obsoleted before being pushed will now not be
+pushed to stable to avoid confusion (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/5113">#5113</a>).</p></li>
+<li><p>Frozen releases didn’t show up in filters (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/5115">#5115</a>).</p></li>
+</ul>
+</section>
+<section id="contributors">
+<h3>Contributors<a class="headerlink" href="#contributors" title="Permalink to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Kevin Fenzi</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Ryan Lerch</p></li>
+</ul>
+</section>
+</section>
 <section id="v7-0-1">
 <h2>v7.0.1<a class="headerlink" href="#v7-0-1" title="Permalink to this heading">¶</a></h2>
 <p>Released on 2023-01-14.
 This is a bugfix release.</p>
-<section id="bug-fixes">
-<h3>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this heading">¶</a></h3>
+<section id="id1">
+<h3>Bug fixes<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Fixed template in overrides list page which prevents the display of filters
 dropdown (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4844">PR#4844</a>).</p></li>
 <li><p>Fixed a possible XSS attack vector in update_form.js (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4845">PR#4845</a>).</p></li>
 </ul>
 </section>
-<section id="contributors">
-<h3>Contributors<a class="headerlink" href="#contributors" title="Permalink to this heading">¶</a></h3>
+<section id="id2">
+<h3>Contributors<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <p>The following developers contributed to this release of Bodhi:</p>
 <ul class="simple">
 <li><p>Mattia Verga</p></li>
@@ -66,8 +118,8 @@ and adds Kerberos authentication to bodhi-client.</p>
 </pre></div>
 </div>
 </section>
-<section id="features">
-<h3>Features<a class="headerlink" href="#features" title="Permalink to this heading">¶</a></h3>
+<section id="id3">
+<h3>Features<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Bodhi client now autenticates using Kerberos by default and falls back to
 browser-based OIDC mechanism. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4602">PR#4602</a>).</p></li>
@@ -82,8 +134,8 @@ approaching EOL (<a class="reference external" href="https://github.com/fedora-i
 (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4478">#4478</a>).</p></li>
 </ul>
 </section>
-<section id="id1">
-<h3>Bug fixes<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<section id="id4">
+<h3>Bug fixes<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Editing a stuck Rawhide side-tag update (usually when gating tests fail) will
 no more cause builds to be tagged with the release candidate-tag to prevent
@@ -122,8 +174,8 @@ replaced by a property, no change should be noticeable to users
 (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4837">#4837</a>).</p></li>
 </ul>
 </section>
-<section id="id2">
-<h3>Contributors<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
+<section id="id5">
+<h3>Contributors<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <p>The following developers contributed to this release of Bodhi:</p>
 <ul class="simple">
 <li><p>Aurélien Bompard</p></li>
@@ -138,23 +190,23 @@ replaced by a property, no change should be noticeable to users
 <section id="v6-0-1">
 <h2>v6.0.1<a class="headerlink" href="#v6-0-1" title="Permalink to this heading">¶</a></h2>
 <p>Released on 2022-06-23. This is a bugfix release.</p>
-<section id="dependency-changes">
-<h3>Dependency changes<a class="headerlink" href="#dependency-changes" title="Permalink to this heading">¶</a></h3>
+<section id="id6">
+<h3>Dependency changes<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Remove the dependency on WhiteNoise since the documentation has moved to
 Github (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4555">PR#4555</a>).</p></li>
 <li><p>Updated bundled chartJS component to 3.8.0 (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4561">PR#4561</a>).</p></li>
 </ul>
 </section>
-<section id="id3">
-<h3>Features<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
+<section id="id7">
+<h3>Features<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Allow disabling autokarma, autotime and close-bugs when editing an update by
 CLI (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4564">PR#4564</a>).</p></li>
 </ul>
 </section>
-<section id="id4">
-<h3>Bug fixes<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
+<section id="id8">
+<h3>Bug fixes<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Fix a small template issue about the karma thumbs display (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4562">PR#4562</a>).</p></li>
 <li><p>Autokarma, autotime and close-bugs automatisms may have been accidentally
@@ -165,8 +217,8 @@ automatically pushes the update to stable (<a class="reference external" href="h
 <li><p>Don’t crash when Ipsilon has no userinfo (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4569">#4569</a>).</p></li>
 </ul>
 </section>
-<section id="id5">
-<h3>Contributors<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
+<section id="id9">
+<h3>Contributors<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <p>The following developers contributed to this release of Bodhi:</p>
 <ul class="simple">
 <li><p>Aurélien Bompard</p></li>
@@ -191,15 +243,15 @@ as OOB support has been recently added to Ipsilon.
 (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1180">#1180</a>).</p></li>
 </ul>
 </section>
-<section id="id6">
-<h3>Dependency changes<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
+<section id="id10">
+<h3>Dependency changes<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Dependencies are now managed by Poetry (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4376">PR#4376</a>).</p></li>
 <li><p>Enable Dependabot (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4454">PR#4454</a>).</p></li>
 </ul>
 </section>
-<section id="id7">
-<h3>Features<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
+<section id="id11">
+<h3>Features<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Add ‘update’ property to <code class="docutils literal notranslate"><span class="pre">koji-build-group.build.complete</span></code> messages
 (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4381">PR#4381</a>).</p></li>
@@ -207,8 +259,8 @@ as OOB support has been recently added to Ipsilon.
 directly. (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4431">PR#4431</a>).</p></li>
 </ul>
 </section>
-<section id="id8">
-<h3>Bug fixes<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
+<section id="id12">
+<h3>Bug fixes<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Handle invalid characters in RSS export (<a class="reference external" href="https://github.com/fedora-infra/bodhi/pull/4513">PR#4513</a>).</p></li>
 <li><p>Fixed a style issue in the web UI where images posted in comments exceed box
@@ -229,8 +281,8 @@ votes, rather than the overall count (<a class="reference external" href="https:
 (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/4551">#4551</a>).</p></li>
 </ul>
 </section>
-<section id="id9">
-<h3>Contributors<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
+<section id="id13">
+<h3>Contributors<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h3>
 <p>The following developers contributed to this release of Bodhi:</p>
 <ul class="simple">
 <li><p>Adam Saleh</p></li>
