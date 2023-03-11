@@ -4,6 +4,58 @@ Release notes
 
 .. towncrier release notes start
 
+v7.1.0
+======
+
+Released on 2023-03-11.
+This is a feature release.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Bodhi now uses pymediawiki instead of the unmaintained simplemediawiki to
+  fetch test cases (:pr:`4852`).
+
+Features
+^^^^^^^^
+
+* bodhi-messages is updated to include additional properties in the message
+  schemas. The additional properties are: app_name, agent_name, and __str__
+  (:issue:`4950`).
+
+Bug fixes
+^^^^^^^^^
+
+* Retrieving sidetags list for a user not known to Koji caused an exception in
+  bodhi-server (:pr:`4994`).
+* Added support for bleach >= 6.0.0 (:pr:`5003`).
+* bodhi-client: do not run `koji wait-repo` when expiring a buildroot override
+  (:issue:`4830`).
+* bodhi-client: fix `--version` option (:issue:`4981`).
+* Update notes are now capped to a default of 10k characters, the value can be
+  customized in config (:issue:`4982`).
+* Fixed webUI template where karma and comment icons where misaligned at highly
+  commented discussions (:issue:`4986`).
+* Fixed the template of the update details page, where the testcases tab was
+  always empty (:issue:`5000`).
+* The link to the test gating tab in the update page was fixed (:issue:`5032`).
+* The composer is now safer about not triggering stable composes for frozen
+  releases (:issue:`5080`).
+* Rawhide updates which are obsoleted before being pushed will now not be
+  pushed to stable to avoid confusion (:issue:`5113`).
+* Frozen releases didn't show up in filters (:issue:`5115`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Kevin Fenzi
+* Mattia Verga
+* Ryan Lerch
+
+
 v7.0.1
 ======
 
