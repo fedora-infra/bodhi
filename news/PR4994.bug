@@ -1,1 +1,0 @@
-Retrieving sidetags list for a user not known to Koji caused an exception in bodhi-server
