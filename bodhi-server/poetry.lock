@@ -1992,14 +1992,14 @@ requests = ">=1.1.0"
 
 [[package]]
 name = "responses"
-version = "0.23.0"
+version = "0.23.1"
 description = "A utility library for mocking out the `requests` Python library."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "responses-0.23.0-py3-none-any.whl", hash = "sha256:353afbf79af98cee90673c63817d370b63a7b9cf3e5c44d16702cca02234ccfb"},
-    {file = "responses-0.23.0.tar.gz", hash = "sha256:c5d5ccbbdf8696e8b753b97a1db269051e26195de234a0783f01985e8f4fa193"},
+    {file = "responses-0.23.1-py3-none-any.whl", hash = "sha256:8a3a5915713483bf353b6f4079ba8b2a29029d1d1090a503c70b0dc5d9d0c7bd"},
+    {file = "responses-0.23.1.tar.gz", hash = "sha256:c4d9aa9fc888188f0c673eff79a8dadbe2e75b7fe879dc80a221a06e0a68138f"},
 ]
 
 [package.dependencies]
