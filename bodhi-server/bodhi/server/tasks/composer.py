@@ -1364,6 +1364,14 @@ class RPMComposerThread(PungiComposerThread):
         with open(os.path.join(pungi_conf_dir, 'variants.xml'), 'w') as variantsfile:
             variantsfile.write(variants_template.render())
 
+        # Copy any remaining pungi config file
+        for file in os.listdir(config.get('pungi.basepath')):
+            if file.endswith('.conf'):
+                shutil.copy(
+                    os.path.join(config.get('pungi.basepath'), file),
+                    os.path.join(pungi_conf_dir, file)
+                )
+
 
 class ModuleComposerThread(PungiComposerThread):
     """Run Pungi with configs that produce module repositories."""
@@ -1392,6 +1400,14 @@ class ModuleComposerThread(PungiComposerThread):
             self._variants_file = template.render(modules=self._module_list,
                                                   moduledefs=self._module_defs)
             variantsfile.write(self._variants_file)
+
+        # Copy any remaining pungi config file
+        for file in os.listdir(config.get('pungi.basepath')):
+            if file.endswith('.conf'):
+                shutil.copy(
+                    os.path.join(config.get('pungi.basepath'), file),
+                    os.path.join(pungi_conf_dir, file)
+                )
 
     def generate_testing_digest(self):
         """Temporarily disable testing digests for modules.
