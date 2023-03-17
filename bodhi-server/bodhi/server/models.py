@@ -2857,7 +2857,12 @@ class Update(Base):
 
                     # Also inherit the older updates notes as well and
                     # add a markdown separator between the new and old ones.
-                    self.notes += '\n\n----\n\n' + oldBuild.update.notes
+                    # If it's an automatic update, do not copy the changelog again.
+                    re_changelog = re.compile(r"(?s)\n##### \*\*Changelog\*\*\n\n```\n.*\n```")
+                    old_notes = re.sub(re_changelog, '', oldBuild.update.notes)
+                    new_notes = self.notes + '\n\n----\n\n' + old_notes
+                    if len(new_notes) <= config.get('update_notes_maxlength'):
+                        self.notes = new_notes
                     oldBuild.update.obsolete(db, newer=build)
                     template = ('This update has obsoleted %s, and has '
                                 'inherited its bugs and notes.')

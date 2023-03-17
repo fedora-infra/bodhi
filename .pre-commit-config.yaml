@@ -3,12 +3,12 @@ default_language_version:
 
 repos:
   - repo: https://github.com/pycqa/flake8
-    rev: 5.0.4
+    rev: 6.0.0
     hooks:
       - id: flake8
         args: ['--config=setup.cfg']
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v0.982"
+    rev: "v1.1.1"
     hooks:
       - id: mypy
         args: []
@@ -22,15 +22,13 @@ repos:
                 devel/ci/bodhi_ci/.*
             )$
   - repo: https://github.com/PyCQA/pydocstyle
-    rev: 6.1.1
+    rev: 6.3.0
     hooks:
       - id: pydocstyle
         files: '^bodhi-\w+/bodhi/'
         additional_dependencies: ["toml"]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.0.211'
+    rev: 'v0.0.254'
     hooks:
       - id: ruff
-        # Respect `exclude` and `extend-exclude` settings.
-        args: ["--force-exclude"]
