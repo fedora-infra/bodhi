@@ -2373,8 +2373,13 @@ class Update(Base):
                 gotsat = True
             if unsatisfied:
                 gotunsat = True
-                if not recent or not all(req.get('type', '') == 'test-result-missing'
-                                         for req in unsatisfied):
+                if not all(req.get('type', '') == 'test-result-missing' for req in unsatisfied):
+                    # some unsats must be failures
+                    return TestGatingStatus.failed
+                if not recent and not all(req.get('result_id') for req in unsatisfied):
+                    # all unsats are missing, but it's more than two
+                    # hours since the update was edited and we don't
+                    # have QUEUED or RUNNING results for all of them
                     return TestGatingStatus.failed
 
         if not gotsat and not gotunsat:
