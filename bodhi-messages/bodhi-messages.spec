@@ -1,7 +1,7 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-messages
 %global src_name bodhi_messages
-%global pypi_version 7.1.0
+%global pypi_version 7.1.1
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
@@ -52,6 +52,9 @@ rm -rf %{pypi_name}.egg-info
 %doc README.rst
 
 %changelog
+* Sat Mar 18 2023 Mattia Verga <mattia.verga@fedoraproject.org> - 7.1.1-1
+- Update to 7.1.1
+
 * Sun Jan 22 2023 Mattia Verga <mattia.verga@fedoraproject.org> - 7.1.0-1
 - Update to 7.1.0
 
