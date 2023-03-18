@@ -4,6 +4,29 @@ Release notes
 
 .. towncrier release notes start
 
+v7.1.1
+======
+
+Released on 2023-03-18.
+This is a minor feature release.
+
+
+Features
+^^^^^^^^
+
+* The automated tests tab will now display information about `queued` and
+  `running` tests (:pr:`5139`).
+* Copy additional config files for pungi (:pr:`5154`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Williamson
+* Michal Konečný
+
+
 v7.1.0
 ======
 
