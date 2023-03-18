@@ -216,8 +216,8 @@ class TestCheckPolicies(BaseTaskTestCase):
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_policies_unsatisfied_waiting_too_long(self):
         """Assert correct behavior when the policies enforced by Greenwave are unsatisfied:
-        results missing, no failures, more than two hours since update modification results
-        in 'failed' status.
+        results missing without result_id (which indicates a queued/running test), no
+        failures, more than two hours since update modification results in 'failed' status.
         """
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
@@ -267,6 +267,78 @@ class TestCheckPolicies(BaseTaskTestCase):
             assert update.test_gating_status == models.TestGatingStatus.failed
             # Check for the comment
             expected_comment = "This update's test gating status has been changed to 'failed'."
+            assert update.comments[-1].text == expected_comment
+
+        query = {
+            'product_version': 'fedora-17',
+            'decision_context': [
+                'bodhi_update_push_stable_core_critpath',
+                'bodhi_update_push_stable'
+            ],
+            'subject': [
+                {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                 'type': 'bodhi_update'}],
+            'verbose': False
+        }
+        mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision', query)
+
+    @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
+    def test_policies_unsatisfied_waiting_too_long_queued(self):
+        """Assert correct behavior when the policies enforced by Greenwave are unsatisfied:
+        results missing but with result_id (which indicates a queued/running test), no
+        failures, more than two hours since update modification results in 'waiting' status.
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.status = models.UpdateStatus.testing
+        update.critpath_groups = "core"
+        # Clear pending messages
+        self.db.info['messages'] = []
+        update.date_submitted = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+        self.db.commit()
+        with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            item = 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year)
+            greenwave_response = {
+                'policies_satisfied': False,
+                'summary': '2 of 2 required test results missing',
+                'applicable_policies': [
+                    'kojibuild_bodhipush_no_requirements',
+                    'kojibuild_bodhipush_remoterule',
+                    'bodhiupdate_bodhipush_no_requirements',
+                    'bodhiupdate_bodhipush_openqa'
+                ],
+                'satisfied_requirements': [],
+                'unsatisfied_requirements': [
+                    {
+                        'item': {
+                            'item': item,
+                            'type': 'bodhi_update'
+                        },
+                        'result_id': 1,
+                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
+                        'subject_type': 'bodhi_update',
+                        'testcase': 'update.install_default_update_netinst',
+                        'type': 'test-result-missing'
+                    },
+                    {
+                        'item': {
+                            'item': item,
+                            'type': 'bodhi_update'
+                        },
+                        'result_id': 2,
+                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.uefi',
+                        'subject_type': 'bodhi_update',
+                        'testcase': 'update.install_default_update_netinst',
+                        'type': 'test-result-missing'
+                    },
+                ]
+            }
+            mock_greenwave.return_value = greenwave_response
+            check_policies_main()
+            update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
+            assert update.test_gating_status == models.TestGatingStatus.waiting
+            # Check for the comment
+            expected_comment = "This update's test gating status has been changed to 'waiting'."
             assert update.comments[-1].text == expected_comment
 
         query = {
