@@ -765,14 +765,14 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "fedora-messaging"
-version = "3.2.0"
+version = "3.3.0"
 description = "A set of tools for using Fedora's messaging infrastructure"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "fedora_messaging-3.2.0-py3-none-any.whl", hash = "sha256:57f3667933b08d78c525df36bd8bd43682804814768d91e35c9e89f0aaa86900"},
-    {file = "fedora_messaging-3.2.0.tar.gz", hash = "sha256:f77828c5b54726bdd02ceb3ec5b2d92540903a77d2f5fa2a2f843913cc863b2e"},
+    {file = "fedora_messaging-3.3.0-py3-none-any.whl", hash = "sha256:bd797e82ecbdf66c2a592d92e50e025ef7fd58c0c9ebba139018229353c603cf"},
+    {file = "fedora_messaging-3.3.0.tar.gz", hash = "sha256:2cae159c471e3ee40017a8a42d44c2e72ad2ca23550324428674fe5b2ec09988"},
 ]
 
 [package.dependencies]
