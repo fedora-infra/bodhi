@@ -867,24 +867,28 @@ windows-platform = ["PyHamcrest (>=1.9.0)", "appdirs (>=1.4.0)", "bcrypt (>=3.0.
 
 [[package]]
 name = "twisted-iocpsupport"
-version = "1.0.2"
+version = "1.0.3"
 description = "An extension for use in the twisted I/O Completion Ports reactor."
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "twisted-iocpsupport-1.0.2.tar.gz", hash = "sha256:72068b206ee809c9c596b57b5287259ea41ddb4774d86725b19f35bf56aa32a9"},
-    {file = "twisted_iocpsupport-1.0.2-cp310-cp310-win32.whl", hash = "sha256:985c06a33f5c0dae92c71a036d1ea63872ee86a21dd9b01e1f287486f15524b4"},
-    {file = "twisted_iocpsupport-1.0.2-cp310-cp310-win_amd64.whl", hash = "sha256:81b3abe3527b367da0220482820cb12a16c661672b7bcfcde328902890d63323"},
-    {file = "twisted_iocpsupport-1.0.2-cp36-cp36m-win32.whl", hash = "sha256:9dbb8823b49f06d4de52721b47de4d3b3026064ef4788ce62b1a21c57c3fff6f"},
-    {file = "twisted_iocpsupport-1.0.2-cp36-cp36m-win_amd64.whl", hash = "sha256:b9fed67cf0f951573f06d560ac2f10f2a4bbdc6697770113a2fc396ea2cb2565"},
-    {file = "twisted_iocpsupport-1.0.2-cp37-cp37m-win32.whl", hash = "sha256:b76b4eed9b27fd63ddb0877efdd2d15835fdcb6baa745cb85b66e5d016ac2878"},
-    {file = "twisted_iocpsupport-1.0.2-cp37-cp37m-win_amd64.whl", hash = "sha256:851b3735ca7e8102e661872390e3bce88f8901bece95c25a0c8bb9ecb8a23d32"},
-    {file = "twisted_iocpsupport-1.0.2-cp38-cp38-win32.whl", hash = "sha256:bf4133139d77fc706d8f572e6b7d82871d82ec7ef25d685c2351bdacfb701415"},
-    {file = "twisted_iocpsupport-1.0.2-cp38-cp38-win_amd64.whl", hash = "sha256:306becd6e22ab6e8e4f36b6bdafd9c92e867c98a5ce517b27fdd27760ee7ae41"},
-    {file = "twisted_iocpsupport-1.0.2-cp39-cp39-win32.whl", hash = "sha256:3c61742cb0bc6c1ac117a7e5f422c129832f0c295af49e01d8a6066df8cfc04d"},
-    {file = "twisted_iocpsupport-1.0.2-cp39-cp39-win_amd64.whl", hash = "sha256:b435857b9efcbfc12f8c326ef0383f26416272260455bbca2cd8d8eca470c546"},
-    {file = "twisted_iocpsupport-1.0.2-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:7d972cfa8439bdcb35a7be78b7ef86d73b34b808c74be56dfa785c8a93b851bf"},
+    {file = "twisted-iocpsupport-1.0.3.tar.gz", hash = "sha256:afb00801fdfbaccf0d0173a722626500023d4a19719ac9f129d1347a32e2fc66"},
+    {file = "twisted_iocpsupport-1.0.3-cp310-cp310-win32.whl", hash = "sha256:a379ef56a576c8090889f74441bc3822ca31ac82253cc61e8d50631bcb0c26d0"},
+    {file = "twisted_iocpsupport-1.0.3-cp310-cp310-win_amd64.whl", hash = "sha256:1ea2c3fbdb739c95cc8b3355305cd593d2c9ec56d709207aa1a05d4d98671e85"},
+    {file = "twisted_iocpsupport-1.0.3-cp311-cp311-win32.whl", hash = "sha256:7efcdfafb377f32db90f42bd5fc5bb32cd1e3637ee936cdaf3aff4f4786ab3bf"},
+    {file = "twisted_iocpsupport-1.0.3-cp311-cp311-win_amd64.whl", hash = "sha256:1dbfac706972bf9ec5ce1ddbc735d2ebba406ad363345df8751ffd5252aa1618"},
+    {file = "twisted_iocpsupport-1.0.3-cp36-cp36m-win32.whl", hash = "sha256:1ddfc5fa22ec6f913464b736b3f46e642237f17ac41be47eed6fa9bd52f5d0e0"},
+    {file = "twisted_iocpsupport-1.0.3-cp36-cp36m-win_amd64.whl", hash = "sha256:1bdccbb22199fc69fd7744d6d2dfd22d073c028c8611d994b41d2d2ad0e0f40d"},
+    {file = "twisted_iocpsupport-1.0.3-cp37-cp37m-win32.whl", hash = "sha256:db11c80054b52dbdea44d63d5474a44c9a6531882f0e2960268b15123088641a"},
+    {file = "twisted_iocpsupport-1.0.3-cp37-cp37m-win_amd64.whl", hash = "sha256:67bec1716eb8f466ef366bbf262e1467ecc9e20940111207663ac24049785bad"},
+    {file = "twisted_iocpsupport-1.0.3-cp38-cp38-win32.whl", hash = "sha256:98a6f16ab215f8c1446e9fc60aaed0ab7c746d566aa2f3492a23cea334e6bebb"},
+    {file = "twisted_iocpsupport-1.0.3-cp38-cp38-win_amd64.whl", hash = "sha256:4f249d0baac836bb431d6fa0178be063a310136bc489465a831e3abd2d7acafd"},
+    {file = "twisted_iocpsupport-1.0.3-cp39-cp39-win32.whl", hash = "sha256:aaca8f30c3b7c80d27a33fe9fe0d0bac42b1b012ddc60f677175c30e1becc1f3"},
+    {file = "twisted_iocpsupport-1.0.3-cp39-cp39-win_amd64.whl", hash = "sha256:dff43136c33665c2d117a73706aef6f7d6433e5c4560332a118fe066b16b8695"},
+    {file = "twisted_iocpsupport-1.0.3-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:8faceae553cfadc42ad791b1790e7cdecb7751102608c405217f6a26e877e0c5"},
+    {file = "twisted_iocpsupport-1.0.3-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:6f8c433faaad5d53d30d1da6968d5a3730df415e2efb6864847267a9b51290cd"},
+    {file = "twisted_iocpsupport-1.0.3-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:3f39c41c0213a81a9ce0961e30d0d7650f371ad80f8d261007d15a2deb6d5be3"},
 ]
 
 [[package]]
