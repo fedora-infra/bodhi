@@ -912,18 +912,18 @@ decorator = "*"
 
 [[package]]
 name = "hupper"
-version = "1.11"
+version = "1.12"
 description = "Integrated process monitor for developing and reloading daemons."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "hupper-1.11-py3-none-any.whl", hash = "sha256:2ae554e0fb7daf4cbd37a8c7e0419f6974614095a41a4529ad35fe3067b408a4"},
-    {file = "hupper-1.11.tar.gz", hash = "sha256:15c11bd775d8f98095b745b4e658a17c25c86e3b73275cae896ac1c8d533cb18"},
+    {file = "hupper-1.12-py3-none-any.whl", hash = "sha256:b8bc41bb75939e816f30f118026d0ba99544af4d6992583df3b4813765af27ef"},
+    {file = "hupper-1.12.tar.gz", hash = "sha256:18b1653d9832c9f8e7d3401986c7e7af2ae6783616be0bc406bfe0b14134a5c6"},
 ]
 
 [package.extras]
-docs = ["Sphinx", "pylons-sphinx-themes", "watchdog"]
+docs = ["Sphinx", "pylons-sphinx-themes", "setuptools", "watchdog"]
 testing = ["mock", "pytest", "pytest-cov", "watchdog"]
 
 [[package]]
