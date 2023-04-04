@@ -60,8 +60,11 @@ class WaiverdbHandler:
         with self.db_factory():
             # find the update
             update = update_from_db_message(message.id, subject)
-            # update the gating status unless it's already "passed", a
-            # waiver can't change it from passed to anything else
-            if update and update.test_gating_status != TestGatingStatus.passed:
-                log.info(f"Updating the test_gating_status for: {update.alias}")
-                update.update_test_gating_status()
+            if update:
+                # update the gating status unless it's already "passed" (a
+                # waiver can't change it from passed to anything else) or
+                # "ignored" (that's not going to change either)
+                updtgs = update.test_gating_status
+                if updtgs not in (TestGatingStatus.passed, TestGatingStatus.ignored):
+                    log.info(f"Updating the test_gating_status for: {update.alias}")
+                    update.update_test_gating_status()
