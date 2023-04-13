@@ -473,7 +473,7 @@
 
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">include</span><span class="p">:</span>
             <span class="n">attribute</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">attribute</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">attribute</span><span class="p">):</span>
                 <span class="n">attribute</span> <span class="o">=</span> <span class="n">attribute</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
             <span class="n">d</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">attribute</span>
 

@@ -117,5 +117,5 @@ Lastly, you can embed inline **IMAGES** with syntax like this::
 
   ![Alt text](/path/to/img.jpg)
 
-.. _enhanced: https://github.com/fedora-infra/bodhi/blob/develop/bodhi/server/ffmarkdown.py
+.. _enhanced: https://github.com/fedora-infra/bodhi/blob/develop/bodhi-server/bodhi/server/ffmarkdown.py
 .. _markdown: http://daringfireball.net/projects/markdown/syntax
