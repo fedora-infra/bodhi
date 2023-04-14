@@ -20,7 +20,9 @@ from bodhi.messages.schemas.base import BuildV1, ReleaseV1, UpdateV1, UserV1
 from bodhi.messages.schemas.update import (UpdateCommentV1,
                                            UpdateCompleteStableV1,
                                            UpdateCompleteTestingV1,
-                                           UpdateEditV1, UpdateEjectV1,
+                                           UpdateEditV1,
+                                           UpdateEditV2,
+                                           UpdateEjectV1,
                                            UpdateKarmaThresholdV1,
                                            UpdateReadyForTestingV1,
                                            UpdateReadyForTestingV2,
@@ -706,6 +708,107 @@ class TestUpdateMessage:
         msg = UpdateEditV1(
             body={
                 "new_bugs": [1708925, 1706626],
+                "update": {
+                    "close_bugs": True,
+                    "pushed": False,
+                    "require_testcases": True,
+                    "critpath": False,
+                    "stable_karma": 3,
+                    "date_pushed": None,
+                    "requirements": "rpmlint",
+                    "severity": "unspecified",
+                    "title": "tzdata-2014i-1.fc19",
+                    "suggest": "unspecified",
+                    "require_bugs": True,
+                    "comments": [
+                        {
+                            "bug_feedback": [],
+                            "user_id": 1681,
+                            "timestamp": "2015-01-28 03:02:44",
+                            "testcase_feedback": [],
+                            "karma_critpath": 0,
+                            "update": 54046,
+                            "update_id": 54046,
+                            "karma": 0,
+                            "anonymous": False,
+                            "text": "ralph edited this update. ",
+                            "id": 484236,
+                            "user": {
+                                "buildroot_overrides": [],
+                                "name": "bodhi",
+                                "avatar": None
+                            }
+                        }
+                    ],
+                    "date_approved": None,
+                    "type": "enhancement",
+                    "status": "pending",
+                    "date_submitted": "2014-10-29 20:02:57",
+                    "unstable_karma": -3,
+                    "user": {
+                        "buildroot_overrides": [],
+                        "name": "ralph",
+                        "avatar": None
+                    },
+                    "locked": False,
+                    "builds": [
+                        {
+                            "override": None,
+                            "nvr": "tzdata-2014i-1.fc19"
+                        }
+                    ],
+                    "date_modified": "2015-01-28 03:02:55",
+                    "notes": "the update notes go here...",
+                    "request": "testing",
+                    "bugs": [],
+                    "alias": 'FEDORA-2019-7dbbb74a13',
+                    "karma": 0,
+                    "release": {
+                        "dist_tag": "f19",
+                        "name": "F19",
+                        "testing_tag": "f19-updates-testing",
+                        "pending_stable_tag": "f19-updates-pending",
+                        "long_name": "Fedora 19",
+                        "state": "disabled",
+                        "version": None,
+                        "override_tag": "f19-override",
+                        "branch": None,
+                        "id_prefix": "FEDORA",
+                        "pending_testing_tag": "f19-updates-testing-pending",
+                        "stable_tag": "f19-updates",
+                        "candidate_tag": "f19-updates-candidate"
+                    }
+                },
+                "agent": "ralph"
+            }
+        )
+        check_message(msg, expected)
+
+    def test_edit_v2(self):
+        expected = {
+            "topic": "bodhi.update.edit",
+            "summary": "ralph edited FEDORA-2019-7dbbb74a13",
+            "__str__": ("ralph edited FEDORA-2019-7dbbb74a13 adding 2 new bug(s), "
+                        "adding 1 build(s), and removing 1 build(s)"),
+            "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
+            "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-7dbbb74a13",
+            "agent_avatar": (
+                "https://seccdn.libravatar.org/avatar/"
+                "9c9f7784935381befc302fe3c814f9136e7a33953d0318761669b8643f4df55c"
+                "?s=64&d=retro"
+            ),
+            "new_bugs": [1708925, 1706626],
+            "usernames": ["ralph"],
+            "packages": ["tzdata"],
+            'update': UpdateV1('FEDORA-2019-7dbbb74a13', [BuildV1('tzdata-2014i-1.fc19')],
+                               UserV1('ralph'), 'pending', 'testing', ReleaseV1('F19'))
+        }
+        msg = UpdateEditV2(
+            body={
+                "new_bugs": [1708925, 1706626],
+                "new_builds": ["tzdata-2014i-1.fc19"],
+                "removed_builds": ["tzdata-2014h-1.fc19"],
                 "update": {
                     "close_bugs": True,
                     "pushed": False,

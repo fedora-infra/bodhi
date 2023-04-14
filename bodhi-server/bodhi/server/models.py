@@ -2707,8 +2707,15 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
-        notifications.publish(update_schemas.UpdateEditV1.from_dict(
-            message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
+        notifications.publish(update_schemas.UpdateEditV2.from_dict(
+            message={
+                'update': up,
+                'agent': request.user.name,
+                'new_bugs': new_bugs,
+                'new_builds': new_builds,
+                'removed_builds': removed_builds
+            }
+        ))
 
         # If editing a Pending update, all of whose builds are signed, for a release
         # which isn't composed by Bodhi (i.e. Rawhide), move it directly to Testing.
