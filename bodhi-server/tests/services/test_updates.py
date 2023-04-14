@@ -864,7 +864,7 @@ class TestNewUpdate(BasePyTestCase):
         # hit the critpath re-discovery code in the edit codepath
         args['stable_days'] = '50'
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             ed = self.app.post_json('/updates/', args).json_body
 
         assert ed['critpath']
@@ -1606,7 +1606,7 @@ class TestUpdatesService(BasePyTestCase):
         update['notes'] = 'testing!!!'
         update['edited'] = res.json['alias']
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             res = app.post_json('/updates/', update)
 
         assert 'bodhi does not have commit access to bodhi' not in res
@@ -3242,7 +3242,7 @@ class TestUpdatesService(BasePyTestCase):
         args['builds'] = 'bodhi-2.0.0-3.fc17'
         args['requirements'] = 'upgradepath'
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         up = r.json_body
@@ -3308,7 +3308,7 @@ class TestUpdatesService(BasePyTestCase):
         update['requirements'] = 'upgradepath'
 
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
-            with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            with fml_testing.mock_sends(update_schemas.UpdateEditV2):
                 r = self.app.post_json('/updates/', update)
 
         up = r.json_body
@@ -3374,7 +3374,7 @@ class TestUpdatesService(BasePyTestCase):
         args['edited'] = upd.alias
         args['builds'] = 'bodhi-2.0.0-3.fc17'
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         info.assert_any_call('Unpushing bodhi-2.0.0-2.fc17')
@@ -3433,7 +3433,7 @@ class TestUpdatesService(BasePyTestCase):
         args['builds'] = 'bodhi-2.0.0-3.fc17'
 
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1,
-                                    update_schemas.UpdateEditV1):
+                                    update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         info.assert_any_call('Unpushing bodhi-2.0.0-2.fc17')
@@ -3493,7 +3493,7 @@ class TestUpdatesService(BasePyTestCase):
         args['builds'] = 'bodhi-2.0.0-3.fc17'
 
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1,
-                                    update_schemas.UpdateEditV1):
+                                    update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         info.assert_any_call('Unpushing bodhi-2.0.0-2.fc17')
@@ -3549,7 +3549,7 @@ class TestUpdatesService(BasePyTestCase):
         args['edited'] = upd.alias
         args['notes'] = 'A nifty description.'
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         up = r.json_body
@@ -3590,7 +3590,7 @@ class TestUpdatesService(BasePyTestCase):
         args['edited'] = upd.alias
         args['builds'] = 'bodhi-2.0.0-3.fc17'
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         info.assert_any_call('Unpushing bodhi-2.0.0-2.fc17')
@@ -3651,7 +3651,7 @@ class TestUpdatesService(BasePyTestCase):
         args['builds'] = 'bodhi-2.0.0-3.fc17'
 
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1,
-                                    update_schemas.UpdateEditV1):
+                                    update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         info.assert_any_call('Unpushing bodhi-2.0.0-2.fc17')
@@ -3763,7 +3763,7 @@ class TestUpdatesService(BasePyTestCase):
         args['edited'] = up.alias
         args['notes'] = 'Some new notes'
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             up = self.app.post_json('/updates/', args, status=200).json_body
 
         assert up['notes'] == 'Some new notes'
@@ -4716,7 +4716,7 @@ class TestUpdatesService(BasePyTestCase):
         args['bugs'] = '56789,98765'
 
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1,
-                                    update_schemas.UpdateEditV1):
+                                    update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         up = r.json_body
@@ -4732,7 +4732,7 @@ class TestUpdatesService(BasePyTestCase):
         args['edited'] = update.alias
         args['builds'] = 'bodhi-2.0.0-3.fc17'
         args['bugs'] = '98765'
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         up = r.json_body
@@ -4784,7 +4784,7 @@ class TestUpdatesService(BasePyTestCase):
         args['require_testcases'] = False
         args['require_bugs'] = True
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         up = r.json_body
@@ -4821,7 +4821,7 @@ class TestUpdatesService(BasePyTestCase):
         args['edited'] = update.alias
         args['type'] = 'bugfix'
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         up = r.json_body
@@ -5118,7 +5118,7 @@ class TestUpdatesService(BasePyTestCase):
         args['stable_karma'] = 4
         args['unstable_karma'] = -4
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         up = r.json_body
@@ -5905,7 +5905,7 @@ class TestUpdatesService(BasePyTestCase):
         args['edited'] = upd.alias
         args['builds'] = new_nvr
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         up = r.json_body
@@ -5915,7 +5915,7 @@ class TestUpdatesService(BasePyTestCase):
         args['edited'] = upd.alias
         args['builds'] = nvr
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         up = r.json_body
@@ -6058,7 +6058,7 @@ class TestUpdatesService(BasePyTestCase):
         args['builds'] = 'bodhi-2.0.0-3.fc17'
 
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1,
-                                    update_schemas.UpdateEditV1):
+                                    update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
 
         up = r.json_body

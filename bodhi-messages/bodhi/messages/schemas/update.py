@@ -360,6 +360,53 @@ class UpdateEditV1(UpdateMessage):
         )
 
 
+class UpdateEditV2(UpdateEditV1):
+    """
+    Sent when an update is edited. Newer version.
+
+    Has 'new_builds' and 'removed_builds' properties.
+    """
+
+    # mypy infers that lots of the things we touch below should be
+    # collections of strings and doesn't like us doing unexpected
+    # things to them, so the typing.Any shuts it up
+    body_schema: typing.Any = copy.deepcopy(UpdateEditV1.body_schema)
+    body_schema['properties']['new_builds'] = {
+        'type': 'array',
+        'description': 'An array of build NVRs that have been added to the update',
+        'items': {
+            'type': 'string',
+            'description': 'A build NVR'
+        }
+    }
+    body_schema['properties']['removed_builds'] = {
+        'type': 'array',
+        'description': 'An array of build NVRs that have been removed from the update',
+        'items': {
+            'type': 'string',
+            'description': 'A build NVR'
+        }
+    }
+    body_schema['required'].extend(('new_builds', 'removed_builds'))
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        return (
+            f"{self.agent_name} edited {self.update.alias} "
+            f"adding {len(self.body['new_bugs'])} new bug(s), "
+            f"adding {len(self.body['new_builds'])} build(s), and "
+            f"removing {len(self.body['removed_builds'])} build(s)"
+        )
+
+
 class UpdateEjectV1(UpdateMessage):
     """Sent when an update is ejected from the push."""
 
