@@ -232,7 +232,7 @@ class BaseTestCaseMixin:
         config.config.load_config(self.app_settings)
 
         # Ensure "cached" objects are cleared before each test.
-        models.Release.clear_all_releases_cache()
+        models.Release.all_releases.cache_clear()
         models.Release._tag_cache = None
 
         if engine is None:
@@ -386,7 +386,7 @@ class BaseTestCaseMixin:
             package_manager=models.PackageManager.unspecified,
             testing_repository=None)
         self.db.add(release)
-        models.Release.clear_all_releases_cache()
+        models.Release.all_releases.cache_clear()
         models.Release._tag_cache = None
         self.db.flush()
         return release

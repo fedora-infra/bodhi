@@ -374,7 +374,6 @@ def save_release(request):
         if edited is None:
             log.info("Creating a new release: %s" % data['name'])
             r = Release(**data)
-
         else:
             log.info("Editing release: %s" % edited)
             r = request.db.query(Release).filter(Release.name == edited).one()
@@ -414,10 +413,6 @@ def save_release(request):
                             author='bodhi',
                         )
                 setattr(r, k, v)
-
-        # We have to invalidate the release cache after change
-        Release.clear_all_releases_cache()
-
     except Exception as e:
         log.exception(e)
         request.errors.add('body', 'release',
@@ -425,6 +420,9 @@ def save_release(request):
         return
 
     request.db.add(r)
-    request.db.flush()
+    request.db.commit()
+
+    # We have to invalidate the release cache after change
+    Release.all_releases.cache_clear()
 
     return r

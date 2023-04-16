@@ -824,12 +824,6 @@ class TestRelease(ModelTest):
         # Make sure it's the same cached object
         assert releases is model.Release.all_releases()
 
-    def test_clear_all_releases_cache(self):
-        model.Release.all_releases()
-        assert model.Release._all_releases is not None
-        model.Release.clear_all_releases_cache()
-        assert model.Release._all_releases is None
-
     def test_get_pending_signing_side_tag_found(self):
         """
         Assert that correct side tag is returned.
@@ -922,12 +916,6 @@ class TestReleaseModular(ModelTest):
         # Make sure it's the same cached object
         assert releases is model.Release.all_releases()
 
-    def test_clear_all_releases_cache(self):
-        model.Release.all_releases()
-        assert model.Release._all_releases is not None
-        model.Release.clear_all_releases_cache()
-        assert model.Release._all_releases is None
-
 
 class TestReleaseContainer(ModelTest):
     """Unit test case for the ``Release`` model for container releases."""
@@ -962,12 +950,6 @@ class TestReleaseContainer(ModelTest):
         # Make sure it's the same cached object
         assert releases is model.Release.all_releases()
 
-    def test_clear_all_releases_cache(self):
-        model.Release.all_releases()
-        assert model.Release._all_releases is not None
-        model.Release.clear_all_releases_cache()
-        assert model.Release._all_releases is None
-
 
 class TestReleaseFlatpak(ModelTest):
     """Unit test case for the ``Release`` model for flatpak releases."""
@@ -1001,12 +983,6 @@ class TestReleaseFlatpak(ModelTest):
         assert 'long_name' in releases[state.value][0], releases
         # Make sure it's the same cached object
         assert releases is model.Release.all_releases()
-
-    def test_clear_all_releases_cache(self):
-        model.Release.all_releases()
-        assert model.Release._all_releases is not None
-        model.Release.clear_all_releases_cache()
-        assert model.Release._all_releases is None
 
 
 class TestPackageModel(BasePyTestCase):
