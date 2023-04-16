@@ -263,15 +263,15 @@ class TestMain(base.BasePyTestCase):
         assert generic._generate_home_page_stats() == 7
 
     def test_warms_up_releases_cache(self):
-        """main() should warm up the _all_releases cache."""
+        """main() should warm up the all_releases cache."""
         # Let's clear the release cache
         config["warm_cache_on_start"] = True
-        models.Release.clear_all_releases_cache()
+        models.Release.all_releases.cache_clear()
 
         server.main({}, testing='guest', session=self.db)
 
         # The cache should have a release in it now - let's just spot check it
-        assert models.Release._all_releases['current'][0]['name'] == 'F17'
+        assert models.Release.all_releases()['current'][0]['name'] == 'F17'
 
     def test_calls_initialize_db(self):
         """main() should call initialize_db() when called without a session arg."""

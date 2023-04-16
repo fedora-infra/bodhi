@@ -200,7 +200,7 @@ class TestComposer(base.BasePyTestCase):
         self.handler = ComposerHandler(db_factory=self.db_factory, compose_dir=self.tempdir)
 
         # Reset "cached" objects before each test.
-        Release.clear_all_releases_cache()
+        Release.all_releases.cache_clear()
         Release._tag_cache = None
 
         self.expected_sems = 0

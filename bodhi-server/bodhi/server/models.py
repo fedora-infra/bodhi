@@ -18,6 +18,7 @@
 
 from collections import defaultdict
 from datetime import date, datetime, timedelta
+from functools import lru_cache
 from textwrap import wrap
 import hashlib
 import json
@@ -953,6 +954,7 @@ class Release(Base):
         return ' '.join(self.long_name.split()[:-1])
 
     @classmethod
+    @lru_cache(maxsize=1)
     def all_releases(cls):
         """
         Return a mapping of release states to a list of dictionaries describing the releases.
@@ -961,19 +963,10 @@ class Release(Base):
             defaultdict: Mapping strings of :class:`ReleaseState` names to lists of dictionaries
             that describe the releases in those states.
         """
-        if cls._all_releases:
-            return cls._all_releases
         releases = defaultdict(list)
         for release in cls.query.order_by(cls.name.desc()).all():
             releases[release.state.value].append(release.__json__())
-        cls._all_releases = releases
-        return cls._all_releases
-    _all_releases = None
-
-    @classmethod
-    def clear_all_releases_cache(cls):
-        """Clear up Release cache."""
-        cls._all_releases = None
+        return releases
 
     @classmethod
     def get_tags(cls, session):
