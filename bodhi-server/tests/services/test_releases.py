@@ -648,7 +648,7 @@ class TestReleasesHTML(base.BasePyTestCase):
 
         self.db.flush()
         # Clear the caches
-        Release._tag_cache = None
+        Release.get_tags.cache_clear()
         generic._generate_home_page_stats.invalidate()
 
     def test_release_counts(self):

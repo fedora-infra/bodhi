@@ -564,7 +564,7 @@ class ComposerThread(threading.Thread):
         self._perform_tag_actions()
 
     def _determine_tag_actions(self):
-        tag_types, tag_rels = Release.get_tags(self.db)
+        tag_types, tag_rels = Release.get_tags()
         # sync & async tagging batches
         for i, batch in enumerate(sorted_updates(self.compose.updates)):
             for update in batch:

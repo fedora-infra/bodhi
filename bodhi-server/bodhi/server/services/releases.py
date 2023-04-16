@@ -422,7 +422,8 @@ def save_release(request):
     request.db.add(r)
     request.db.commit()
 
-    # We have to invalidate the release cache after change
+    # We have to invalidate the release caches after change
     Release.all_releases.cache_clear()
+    Release.get_tags.cache_clear()
 
     return r

@@ -201,7 +201,7 @@ class TestComposer(base.BasePyTestCase):
 
         # Reset "cached" objects before each test.
         Release.all_releases.cache_clear()
-        Release._tag_cache = None
+        Release.get_tags.cache_clear()
 
         self.expected_sems = 0
         self.semmock = mock.MagicMock()
@@ -993,7 +993,7 @@ That was the actual one'''
             db.add(update)
 
             # Wipe out the tag cache so it picks up our new release
-            Release._tag_cache = None
+            Release.get_tags.cache_clear()
 
             # Clear pending messages
             self.db.info['messages'] = []
@@ -1077,7 +1077,7 @@ That was the actual one'''
             db.add(update)
 
             # Wipe out the tag cache so it picks up our new release
-            Release._tag_cache = None
+            Release.get_tags.cache_clear()
 
             # Clear pending messages
             self.db.info['messages'] = []
@@ -1151,7 +1151,7 @@ That was the actual one'''
             db.add(update)
 
             # Wipe out the tag cache so it picks up our new release
-            Release._tag_cache = None
+            Release.get_tags.cache_clear()
 
             # Clear pending messages
             self.db.info['messages'] = []
@@ -1531,7 +1531,7 @@ That was the actual one'''
             db.add(update)
 
             # Wipe out the tag cache so it picks up our new release
-            Release._tag_cache = None
+            Release.get_tags.cache_clear()
 
             # Clear pending messages
             self.db.info['messages'] = []
@@ -2345,7 +2345,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
 
         self.db.add(update)
         # Wipe out the tag cache so it picks up our new release
-        Release._tag_cache = None
+        Release.get_tags.cache_clear()
         self.db.flush()
 
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
@@ -2514,7 +2514,7 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
 
         self.db.add(update)
         # Wipe out the tag cache so it picks up our new release
-        Release._tag_cache = None
+        Release.get_tags.cache_clear()
         self.db.flush()
 
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
@@ -2821,7 +2821,7 @@ class TestComposerThread__determine_tag_actions(ComposerThreadBaseTestCase):
             update_schemas.UpdateEjectV1.from_dict({
                 'repo': 'f17-updates', 'update': self.db.query(Update).one().__json__(),
                 'reason': f"Cannot find relevant tag for bodhi-2.0-1.fc17.  None of {tags} are in "
-                          f"{Release.get_tags(self.db)[0]['candidate']}.",
+                          f"{Release.get_tags()[0]['candidate']}.",
                 'request': UpdateRequest.testing,
                 'release': t.compose.release, 'agent': 'bowlofeggs'}),)
 

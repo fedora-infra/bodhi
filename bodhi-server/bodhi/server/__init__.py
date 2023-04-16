@@ -361,9 +361,10 @@ def main(global_config, testing=None, session=None, **settings):
     if bodhi_config['warm_cache_on_start']:
         log.info('Warming up caches…')
 
-        # Let's warm up the Release.all_releases cache. We can just call the function - we don't
-        # need to capture the return value.
+        # Let's warm up the Release.all_releases and Release_get_tags caches.
+        # We can just call the function - we don't need to capture the return value.
         models.Release.all_releases()
+        models.Release.get_tags()
 
         # Let's warm up the home page cache by calling _generate_home_page_stats(). We can ignore
         # the return value.
