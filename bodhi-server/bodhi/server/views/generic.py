@@ -417,7 +417,7 @@ def latest_builds(request):
     builds = {}
     koji = request.koji
     package = request.params.get('package')
-    for tag_type, tags in models.Release.get_tags(request.db)[0].items():
+    for tag_type, tags in models.Release.get_tags()[0].items():
         for tag in tags:
             try:
                 for build in koji.getLatestBuilds(tag, package=package):

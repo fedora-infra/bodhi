@@ -3693,7 +3693,7 @@ class TestUpdatesService(BasePyTestCase):
             r = self.app.post_json('/updates/', args)
 
         # Add another release and package
-        Release._tag_cache = None
+        Release.get_tags.cache_clear()
         release = Release(
             name='F18', long_name='Fedora 18',
             id_prefix='FEDORA', version='18',
@@ -4642,7 +4642,7 @@ class TestUpdatesService(BasePyTestCase):
     def test_submitting_multi_release_updates(self, *args):
         """ https://github.com/fedora-infra/bodhi/issues/219 """
         # Add another release and package
-        Release._tag_cache = None
+        Release.get_tags.cache_clear()
         release = Release(
             name='F18', long_name='Fedora 18',
             id_prefix='FEDORA', version='18',

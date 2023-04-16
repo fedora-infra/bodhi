@@ -969,31 +969,26 @@ class Release(Base):
         return releases
 
     @classmethod
-    def get_tags(cls, session):
+    @lru_cache(maxsize=1)
+    def get_tags(cls):
         """
         Return a 2-tuple mapping tags to releases.
 
-        Args:
-            session (sqlalchemy.orm.session.Session): A database session.
         Returns:
             tuple: A 2-tuple. The first element maps the keys 'candidate', 'testing', 'stable',
             'override', 'pending_testing', and 'pending_stable' each to a list of tags for various
             releases that correspond to those tag semantics. The second element maps each koji tag
             to the release's name that uses it.
         """
-        if cls._tag_cache:
-            return cls._tag_cache
         data = {'candidate': [], 'testing': [], 'stable': [], 'override': [],
                 'pending_testing': [], 'pending_stable': []}
         tags = {}  # tag -> release lookup
-        for release in session.query(cls).all():
+        for release in cls.query.all():
             for key in data:
-                tag = getattr(release, '%s_tag' % key)
+                tag = getattr(release, f'{key}_tag')
                 data[key].append(tag)
                 tags[tag] = release.name
-        cls._tag_cache = (data, tags)
-        return cls._tag_cache
-    _tag_cache = None
+        return (data, tags)
 
     @classmethod
     def from_tags(cls, tags, session):
@@ -1007,7 +1002,7 @@ class Release(Base):
             Release or None: The first release found that matches the first tag. If no release is
                 found, ``None`` is returned.
         """
-        tag_types, tag_rels = cls.get_tags(session)
+        tag_types, tag_rels = cls.get_tags()
         for tag in tags:
             if tag not in tag_rels:
                 continue
@@ -3709,7 +3704,7 @@ class Update(Base):
         """
         log.info("Untagging %s", self.alias)
         koji = buildsys.get_session()
-        tag_types, tag_rels = Release.get_tags(db)
+        tag_types, tag_rels = Release.get_tags()
         koji.multicall = True
         for build in self.builds:
             for tag in build.get_tags():

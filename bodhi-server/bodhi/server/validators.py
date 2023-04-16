@@ -310,7 +310,7 @@ def validate_build_tags(request, **kwargs):
         request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
-    tag_types, tag_rels = Release.get_tags(request.db)
+    tag_types, tag_rels = Release.get_tags()
     edited = request.validated.get('edited')
     release = None
     if edited:
@@ -365,7 +365,7 @@ def validate_tags(request, **kwargs):
         request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
-    tag_types, tag_rels = Release.get_tags(request.db)
+    tag_types, tag_rels = Release.get_tags()
 
     for tag_type in tag_types:
         tag_name = request.validated.get("%s_tag" % tag_type)
@@ -1150,7 +1150,7 @@ def _validate_override_build(request, nvr, db):
         if not build.release:
             # Oddly, the build has no associated release.  Let's try to figure
             # that out and apply it.
-            tag_types, tag_rels = Release.get_tags(request.db)
+            tag_types, tag_rels = Release.get_tags()
             valid_tags = tag_types['candidate'] + tag_types['testing']
 
             tags = [tag['name'] for tag in request.koji.listTags(nvr)
@@ -1183,7 +1183,7 @@ def _validate_override_build(request, nvr, db):
             return
 
     else:
-        tag_types, tag_rels = Release.get_tags(request.db)
+        tag_types, tag_rels = Release.get_tags()
         valid_tags = tag_types['candidate'] + tag_types['testing']
 
         try:

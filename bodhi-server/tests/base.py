@@ -233,7 +233,7 @@ class BaseTestCaseMixin:
 
         # Ensure "cached" objects are cleared before each test.
         models.Release.all_releases.cache_clear()
-        models.Release._tag_cache = None
+        models.Release.get_tags.cache_clear()
 
         if engine is None:
             self.engine = _configure_test_db(config.config["sqlalchemy.url"])
@@ -387,7 +387,7 @@ class BaseTestCaseMixin:
             testing_repository=None)
         self.db.add(release)
         models.Release.all_releases.cache_clear()
-        models.Release._tag_cache = None
+        models.Release.get_tags.cache_clear()
         self.db.flush()
         return release
 

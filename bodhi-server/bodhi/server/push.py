@@ -43,7 +43,7 @@ def update_sig_status(update):
         _koji = get_koji(None)
     for build in update.builds:
         if not build.signed:
-            build_tags = build.get_tags(_koji)
+            build_tags = build.get_tags()
             if update.release.pending_signing_tag not in build_tags:
                 click.echo('Build %s was refreshed as signed' % build.nvr)
                 build.signed = True
