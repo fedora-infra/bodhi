@@ -96,10 +96,15 @@ class TestWaiverdbHandler(BasePyTestCase):
             update.test_gating_status = models.TestGatingStatus.waiting
             self.handler(testmsg)
             assert update.test_gating_status == models.TestGatingStatus.passed
-            # now check we don't update if already passed
+            # now check we don't update if already passed...
             with mock.patch("bodhi.server.models.Update.update_test_gating_status") as updmock:
                 self.handler(testmsg)
                 assert updmock.call_count == 0
+                # ...or ignored
+                update.test_gating_status = models.TestGatingStatus.ignored
+                self.handler(testmsg)
+                assert updmock.call_count == 0
+                assert update.test_gating_status == models.TestGatingStatus.ignored
 
     def test_waiverdb_bodhi_waiver(self):
         """
