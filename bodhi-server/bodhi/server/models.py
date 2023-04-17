@@ -983,7 +983,8 @@ class Release(Base):
         data = {'candidate': [], 'testing': [], 'stable': [], 'override': [],
                 'pending_testing': [], 'pending_stable': []}
         tags = {}  # tag -> release lookup
-        for release in cls.query.all():
+        for release in cls.query.filter(cls.state.notin_([ReleaseState.archived,
+                                                          ReleaseState.disabled])).all():
             for key in data:
                 tag = getattr(release, f'{key}_tag')
                 data[key].append(tag)

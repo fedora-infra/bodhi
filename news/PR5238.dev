@@ -1,0 +1,1 @@
+Use functools lru_cache for caching `Release.all_releases()` and `Release.get_tags()` instead of a custom implementation
