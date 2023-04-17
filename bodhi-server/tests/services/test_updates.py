@@ -43,7 +43,6 @@ from bodhi.server.models import (
     Compose,
     Group,
     ModulePackage,
-    PackageManager,
     Release,
     ReleaseState,
     RpmBuild,
@@ -3693,21 +3692,7 @@ class TestUpdatesService(BasePyTestCase):
             r = self.app.post_json('/updates/', args)
 
         # Add another release and package
-        Release.get_tags.cache_clear()
-        release = Release(
-            name='F18', long_name='Fedora 18',
-            id_prefix='FEDORA', version='18',
-            dist_tag='f18', stable_tag='f18-updates',
-            testing_tag='f18-updates-testing',
-            candidate_tag='f18-updates-candidate',
-            pending_signing_tag='f18-updates-testing-signing',
-            pending_testing_tag='f18-updates-testing-pending',
-            pending_stable_tag='f18-updates-pending',
-            override_tag='f18-override',
-            branch='f18',
-            package_manager=PackageManager.unspecified,
-            testing_repository=None)
-        self.db.add(release)
+        self.create_release('18')
         pkg = RpmPackage(name='nethack')
         self.db.add(pkg)
         self.db.commit()
@@ -4642,21 +4627,7 @@ class TestUpdatesService(BasePyTestCase):
     def test_submitting_multi_release_updates(self, *args):
         """ https://github.com/fedora-infra/bodhi/issues/219 """
         # Add another release and package
-        Release.get_tags.cache_clear()
-        release = Release(
-            name='F18', long_name='Fedora 18',
-            id_prefix='FEDORA', version='18',
-            dist_tag='f18', stable_tag='f18-updates',
-            testing_tag='f18-updates-testing',
-            candidate_tag='f18-updates-candidate',
-            pending_signing_tag='f18-updates-testing-signing',
-            pending_testing_tag='f18-updates-testing-pending',
-            pending_stable_tag='f18-updates-pending',
-            override_tag='f18-override',
-            branch='f18',
-            package_manager=PackageManager.unspecified,
-            testing_repository=None)
-        self.db.add(release)
+        self.create_release('18')
         pkg = RpmPackage(name='nethack')
         self.db.add(pkg)
         self.db.commit()
