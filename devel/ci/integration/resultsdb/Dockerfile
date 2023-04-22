@@ -1,4 +1,4 @@
-FROM fedora:latest
+FROM fedora:37
 LABEL \
   name="resultsdb" \
   vendor="Fedora Infrastructure" \
