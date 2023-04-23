@@ -2024,7 +2024,7 @@ class TestUpdateEdit(BasePyTestCase):
         request = mock.MagicMock()
         request.db = self.db
         request.user.name = 'tester'
-        with mock_sends(update_schemas.UpdateEditV1):
+        with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
                     'policies_satisfied': False,
@@ -2054,7 +2054,7 @@ class TestUpdateEdit(BasePyTestCase):
         request = mock.MagicMock()
         request.db = self.db
         request.user.name = 'tester'
-        with mock_sends(update_schemas.UpdateEditV1):
+        with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
                     'policies_satisfied': False,
@@ -2090,7 +2090,7 @@ class TestUpdateEdit(BasePyTestCase):
         request.db = self.db
         request.user.name = 'tester'
 
-        with mock_sends(update_schemas.UpdateEditV1, update_schemas.UpdateReadyForTestingV2):
+        with mock_sends(update_schemas.UpdateEditV2, update_schemas.UpdateReadyForTestingV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
                     'policies_satisfied': False,
@@ -2126,7 +2126,7 @@ class TestUpdateEdit(BasePyTestCase):
         request.db = self.db
         request.user.name = 'tester'
 
-        with mock_sends(update_schemas.UpdateEditV1):
+        with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
                     'policies_satisfied': False,
@@ -2162,7 +2162,7 @@ class TestUpdateEdit(BasePyTestCase):
         request.db = self.db
         request.user.name = 'tester'
 
-        with mock_sends(update_schemas.UpdateEditV1):
+        with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
                     'policies_satisfied': False,
