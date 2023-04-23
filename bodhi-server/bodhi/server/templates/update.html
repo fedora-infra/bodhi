@@ -97,9 +97,7 @@ if can_edit and update.release.composed_by_bodhi:
               </div>
               <div class="flex-grow-1 ms-0">
                     <h3 class="fw-bold">
-                      <a href="${request.route_url('update', id=update['alias'])}">
                       ${update.get_title(amp=True,nvr=True,beautify=True) | h}
-                      </a>
                     </h3>
                     ${update.alias} created by <a href="${request.route_url('user', name=update['user']['name'])}"> ${update['user']['name']}</a>
                     <span title="${update['date_submitted']} UTC"> ${self.util.age(update['date_submitted'])} </span>
