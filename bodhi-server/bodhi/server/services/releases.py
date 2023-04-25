@@ -237,7 +237,7 @@ def query_releases_html(request):
             '{}_updates_total'.format(status.description): basequery.count(),
         }
 
-    def get_update_counts(releaseid):
+    def get_update_counts(releaseid, stable_only: bool = False):
         """
         Return counts for the various states and types of updates in the given release.
 
@@ -257,19 +257,28 @@ def query_releases_html(request):
         release = Release.get(releaseid)
         basequery = Update.query.filter(Update.release == release)
         counts = {}
-        counts.update(_get_status_counts(basequery, UpdateStatus.pending))
-        counts.update(_get_status_counts(basequery, UpdateStatus.testing))
+        if not stable_only:
+            counts.update(_get_status_counts(basequery, UpdateStatus.pending))
+            counts.update(_get_status_counts(basequery, UpdateStatus.testing))
         counts.update(_get_status_counts(basequery, UpdateStatus.stable))
 
         return counts
 
+    data = request.validated
+
     release_updates_counts = {}
     releases = Release.all_releases()
-    for release in (releases['current'] + releases['pending'] + releases['archived']
-                    + releases['frozen']):
-        release_updates_counts[release["name"]] = get_update_counts(release["name"])
+    active = data.get('active')
+    if active is False:
+        for release in (releases['archived'] + releases['disabled']):
+            release_updates_counts[release["name"]] = get_update_counts(release["name"],
+                                                                        stable_only=True)
+    else:
+        for release in (releases['current'] + releases['pending'] + releases['frozen']):
+            release_updates_counts[release["name"]] = get_update_counts(release["name"])
 
-    return {"release_updates_counts": release_updates_counts}
+    return {"release_updates_counts": release_updates_counts,
+            "active": active}
 
 
 @releases.get(accept=('application/json', 'text/json'),

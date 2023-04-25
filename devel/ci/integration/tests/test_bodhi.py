@@ -192,7 +192,9 @@ def test_get_notfound_view(bodhi_container):
 def test_get_releases_view(bodhi_container, db_container):
     """Test ``/releases`` path"""
     # Fetch releases from DB
-    query = """SELECT long_name FROM releases"""
+    query = (
+        "SELECT long_name FROM releases "
+        "WHERE state NOT IN ('disabled', 'archived')")
     db_ip = db_container.get_IPv4s()[0]
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
     with conn:

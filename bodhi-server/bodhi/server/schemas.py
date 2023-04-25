@@ -353,6 +353,12 @@ class ListReleaseSchema(PaginatedSchema):
         missing=None,
     )
 
+    active = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=True,
+    )
+
 
 class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     """An API schema for bodhi.server.services.releases.save_release()."""
