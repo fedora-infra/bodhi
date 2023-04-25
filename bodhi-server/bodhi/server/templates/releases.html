@@ -52,15 +52,27 @@ else:
     <div class="container">
       <div class="row">
           <div class="col-md-6 col-md-offset-3">
-              <h3 class="fw-bold m-0">Releases</h3>
+              % if active:
+              <h3 class="fw-bold m-0 mb-2">Active Releases</h3>
+              <span>See here for <a href="${request.route_url('releases')}?active=false">Archived and disabled Releases</a></span>
+              % else:
+              <h3 class="fw-bold m-0 mb-2">Archived and disabled Releases</h3>
+              <span>See here for <a href="${request.route_url('releases')}">Active Releases</a></span>
+              % endif
           </div>
       </div>
     </div>
   </div>
 <div class="container pt-2">
-    ${release_list('current', stable_only=False)}
-    ${release_list('pending', stable_only=False)}
-    ${release_list('archived', stable_only=True)}
+    % if active:
+      ${release_list('current', stable_only=False)}
+      ${release_list('pending', stable_only=False)}
+    % else:
+      ${release_list('archived', stable_only=True)}
+      % if request.releases['disabled']:
+        ${release_list('disabled', stable_only=True)}
+      % endif
+    % endif
 </div>
 
 <%block name="javascript">

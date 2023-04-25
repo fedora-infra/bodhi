@@ -588,6 +588,19 @@ class TestReleasesHTML(base.BasePyTestCase):
             branch='f37', state=ReleaseState.frozen)
         self.db.add(release)
 
+        release = Release(
+            name='F25', long_name='Fedora 25',
+            id_prefix='FEDORA', version='25',
+            dist_tag='f25', stable_tag='f25-updates',
+            testing_tag='f25-updates-testing',
+            candidate_tag='f25-updates-candidate',
+            pending_signing_tag='f25-updates-testing-signing',
+            pending_testing_tag='f25-updates-testing-pending',
+            pending_stable_tag='f25-updates-pending',
+            override_tag='f25-override',
+            branch='f25', state=ReleaseState.archived)
+        self.db.add(release)
+
         currentrelease = self.db.query(Release).filter_by(name='F17').one()
         addedupdates = [[UpdateStatus.pending,
                          [[UpdateType.security, 5],
@@ -646,6 +659,15 @@ class TestReleasesHTML(base.BasePyTestCase):
         with fml_testing.mock_sends():
             _add_updates(addedupdates3, user2, frozenrelease, "fc37")
 
+        archivedrelease = self.db.query(Release).filter_by(name='F25').one()
+        addedupdates4 = [[UpdateStatus.stable,
+                          [[UpdateType.security, 19],
+                           [UpdateType.bugfix, 18],
+                           [UpdateType.enhancement, 17],
+                           [UpdateType.newpackage, 16]]]]
+        with fml_testing.mock_sends():
+            _add_updates(addedupdates4, user2, archivedrelease, "fc25")
+
         self.db.flush()
         # Clear the caches
         Release.get_tags.cache_clear()
@@ -679,3 +701,15 @@ class TestReleasesHTML(base.BasePyTestCase):
 
         # Assert that stable updates counts in a frozen release are displayed properly
         assert '?releases=F37&amp;status=stable">97' in res
+
+        # Assert that archived release is not showed
+        assert '?releases=F25&amp;status=stable' not in res
+
+    def test_archived_release_page(self):
+        """Test the release page update counts"""
+        res = self.app.get('/releases/?active=false', headers={'Accept': 'text/html'}, status=200)
+        # Assert that archived release is showed
+        assert '?releases=F25&amp;status=stable">70' in res
+
+        # Assert that current release is not showed
+        assert '?releases=F17&amp;status=stable' not in res
