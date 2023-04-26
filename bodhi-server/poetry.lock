@@ -733,15 +733,15 @@ Pygments = ">=2.9.0,<3.0.0"
 toml = ["tomli (>=1.2.1)"]
 
 [[package]]
-name = "dogpile.cache"
-version = "1.1.8"
+name = "dogpile-cache"
+version = "1.2.0"
 description = "A caching front-end based on the Dogpile lock."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "dogpile.cache-1.1.8-py3-none-any.whl", hash = "sha256:3f0ca10b46b165e0b0e65e0e74b1a4b36187787b69db7c0f7073077adff2f05d"},
-    {file = "dogpile.cache-1.1.8.tar.gz", hash = "sha256:d844e8bb638cc4f544a4c89a834dfd36fe935400b71a16cbd744ebdfb720fd4e"},
+    {file = "dogpile.cache-1.2.0-py3-none-any.whl", hash = "sha256:d371f310bcdbe5d9c8e7e473348b75c5c97517ac8be16759b24dbaadef1c70a6"},
+    {file = "dogpile.cache-1.2.0.tar.gz", hash = "sha256:47554c860ceb484dd5aef9ff1f88fecb3d4aef6bb92119450f5bcbaa026bbfb1"},
 ]
 
 [package.dependencies]
