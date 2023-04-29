@@ -1,7 +1,7 @@
 <%inherit file="master.html"/>
 <%namespace name="json" module="json"/>
 <%
-  from urllib.parse import urljoin
+  from urllib.parse import quote, urljoin
 
   from bodhi.server import models
 
@@ -603,7 +603,7 @@ if can_edit and update.release.composed_by_bodhi:
             <div class="flex-grow-1">
               <%
                 koji_web_url = request.registry.settings.get('koji_web_url').strip('/') + '/'
-                build_url = urljoin(koji_web_url, 'search?terms='+build.nvr+'&type=build&match=exact')
+                build_url = urljoin(koji_web_url, 'search?terms='+quote(build.nvr)+'&type=build&match=exact')
               %>
               <a href="${build_url}" target="_blank">${build.nvr}</a>
             </div>

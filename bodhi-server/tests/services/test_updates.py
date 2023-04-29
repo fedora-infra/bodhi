@@ -6084,6 +6084,17 @@ class TestUpdatesService(BasePyTestCase):
             assert ('This update will not be pushed to stable until freeze is lifted '
                     f'from {release.long_name}.') not in resp
 
+    def test_koji_build_url_encoding(self):
+        """Test HTML URL to koji build is correctly encoded."""
+        update = self.create_update(['hylafax+-7.0.3-1.fc17'])
+        self.db.commit()
+
+        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
+
+        assert 'text/html' in resp.headers['Content-Type']
+        assert ('search?terms=hylafax%2B-7.0.3-1.fc17&amp;type=build&amp;match=exact" '
+                'target="_blank">hylafax+-7.0.3-1.fc17</a>') in resp
+
 
 class TestWaiveTestResults(BasePyTestCase):
     """
