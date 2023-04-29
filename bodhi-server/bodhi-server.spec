@@ -12,6 +12,8 @@ URL:            https://github.com/fedora-infra/bodhi
 Source0:        %{src_name}-%{pypi_version}.tar.gz
 BuildArch:      noarch
 
+ExclusiveArch:  %{golang_arches_future}
+
 BuildRequires:  make
 BuildRequires:  pyproject-rpm-macros
 BuildRequires:  systemd-rpm-macros
