@@ -10,7 +10,7 @@
 ${parent.css()}
 <link href="${request.static_url('bodhi.server:static/vendor/messenger/css/messenger.css') }" rel="stylesheet" />
 <link href="${request.static_url('bodhi.server:static/vendor/messenger/css/messenger-theme-flat.css') }" rel="stylesheet" />
-<link href="${request.static_url('bodhi.server:static/vendor/selectize/selectize.bootstrap5-0.15.2.css') }" rel="stylesheet" />
+<link href="${request.static_url('bodhi.server:static/vendor/selectize/selectize.bootstrap5-0.14.0.css') }" rel="stylesheet" />
 </%block>
 
 <div class="subheader">
@@ -413,7 +413,7 @@ value="${update.display_name | h}"
 </div></div></div>
 <%block name="javascript">
 ${parent.javascript()}
-<script src="${request.static_url('bodhi.server:static/vendor/selectize/selectize-0.15.2.min.js')}"></script>
+<script src="${request.static_url('bodhi.server:static/vendor/selectize/selectize-0.14.0.min.js')}"></script>
 % if update and update.from_tag:
   <script>var existing_sidetag_update = true;</script>
 % else:
