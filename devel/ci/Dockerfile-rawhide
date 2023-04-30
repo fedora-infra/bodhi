@@ -1,5 +1,5 @@
-FROM registry.fedoraproject.org/fedora:rawhide
-LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
+FROM fedora:rawhide
+LABEL maintainer="Mattia Verga <mattia.verga@fedoraproject.org>"
 
 # RUN echo "fastestmirror=False" >> /etc/dnf/dnf.conf
 # RUN echo "zchunk = False" >> /etc/dnf/dnf.conf

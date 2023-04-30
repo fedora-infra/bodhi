@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:36
+FROM fedora:latest
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
 RUN dnf install -y \
