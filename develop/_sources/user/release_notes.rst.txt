@@ -4,6 +4,55 @@ Release notes
 
 .. towncrier release notes start
 
+v7.2.0
+======
+
+
+
+Released on 2023-04-30.
+This is a bugfix release.
+
+
+Features
+^^^^^^^^
+
+* Bodhi will not try to recalculate the gating status in response to a new
+  result or a new waiver if the status is `ignored` (:pr:`5202`).
+* `update.edit` messages now include `new_builds` and `removed_builds`
+  properties (:pr:`5237`).
+* The Releases list webpage now hide inactive (disabled or archived) releases
+  by default (:pr:`5264`).
+
+Bug fixes
+^^^^^^^^^
+
+* Icons for tests in QUEUED and RUNNING states were not displayed in the webUI
+  (:pr:`5187`).
+* Updated links to Bodhi extended markdown description page (:pr:`5190`).
+* The title in the update webpage now has no more a hyperlink (:issue:`5089`).
+* The bundled selectize js component was downgraded to 0.14.0 to solve a bug
+  where the bug list was emptied upon editing an update (:issue:`5233`).
+* Link to Koji builds are now correctly encoded (:issue:`5272`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Use functools lru_cache for caching `Release.all_releases()` and
+  `Release.get_tags()` instead of a custom implementation (:pr:`5238`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Aurélien Bompard
+* Adam Williamson
+* Kevin Fenzi
+* Mattia Verga
+* Mikolaj Izdebski
+* Michal Konečný
+
+
 v7.1.1
 ======
 

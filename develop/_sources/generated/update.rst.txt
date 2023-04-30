@@ -494,6 +494,149 @@ bodhi.update.edit
         }
     }
 
+bodhi.update.edit
+-----------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.edit#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is edited",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The user who edited the update"
+            },
+            "new_bugs": {
+                "type": "array",
+                "description": "An array of bug ids that have been added to the update",
+                "items": {
+                    "type": "integer",
+                    "description": "A Bugzilla bug ID"
+                }
+            },
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            },
+            "new_builds": {
+                "type": "array",
+                "description": "An array of build NVRs that have been added to the update",
+                "items": {
+                    "type": "string",
+                    "description": "A build NVR"
+                }
+            },
+            "removed_builds": {
+                "type": "array",
+                "description": "An array of build NVRs that have been removed from the update",
+                "items": {
+                    "type": "string",
+                    "description": "A build NVR"
+                }
+            }
+        },
+        "required": [
+            "agent",
+            "new_bugs",
+            "update",
+            "new_builds",
+            "removed_builds"
+        ],
+        "definitions": {
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
 bodhi.update.eject
 ------------------
 ::
