@@ -1,1 +1,0 @@
-The bundled selectize js component was downgraded to 0.14.0 to solve a bug where the bug list was emptied upon editing an update
