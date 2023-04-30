@@ -1,10 +1,10 @@
-FROM bodhi-ci/f36
+FROM bodhi-ci/f38
 LABEL \
   name="bodhi-web" \
   vendor="Fedora Infrastructure" \
-  maintainer="Ryan Lerch <rlerch@redhat.com>" \
+  maintainer="Mattia Verga <mattia.verga@fedoraproject.org>" \
   license="MIT"
-
+ENV VIRTUAL_ENV=/srv/venv
 # For integration testing we're using the infrastructure repo
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/main/f/files/common/fedora-infra-tags.repo
 
@@ -28,12 +28,8 @@ RUN \
     for pkg in bodhi-client bodhi-messages bodhi-server; do \
         cd $pkg && \
         poetry build -f sdist && \
-        FILENAME=( $(find dist/ -type f) ) && \
-        FILENAME=${FILENAME##*/} && \
-        FILENAME=${FILENAME%-*} && \
         cp dist/* ~/rpmbuild/SOURCES/ && \
         cp $pkg.spec ~/rpmbuild/SPECS/ && \
-        sed -i "s/^%global src_name.*/%global src_name $FILENAME/g" ~/rpmbuild/SPECS/$pkg.spec && \
         rpmbuild -ba --nocheck ~/rpmbuild/SPECS/$pkg.spec && \
         dnf install -y $(ls ~/rpmbuild/RPMS/noarch/*$pkg*.rpm) && \
         cd ..; \
