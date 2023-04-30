@@ -25,7 +25,7 @@
       - pcaro-hermit-fonts
       - pcp-system-tools
       - pre-commit
-      #- poetry
+      - poetry
       - postgresql-devel
       - postgresql-server
       - python3-alembic
@@ -51,6 +51,7 @@
       - python3-koji
       - python3-librepo
       - python3-markdown
+      - python3-mypy
       - python3-munch
       - python3-openid
       - python3-pip
@@ -119,19 +120,9 @@
   pip:
       name: pyramid_debugtoolbar
 
-# The version packaged in Fedora never seems to work right, and we'd rather have a newer one anyway
-- name: pip install mypy
-  pip:
-      name: mypy
-
 - name: pip install jinja2-cli
   pip:
       name: jinja2-cli
-
-# The version packaged in Fedora 37 is not compatible with lockfile
-- name: pip install "poetry>=1.2"
-  pip:
-      name: "poetry>=1.2"
 
 - name: Fake a pungi install
   file:
