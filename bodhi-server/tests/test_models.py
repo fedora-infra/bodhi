@@ -1944,7 +1944,7 @@ class TestUpdateNew(BasePyTestCase):
                 'notes': 'simple update', 'type': 'unspecified'}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         self.db.flush()
 
         model.Update.new(request, data)
@@ -1992,7 +1992,7 @@ class TestUpdateEdit(BasePyTestCase):
             'edited': update.alias, 'builds': [update.builds[0].nvr], 'bugs': [12345, ], }
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         with mock_sends(Message):
             model.Update.edit(request, data)
 
@@ -2006,7 +2006,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         with mock_sends(Message):
             model.Update.edit(request, data)
 
@@ -2023,7 +2023,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
@@ -2053,7 +2053,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
@@ -2088,7 +2088,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
 
         with mock_sends(update_schemas.UpdateEditV2, update_schemas.UpdateReadyForTestingV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -2124,7 +2124,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
 
         with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -2160,7 +2160,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
 
         with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -2216,7 +2216,7 @@ class TestUpdateVersionHash(BasePyTestCase):
             build.nvr: {
                 'nvr': build._get_n_v_r(), 'info': buildsys.get_session().getBuild(build.nvr)}}
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         self.db.flush()
         with mock_sends(Message):
             model.Update.edit(request, data)

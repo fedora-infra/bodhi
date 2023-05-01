@@ -258,7 +258,7 @@ def save_override(request):
 
     caveats = []
     try:
-        submitter = User.get(request.user.name)
+        submitter = User.get(request.identity.name)
         if edited is None:
             builds = data['builds']
             overrides = []

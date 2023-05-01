@@ -265,7 +265,7 @@ def validate_builds(request, **kwargs):
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     edited = request.validated.get('edited')
-    user = User.get(request.user.name)
+    user = User.get(request.identity.name)
     builds = request.validated.get('builds') or []  # cope with builds set to None
 
     if edited:
@@ -408,11 +408,11 @@ def validate_acls(request, **kwargs):
         request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
-    if not request.user:
+    if not request.identity:
         # If you're not logged in, obviously you don't have ACLs.
         request.errors.add('cookies', 'user', 'No ACLs for anonymous user')
         return
-    user = User.get(request.user.name)
+    user = User.get(request.identity.name)
     user_groups = [group.name for group in user.groups]
     acl_system = config.get('acl_system')
 

@@ -23,8 +23,6 @@ import logging as python_logging
 from cornice.validators import DEFAULT_FILTERS
 from dogpile.cache import make_region
 from munch import munchify
-from pyramid.authentication import AuthTktAuthenticationPolicy
-from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from pyramid.session import JSONSerializer, SignedCookieSessionFactory
@@ -35,6 +33,7 @@ import pkg_resources
 
 from bodhi.server import bugs, buildsys
 from bodhi.server.config import config as bodhi_config
+from bodhi.server.security import BodhiSecurityPolicy
 
 
 METADATA = importlib.metadata.metadata('bodhi-server')
@@ -63,51 +62,6 @@ def get_cacheregion(request):
     region = make_region()
     region.configure_from_config(bodhi_config, "dogpile.cache.")
     return region
-
-
-def get_user(request):
-    """
-    Return a Munch describing the User or None.
-
-    A Munch is only returned if the request has a truthy value in its unauthenticated_userid
-    attribute.
-
-    Args:
-        request (pyramid.request.Request): The current web request.
-    Returns:
-        munch.Munch or None: A Munch object describing the unauthenticated user, or None if there is
-            no user for the Request.
-    """
-    from bodhi.server.models import User
-    userid = request.unauthenticated_userid
-    if userid is None:
-        return None
-    user = request.db.query(User).filter_by(name=str(userid)).first()
-    if user is None:
-        return None
-    # Why munch?  https://github.com/fedora-infra/bodhi/issues/473
-    return munchify(user.__json__(request=request))
-
-
-def groupfinder(userid, request):
-    """
-    Return a list of strings describing the groups the request's user is a member of.
-
-    The strings are of the format group:<group_name>, so this might return something like this as
-    an example:
-
-        ['group:packager', 'group:bodhiadmin']
-
-    Args:
-        userid (str): The user's id.
-        request (pyramid.request.Request): The current web request.
-    Returns:
-        list or None: A list of the user's groups, or None if the user is not authenticated.
-    """
-    from bodhi.server.models import User
-    if request.user:
-        user = User.get(request.user.name)
-        return ['group:' + group.name for group in user.groups]
 
 
 def setup_buildsys():
@@ -276,7 +230,6 @@ def main(global_config, testing=None, session=None, **settings):
 
     config.add_request_method(lambda x: Session, 'db', reify=True)
 
-    config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_koji, 'koji', reify=True)
     config.add_request_method(get_cacheregion, 'cache', reify=True)
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
@@ -298,14 +251,23 @@ def main(global_config, testing=None, session=None, **settings):
     # Authentication & Authorization
     if testing:
         # use a permissive security policy while running unit tests
-        config.testing_securitypolicy(userid=testing, permissive=True)
+        fake_identity = munchify(
+            {'name': testing,
+             'email': f'{testing}@bodhi-dev.example.com',
+             'groups': [{'name': 'packager'},
+                        {'name': 'ipausers'},
+                        {'name': 'fedora-contributor'},
+                        {'name': 'signed_fpca'},
+                        {'name': 'fedorabugs'},],
+             'openid': bodhi_config['openid_template'].format(username=testing)}
+        )
+        config.testing_securitypolicy(userid=testing, identity=fake_identity, permissive=True)
     else:
         timeout = bodhi_config.get('authtkt.timeout')
-        config.set_authentication_policy(AuthTktAuthenticationPolicy(
-            bodhi_config['authtkt.secret'], callback=groupfinder,
-            secure=bodhi_config['authtkt.secure'], hashalg='sha512', timeout=timeout,
+        config.set_security_policy(BodhiSecurityPolicy(
+            bodhi_config['authtkt.secret'], secure=bodhi_config['authtkt.secure'],
+            hashalg='sha512', timeout=timeout,
             max_age=timeout, samesite='Strict'))
-        config.set_authorization_policy(ACLAuthorizationPolicy())
 
     # Collect metrics for endpoints
     config.add_tween(

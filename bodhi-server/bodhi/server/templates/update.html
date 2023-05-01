@@ -36,7 +36,7 @@ if can_edit and update.release.composed_by_bodhi:
           actions['push to testing'] = True
       else:
         actions['revoke'] = True
-    elif update.pushed and (update.status.value != 'stable' or (update.status.value == 'stable' and 'releng' in [group.name for group in request.user.groups])):
+    elif update.pushed and (update.status.value != 'stable' or (update.status.value == 'stable' and 'releng' in [group.name for group in request.identity.groups])):
       if update.request:
         actions['revoke'] = True
       actions['unpush'] = True
@@ -206,7 +206,7 @@ if can_edit and update.release.composed_by_bodhi:
             </div>
           </div>
           <hr/>
-          % if request.user:
+          % if request.identity:
           <div id="new_comment">
           <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
           <input type="hidden" name="update" value="${update.alias}"/>
@@ -427,7 +427,7 @@ if can_edit and update.release.composed_by_bodhi:
                   <div class="h5 d-flex align-items-center fw-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">Builds</div>
                        <span class="badge text-bg-secondary badge-pill ms-1">${len(update.builds)}</span>
-                      % if request.user and update.from_tag:
+                      % if request.identity and update.from_tag:
                       <span class="badge text-bg-light badge-pill ms-auto border" title="Builds from the Side Tag: ${update.from_tag}" data-bs-toggle="tooltip"><i class="fa fa-tag pe-1"></i> ${update.from_tag}</span>
                       % endif
                   </div>

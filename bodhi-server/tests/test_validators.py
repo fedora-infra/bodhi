@@ -103,7 +103,7 @@ class TestValidateAcls(BasePyTestCase):
             nvr='bodhi-2.0-1.fc17').one().update
         user = self.db.query(models.User).filter_by(id=1).one()
         mock_request = mock.Mock()
-        mock_request.user = user
+        mock_request.identity = user
         mock_request.db = self.db
         mock_request.errors = Errors()
         if not sidetag:

@@ -92,11 +92,11 @@
                         </div>
                     </form>
 
-                    % if request.user:
+                    % if request.identity:
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false">
                             <span class="glyphicon glyphicon-user"></span>
-                            <img src="${self.util.avatar(request.user.name, size=24)}" alt="User Icon"/>
+                            <img src="${self.util.avatar(request.identity.name, size=24)}" alt="User Icon"/>
                         </a>
                         <div class="dropdown-menu dropdown-menu-right">
                             <a class="dropdown-item" href="${request.route_url('home')}">
@@ -109,13 +109,13 @@
                                 Create New Override
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="${request.route_url('user', name=request.user.name)}">
+                            <a class="dropdown-item" href="${request.route_url('user', name=request.identity.name)}">
                                 Your Public Profile
                             </a>
-                            <a class="dropdown-item" href="${request.registry.settings.get('fmn_url')}${request.user.openid}/">
+                            <a class="dropdown-item" href="${request.registry.settings.get('fmn_url')}${request.identity.openid}/">
                                 Manage Alerts
                             </a>
-                            % if request.user:
+                            % if request.identity:
                             <a class="dropdown-item" href="${request.route_url('logout')}">
                                 Log out</a>
                             % endif
@@ -123,7 +123,7 @@
                     </li>
                     % endif
 
-                    % if not request.user:
+                    % if not request.identity:
                     <li class="nav-item ms-3">
                         % if request.matched_route:
                         <a class="btn btn-primary" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">Login</a>
