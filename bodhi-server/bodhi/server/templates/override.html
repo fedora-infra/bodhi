@@ -27,7 +27,7 @@ ${parent.css()}
     The warning that only displays when JavaScript is disabled. It is hidden and
     the new-override-form div is shown by override_form.js
   </%doc>
-  %if request.user:
+  %if request.identity:
   <div class="row">
     <div id='js-warning' class="col-md-8 mx-auto my-5">
       <div class="alert alert-warning">
@@ -46,7 +46,7 @@ ${parent.css()}
   </div>
   %endif
 
-  %if request.user:
+  %if request.identity:
   <form id="new-override-form" class="col-md-12 hidden">
     <div class="row">
       <div class="col-md-8 mx-auto">
@@ -89,9 +89,9 @@ ${parent.css()}
               ${override.submitter.name}
             </a>
             %else:
-            <a href="${request.route_url('user', name=request.user.name)}">
-              <img src="${util.avatar(request.user.name, size=24)}" alt="User Icon"/>
-              ${request.user.name}
+            <a href="${request.route_url('user', name=request.identity.name)}">
+              <img src="${util.avatar(request.identity.name, size=24)}" alt="User Icon"/>
+              ${request.identity.name}
             </a>
             %endif
           </div>
@@ -169,7 +169,7 @@ ${parent.css()}
     </div>
     <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
   </form>
-  %elif not request.user and override is not UNDEFINED:
+  %elif not request.identity and override is not UNDEFINED:
   <div class="row">
     <div class="col-md-8 mx-auto">
       <div>

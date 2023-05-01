@@ -219,7 +219,7 @@ def set_request(request):
             return
 
     try:
-        update.set_request(request.db, action, request.user.name)
+        update.set_request(request.db, action, request.identity.name)
     except BodhiException as e:
         log.info("Failed to set the request: %s", e)
         request.errors.add('body', 'request', str(e))
@@ -678,7 +678,7 @@ def waive_test_results(request):
     tests = request.validated.pop('tests', None)
 
     try:
-        update.waive_test_results(request.user.name, comment, tests)
+        update.waive_test_results(request.identity.name, comment, tests)
     except LockedUpdateException as e:
         log.warning(str(e))
         request.errors.add('body', 'request', str(e))
@@ -753,7 +753,8 @@ def trigger_tests(request):
     else:
         if update.content_type == ContentType.rpm:
             message = update_schemas.UpdateReadyForTestingV2.from_dict(
-                message=update._build_group_test_message(agent=request.user.name, retrigger=True)
+                message=update._build_group_test_message(agent=request.identity.name,
+                                                         retrigger=True)
             )
             notifications.publish(message)
 

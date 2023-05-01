@@ -1,0 +1,1 @@
+Authentication and Authorization have been ported to Pyramid 2.0 Security Policies and session serializer has been switched from PickleSerializer to JSONSerializer. Bodhi will now require Pyramid > 2.0.

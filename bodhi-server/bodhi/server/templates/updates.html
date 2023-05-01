@@ -19,7 +19,7 @@ ${parent.css()}
       <div class="row">
         <div class="col">
             <h3 class="fw-bold m-0 d-flex align-items-center">Updates
-                % if request.user:
+                % if request.identity:
                 <a class="btn btm-sm fw-bold btn-outline-primary ms-auto" href="${request.route_url('new_update')}"><i class="fa fa-plus pe-2"></i>New Update</a>
                 % endif
             </h3>
