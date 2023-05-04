@@ -1097,6 +1097,7 @@ def test_get_compose_json(bodhi_container, db_container):
             row = curs.fetchone()
             for value, description in zip(row, curs.description):
                 release[description.name] = value
+            release['eol'] = release['eol'].isoformat()
             curs.execute(query_updates, (compose['release_id'], compose['request'], ))
             updates = []
             rows = curs.fetchall()
