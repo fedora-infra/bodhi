@@ -17,21 +17,23 @@
 
 
 from bodhi.messages.schemas.base import BuildV1, ReleaseV1, UpdateV1, UserV1
-from bodhi.messages.schemas.update import (UpdateCommentV1,
-                                           UpdateCompleteStableV1,
-                                           UpdateCompleteTestingV1,
-                                           UpdateEditV1,
-                                           UpdateEditV2,
-                                           UpdateEjectV1,
-                                           UpdateKarmaThresholdV1,
-                                           UpdateReadyForTestingV1,
-                                           UpdateReadyForTestingV2,
-                                           UpdateRequestObsoleteV1,
-                                           UpdateRequestRevokeV1,
-                                           UpdateRequestStableV1,
-                                           UpdateRequestTestingV1,
-                                           UpdateRequestUnpushV1,
-                                           UpdateRequirementsMetStableV1)
+from bodhi.messages.schemas.update import (
+    UpdateCommentV1,
+    UpdateCompleteStableV1,
+    UpdateCompleteTestingV1,
+    UpdateEditV1,
+    UpdateEditV2,
+    UpdateEjectV1,
+    UpdateKarmaThresholdV1,
+    UpdateReadyForTestingV1,
+    UpdateReadyForTestingV2,
+    UpdateRequestObsoleteV1,
+    UpdateRequestRevokeV1,
+    UpdateRequestStableV1,
+    UpdateRequestTestingV1,
+    UpdateRequestUnpushV1,
+    UpdateRequirementsMetStableV1,
+)
 
 from .utils import check_message
 
@@ -99,7 +101,7 @@ class TestUpdateMessage:
                 "completed push to stable"
             ),
             "__str__": (
-                "eclipseo's Bodhi update FEDORA-2019-d64d0caab3completed push to stable"
+                "eclipseo's Bodhi update FEDORA-2019-d64d0caab3 completed push to stable"
                 "\nBuilds:\ngolang-github-SAP-go-hdb-0.14.1-1.fc29\ntexworks-0.6.3-1.fc29 "
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
@@ -608,8 +610,15 @@ class TestUpdateMessage:
     def test_requirements_met_stable_v1(self):
         expected = {
             "topic": "bodhi.update.requirements_met.stable",
-            "summary": "FEDORA-2019-f1ca3c00e5 has met stable testing requirements",
-            "__str__": "FEDORA-2019-f1ca3c00e5 has met stable testing requirements",
+            "summary": (
+                "eclipseo's golang-github-Masterminds-semver-2.0.0-0… bodhi update has met "
+                "stable testing requirements"
+            ),
+            "__str__": (
+                "eclipseo's Bodhi update FEDORA-2019-f1ca3c00e5 has met stable testing "
+                "requirements.\nBuilds:\n"
+                "golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29"
+            ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-f1ca3c00e5",
