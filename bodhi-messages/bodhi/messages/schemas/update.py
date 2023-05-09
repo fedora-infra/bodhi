@@ -24,8 +24,10 @@ messages.
 import copy
 import typing
 
-from .base import BodhiMessage, BuildV1, ReleaseV1, SCHEMA_URL, UpdateV1, UserV1
+from fedora_messaging.message import DEBUG
+
 from ..utils import truncate
+from .base import BodhiMessage, BuildV1, ReleaseV1, SCHEMA_URL, UpdateV1, UserV1
 
 
 class UpdateMessage(BodhiMessage):
@@ -804,6 +806,7 @@ class UpdateReadyForTestingV1(BodhiMessage):
     }
 
     topic = "bodhi.update.status.testing.koji-build-group.build.complete"
+    severity = DEBUG
 
     @property
     def summary(self) -> str:
