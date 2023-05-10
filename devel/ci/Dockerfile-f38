@@ -1,4 +1,4 @@
-FROM fedora:rawhide
+FROM fedora:38
 LABEL maintainer="Mattia Verga <mattia.verga@fedoraproject.org>"
 
 # RUN echo "fastestmirror=False" >> /etc/dnf/dnf.conf
