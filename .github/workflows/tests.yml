@@ -71,7 +71,7 @@ jobs:
       fail-fast: false
       matrix:
         # integration tests are broken on pip atm, so not included in this list.
-        release: [f37,f38,rawhide]
+        release: [f38,rawhide]
 
   unit_tests:
     name: Unit Tests
@@ -95,7 +95,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f37,f38,pip,rawhide]
+        release: [f38,pip,rawhide]
         module: [bodhi-client, bodhi-messages, bodhi-server]
 
   docs:
@@ -112,7 +112,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f37,f38,pip,rawhide]
+        release: [f38,pip,rawhide]
 
   rpms:
     name: Build the RPMS
@@ -137,4 +137,4 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f37,f38,rawhide]
+        release: [f38,rawhide]
