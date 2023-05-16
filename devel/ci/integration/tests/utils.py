@@ -16,11 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+from contextlib import contextmanager
 import json
 import os
 import shutil
 import tempfile
-from contextlib import contextmanager
 
 from conu import ConuException
 from fedora_messaging import message
@@ -149,7 +149,7 @@ def run_cli(bodhi_container, args, **kwargs):
         kwargs["exec_create_kwargs"]["environment"] = {}
     kwargs["exec_create_kwargs"]["environment"]["PYTHONWARNINGS"] = "ignore"
     cmd = ["bodhi"] + args + [
-        "--url", "http://localhost:8080",
+        "--url", "http://localhost.localdomain:8080",
         "--id-provider", "https://id.dev.fedoraproject.org/openidc",
     ]
     try:

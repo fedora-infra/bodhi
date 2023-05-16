@@ -441,6 +441,7 @@ def test_updates_download(bodhi_container, db_container):
         with conn.cursor() as curs:
             curs.execute(query_updates)
             updates = [_db_record_to_munch(curs, record) for record in curs]
+            assert len(updates) > 0
             for update in updates:
                 curs.execute(query_builds, (update.id, ))
                 builds.extend([r[0] for r in curs])
