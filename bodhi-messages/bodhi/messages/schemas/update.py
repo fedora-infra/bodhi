@@ -24,8 +24,10 @@ messages.
 import copy
 import typing
 
-from .base import BodhiMessage, BuildV1, ReleaseV1, SCHEMA_URL, UpdateV1, UserV1
+from fedora_messaging.message import DEBUG
+
 from ..utils import truncate
+from .base import BodhiMessage, BuildV1, ReleaseV1, SCHEMA_URL, UpdateV1, UserV1
 
 
 class UpdateMessage(BodhiMessage):
@@ -232,7 +234,7 @@ class UpdateCompleteStableV1(UpdateMessage):
         """
         new_line = "\n"
         return (
-            f"{self.update.user.name}'s Bodhi update {self.update.alias}"
+            f"{self.update.user.name}'s Bodhi update {self.update.alias} "
             f"completed push to {self.update.status}\n"
             f"Builds:\n"
             f"{new_line.join([b.nvr for b in self.update.builds])} ")
@@ -647,7 +649,7 @@ class UpdateRequestObsoleteV1(UpdateRequestMessage):
 
 
 class UpdateRequirementsMetStableV1(UpdateMessage):
-    """Sent when all the update requirements are meant for stable."""
+    """Sent when all the update requirements are met for stable."""
 
     body_schema = {
         'id': f'{SCHEMA_URL}/v1/bodhi.update.requirements_met.stable#',
@@ -676,7 +678,28 @@ class UpdateRequirementsMetStableV1(UpdateMessage):
         Returns:
             A summary for this message.
         """
-        return f'{self.update.alias} has met stable testing requirements'
+        return (
+            f"{self.update.user.name}'s {truncate(' '.join([b.nvr for b in self.update.builds]))} "
+            f"bodhi update has met stable testing requirements"
+        )
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        new_line = "\n"
+        return (
+            f"{self.update.user.name}'s Bodhi update {self.update.alias}"
+            f" has met stable testing requirements.\n"
+            f"Builds:\n"
+            f"{new_line.join([b.nvr for b in self.update.builds])}"
+        )
 
 
 class UpdateReadyForTestingV1(BodhiMessage):
@@ -804,6 +827,7 @@ class UpdateReadyForTestingV1(BodhiMessage):
     }
 
     topic = "bodhi.update.status.testing.koji-build-group.build.complete"
+    severity = DEBUG
 
     @property
     def summary(self) -> str:

@@ -4,19 +4,19 @@ queue_rules:
     - status-success=DCO
     - status-success=Pre-commit checks
     - status-success=Diff-cover check
-    - status-success=Integration Tests (f36)
     - status-success=Integration Tests (f37)
-    - status-success=Unit Tests (f36, bodhi-client)
-    - status-success=Unit Tests (f36, bodhi-messages)
-    - status-success=Unit Tests (f36, bodhi-server)
+    - status-success=Integration Tests (f38)
     - status-success=Unit Tests (f37, bodhi-client)
     - status-success=Unit Tests (f37, bodhi-messages)
     - status-success=Unit Tests (f37, bodhi-server)
+    - status-success=Unit Tests (f38, bodhi-client)
+    - status-success=Unit Tests (f38, bodhi-messages)
+    - status-success=Unit Tests (f38, bodhi-server)
     - status-success=Unit Tests (pip, bodhi-client)
     - status-success=Unit Tests (pip, bodhi-messages)
     - status-success=Unit Tests (pip, bodhi-server)
-    - status-success=Build Documentation (f36)
     - status-success=Build Documentation (f37)
+    - status-success=Build Documentation (f38)
     - status-success=Build Documentation (pip)
 
 
@@ -35,19 +35,19 @@ pull_request_rules:
   - status-success=DCO
   - status-success=Pre-commit checks
   - status-success=Diff-cover check
-  - status-success=Integration Tests (f36)
   - status-success=Integration Tests (f37)
-  - status-success=Unit Tests (f36, bodhi-client)
-  - status-success=Unit Tests (f36, bodhi-messages)
-  - status-success=Unit Tests (f36, bodhi-server)
+  - status-success=Integration Tests (f38)
   - status-success=Unit Tests (f37, bodhi-client)
   - status-success=Unit Tests (f37, bodhi-messages)
   - status-success=Unit Tests (f37, bodhi-server)
+  - status-success=Unit Tests (f38, bodhi-client)
+  - status-success=Unit Tests (f38, bodhi-messages)
+  - status-success=Unit Tests (f38, bodhi-server)
   - status-success=Unit Tests (pip, bodhi-client)
   - status-success=Unit Tests (pip, bodhi-messages)
   - status-success=Unit Tests (pip, bodhi-server)
-  - status-success=Build Documentation (f36)
   - status-success=Build Documentation (f37)
+  - status-success=Build Documentation (f38)
   - status-success=Build Documentation (pip)
 
 - name: backport 7.0
@@ -70,6 +70,16 @@ pull_request_rules:
   - -draft
   - label=7.1-backports
 
+- name: backport 7.2
+  actions:
+    backport:
+      branches:
+      - '7.2'
+  conditions:
+  - label!=WIP
+  - -draft
+  - label=7.2-backports
+
 - name: dependabot
   actions:
     queue:
@@ -84,17 +94,17 @@ pull_request_rules:
   - status-success=DCO
   - status-success=Pre-commit checks
   - status-success=Diff-cover check
-  - status-success=Integration Tests (f36)
   - status-success=Integration Tests (f37)
-  - status-success=Unit Tests (f36, bodhi-client)
-  - status-success=Unit Tests (f36, bodhi-messages)
-  - status-success=Unit Tests (f36, bodhi-server)
+  - status-success=Integration Tests (f38)
   - status-success=Unit Tests (f37, bodhi-client)
   - status-success=Unit Tests (f37, bodhi-messages)
   - status-success=Unit Tests (f37, bodhi-server)
+  - status-success=Unit Tests (f38, bodhi-client)
+  - status-success=Unit Tests (f38, bodhi-messages)
+  - status-success=Unit Tests (f38, bodhi-server)
   - status-success=Unit Tests (pip, bodhi-client)
   - status-success=Unit Tests (pip, bodhi-messages)
   - status-success=Unit Tests (pip, bodhi-server)
-  - status-success=Build Documentation (f36)
   - status-success=Build Documentation (f37)
+  - status-success=Build Documentation (f38)
   - status-success=Build Documentation (pip)

@@ -1,5 +1,5 @@
-FROM registry.fedoraproject.org/fedora:36
-LABEL maintainer="Ryan Lerch <rlerch@redhat.com>"
+FROM fedora:38
+LABEL maintainer="Mattia Verga <mattia.verga@fedoraproject.org>"
 
 # RUN echo "fastestmirror=False" >> /etc/dnf/dnf.conf
 # RUN echo "zchunk = False" >> /etc/dnf/dnf.conf
@@ -65,6 +65,7 @@ VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
 COPY . /bodhi
+ENV VIRTUAL_ENV=/srv/venv
 RUN cp devel/development.ini.example bodhi-server/development.ini
 RUN sed -i '/pyramid_debugtoolbar/d' bodhi-server/development.ini
 RUN poetry config virtualenvs.create false
