@@ -34,3 +34,15 @@ def truncate(title: str) -> str:
 # (enhancement: create a bodhi-common package that every subpackage
 # would depend on and put it there)
 MENTION_RE = r'(?<!\S)(@\w+)'
+
+
+def past_tense(verb):
+    """Return a verb in the past tense (in English).
+
+    Args:
+        verb (str): a verb, such as "obsolete", "revoke", and "push"
+
+    Returns:
+        str: the verb in the past tense, such as "obsoleted", "revoked", and "pushed"
+    """
+    return verb + ("d" if verb[-1] == 'e' else "ed")
