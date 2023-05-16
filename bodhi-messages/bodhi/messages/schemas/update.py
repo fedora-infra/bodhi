@@ -26,7 +26,7 @@ import typing
 
 from fedora_messaging.message import DEBUG
 
-from ..utils import truncate
+from ..utils import past_tense, truncate
 from .base import BodhiMessage, BuildV1, ReleaseV1, SCHEMA_URL, UpdateV1, UserV1
 
 
@@ -83,6 +83,19 @@ class UpdateMessage(BodhiMessage):
     def _update(self) -> dict:
         """Return a dictionary from the body representing an update."""
         return self.body['update']
+
+    @property
+    def _builds_summary(self):
+        """Return a truncated list of the update's builds."""
+        return truncate(' '.join([b.nvr for b in self.update.builds]))
+
+    @property
+    def _owner_qual(self):
+        """Return a string to qualify whether the update belongs to the agent."""
+        if self.agent_name == self.update.user.name:
+            return "their"
+        else:
+            return f"{self.update.user.name}'s"
 
     def __str__(self) -> str:
         """
@@ -219,7 +232,7 @@ class UpdateCompleteStableV1(UpdateMessage):
             A summary for this message.
         """
         return (
-            f"{self.update.user.name}'s {truncate(' '.join([b.nvr for b in self.update.builds]))} "
+            f"{self.update.user.name}'s {self._builds_summary} "
             f"bodhi update completed push to {self.update.status}")
 
     def __str__(self) -> str:
@@ -271,7 +284,7 @@ class UpdateCompleteTestingV1(UpdateMessage):
             A summary for this message.
         """
         return (
-            f"{self.update.user.name}'s {truncate(' '.join([b.nvr for b in self.update.builds]))} "
+            f"{self.update.user.name}'s {self._builds_summary} "
             f"bodhi update completed push to {self.update.status}")
 
     def __str__(self) -> str:
@@ -344,7 +357,10 @@ class UpdateEditV1(UpdateMessage):
         Returns:
             A summary for this message.
         """
-        return f"{self.agent_name} edited {self.update.alias}"
+        return (
+            f"{self.agent_name} edited {self._owner_qual} update {self.update.alias} "
+            f"({self._builds_summary})"
+        )
 
     def __str__(self) -> str:
         """
@@ -458,7 +474,7 @@ class UpdateEjectV1(UpdateMessage):
             A summary for this message.
         """
         return (
-            f"{self.update.user.name}'s {truncate(' '.join([b.nvr for b in self.update.builds]))} "
+            f"{self.update.user.name}'s {self._builds_summary} "
             f"bodhi update was ejected from the {self.repo} mash. Reason: \"{self.reason}\"")
 
 
@@ -502,7 +518,28 @@ class UpdateKarmaThresholdV1(UpdateMessage):
         Returns:
             A summary for this message.
         """
-        return f"{self.update.alias} reached the {self.status} karma threshold"
+        return (
+            f"{self.update.user.name}'s {self._builds_summary} bodhi update "
+            f"has reached the {self.status} karma threshold"
+        )
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        new_line = "\n"
+        return (
+            f"{self.update.user.name}'s bodhi update {self.update.alias} "
+            f"has reached the {self.status} karma threshold.\n"
+            f"Builds:\n"
+            f"{new_line.join([b.nvr for b in self.update.builds])}"
+        )
 
 
 class UpdateRequestMessage(UpdateMessage):
@@ -521,11 +558,39 @@ class UpdateRequestMessage(UpdateMessage):
         """
         status = self.topic.split('.')[-1]
         if status in ('unpush', 'obsolete', 'revoke'):
-            # make our status past-tense
-            status = status + (status[-1] == 'e' and 'd' or 'ed')
-            return f"{self.agent_name} {status} {self.update.alias}"
+            return (
+                f"{self.agent_name} {past_tense(status)} {self._owner_qual} update "
+                f"{self.update.alias} ({self._builds_summary})"
+            )
         else:
-            return f"{self.agent_name} submitted {self.update.alias} to {status}"
+            return (
+                f"{self.agent_name} submitted {self._owner_qual} update {self.update.alias} "
+                f"({self._builds_summary}) to {status}"
+            )
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        status = self.topic.split('.')[-1]
+        if status in ('unpush', 'obsolete', 'revoke'):
+            action = past_tense(status)
+        else:
+            action = "submitted"
+        content = [
+            f"{self.agent_name} {action} {self._owner_qual} update {self.update.alias}"
+        ]
+        if action == "submitted":
+            content.append(f" to {status}")
+        content.append(".\nBuilds:\n")
+        content.append("\n".join([b.nvr for b in self.update.builds]))
+        return "".join(content)
 
 
 class UpdateRequestRevokeV1(UpdateRequestMessage):
@@ -679,7 +744,7 @@ class UpdateRequirementsMetStableV1(UpdateMessage):
             A summary for this message.
         """
         return (
-            f"{self.update.user.name}'s {truncate(' '.join([b.nvr for b in self.update.builds]))} "
+            f"{self.update.user.name}'s {self._builds_summary} "
             f"bodhi update has met stable testing requirements"
         )
 
