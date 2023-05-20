@@ -49,7 +49,7 @@ _app = None
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 
 
-def _configure_test_db(db_uri):
+def _configure_test_db(test_config):
     """
     Create and configure a test database for Bodhi.
 
@@ -63,16 +63,10 @@ def _configure_test_db(db_uri):
     Returns:
         sqlalchemy.engine: The database engine.
     """
-    if db_uri.startswith('sqlite:////'):
-        # Clean out any old file
-        db_path = db_uri.split('sqlite:///')[1]
-        if os.path.isfile(db_path):
-            os.unlink(db_path)
-
     global engine
-    engine = initialize_db({'sqlalchemy.url': db_uri})
+    engine = initialize_db(test_config)
 
-    if db_uri.startswith('sqlite://'):
+    if test_config["sqlalchemy.url"].startswith('sqlite://'):
         # Necessary to get nested transactions working with SQLite. See:
         # http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html\
         # #serializable-isolation-savepoints-transactional-ddl
@@ -236,11 +230,12 @@ class BaseTestCaseMixin:
         models.Release.get_tags.cache_clear()
 
         if engine is None:
-            self.engine = _configure_test_db(config.config["sqlalchemy.url"])
+            self.engine = _configure_test_db(config.config)
         else:
             self.engine = engine
 
         self.connection = self.engine.connect()
+        models.Base.metadata.drop_all(self.engine)
         models.Base.metadata.create_all(self.engine)
         self.transaction = self.connection.begin()
 
