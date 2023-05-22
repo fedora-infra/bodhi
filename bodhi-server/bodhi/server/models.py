@@ -1194,7 +1194,7 @@ class Package(Base):
         pagure_response = pagure_api_get(pagure_query_url)
         return pagure_response['hascommit']
 
-    @validates('builds')
+    @validates('builds', include_backrefs=True)
     def validate_builds(self, key, build):
         """
         Validate builds being appended to ensure they are all the same type as the Package.
@@ -2017,7 +2017,7 @@ class Update(Base):
         return hashlib.sha1(str(builds).encode('utf-8')).hexdigest()
 
     # WARNING: consumers/composer.py assumes that this validation is performed!
-    @validates('builds')
+    @validates('builds', include_backrefs=True)
     def validate_builds(self, key, build):
         """
         Validate builds being appended to ensure they are all the same type.
@@ -2035,7 +2035,7 @@ class Update(Base):
             raise ValueError('An update must contain builds of the same type.')
         return build
 
-    @validates('release')
+    @validates('release', include_backrefs=True)
     def validate_release(self, key, release):
         """
         Make sure the release is the same content type as this update.
