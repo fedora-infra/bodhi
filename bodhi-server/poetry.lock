@@ -734,14 +734,14 @@ toml = ["tomli (>=1.2.1)"]
 
 [[package]]
 name = "dogpile-cache"
-version = "1.2.0"
+version = "1.2.1"
 description = "A caching front-end based on the Dogpile lock."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "dogpile.cache-1.2.0-py3-none-any.whl", hash = "sha256:d371f310bcdbe5d9c8e7e473348b75c5c97517ac8be16759b24dbaadef1c70a6"},
-    {file = "dogpile.cache-1.2.0.tar.gz", hash = "sha256:47554c860ceb484dd5aef9ff1f88fecb3d4aef6bb92119450f5bcbaa026bbfb1"},
+    {file = "dogpile.cache-1.2.1-py3-none-any.whl", hash = "sha256:fa9c9c07640bdb66c5f5574e308123119b96c9a95c6856151d3fd2c91b4fb06a"},
+    {file = "dogpile.cache-1.2.1.tar.gz", hash = "sha256:1d0be0cef90505c9f24e9f00aedab8dce9356d28a4153d5660ab13eeb6a0cfd4"},
 ]
 
 [package.dependencies]
