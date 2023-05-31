@@ -472,10 +472,6 @@ class ComposerThread(threading.Thread):
             if not result:
                 log.warning("%s failed gating: %s" % (update.alias, reason))
                 self.eject_from_compose(update, reason)
-        # We may have removed some updates from this compose above, and do we don't want future
-        # reads on self.compose.updates to see those, so let's mark that attribute expired so
-        # sqlalchemy will requery for the composes instead of using its cached copy.
-        self.db.expire(self.compose, ['updates'])
 
     def eject_from_compose(self, update, reason):
         """
@@ -510,6 +506,10 @@ class ComposerThread(threading.Thread):
                 )),
             force=True,
         )
+        # We have removed some updates from this compose above, and do we don't want future
+        # reads on self.compose.updates to see those, so let's mark that attribute expired so
+        # sqlalchemy will requery for the composes instead of using its cached copy.
+        self.db.expire(self.compose, ['updates'])
 
     def save_state(self, state=None):
         """
@@ -524,6 +524,8 @@ class ComposerThread(threading.Thread):
             self.compose.state = state
         self.db.commit()
         log.info('Compose object updated.')
+        # Expire the compose object so sqlalchemy will reload it instead of use its cached copy
+        self.db.expire(self.compose)
 
     def load_state(self):
         """Load the state of this push so it can be resumed later if necessary."""

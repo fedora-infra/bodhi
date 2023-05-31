@@ -487,6 +487,10 @@ That was the actual one''' % compose_dir
         assert len(self.koji.__untag__) == 2
 
         with self.db_factory() as session:
+            # Clean pending compose from the previous run
+            comp = session.query(Compose).first()
+            if comp is not None:
+                session.delete(comp)
             # Set the update request to stable and the release to pending
             up = session.query(Update).one()
             up.release.state = ReleaseState.pending
@@ -988,9 +992,9 @@ That was the actual one'''
                 unstable_karma=-3,
                 type=UpdateType.security)
 
-            update.test_gating_status = TestGatingStatus.passed
-
             db.add(update)
+
+            update.test_gating_status = TestGatingStatus.passed
 
             # Wipe out the tag cache so it picks up our new release
             Release.get_tags.cache_clear()
@@ -1072,9 +1076,9 @@ That was the actual one'''
                 release=release,
                 type=UpdateType.enhancement)
 
-            update.test_gating_status = TestGatingStatus.passed
-
             db.add(update)
+
+            update.test_gating_status = TestGatingStatus.passed
 
             # Wipe out the tag cache so it picks up our new release
             Release.get_tags.cache_clear()
@@ -1146,9 +1150,9 @@ That was the actual one'''
                 release=release,
                 type=UpdateType.security)
 
-            update.test_gating_status = TestGatingStatus.passed
-
             db.add(update)
+
+            update.test_gating_status = TestGatingStatus.passed
 
             # Wipe out the tag cache so it picks up our new release
             Release.get_tags.cache_clear()
@@ -1526,9 +1530,9 @@ That was the actual one'''
                 release=release,
                 type=UpdateType.security)
 
-            update.test_gating_status = TestGatingStatus.passed
-
             db.add(update)
+
+            update.test_gating_status = TestGatingStatus.passed
 
             # Wipe out the tag cache so it picks up our new release
             Release.get_tags.cache_clear()
@@ -2164,6 +2168,10 @@ testmodule:master:20172:2
             self.handler.run(api_version, task)
 
         with self.db_factory() as session:
+            # Clean pending compose from the previous run
+            comp = session.query(Compose).first()
+            if comp is not None:
+                session.delete(comp)
             # Set the update request to stable and the release to pending
             up = session.query(Update).one()
             assert up.date_testing is not None
@@ -2341,9 +2349,9 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
             release=release,
             type=UpdateType.bugfix)
 
+        self.db.add(update)
         update.test_gating_status = TestGatingStatus.passed
 
-        self.db.add(update)
         # Wipe out the tag cache so it picks up our new release
         Release.get_tags.cache_clear()
         self.db.flush()
@@ -2510,9 +2518,9 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
             release=release,
             type=UpdateType.bugfix)
 
+        self.db.add(update)
         update.test_gating_status = TestGatingStatus.passed
 
-        self.db.add(update)
         # Wipe out the tag cache so it picks up our new release
         Release.get_tags.cache_clear()
         self.db.flush()
@@ -2960,7 +2968,7 @@ class TestComposerThread_save_state(ComposerThreadBaseTestCase):
         t._checkpoints = {'cool': 'checkpoint'}
         t.compose = self.db.query(Compose).one()
         t.db = self.db
-        t.db.commit = mock.MagicMock()
+        t.db.commit = mock.MagicMock(side_effect=t.db.commit)
 
         t.save_state(ComposeState.notifying)
 
@@ -2976,7 +2984,7 @@ class TestComposerThread_save_state(ComposerThreadBaseTestCase):
         t._checkpoints = {'cool': 'checkpoint'}
         t.compose = self.db.query(Compose).one()
         t.db = self.db
-        t.db.commit = mock.MagicMock()
+        t.db.commit = mock.MagicMock(side_effect=t.db.commit)
 
         t.save_state()
 
