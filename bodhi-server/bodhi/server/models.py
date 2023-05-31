@@ -1903,7 +1903,7 @@ class Update(Base):
     """
 
     __tablename__ = 'updates'
-    __exclude_columns__ = ('id', 'user_id', 'release_id')
+    __exclude_columns__ = ('id', 'user_id', 'release_id', 'compose')
     __include_extras__ = ('date_pushed', 'meets_testing_requirements', 'url', 'title',
                           'version_hash')
     __get_by__ = ('alias',)
