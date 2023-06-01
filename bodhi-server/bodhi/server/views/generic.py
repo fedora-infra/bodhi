@@ -522,7 +522,7 @@ def readyness(request):
         dict: A dictionary with list of services checked.
     """
     try:
-        request.db.execute("SELECT 1")
+        request.db.execute(sa.text("SELECT 1"))
         return dict(db_session=True)
     except Exception:
         raise Exception("App not ready, is unable to execute a trivial select.")
