@@ -1562,6 +1562,7 @@ class TestUpdatesService(BasePyTestCase):
         """A locked update should display a link to the compose it is part of."""
         update = Update.query.first()
         compose = Compose.from_updates([update])[0]
+        self.db.add(compose)
         self.db.flush()
 
         resp = self.app.get('/updates/%s' % update.alias,
