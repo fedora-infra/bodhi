@@ -787,8 +787,12 @@ ${parent.javascript()}
     // show the Greenwave decision
     var greenwave_api_url = '${request.registry.settings["greenwave_api_url"]}';
     var missing_tests = {};
-    var reqs_counter = 0;
+    var invalid_gating_repos = [];
+    var missing_gating_repos = [];
+    var failed_fetch_gating_repos = [];
+    var test_reqs_counter = 0;
     var unsatisfied_reqs_counter = 0;
+    var remoteerror_reqs_counter = 0;
     var missing_reqs_counter = 0;
     var running_reqs_counter = 0;
     var greenwave_errors = 0;
@@ -807,6 +811,17 @@ ${parent.javascript()}
                         missing_tests[requirement.subject_identifier] = [];
                     missing_tests[requirement.subject_identifier].push(requirement);
                 }
+            }
+            if (requirement.type.match('gating-yaml')) {
+                remoteerror_reqs_counter++;
+                // these aren't 'test results' exactly
+                test_reqs_counter--;
+                if (requirement.type == 'invalid-gating-yaml')
+                    invalid_gating_repos.push(requirement.subject_identifier);
+                if (requirement.type == 'missing-gating-yaml')
+                    missing_gating_repos.push(requirement.subject_identifier);
+                if (requirement.type == 'failed-fetch-gating-yaml')
+                    failed_fetch_gating_repos.push(requirement.subject_identifier);
             }
             // the user may have already specified this in the required taskotron tests
             if ($.inArray(requirement.testcase, requirements) == -1) {
@@ -834,18 +849,21 @@ ${parent.javascript()}
           icon_class = icons['PASSED'];
         }
         var summary = [];
-        failed_reqs_counter = unsatisfied_reqs_counter - missing_reqs_counter - running_reqs_counter;
-        if (reqs_counter == 0) {
+        failed_reqs_counter = unsatisfied_reqs_counter - missing_reqs_counter - running_reqs_counter - remoteerror_reqs_counter;
+        if (test_reqs_counter == 0) {
             summary = ['no tests are required'];
         } else {
             if (failed_reqs_counter > 0) {
-                summary.push(failed_reqs_counter + ' of ' + reqs_counter + ' required tests failed');
+                summary.push(failed_reqs_counter + ' of ' + test_reqs_counter + ' required tests failed');
             }
             if (running_reqs_counter > 0) {
-                summary.push(running_reqs_counter + ' of ' + reqs_counter + ' required tests running');
+                summary.push(running_reqs_counter + ' of ' + test_reqs_counter + ' required tests running');
             }
             if (missing_reqs_counter > 0) {
-                summary.push(missing_reqs_counter + ' of ' + reqs_counter + ' required test results missing');
+                summary.push(missing_reqs_counter + ' of ' + test_reqs_counter + ' required test results missing');
+            }
+            if (remoteerror_reqs_counter > 0) {
+                summary.push(remoteerror_reqs_counter + ' errors handling remote rules');
             }
             if (summary.length == 0) {
                 summary = ['All required tests passed'];
@@ -907,8 +925,8 @@ ${parent.javascript()}
                         requirements.push(requirement.testcase);
                     }
                 });
-                reqs_counter += data['unsatisfied_requirements'].length;
-                reqs_counter += data['satisfied_requirements'].length;
+                test_reqs_counter += data['unsatisfied_requirements'].length;
+                test_reqs_counter += data['satisfied_requirements'].length;
                 handle_results(data.results, request.subject);
                 after_success();
             },
@@ -1026,7 +1044,7 @@ ${parent.javascript()}
 
         var table = $("<table class='table table-hover'><tbody></tbody></table>").appendTo("#resultsdb");
 
-        // show missing tests first
+        // show missing tests and remote rule yaml problems first
         if (buildname in missing_tests) {
           $.each(missing_tests[buildname], function(i, result) {
             table.append(make_row(
@@ -1038,6 +1056,33 @@ ${parent.javascript()}
             ));
           });
         }
+        $.each(invalid_gating_repos, function (i, repo) {
+          table.append(make_row(
+            'FAILED',
+            repo,
+            'remote policy gating.yaml parsing failed',
+            '',
+            ''
+          ));
+        });
+        $.each(missing_gating_repos, function (i, repo) {
+          table.append(make_row(
+            'FAILED',
+            repo,
+            'remote policy gating.yaml missing',
+            '',
+            ''
+          ));
+        });
+        $.each(failed_fetch_gating_repos, function (i, repo) {
+          table.append(make_row(
+            'FAILED',
+            repo,
+            'remote policy gating.yaml retrieval failed',
+            '',
+            ''
+          ));
+        });
 
         $.each(results, function(i, result) {
           var scenario = 'no_scenario';
