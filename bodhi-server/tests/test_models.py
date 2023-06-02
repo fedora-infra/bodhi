@@ -4815,12 +4815,26 @@ class TestUpdate(ModelTest):
             "summary": "3 of 15 required tests failed",
             "applicable_policies": ["1"],
             "unsatisfied_requirements": [
-                {'item': {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}, 'result_id': "123",
-                 'testcase': 'dist.depcheck', 'type': 'test-result-failed'},
-                {'item': {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}, 'result_id': "124",
-                 'testcase': 'dist.rpmdeplint', 'type': 'test-result-failed'},
-                {'item': {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}, 'result_id': "125",
-                 'testcase': 'dist.someothertest', 'type': 'test-result-failed'}]}
+                {
+                    'subject_identifier': "bodhi-3.6.0-1.fc28",
+                    'subject_type': "koji_build",
+                    'testcase': 'dist.depcheck',
+                    'type': 'test-result-failed'
+                },
+                {
+                    'subject_identifier': "bodhi-3.6.0-1.fc28",
+                    'subject_type': "koji_build",
+                    'testcase': 'dist.rpmdeplint',
+                    'type': 'test-result-failed'
+                },
+                {
+                    'subject_identifier': "bodhi-3.6.0-1.fc28",
+                    'subject_type': "koji_build",
+                    'testcase': 'dist.someothertest',
+                    'type': 'test-result-failed'
+                }
+            ]
+        }
         post.return_value.status_code = 200
 
         config.update({
@@ -4840,7 +4854,9 @@ class TestUpdate(ModelTest):
                 "product_version": "{}".format(self.obj.product_version),
                 "testcase": "{}".format(test),
                 "scenario": None,
-                "subject": {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}}
+                "subject_identifier": "bodhi-3.6.0-1.fc28",
+                "subject_type": "koji_build"
+            }
             expected_calls.append(mock.call(
                 '{}/waivers/'.format(config.get('waiverdb_api_url')),
                 data=json.dumps(data),
@@ -4875,8 +4891,8 @@ class TestUpdate(ModelTest):
             "applicable_policies": ["1"],
             "unsatisfied_requirements": [
                 {
-                    'item': {"item": "%s" % update.builds[0].nvr, "type": "koji_build"},
-                    'result_id': "123",
+                    'subject_identifier': "%s" % update.builds[0].nvr,
+                    'subject_type': "koji_build",
                     'testcase': 'dist.depcheck',
                     'scenario': 'kde',
                     'type': 'test-result-failed'
@@ -4890,7 +4906,8 @@ class TestUpdate(ModelTest):
         })
         update.waive_test_results('foo', 'this is not true!')
         wdata = {
-            'subject': {"item": "%s" % update.builds[0].nvr, "type": "koji_build"},
+            'subject_identifier': "%s" % update.builds[0].nvr,
+            'subject_type': "koji_build",
             'testcase': 'dist.depcheck',
             'scenario': 'kde',
             'product_version': update.product_version,

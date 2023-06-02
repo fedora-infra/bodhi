@@ -3251,7 +3251,8 @@ class Update(Base):
                 continue
 
             data = {
-                'subject': requirement['item'],
+                'subject_type': requirement['subject_type'],
+                'subject_identifier': requirement['subject_identifier'],
                 'testcase': requirement['testcase'],
                 'scenario': requirement.get('scenario', None),
                 'product_version': self.product_version,
