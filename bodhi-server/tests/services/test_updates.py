@@ -6227,10 +6227,8 @@ class TestWaiveTestResults(BasePyTestCase):
         greenwave_api_post.return_value = {
             'unsatisfied_requirements': [
                 {
-                    'item': {
-                        'item': 'bodhi-2.0-1.fc17',
-                        'type': 'koji_build'
-                    },
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build',
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
                     'type': 'test-result-failed'
@@ -6267,9 +6265,8 @@ class TestWaiveTestResults(BasePyTestCase):
                 'product_version': 'fedora-17',
                 'testcase': 'dist.rpmdeplint',
                 'scenario': None,
-                'subject': {
-                    'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
-                }
+                'subject_identifier': 'bodhi-2.0-1.fc17',
+                'subject_type': 'koji_build'
             }
         )
 
@@ -6297,19 +6294,15 @@ class TestWaiveTestResults(BasePyTestCase):
         greenwave_api_post.return_value = {
             'unsatisfied_requirements': [
                 {
-                    'item': {
-                        'item': 'bodhi-2.0-1.fc17',
-                        'type': 'koji_build'
-                    },
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build',
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
                     'type': 'test-result-failed'
                 },
                 {
-                    'item': {
-                        'item': 'bodhi-2.0-1.fc17',
-                        'type': 'koji_build'
-                    },
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build',
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
                     'type': 'test-result-failed'
@@ -6347,9 +6340,8 @@ class TestWaiveTestResults(BasePyTestCase):
                     'product_version': 'fedora-17',
                     'testcase': 'dist.rpmdeplint',
                     'scenario': None,
-                    'subject': {
-                        'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
-                    }
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build'
                 }
             ),
             mock.call(
@@ -6361,9 +6353,8 @@ class TestWaiveTestResults(BasePyTestCase):
                     'product_version': 'fedora-17',
                     'testcase': 'atomic_ci_pipeline_results',
                     'scenario': None,
-                    'subject': {
-                        'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
-                    }
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build'
                 }
             )
         ]
@@ -6393,19 +6384,15 @@ class TestWaiveTestResults(BasePyTestCase):
         greenwave_api_post.return_value = {
             'unsatisfied_requirements': [
                 {
-                    'item': {
-                        'item': 'bodhi-2.0-1.fc17',
-                        'type': 'koji_build'
-                    },
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build',
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
                     'type': 'test-result-failed'
                 },
                 {
-                    'item': {
-                        'item': 'bodhi-2.0-1.fc17',
-                        'type': 'koji_build'
-                    },
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build',
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
                     'type': 'test-result-failed'
@@ -6446,9 +6433,8 @@ class TestWaiveTestResults(BasePyTestCase):
                 'product_version': 'fedora-17',
                 'testcase': 'atomic_ci_pipeline_results',
                 'scenario': None,
-                'subject': {
-                    'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
-                }
+                'subject_identifier': 'bodhi-2.0-1.fc17',
+                'subject_type': 'koji_build'
             }
         )
 
@@ -6476,19 +6462,15 @@ class TestWaiveTestResults(BasePyTestCase):
         greenwave_api_post.return_value = {
             'unsatisfied_requirements': [
                 {
-                    'item': {
-                        'item': 'bodhi-2.0-1.fc17',
-                        'type': 'koji_build'
-                    },
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build',
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
                     'type': 'test-result-failed'
                 },
                 {
-                    'item': {
-                        'item': 'bodhi-2.0-1.fc17',
-                        'type': 'koji_build'
-                    },
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build',
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
                     'type': 'test-result-failed'
@@ -6530,9 +6512,8 @@ class TestWaiveTestResults(BasePyTestCase):
                     'product_version': 'fedora-17',
                     'testcase': 'dist.rpmdeplint',
                     'scenario': None,
-                    'subject': {
-                        'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
-                    }
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build'
                 }
             ),
             mock.call(
@@ -6544,9 +6525,8 @@ class TestWaiveTestResults(BasePyTestCase):
                     'product_version': 'fedora-17',
                     'testcase': 'atomic_ci_pipeline_results',
                     'scenario': None,
-                    'subject': {
-                        'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
-                    }
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build'
                 }
             )
         ]
@@ -6576,19 +6556,15 @@ class TestWaiveTestResults(BasePyTestCase):
         greenwave_api_post.return_value = {
             'unsatisfied_requirements': [
                 {
-                    'item': {
-                        'item': 'bodhi-2.0-1.fc17',
-                        'type': 'koji_build'
-                    },
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build',
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
                     'type': 'test-result-failed'
                 },
                 {
-                    'item': {
-                        'item': 'bodhi-2.0-1.fc17',
-                        'type': 'koji_build'
-                    },
+                    'subject_identifier': 'bodhi-2.0-1.fc17',
+                    'subject_type': 'koji_build',
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
                     'type': 'test-result-failed'
@@ -6629,9 +6605,8 @@ class TestWaiveTestResults(BasePyTestCase):
                 'product_version': 'fedora-17',
                 'testcase': 'dist.rpmdeplint',
                 'scenario': None,
-                'subject': {
-                    'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'
-                }
+                'subject_identifier': 'bodhi-2.0-1.fc17',
+                'subject_type': 'koji_build'
             }
         )
 
