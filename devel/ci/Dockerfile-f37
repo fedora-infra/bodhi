@@ -1,4 +1,4 @@
-FROM fedora:37
+FROM quay.io/fedora/fedora:37
 LABEL maintainer="Mattia Verga <mattia.verga@tiscali.it>"
 
 # RUN echo "fastestmirror=False" >> /etc/dnf/dnf.conf
