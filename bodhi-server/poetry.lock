@@ -725,13 +725,13 @@ files = [
 
 [[package]]
 name = "diff-cover"
-version = "7.5.0"
+version = "7.6.0"
 description = "Run coverage and linting reports on diffs"
 optional = false
 python-versions = ">=3.7.2,<4.0.0"
 files = [
-    {file = "diff_cover-7.5.0-py3-none-any.whl", hash = "sha256:332f31d0892279de33bcc33dd1c75d318244af440dc1ce519984279682669691"},
-    {file = "diff_cover-7.5.0.tar.gz", hash = "sha256:a4b3024a831e4f38c22e809945f09d0a6a7ba662dc8e30d28f1a6b21a3edebfc"},
+    {file = "diff_cover-7.6.0-py3-none-any.whl", hash = "sha256:e6e44554d6adb053f4cb292222e4cb772ef7d5a5690cdb51fe806f51f45dd690"},
+    {file = "diff_cover-7.6.0.tar.gz", hash = "sha256:d1007303f6bfba14925f602fc735ca8d6b254d8b57320f2b4b38a3a618453f40"},
 ]
 
 [package.dependencies]
