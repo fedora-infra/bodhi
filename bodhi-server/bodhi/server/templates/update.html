@@ -639,6 +639,12 @@ if can_edit and update.release.composed_by_bodhi:
           <a class="gating-summary notblue">${update.test_gating_status}</a>
           <i class="fa spinner fa-spinner fa-spin fa-fw"></i>
         </div>
+        % if update.test_gating_status == models.TestGatingStatus.failed:
+        <div>
+          For help debugging failed Fedora CI tests (fedora-ci.*), contact <a href="https://web.libera.chat/?channels=#fedora-ci">#fedora-ci on Libera.chat</a><br/>
+          For help debugging failed openQA tests (update.*), contact <a href="https://matrix.to/#/#quality:fedoraproject.org">the Fedora Quality team</a>, who will usually investigate and diagnose all failures within 24 hours
+        </div>
+        % endif
       </div>
     </div>
 
