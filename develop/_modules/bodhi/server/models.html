@@ -78,9 +78,8 @@
     <span class="n">UnicodeText</span><span class="p">,</span>
     <span class="n">UniqueConstraint</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">hybrid_property</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">backref</span><span class="p">,</span> <span class="n">class_mapper</span><span class="p">,</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">validates</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">class_mapper</span><span class="p">,</span> <span class="n">declarative_base</span><span class="p">,</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">validates</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm.base</span> <span class="kn">import</span> <span class="n">NEVER_SET</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm.exc</span> <span class="kn">import</span> <span class="n">NoResultFound</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm.properties</span> <span class="kn">import</span> <span class="n">RelationshipProperty</span>
@@ -903,8 +902,8 @@
     <span class="n">eol</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Date</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># One-to-many relationships</span>
-    <span class="c1"># builds backref from Build</span>
-    <span class="c1"># composes backref from Compos</span>
+    <span class="n">builds</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Build&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;release&#39;</span><span class="p">)</span>
+    <span class="n">composes</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Compose&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;release&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">critpath_min_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -1109,13 +1108,14 @@
     <span class="n">__get_by__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,)</span>
     <span class="n">__exclude_columns__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="s1">&#39;feedback&#39;</span><span class="p">)</span>
 
-    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># One-to-many relationships</span>
-    <span class="c1"># feedback backref from TestCaseKarma</span>
+    <span class="n">feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;TestCaseKarma&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;testcase&#39;</span><span class="p">)</span>
 
     <span class="c1"># Many-to-many relationships</span>
-    <span class="c1"># builds backref</span>
+    <span class="n">builds</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Build&#39;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">build_testcase_table</span><span class="p">,</span>
+                          <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;testcases&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Package"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Package">[docs]</a><span class="k">class</span> <span class="nc">Package</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -1142,7 +1142,7 @@
     <span class="nb">type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ContentType</span><span class="o">.</span><span class="n">db_type</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="c1"># One-to-many relationships</span>
-    <span class="n">builds</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Build&#39;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s1">&#39;package&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;joined&#39;</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">builds</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Build&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;package&#39;</span><span class="p">)</span>
 
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;polymorphic_on&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
@@ -1225,7 +1225,7 @@
         <span class="n">pagure_response</span> <span class="o">=</span> <span class="n">pagure_api_get</span><span class="p">(</span><span class="n">pagure_query_url</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pagure_response</span><span class="p">[</span><span class="s1">&#39;hascommit&#39;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Package.validate_builds"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Package.validate_builds">[docs]</a>    <span class="nd">@validates</span><span class="p">(</span><span class="s1">&#39;builds&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="Package.validate_builds"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Package.validate_builds">[docs]</a>    <span class="nd">@validates</span><span class="p">(</span><span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="n">include_backrefs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">validate_builds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">build</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validate builds being appended to ensure they are all the same type as the Package.</span>
@@ -1421,17 +1421,22 @@
     <span class="n">nvr</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">signed</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
+    <span class="c1"># One-to-many relationships</span>
+    <span class="n">override</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;BuildrootOverride&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;build&#39;</span><span class="p">,</span> <span class="n">uselist</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
     <span class="c1"># Many-to-one relationships</span>
     <span class="n">package_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;packages.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="c1"># package backref from Package</span>
+    <span class="n">package</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Package&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;joined&#39;</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
     <span class="n">release_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;releases.id&#39;</span><span class="p">))</span>
-    <span class="n">release</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Release&#39;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">release</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Release&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
     <span class="n">update_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;updates.id&#39;</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="c1"># update backref from Update</span>
+    <span class="n">update</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Update&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;builds&#39;</span><span class="p">)</span>
 
     <span class="c1"># Many-to-many relationships</span>
     <span class="n">testcases</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;TestCase&#39;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">build_testcase_table</span><span class="p">,</span>
-                             <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;TestCase.name&#39;</span><span class="p">)</span>
+                             <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;TestCase.name&#39;</span><span class="p">)</span>
 
     <span class="nb">type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ContentType</span><span class="o">.</span><span class="n">db_type</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
@@ -1929,7 +1934,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s1">&#39;updates&#39;</span>
-    <span class="n">__exclude_columns__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;user_id&#39;</span><span class="p">,</span> <span class="s1">&#39;release_id&#39;</span><span class="p">)</span>
+    <span class="n">__exclude_columns__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;user_id&#39;</span><span class="p">,</span> <span class="s1">&#39;release_id&#39;</span><span class="p">,</span> <span class="s1">&#39;compose&#39;</span><span class="p">)</span>
     <span class="n">__include_extras__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;date_pushed&#39;</span><span class="p">,</span> <span class="s1">&#39;meets_testing_requirements&#39;</span><span class="p">,</span> <span class="s1">&#39;url&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span>
                           <span class="s1">&#39;version_hash&#39;</span><span class="p">)</span>
     <span class="n">__get_by__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;alias&#39;</span><span class="p">,)</span>
@@ -1979,26 +1984,26 @@
     <span class="n">release</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Release&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;joined&#39;</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">user_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;users.id&#39;</span><span class="p">))</span>
-    <span class="c1"># user backref from User</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;updates&#39;</span><span class="p">)</span>
 
     <span class="c1"># If the update is locked and a Compose exists for the same release and request, this will be</span>
     <span class="c1"># set to that Compose.</span>
     <span class="n">compose</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span>
         <span class="s1">&#39;Compose&#39;</span><span class="p">,</span>
-        <span class="n">primaryjoin</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;and_(Update.release_id==Compose.release_id, Update.request==Compose.request, &quot;</span>
+        <span class="n">primaryjoin</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;and_(foreign(Update.release_id)==Compose.release_id, &quot;</span>
+                     <span class="s2">&quot;foreign(Update.request)==Compose.request, &quot;</span>
                      <span class="s2">&quot;Update.locked==True)&quot;</span><span class="p">),</span>
-        <span class="n">foreign_keys</span><span class="o">=</span><span class="p">(</span><span class="n">release_id</span><span class="p">,</span> <span class="n">request</span><span class="p">),</span>
-        <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s1">&#39;updates&#39;</span><span class="p">,</span> <span class="n">passive_deletes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;Update.date_submitted&#39;</span><span class="p">,</span>
-                        <span class="o">**</span><span class="n">overlaps_kw</span><span class="p">),</span>
-        <span class="o">**</span><span class="n">overlaps_kw</span><span class="p">)</span>
+        <span class="n">overlaps</span><span class="o">=</span><span class="s1">&#39;release&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;updates&#39;</span><span class="p">)</span>
 
     <span class="c1"># One-to-many relationships</span>
-    <span class="n">comments</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Comment&#39;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;update&#39;</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s2">&quot;all,delete,delete-orphan&quot;</span><span class="p">,</span>
+    <span class="n">comments</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Comment&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;update&#39;</span><span class="p">,</span> <span class="n">cascade</span><span class="o">=</span><span class="s2">&quot;all,delete,delete-orphan&quot;</span><span class="p">,</span>
                             <span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;Comment.timestamp&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;joined&#39;</span><span class="p">)</span>
-    <span class="n">builds</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Build&#39;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;update&#39;</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;Build.nvr&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;joined&#39;</span><span class="p">)</span>
+
+    <span class="n">builds</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Build&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;update&#39;</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;Build.nvr&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;joined&#39;</span><span class="p">)</span>
 
     <span class="c1"># Many-to-many relationships</span>
-    <span class="n">bugs</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Bug&#39;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">update_bug_table</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;updates&#39;</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;Bug.bug_id&#39;</span><span class="p">)</span>
+    <span class="n">bugs</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Bug&#39;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">update_bug_table</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;updates&#39;</span><span class="p">,</span>
+                        <span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;Bug.bug_id&#39;</span><span class="p">)</span>
 
     <span class="c1"># Greenwave</span>
     <span class="n">test_gating_status</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">db_type</span><span class="p">(),</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -2043,7 +2048,7 @@
         <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">builds</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
 
     <span class="c1"># WARNING: consumers/composer.py assumes that this validation is performed!</span>
-<div class="viewcode-block" id="Update.validate_builds"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.validate_builds">[docs]</a>    <span class="nd">@validates</span><span class="p">(</span><span class="s1">&#39;builds&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="Update.validate_builds"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.validate_builds">[docs]</a>    <span class="nd">@validates</span><span class="p">(</span><span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="n">include_backrefs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">validate_builds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">build</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validate builds being appended to ensure they are all the same type.</span>
@@ -2061,7 +2066,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;An update must contain builds of the same type.&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">build</span></div>
 
-<div class="viewcode-block" id="Update.validate_release"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.validate_release">[docs]</a>    <span class="nd">@validates</span><span class="p">(</span><span class="s1">&#39;release&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="Update.validate_release"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.validate_release">[docs]</a>    <span class="nd">@validates</span><span class="p">(</span><span class="s1">&#39;release&#39;</span><span class="p">,</span> <span class="n">include_backrefs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">validate_release</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">release</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Make sure the release is the same content type as this update.</span>
@@ -4380,8 +4385,16 @@
     <span class="n">date_created</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span>
     <span class="n">state_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span>
 
-    <span class="n">release</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Release&#39;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;composes&#39;</span><span class="p">)</span>
+    <span class="n">release</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Release&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;composes&#39;</span><span class="p">)</span>
     <span class="n">state</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ComposeState</span><span class="o">.</span><span class="n">db_type</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ComposeState</span><span class="o">.</span><span class="n">requested</span><span class="p">)</span>
+
+    <span class="n">updates</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span>
+        <span class="s1">&#39;Update&#39;</span><span class="p">,</span>
+        <span class="n">primaryjoin</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;and_(foreign(Update.release_id)==Compose.release_id, &quot;</span>
+                     <span class="s2">&quot;foreign(Update.request)==Compose.request, &quot;</span>
+                     <span class="s2">&quot;Update.locked==True)&quot;</span><span class="p">),</span>
+        <span class="n">passive_deletes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">order_by</span><span class="o">=</span><span class="s1">&#39;Update.date_submitted&#39;</span><span class="p">,</span> <span class="n">overlaps</span><span class="o">=</span><span class="s1">&#39;release&#39;</span><span class="p">,</span>
+        <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;compose&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">content_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -4569,11 +4582,10 @@
 
     <span class="c1"># Many-to-one relationships</span>
     <span class="n">comment_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;comments.id&#39;</span><span class="p">))</span>
-    <span class="n">comment</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s2">&quot;Comment&quot;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s1">&#39;bug_feedback&#39;</span><span class="p">,</span>
-                                                      <span class="n">cascade</span><span class="o">=</span><span class="s2">&quot;all,delete,delete-orphan&quot;</span><span class="p">))</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Comment&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;bug_feedback&#39;</span><span class="p">)</span>
 
     <span class="n">bug_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;bugs.bug_id&#39;</span><span class="p">))</span>
-    <span class="n">bug</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s2">&quot;Bug&quot;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;feedback&#39;</span><span class="p">)</span></div>
+    <span class="n">bug</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Bug&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;feedback&#39;</span><span class="p">)</span></div>
 
 
 <span class="c1"># Used for many-to-many relationships between karma and a TestCase</span>
@@ -4593,11 +4605,10 @@
 
     <span class="c1"># Many-to-one relationships</span>
     <span class="n">comment_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;comments.id&#39;</span><span class="p">))</span>
-    <span class="n">comment</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s2">&quot;Comment&quot;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s1">&#39;testcase_feedback&#39;</span><span class="p">,</span>
-                                                      <span class="n">cascade</span><span class="o">=</span><span class="s2">&quot;all,delete,delete-orphan&quot;</span><span class="p">))</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Comment&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;testcase_feedback&#39;</span><span class="p">)</span>
 
     <span class="n">testcase_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;testcases.id&#39;</span><span class="p">))</span>
-    <span class="n">testcase</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s2">&quot;TestCase&quot;</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;feedback&#39;</span><span class="p">)</span></div>
+    <span class="n">testcase</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;TestCase&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;feedback&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Comment"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Comment">[docs]</a><span class="k">class</span> <span class="nc">Comment</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -4625,14 +4636,18 @@
     <span class="n">timestamp</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span>
 
     <span class="c1"># One-to-many relationships</span>
-    <span class="c1"># bug_feedback backref from BugKarma</span>
-    <span class="c1"># testcase_feedback backref from TestCaseKarma</span>
+    <span class="n">bug_feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;BugKarma&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;comment&#39;</span><span class="p">,</span>
+                                <span class="n">cascade</span><span class="o">=</span><span class="s2">&quot;all,delete,delete-orphan&quot;</span><span class="p">)</span>
+
+    <span class="n">testcase_feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;TestCaseKarma&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;comment&#39;</span><span class="p">,</span>
+                                     <span class="n">cascade</span><span class="o">=</span><span class="s2">&quot;all,delete,delete-orphan&quot;</span><span class="p">)</span>
 
     <span class="c1"># Many-to-one relationships</span>
     <span class="n">update_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;updates.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="c1"># update backref from Update</span>
+    <span class="n">update</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Update&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;comments&#39;</span><span class="p">)</span>
+
     <span class="n">user_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;users.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="c1"># user backref from User</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;comments&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Comment.url"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Comment.url">[docs]</a>    <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -4742,8 +4757,9 @@
     <span class="n">parent</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="c1"># Many-to-many relationships</span>
-    <span class="c1"># updates backref from Update</span>
-    <span class="c1"># feedback backref from BugKarma</span>
+    <span class="n">updates</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Update&#39;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">update_bug_table</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;bugs&#39;</span><span class="p">)</span>
+
+    <span class="n">feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;BugKarma&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;bug&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -4898,12 +4914,14 @@
     <span class="n">email</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">)</span>
 
     <span class="c1"># One-to-many relationships</span>
-    <span class="n">comments</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Comment</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">),</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;dynamic&#39;</span><span class="p">)</span>
-    <span class="n">updates</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Update</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">),</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;dynamic&#39;</span><span class="p">)</span>
-    <span class="c1"># buildroot_overrides backref from BuildrootOverride</span>
+    <span class="n">comments</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Comment&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;dynamic&#39;</span><span class="p">)</span>
+
+    <span class="n">updates</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Update&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;dynamic&#39;</span><span class="p">)</span>
+
+    <span class="n">buildroot_overrides</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;BuildrootOverride&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;submitter&#39;</span><span class="p">)</span>
 
     <span class="c1"># Many-to-many relationships</span>
-    <span class="n">groups</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s2">&quot;Group&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">user_group_table</span><span class="p">,</span> <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;users&#39;</span><span class="p">)</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Group&#39;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">user_group_table</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;users&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="User.avatar"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.User.avatar">[docs]</a>    <span class="k">def</span> <span class="nf">avatar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="s1">&#39;pyramid.request&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -4948,10 +4966,10 @@
     <span class="n">__get_by__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,)</span>
     <span class="n">__exclude_columns__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,)</span>
 
-    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">(</span><span class="mi">64</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">(</span><span class="mi">64</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="c1"># Many-to-many relationships</span>
-    <span class="c1"># users backref from User</span>
+    <span class="n">users</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s2">&quot;User&quot;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">user_group_table</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;groups&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BuildrootOverride"><a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BuildrootOverride">[docs]</a><span class="k">class</span> <span class="nc">BuildrootOverride</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
@@ -4987,11 +5005,11 @@
     <span class="c1"># Many-to-one relationships</span>
     <span class="n">build_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;builds.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">build</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Build&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;joined&#39;</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                         <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s1">&#39;override&#39;</span><span class="p">,</span> <span class="n">uselist</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+                         <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;override&#39;</span><span class="p">)</span>
 
     <span class="n">submitter_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;users.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">submitter</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;User&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s1">&#39;joined&#39;</span><span class="p">,</span> <span class="n">innerjoin</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                             <span class="n">backref</span><span class="o">=</span><span class="s1">&#39;buildroot_overrides&#39;</span><span class="p">)</span>
+                             <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;buildroot_overrides&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nvr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -5201,7 +5219,7 @@
       &copy;2007-2023, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
