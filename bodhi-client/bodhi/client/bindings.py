@@ -199,7 +199,9 @@ class BodhiClient:
         self.base_url = base_url
         self.csrf_token = ''
         self.oidc_storage_path = (
-            oidc_storage_path or os.path.join(os.environ["HOME"], ".config", "bodhi", "client.json")
+            oidc_storage_path or os.path.join(
+                os.path.expanduser("~"), ".config", "bodhi", "client.json"
+            )
         )
         self._build_oidc_client(client_id, id_provider)
 
