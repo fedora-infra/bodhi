@@ -4006,6 +4006,35 @@ class TestUpdate(ModelTest):
         self.obj.remove_tag.assert_called_once_with(self.obj.release.pending_testing_tag)
 
     @mock.patch('bodhi.server.models.buildsys.get_session')
+    def test_set_request_testing_ejected(self, get_session):
+        """
+        Ensure that set_request() adds the candidate tag back to an update which was
+        previously ejected from push.
+        """
+        req = DummyRequest(user=DummyUser())
+        req.errors = cornice.Errors()
+        req.koji = get_session.return_value
+        self.obj.status = UpdateStatus.pending
+        self.obj.request = None
+        expected_message = update_schemas.UpdateRequestTestingV1.from_dict(
+            {'update': self.obj, 'agent': req.user.name})
+
+        with mock_sends(expected_message):
+            self.obj.set_request(self.db, 'testing', req.user.name)
+            # set_request alters the update a bit, so we need to adjust the expected message to
+            # reflect those changes so the mock_sends() check will pass.
+            expected_message.body['update']['status'] = 'pending'
+            expected_message.body['update']['request'] = 'testing'
+            expected_message.body['update']['comments'] = self.obj.__json__()['comments']
+            self.db.commit()
+
+        assert self.obj.status == UpdateStatus.pending
+        assert self.obj.request == UpdateRequest.testing
+        assert get_session.return_value.tagBuild.mock_calls == (
+            [mock.call(self.obj.release.pending_signing_tag, self.obj.builds[0].nvr, force=True),
+             mock.call(self.obj.release.candidate_tag, self.obj.builds[0].nvr, force=True)])
+
+    @mock.patch('bodhi.server.models.buildsys.get_session')
     def test_set_request_resubmit_candidate_tag_missing(self, get_session):
         """Ensure that set_request() adds the candidate tag back to a resubmitted build."""
         req = DummyRequest(user=DummyUser())
