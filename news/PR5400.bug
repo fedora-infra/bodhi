@@ -1,0 +1,1 @@
+server: when resubmitting a pending update to testing, make sure the release candidate tag is applied to all builds
