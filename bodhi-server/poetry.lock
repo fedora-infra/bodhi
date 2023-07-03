@@ -1504,12 +1504,13 @@ files = [
 
 [[package]]
 name = "py3dns"
-version = "3.2.1"
+version = "4.0.0"
 description = "Python 3 DNS library"
 optional = false
-python-versions = "*"
+python-versions = ">=3.2"
 files = [
-    {file = "py3dns-3.2.1.tar.gz", hash = "sha256:1f07d4463e98d9859ce0280c3eaa57da670ad623f6d4d3285c67dca23d7045e4"},
+    {file = "py3dns-4.0.0-py3-none-any.whl", hash = "sha256:1c1ef929ee18cfb45ffdd33deb2282df8815bf07bc23c227f7f353172888b328"},
+    {file = "py3dns-4.0.0.tar.gz", hash = "sha256:ddfdb691a6b7db3e706cd1e33ffeb5a4f45f28e0b8574ea4b8b74ef2c055330b"},
 ]
 
 [[package]]
