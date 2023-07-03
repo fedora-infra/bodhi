@@ -1323,17 +1323,14 @@ files = [
 
 [[package]]
 name = "munch"
-version = "3.0.0"
+version = "4.0.0"
 description = "A dot-accessible dictionary (a la JavaScript objects)"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "munch-3.0.0-py2.py3-none-any.whl", hash = "sha256:0e4108418cfea898dcad01ff9569c30ff58f01d6f699331d04364f51623627c0"},
-    {file = "munch-3.0.0.tar.gz", hash = "sha256:5284603030c00906d9d64d8108728c004fbeb91fc1c1e4caca342bc48f2a6dfd"},
+    {file = "munch-4.0.0-py2.py3-none-any.whl", hash = "sha256:71033c45db9fb677a0b7eb517a4ce70ae09258490e419b0e7f00d1e386ecb1b4"},
+    {file = "munch-4.0.0.tar.gz", hash = "sha256:542cb151461263216a4e37c3fd9afc425feeaf38aaa3025cd2a981fadb422235"},
 ]
-
-[package.dependencies]
-six = "*"
 
 [package.extras]
 testing = ["astroid (>=2.0)", "coverage", "pylint (>=2.3.1,<2.4.0)", "pytest"]
