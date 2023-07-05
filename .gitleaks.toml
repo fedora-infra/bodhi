@@ -1,0 +1,11 @@
+[allowlist]
+paths = []
+commits = []
+regexTarget = "match"
+regexes = [
+  "postgres:anypasswordworkslocally@localhost", # used in setting up local dev boxes
+  "'captcha.secret': '2o78T5zF7OERyAtBfC570ZX2TXvfmI3R5mvw6LkG3W0='", # was used for testing
+  "'captcha.secret': 'gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA='", # was used for testing
+  "'captcha.secret': '_fnIOv2bxXaz4FLECjUikl46VFn6HuJYzXjx_43XC1I='", # was used for testing
+  "secret\": \"VNaWm-coV1VfG_7ZopF7O4Osjsu5DlLZSHkRDB_eMF0=\"", # was used for testing
+]
