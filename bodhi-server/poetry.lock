@@ -1323,17 +1323,14 @@ files = [
 
 [[package]]
 name = "munch"
-version = "3.0.0"
+version = "4.0.0"
 description = "A dot-accessible dictionary (a la JavaScript objects)"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "munch-3.0.0-py2.py3-none-any.whl", hash = "sha256:0e4108418cfea898dcad01ff9569c30ff58f01d6f699331d04364f51623627c0"},
-    {file = "munch-3.0.0.tar.gz", hash = "sha256:5284603030c00906d9d64d8108728c004fbeb91fc1c1e4caca342bc48f2a6dfd"},
+    {file = "munch-4.0.0-py2.py3-none-any.whl", hash = "sha256:71033c45db9fb677a0b7eb517a4ce70ae09258490e419b0e7f00d1e386ecb1b4"},
+    {file = "munch-4.0.0.tar.gz", hash = "sha256:542cb151461263216a4e37c3fd9afc425feeaf38aaa3025cd2a981fadb422235"},
 ]
-
-[package.dependencies]
-six = "*"
 
 [package.extras]
 testing = ["astroid (>=2.0)", "coverage", "pylint (>=2.3.1,<2.4.0)", "pytest"]
@@ -1504,12 +1501,13 @@ files = [
 
 [[package]]
 name = "py3dns"
-version = "3.2.1"
+version = "4.0.0"
 description = "Python 3 DNS library"
 optional = false
-python-versions = "*"
+python-versions = ">=3.2"
 files = [
-    {file = "py3dns-3.2.1.tar.gz", hash = "sha256:1f07d4463e98d9859ce0280c3eaa57da670ad623f6d4d3285c67dca23d7045e4"},
+    {file = "py3dns-4.0.0-py3-none-any.whl", hash = "sha256:1c1ef929ee18cfb45ffdd33deb2282df8815bf07bc23c227f7f353172888b328"},
+    {file = "py3dns-4.0.0.tar.gz", hash = "sha256:ddfdb691a6b7db3e706cd1e33ffeb5a4f45f28e0b8574ea4b8b74ef2c055330b"},
 ]
 
 [[package]]
