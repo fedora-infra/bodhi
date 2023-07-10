@@ -745,18 +745,19 @@ toml = ["tomli (>=1.2.1)"]
 
 [[package]]
 name = "dogpile-cache"
-version = "1.2.1"
+version = "1.2.2"
 description = "A caching front-end based on the Dogpile lock."
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "dogpile.cache-1.2.1-py3-none-any.whl", hash = "sha256:fa9c9c07640bdb66c5f5574e308123119b96c9a95c6856151d3fd2c91b4fb06a"},
-    {file = "dogpile.cache-1.2.1.tar.gz", hash = "sha256:1d0be0cef90505c9f24e9f00aedab8dce9356d28a4153d5660ab13eeb6a0cfd4"},
+    {file = "dogpile.cache-1.2.2-py3-none-any.whl", hash = "sha256:f6c2c6ff3a3dc7dc0d662b3f30983f684502fd7a91a45be680879d7d8cc177d7"},
+    {file = "dogpile.cache-1.2.2.tar.gz", hash = "sha256:fd9022c0d9cbadadf20942391a95adaf296be80b42daa8e202f8de1c21f198b2"},
 ]
 
 [package.dependencies]
 decorator = ">=4.0.0"
 stevedore = ">=3.0.0"
+typing-extensions = {version = ">=4.0.1", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "exceptiongroup"
