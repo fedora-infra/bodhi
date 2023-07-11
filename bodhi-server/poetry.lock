@@ -1070,14 +1070,14 @@ format-nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-
 
 [[package]]
 name = "koji"
-version = "1.33.0"
+version = "1.33.1"
 description = "Koji is a system for building and tracking RPMS. The base package contains shared libraries and the command-line interface."
 optional = false
 python-versions = ">=2.7"
 files = [
-    {file = "koji-1.33.0-py2-none-any.whl", hash = "sha256:8b00242300c76e8462f7f5807e959de0cf636ecfbf3cd0d0f1d3ac5235b7bd03"},
-    {file = "koji-1.33.0-py3-none-any.whl", hash = "sha256:8636f903d8c72414ffbd39082e7984a095a77114e3617930e7b9d195d7a33b9b"},
-    {file = "koji-1.33.0.tar.gz", hash = "sha256:e7c90858f90d22dcd38f18b3ce9fa3522ea49bc629b66a3c625adc04aed186e8"},
+    {file = "koji-1.33.1-py2-none-any.whl", hash = "sha256:a873ff726f216b191d8c27a865973d16ca570b655de423e94dd29ea0cab6fea0"},
+    {file = "koji-1.33.1-py3-none-any.whl", hash = "sha256:6423593df4165f148fb763842cb6533ebf8bda232b4a55b3545d24508ed36c5d"},
+    {file = "koji-1.33.1.tar.gz", hash = "sha256:16493a182e7194f7a5be3426a48dafb5982a450ad4cf79d14f36eb5c8a2c863d"},
 ]
 
 [package.dependencies]
