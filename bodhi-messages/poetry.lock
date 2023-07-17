@@ -303,13 +303,13 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "diff-cover"
-version = "7.6.1"
+version = "7.7.0"
 description = "Run coverage and linting reports on diffs"
 optional = false
 python-versions = ">=3.7.2,<4.0.0"
 files = [
-    {file = "diff_cover-7.6.1-py3-none-any.whl", hash = "sha256:5abd7a0b2aa7b315de7cdc32b7360246ddca1722508f69f1ce1d23877b459956"},
-    {file = "diff_cover-7.6.1.tar.gz", hash = "sha256:78dd8368789fff3bf5f5f3f696826da9cf1f54f364e4a3748026722fc5ec514f"},
+    {file = "diff_cover-7.7.0-py3-none-any.whl", hash = "sha256:bf86f32ec999f9a9e79bf24969f7127ea7b4e55c3ef3cd9300feb13188c89736"},
+    {file = "diff_cover-7.7.0.tar.gz", hash = "sha256:60614cf7e722cf7fb1bde497afac0b514294e1e26534449622dac4da296123fb"},
 ]
 
 [package.dependencies]
