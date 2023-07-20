@@ -604,31 +604,10 @@ class TestUtils(base.BasePyTestCase):
         })
         assert util.get_critpath_components() == ['kernel', 'glibc']
 
-    @mock.patch('bodhi.server.util.http_session')
-    @mock.patch('bodhi.server.util.time.sleep')
-    def test_get_critpath_components_pdc_error(self, sleep, session):
-        """ Ensure an error is thrown in Bodhi if there is an error in PDC
-        getting the critpath packages.
-        """
-        config.update({
-            'critpath.type': 'pdc',
-            'pdc_url': 'http://domain.local'
-        })
-        session.get.return_value.status_code = 500
-        session.get.return_value.json.return_value = \
-            {'error': 'some error'}
-        with pytest.raises(RuntimeError) as exc:
-            util.get_critpath_components('f25')
-        # We are not testing the whole error message because there is no
-        # guarantee of the ordering of the GET parameters.
-        assert 'Bodhi failed to get a resource from PDC' in str(exc.value)
-        assert 'The status code was "500".' in str(exc.value)
-        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
-
     @mock.patch('bodhi.server.util.log')
-    def test_get_critpath_components_not_pdc_not_rpm(self, mock_log):
-        """ Ensure a warning is logged when the critpath system is not pdc
-        or json and the type of components to search for is not rpm.
+    def test_get_critpath_components_not_json_not_rpm(self, mock_log):
+        """ Ensure a warning is logged when the critpath system is not json
+        and the type of components to search for is not rpm.
         """
         config.update({
             'critpath.type': None,
@@ -636,137 +615,9 @@ class TestUtils(base.BasePyTestCase):
         })
         pkgs = util.get_critpath_components('f25', 'module')
         assert 'kernel' in pkgs
-        warning = ('The critpath.type of "module" does not support searching '
+        warning = ('The critpath.type of "(default)" does not support searching '
                    'for non-RPM components')
         mock_log.warning.assert_called_once_with(warning)
-
-    @mock.patch('bodhi.server.util.http_session')
-    def test_get_critpath_components_pdc_paging_exception(self, session):
-        """Ensure that an Exception is raised if components are used and the response is paged."""
-        config.update({
-            'critpath.type': 'pdc',
-            'pdc_url': 'http://domain.local'
-        })
-        pdc_url = 'http://domain.local/rest_api/v1/component-branches/?page_size=1'
-        pdc_next_url = '{0}&page=2'.format(pdc_url)
-        session.get.return_value.status_code = 200
-        session.get.return_value.json.side_effect = [
-            {
-                'count': 2,
-                'next': pdc_next_url,
-                'previous': None,
-                'results': [
-                    {
-                        'active': True,
-                        'critical_path': True,
-                        'global_component': 'gcc',
-                        'id': 6,
-                        'name': 'f26',
-                        'slas': [],
-                        'type': 'rpm'
-                    }]}]
-
-        with pytest.raises(Exception) as exc:
-            util.get_critpath_components('f26', 'rpm', frozenset(['gcc']))
-
-        assert str(exc.value) == 'We got paging when requesting a single component?!'
-        assert session.get.mock_calls == \
-            [mock.call(
-                ('http://domain.local/rest_api/v1/component-branches/?active=true'
-                 '&critical_path=true&fields=global_component&name=f26&page_size=100&type=rpm'
-                 '&global_component=gcc'),
-                timeout=60),
-             mock.call().json()]
-
-    @mock.patch('bodhi.server.util.http_session')
-    def test_get_critpath_pdc_with_components(self, session):
-        """Test the components argument to get_critpath_components()."""
-        config.update({
-            'critpath.type': 'pdc',
-            'pdc_url': 'http://domain.local'
-        })
-        session.get.return_value.status_code = 200
-        session.get.return_value.json.return_value = {
-            'count': 1,
-            'next': None,
-            'previous': None,
-            'results': [{
-                'active': True,
-                'critical_path': True,
-                'global_component': 'gcc',
-                'id': 6,
-                'name': 'f26',
-                'slas': [],
-                'type': 'rpm'}]}
-
-        pkgs = util.get_critpath_components('f26', 'rpm', frozenset(['gcc']))
-
-        assert pkgs == ['gcc']
-        assert session.get.mock_calls == \
-            [mock.call(
-                ('http://domain.local/rest_api/v1/component-branches/?active=true'
-                 '&critical_path=true&fields=global_component&name=f26&page_size=100&type=rpm'
-                 '&global_component=gcc'),
-                timeout=60),
-             mock.call().json()]
-
-    @mock.patch('bodhi.server.util.http_session')
-    def test_get_critpath_components_pdc_success(self, session):
-        """ Ensure that critpath packages can be found using PDC.
-        """
-        config.update({
-            'critpath.type': 'pdc',
-            'pdc_url': 'http://domain.local'
-        })
-        pdc_url = \
-            'http://domain.local/rest_api/v1/component-branches/?page_size=1'
-        pdc_next_url = '{0}&page=2'.format(pdc_url)
-        session.get.return_value.status_code = 200
-        session.get.return_value.json.side_effect = [
-            {
-                'count': 2,
-                'next': pdc_next_url,
-                'previous': None,
-                'results': [
-                    {
-                        'active': True,
-                        'critical_path': True,
-                        'global_component': 'gcc',
-                        'id': 6,
-                        'name': 'f26',
-                        'slas': [],
-                        'type': 'rpm'
-                    }
-                ]
-            },
-            {
-                'count': 2,
-                'next': None,
-                'previous': pdc_url,
-                'results': [
-                    {
-                        'active': True,
-                        'critical_path': True,
-                        'global_component': 'python',
-                        'id': 7,
-                        'name': 'f26',
-                        'slas': [],
-                        'type': 'rpm'
-                    }
-                ]
-            }
-        ]
-        pkgs = util.get_critpath_components('f26')
-        assert 'python' in pkgs
-        assert 'gcc' in pkgs
-        # At least make sure it called the next url to cycle through the pages.
-        # We can't verify all the calls made because the URL GET parameters
-        # in the URL may have different orders based on the system/Python
-        # version.
-        session.get.assert_called_with(pdc_next_url, timeout=60)
-        # Verify there were two GET requests made and two .json() calls
-        assert session.get.call_count == 2
-        assert session.get.return_value.json.call_count == 2
 
     @mock.patch('bodhi.server.util.log')
     def test_get_critpath_components_json_no_file(self, mock_log, critpath_json_config):
@@ -846,10 +697,10 @@ class TestUtils(base.BasePyTestCase):
         """Ensure that get_grouped_critpath_components raises
         ValueError when critpath.type doesn't support groups.
         """
-        config.update({'critpath.type': 'pdc'})
+        config.update({'critpath.type': None})
         with pytest.raises(ValueError) as exc:
             util.get_grouped_critpath_components('f36')
-        error = 'critpath.type pdc does not support groups'
+        error = 'critpath.type (default) does not support groups'
         assert str(exc.value) == error
 
     def test_get_grouped_critpath_components_success(self, critpath_json_config):
@@ -966,94 +817,6 @@ class TestUtils(base.BasePyTestCase):
             '"404". The error was "".')
         assert str(exc.value) == expected_error
         assert sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)]
-
-    @mock.patch('bodhi.server.util.http_session')
-    def test_pdc_api_get(self, session):
-        """ Ensure that an API request to PDC works as expected.
-        """
-        session.get.return_value.status_code = 200
-        expected_json = {
-            "count": 1,
-            "next": None,
-            "previous": None,
-            "results": [
-                {
-                    "id": 1,
-                    "sla": "security_fixes",
-                    "branch": {
-                        "id": 1,
-                        "name": "2.7",
-                        "global_component": "python",
-                        "type": "rpm",
-                        "active": True,
-                        "critical_path": True
-                    },
-                    "eol": "2018-04-27"
-                }
-            ]
-        }
-        session.get.return_value.json.return_value = expected_json
-        rv = util.pdc_api_get(
-            'http://domain.local/rest_api/v1/component-branch-slas/')
-        assert rv == expected_json
-
-    @mock.patch('bodhi.server.util.http_session')
-    @mock.patch('bodhi.server.util.time.sleep')
-    def test_pdc_api_get_500_error(self, sleep, session):
-        """ Ensure that an API request to PDC that triggers a 500 error
-        raises the expected error message.
-        """
-        session.get.return_value.status_code = 500
-        with pytest.raises(RuntimeError) as exc:
-            util.pdc_api_get(
-                'http://domain.local/rest_api/v1/component-branch-slas/')
-        expected_error = (
-            'Bodhi failed to get a resource from PDC at the following URL '
-            '"http://domain.local/rest_api/v1/component-branch-slas/". The '
-            'status code was "500".')
-        assert str(exc.value) == expected_error
-        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
-
-    @mock.patch('bodhi.server.util.http_session')
-    @mock.patch('bodhi.server.util.time.sleep')
-    def test_pdc_api_get_non_500_error(self, sleep, session):
-        """ Ensure that an API request to PDC that raises an error that is
-        not a 500 error returns the returned JSON.
-        """
-        session.get.return_value.status_code = 404
-        session.get.return_value.json.return_value = {
-            "detail": "Not found."
-        }
-        with pytest.raises(RuntimeError) as exc:
-            util.pdc_api_get(
-                'http://domain.local/rest_api/v1/component-branch-slas/3/')
-
-        expected_error = (
-            'Bodhi failed to get a resource from PDC at the following URL '
-            '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
-            'status code was "404". The error was '
-            '"{\'detail\': \'Not found.\'}".')
-        assert str(exc.value) == expected_error
-        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
-
-    @mock.patch('bodhi.server.util.http_session')
-    @mock.patch('bodhi.server.util.time.sleep')
-    def test_pdc_api_get_non_500_error_no_json(self, sleep, session):
-        """ Ensure that an API request to PDC that raises an error that is
-        not a 500 error and has no JSON returns an error.
-        """
-        session.get.return_value.status_code = 404
-        session.get.return_value.json.side_effect = ValueError('Not JSON')
-        with pytest.raises(RuntimeError) as exc:
-            util.pdc_api_get(
-                'http://domain.local/rest_api/v1/component-branch-slas/3/')
-
-        expected_error = (
-            'Bodhi failed to get a resource from PDC at the following URL '
-            '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
-            'status code was "404". The error was "".')
-        assert str(exc.value) == expected_error
-        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
     def test_greenwave_api_post(self, session):

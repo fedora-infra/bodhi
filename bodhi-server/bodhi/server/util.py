@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Random functions that don't fit elsewhere."""
 
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from importlib import import_module
@@ -197,8 +197,7 @@ def get_grouped_critpath_components(collection='master', component_type='rpm', c
 
     Args:
         collection (str): The collection/branch to search. Defaults to 'master'.
-        component_type (str): The component type to search for. This only affects PDC
-            queries. Defaults to 'rpm'.
+        component_type (str): The component type to search for. Defaults to 'rpm'.
         components (frozenset or None): The list of components we are interested in. If None (the
             default), all components for the given collection and type are returned.
     Returns:
@@ -208,6 +207,8 @@ def get_grouped_critpath_components(collection='master', component_type='rpm', c
     """
     critpath_type = config.get('critpath.type')
     if critpath_type != 'json':
+        if not critpath_type:
+            critpath_type = "(default)"
         raise ValueError(f'critpath.type {critpath_type} does not support groups')
     critpath_components = {}
     try:
@@ -231,26 +232,22 @@ def get_critpath_components(collection='master', component_type='rpm', component
     Return a list of critical path packages for a given collection, filtered by components.
 
     Args:
-        collection (str): The collection/branch to search. Defaults to 'master'.
-        component_type (str): The component type to search for. This only affects PDC
-            queries. Defaults to 'rpm'.
+        collection (str): The collection/branch to search. Defaults to 'master'. Only
+            has any effect when critpath_type is json.
+        component_type (str): The component type to search for. Defaults to 'rpm'. Only
+            has any effect when critpath_type is json.
         components (frozenset or None): The list of components we are interested in. If None (the
             default), all components for the given collection and type are returned.
     Returns:
         list: The critpath components for the given collection and type.
-    Raises:
-        RuntimeError: If the PDC did not give us a 200 code.
     """
     critpath_components = []
     critpath_type = config.get('critpath.type')
-    if critpath_type not in ('pdc', 'json') and component_type != 'rpm':
+    if critpath_type != 'json' and component_type != 'rpm':
         log.warning('The critpath.type of "{0}" does not support searching for'
-                    ' non-RPM components'.format(component_type))
+                    ' non-RPM components'.format(critpath_type or "(default)"))
 
-    if critpath_type == 'pdc':
-        critpath_components = get_critpath_components_from_pdc(
-            collection, component_type, components)
-    elif critpath_type == 'json':
+    if critpath_type == 'json':
         try:
             critpath_components_grouped = read_critpath_json(collection).get(component_type, {})
             for compgroup in critpath_components_grouped.values():
@@ -979,67 +976,6 @@ def severity_updateinfo_str(value):
     return severity_map.get(value, "None")
 
 
-# If we need to know about more components than this constant, we will just get the full
-# list, rather than a query per package. This is because at some point, just going through
-# paging becomes more performant than getting the page for every component.
-PDC_CRITPATH_COMPONENTS_GETALL_LIMIT = 10
-
-
-@memoized
-def get_critpath_components_from_pdc(branch, component_type='rpm', components=None):
-    """
-    Search PDC for critical path packages based on the specified branch.
-
-    Args:
-        branch (str): The branch name to search by.
-        component_type (str): The component type to search by. Defaults to ``rpm``.
-        components (frozenset or None): The list of components we are interested in. If None (the
-            default), all components for the given branch and type are returned.
-    Returns:
-        list: Critical path package names.
-    Raises:
-        RuntimeError: If the PDC did not give us a 200 code.
-    """
-    pdc_api_url = '{}/rest_api/v1/component-branches/'.format(
-        config.get('pdc_url').rstrip('/'))
-    query_args = {
-        'active': 'true',
-        'critical_path': 'true',
-        'name': branch,
-        'page_size': 100,
-        'type': component_type,
-        'fields': 'global_component'
-    }
-    # Create ordered dictionary with sorted query args to be able to compare URLs
-    query_args = OrderedDict(sorted(query_args.items(), key=lambda x: x[0]))
-
-    critpath_pkgs_set = set()
-    if components and len(components) < PDC_CRITPATH_COMPONENTS_GETALL_LIMIT:
-        # Do a query for every single component
-        for component in components:
-            query_args['global_component'] = component
-            pdc_api_url_with_args = '{0}?{1}'.format(pdc_api_url, urlencode(query_args))
-            pdc_request_json = pdc_api_get(pdc_api_url_with_args)
-            for branch_rv in pdc_request_json['results']:
-                critpath_pkgs_set.add(branch_rv['global_component'])
-            if pdc_request_json['next']:
-                raise Exception('We got paging when requesting a single component?!')
-    else:
-        pdc_api_url_with_args = '{0}?{1}'.format(pdc_api_url, urlencode(query_args))
-        while True:
-            pdc_request_json = pdc_api_get(pdc_api_url_with_args)
-
-            for branch_rv in pdc_request_json['results']:
-                critpath_pkgs_set.add(branch_rv['global_component'])
-
-            if pdc_request_json['next']:
-                pdc_api_url_with_args = pdc_request_json['next']
-            else:
-                # There are no more results to iterate through
-                break
-    return list(critpath_pkgs_set)
-
-
 def read_critpath_json(collection):
     """
     Read the JSON format critical path information for the collection.
@@ -1139,22 +1075,6 @@ def pagure_api_get(pagure_api_url):
         RuntimeError: If the server did not give us a 200 code.
     """
     return call_api(pagure_api_url, service_name='Pagure', error_key='error', retries=3)
-
-
-def pdc_api_get(pdc_api_url):
-    """
-    Perform a GET request against PDC.
-
-    Args:
-        pdc_api_url (str): The URL to GET, including query parameters.
-    Returns:
-        dict: A dictionary response representing the API response's JSON.
-    Raises:
-        RuntimeError: If the server did not give us a 200 code.
-    """
-    # There is no error_key specified because the error key is not consistent
-    # based on the error message
-    return call_api(pdc_api_url, service_name='PDC', retries=3)
 
 
 def greenwave_api_post(greenwave_api_url, data):

@@ -3281,79 +3281,25 @@ class TestUpdate(ModelTest):
         # No bugs should have been closed
         assert close.call_count == 0
 
-    @mock.patch('bodhi.server.util.http_session')
     @mock.patch.dict(util.config, {
-        'critpath.type': 'pdc',
-        'pdc_url': 'http://domain.local'
+        'critpath.type': None,
+        'critpath_pkgs': ['gcc', 'TurboGears'],
     })
-    def test_contains_critpath_component(self, session):
+    def test_contains_critpath_component(self):
         """ Verifies that the static function of contains_critpath_component
         determines that one of the builds has a critpath component.
         """
-        session.get.return_value.status_code = 200
-        session.get.return_value.json.return_value = {
-            'count': 2,
-            'next': None,
-            'previous': None,
-            'results': [
-                {
-                    'active': True,
-                    'critical_path': True,
-                    'global_component': 'gcc',
-                    'id': 6,
-                    'name': 'f11',
-                    'slas': [],
-                    'type': 'rpm'
-                },
-                {
-                    'active': True,
-                    'critical_path': True,
-                    'global_component': 'TurboGears',
-                    'id': 7,
-                    'name': 'f11',
-                    'slas': [],
-                    'type': 'rpm'
-                }
-            ]
-        }
         update = self.get_update()
         assert update.contains_critpath_component(update.builds, update.release.name)
 
-    @mock.patch('bodhi.server.util.http_session')
     @mock.patch.dict(util.config, {
-        'critpath.type': 'pdc',
-        'pdc_url': 'http://domain.local'
+        'critpath.type': None,
+        'critpath_pkgs': ['gcc', 'python'],
     })
-    def test_contains_critpath_component_not_critpath(self, session):
+    def test_contains_critpath_component_not_critpath(self):
         """ Verifies that the static function of contains_critpath_component
         determines that none of the builds are critpath components.
         """
-        session.get.return_value.status_code = 200
-        session.get.return_value.json.return_value = {
-            'count': 2,
-            'next': None,
-            'previous': None,
-            'results': [
-                {
-                    'active': True,
-                    'critical_path': True,
-                    'global_component': 'gcc',
-                    'id': 6,
-                    'name': 'f25',
-                    'slas': [],
-                    'type': 'rpm'
-                },
-                {
-                    'active': True,
-                    'critical_path': True,
-                    'global_component': 'python',
-                    'id': 7,
-                    'name': 'f25',
-                    'slas': [],
-                    'type': 'rpm'
-                }
-            ]
-        }
         update = self.get_update()
         # Use a different release here for additional testing and to avoid
         # caching from the previous test
