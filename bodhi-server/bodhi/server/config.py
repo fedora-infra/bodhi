@@ -511,9 +511,6 @@ class BodhiConfig(dict):
         'pagure_url': {
             'value': 'https://src.fedoraproject.org/pagure/',
             'validator': _validate_tls_url},
-        'pdc_url': {
-            'value': 'https://pdc.fedoraproject.org/',
-            'validator': _validate_tls_url},
         'privacy_link': {
             'value': '',
             'validator': str},
