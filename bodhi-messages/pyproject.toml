@@ -33,6 +33,9 @@ include = [
     { path = "COPYING", format = "sdist" }
 ]
 
+[tool.poetry.build]
+generate-setup-file = true
+
 [tool.poetry.dependencies]
 python = ">=3.8, <4"
 fedora-messaging = ">=3.0.0"

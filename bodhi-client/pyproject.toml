@@ -33,6 +33,9 @@ include = [
 ]
 exclude = ["docs/_build"]
 
+[tool.poetry.build]
+generate-setup-file = true
+
 [tool.poetry.dev-dependencies]
 Sphinx = ">=3.4.3"
 pytest = ">=6.0.0"
