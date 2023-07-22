@@ -3388,9 +3388,9 @@ class TestComposerThread_mark_status_changes(ComposerThreadBaseTestCase):
         assert (now - update.date_pushed) < datetime.timedelta(seconds=5)
         assert update.pushed
         if from_side_tag:
-            assert delete_tag.called_with('f34-build-side-0000')
+            delete_tag.assert_called_with('f34-build-side-0000')
         else:
-            assert delete_tag.not_called()
+            delete_tag.assert_not_called()
 
     def test_testing_update(self):
         """Assert that a testing update gets the right status."""
