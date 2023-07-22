@@ -701,7 +701,7 @@ class TestMain(BaseTaskTestCase):
 
             assert add_tag.call_args_list == \
                 [call('f17-updates')]
-            assert delete_tag.not_called()
+            delete_tag.assert_not_called()
         else:
             assert remove_tag.call_args_list == \
                 [call(f'{from_side_tag}-signing-pending'),
