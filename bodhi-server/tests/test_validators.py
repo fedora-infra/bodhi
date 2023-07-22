@@ -268,7 +268,9 @@ class TestValidateAcls(BasePyTestCase):
         assert len(mock_request.errors) == 0
         mock_access.assert_called_once()
         mock_gpcfp.assert_called_once()
-        warning.called_once_with('Unable to retrieve committers list from Pagure for bodhi.')
+        warning.assert_called_once_with(
+            'Unable to retrieve committers list from Pagure for bodhi.'
+        )
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     def test_validate_acls_dummy(self):
