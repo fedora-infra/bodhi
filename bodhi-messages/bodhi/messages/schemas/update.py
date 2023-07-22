@@ -299,7 +299,7 @@ class UpdateCompleteTestingV1(UpdateMessage):
         """
         new_line = "\n"
         return (
-            f"{self.update.user.name}'s Bodhi update {self.update.alias}"
+            f"{self.update.user.name}'s Bodhi update {self.update.alias} "
             f"completed push to {self.update.status}\n"
             f"Builds:\n"
             f"{new_line.join([b.nvr for b in self.update.builds])} ")
