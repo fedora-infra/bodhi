@@ -989,3 +989,35 @@ class UpdateReadyForTestingV2(UpdateReadyForTestingV1):
     body_schema['definitions']['build'] = BuildV1.schema()
     body_schema['properties']['update'] = UpdateV1.schema()
     body_schema['required'].append('update')
+
+    @property
+    def summary(self) -> str:
+        """
+        Return a short, human-readable representation of this message.
+
+        This should provide a short summary of the message, much like the subject line
+        of an email.
+
+        Returns:
+            A summary for this message.
+        """
+        return (
+            f"{self.body['update']['user']['name']}'s "
+            f"{truncate(' '.join([b['nvr'] for b in self.body['artifact']['builds']]))} "
+            f"bodhi update is ready for testing")
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        new_line = "\n"
+        return (
+            f"{self.body['update']['user']['name']}'s Bodhi update is ready for testing\n"
+            f"Builds:\n"
+            f"{new_line.join([b['nvr'] for b in self.body['artifact']['builds']])} ")
