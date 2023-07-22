@@ -66,6 +66,9 @@ exclude = [
     { path = "docs/_build", format = "sdist" }
         ]
 
+[tool.poetry.build]
+generate-setup-file = true
+
 [tool.poetry.dev-dependencies]
 bodhi-messages = {path = "../bodhi-messages"}
 pytest = ">=6.2.2"
