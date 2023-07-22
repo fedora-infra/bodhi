@@ -248,11 +248,11 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.status.testing.koji-build-group.build.complete",
             "summary": (
-                "BaseOS CI's libselinux-2.8-6.fc29.x86_64 libsepol-2.… bodhi update "
+                "plautrba's libselinux-2.8-6.fc29.x86_64 libsepol-2.… bodhi update "
                 "is ready for testing"
             ),
             "__str__": (
-                "BaseOS CI's Bodhi update is ready for testing\nBuilds:"
+                "plautrba's Bodhi update is ready for testing\nBuilds:"
                 "\nlibselinux-2.8-6.fc29.x86_64\nlibsepol-2.8-3.fc29.x86_64 "
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
