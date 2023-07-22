@@ -145,7 +145,7 @@ class TestUpdateMessage:
                 "completed push to testing"
             ),
             "__str__": (
-                "eclipseo's Bodhi update FEDORA-2019-d64d0caab3completed push to testing"
+                "eclipseo's Bodhi update FEDORA-2019-d64d0caab3 completed push to testing"
                 "\nBuilds:\ngolang-github-SAP-go-hdb-0.14.1-1.fc29\ntexworks-0.6.3-1.fc29 "
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
