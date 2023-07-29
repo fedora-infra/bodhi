@@ -223,13 +223,13 @@ files = [
 
 [[package]]
 name = "click"
-version = "8.1.3"
+version = "8.1.6"
 description = "Composable command line interface toolkit"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "click-8.1.3-py3-none-any.whl", hash = "sha256:bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48"},
-    {file = "click-8.1.3.tar.gz", hash = "sha256:7682dc8afb30297001674575ea00d1814d808d6a36af415a82bd481d37ba7b8e"},
+    {file = "click-8.1.6-py3-none-any.whl", hash = "sha256:fa244bb30b3b5ee2cae3da8f55c9e5e0c0e86093306301fb418eb9dc40fbded5"},
+    {file = "click-8.1.6.tar.gz", hash = "sha256:48ee849951919527a045bfe3bf7baa8a959c423134e1a5b98c05c20ba75a1cbd"},
 ]
 
 [package.dependencies]
@@ -375,13 +375,13 @@ files = [
 
 [[package]]
 name = "diff-cover"
-version = "7.6.0"
+version = "7.7.0"
 description = "Run coverage and linting reports on diffs"
 optional = false
 python-versions = ">=3.7.2,<4.0.0"
 files = [
-    {file = "diff_cover-7.6.0-py3-none-any.whl", hash = "sha256:e6e44554d6adb053f4cb292222e4cb772ef7d5a5690cdb51fe806f51f45dd690"},
-    {file = "diff_cover-7.6.0.tar.gz", hash = "sha256:d1007303f6bfba14925f602fc735ca8d6b254d8b57320f2b4b38a3a618453f40"},
+    {file = "diff_cover-7.7.0-py3-none-any.whl", hash = "sha256:bf86f32ec999f9a9e79bf24969f7127ea7b4e55c3ef3cd9300feb13188c89736"},
+    {file = "diff_cover-7.7.0.tar.gz", hash = "sha256:60614cf7e722cf7fb1bde497afac0b514294e1e26534449622dac4da296123fb"},
 ]
 
 [package.dependencies]
@@ -521,14 +521,14 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "koji"
-version = "1.33.0"
+version = "1.33.1"
 description = "Koji is a system for building and tracking RPMS. The base package contains shared libraries and the command-line interface."
 optional = false
 python-versions = ">=2.7"
 files = [
-    {file = "koji-1.33.0-py2-none-any.whl", hash = "sha256:8b00242300c76e8462f7f5807e959de0cf636ecfbf3cd0d0f1d3ac5235b7bd03"},
-    {file = "koji-1.33.0-py3-none-any.whl", hash = "sha256:8636f903d8c72414ffbd39082e7984a095a77114e3617930e7b9d195d7a33b9b"},
-    {file = "koji-1.33.0.tar.gz", hash = "sha256:e7c90858f90d22dcd38f18b3ce9fa3522ea49bc629b66a3c625adc04aed186e8"},
+    {file = "koji-1.33.1-py2-none-any.whl", hash = "sha256:a873ff726f216b191d8c27a865973d16ca570b655de423e94dd29ea0cab6fea0"},
+    {file = "koji-1.33.1-py3-none-any.whl", hash = "sha256:6423593df4165f148fb763842cb6533ebf8bda232b4a55b3545d24508ed36c5d"},
+    {file = "koji-1.33.1.tar.gz", hash = "sha256:16493a182e7194f7a5be3426a48dafb5982a450ad4cf79d14f36eb5c8a2c863d"},
 ]
 
 [package.dependencies]
@@ -617,17 +617,14 @@ files = [
 
 [[package]]
 name = "munch"
-version = "3.0.0"
+version = "4.0.0"
 description = "A dot-accessible dictionary (a la JavaScript objects)"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "munch-3.0.0-py2.py3-none-any.whl", hash = "sha256:0e4108418cfea898dcad01ff9569c30ff58f01d6f699331d04364f51623627c0"},
-    {file = "munch-3.0.0.tar.gz", hash = "sha256:5284603030c00906d9d64d8108728c004fbeb91fc1c1e4caca342bc48f2a6dfd"},
+    {file = "munch-4.0.0-py2.py3-none-any.whl", hash = "sha256:71033c45db9fb677a0b7eb517a4ce70ae09258490e419b0e7f00d1e386ecb1b4"},
+    {file = "munch-4.0.0.tar.gz", hash = "sha256:542cb151461263216a4e37c3fd9afc425feeaf38aaa3025cd2a981fadb422235"},
 ]
-
-[package.dependencies]
-six = "*"
 
 [package.extras]
 testing = ["astroid (>=2.0)", "coverage", "pylint (>=2.3.1,<2.4.0)", "pytest"]
