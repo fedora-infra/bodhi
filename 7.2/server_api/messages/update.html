@@ -5,10 +5,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Update &#8212; bodhi 7.2.0 documentation</title>
+    <title>Update &#8212; bodhi 7.2.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b76e3c8a" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=71a681cb" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=2e35fc95"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=8a4d788c"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -529,10 +529,36 @@ of an email.</p>
 <span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'body_schema':</span> <span class="pre">typing.Any}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV2.__annotations__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV2.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateReadyForTestingV2.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV2.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a human-readable representation of this message.</p>
+<p>This should provide a detailed representation of the message, much like the body
+of an email.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A human readable representation of this message.</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV2.renamed">
 <span class="sig-name descname"><span class="pre">renamed</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'$ref':</span> <span class="pre">'#/definitions/artifactbuild'}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV2.renamed" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV2.summary">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">summary</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV2.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a short, human-readable representation of this message.</p>
+<p>This should provide a short summary of the message, much like the subject line
+of an email.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A summary for this message.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
