@@ -4,6 +4,53 @@ Release notes
 
 .. towncrier release notes start
 
+v7.2.1
+======
+
+
+
+Released on 2023-07-30.
+This is a bugfix release.
+
+
+Features
+^^^^^^^^
+
+* If an update has got any failing test, an help box is displayed in the
+  Automated Tests tab (:pr:`5382`).
+
+Bug fixes
+^^^^^^^^^
+
+* On the Automated Tests tab, passed tests that are 'required' now correctly
+  show as such (:pr:`5388`).
+* client: do not rely on `HOME` being defined in os.environ variables
+  (:pr:`5398`).
+* server: when resubmitting a pending update to testing, make sure the release
+  candidate tag is applied to all builds (:pr:`5400`).
+* Fixed wrong update attribution in ready for testing message string
+  (:issue:`5415`).
+* Fixed missing whitespace in "bodhi update completed push to testing"
+  (:issue:`5416`).
+* Update testing instruction command is now clearer as it now warns users that
+  it may take up to 24 hours for an update to propagate to mirrors
+  (:issue:`5428`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Added support for dnf5 to repository sanity check tests (:issue:`5404`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Aurélien Bompard
+* Adam Williamson
+* Mattia Verga
+
+
 v7.2.0
 ======
 
