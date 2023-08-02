@@ -1574,13 +1574,13 @@ files = [
 
 [[package]]
 name = "pymediawiki"
-version = "0.7.2"
+version = "0.7.3"
 description = "Wikipedia and MediaWiki API wrapper for Python"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "pymediawiki-0.7.2-py3-none-any.whl", hash = "sha256:4b29ab6b2a5004c54777a61af169389ca56e54ee43e9af91bfc4e06b3d0ec867"},
-    {file = "pymediawiki-0.7.2.tar.gz", hash = "sha256:e0a8ed2929d6051c99807ae7502c1d2b04b1f457ed910dbebc9ba9b5f9d6a942"},
+    {file = "pymediawiki-0.7.3-py3-none-any.whl", hash = "sha256:ca0a052007b02981c424bc208476bfae6f58495b39574857b5bd415fa2d48868"},
+    {file = "pymediawiki-0.7.3.tar.gz", hash = "sha256:5c1f75c509df68c8acd835e814cd12b72a8af038dd3bdd3103fb0a79e8299a24"},
 ]
 
 [package.dependencies]
