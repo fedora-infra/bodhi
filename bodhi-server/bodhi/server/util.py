@@ -343,7 +343,7 @@ def sanity_check_repodata(myurl, repo_type):
         tests = []
 
         if repo_type in ('yum', 'source'):
-            tests.append((['list', 'available'], 'testrepo'))
+            tests.append((['list', '--available'], 'testrepo'))
         else:  # repo_type == 'module', verified above
             tests.append((['module', 'list'], '.*'))
 

@@ -36,7 +36,7 @@ if can_edit and update.release.composed_by_bodhi:
           actions['push to testing'] = True
       else:
         actions['revoke'] = True
-    elif update.pushed and (update.status.value != 'stable' or (update.status.value == 'stable' and 'releng' in [group.name for group in request.user.groups])):
+    elif update.pushed and (update.status.value != 'stable' or (update.status.value == 'stable' and 'releng' in [group.name for group in request.identity.groups])):
       if update.request:
         actions['revoke'] = True
       actions['unpush'] = True
@@ -187,6 +187,7 @@ if can_edit and update.release.composed_by_bodhi:
           % if install_command:
           <div class="pt-2">
           <h4>How to install</h4>
+            <p class="mb-1">Updates may require up to 24 hours to propagate to mirrors. If the following command doesn't work, please retry later:</p>
             <pre style="position: relative;"><span class="badge text-bg-secondary" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${install_command}</code></pre>
           </div>
           % endif
@@ -206,7 +207,7 @@ if can_edit and update.release.composed_by_bodhi:
             </div>
           </div>
           <hr/>
-          % if request.user:
+          % if request.identity:
           <div id="new_comment">
           <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
           <input type="hidden" name="update" value="${update.alias}"/>
@@ -427,7 +428,7 @@ if can_edit and update.release.composed_by_bodhi:
                   <div class="h5 d-flex align-items-center fw-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">Builds</div>
                        <span class="badge text-bg-secondary badge-pill ms-1">${len(update.builds)}</span>
-                      % if request.user and update.from_tag:
+                      % if request.identity and update.from_tag:
                       <span class="badge text-bg-light badge-pill ms-auto border" title="Builds from the Side Tag: ${update.from_tag}" data-bs-toggle="tooltip"><i class="fa fa-tag pe-1"></i> ${update.from_tag}</span>
                       % endif
                   </div>
@@ -786,8 +787,12 @@ ${parent.javascript()}
     // show the Greenwave decision
     var greenwave_api_url = '${request.registry.settings["greenwave_api_url"]}';
     var missing_tests = {};
-    var reqs_counter = 0;
+    var invalid_gating_repos = [];
+    var missing_gating_repos = [];
+    var failed_fetch_gating_repos = [];
+    var test_reqs_counter = 0;
     var unsatisfied_reqs_counter = 0;
+    var remoteerror_reqs_counter = 0;
     var missing_reqs_counter = 0;
     var running_reqs_counter = 0;
     var greenwave_errors = 0;
@@ -806,6 +811,17 @@ ${parent.javascript()}
                         missing_tests[requirement.subject_identifier] = [];
                     missing_tests[requirement.subject_identifier].push(requirement);
                 }
+            }
+            if (requirement.type.match('gating-yaml')) {
+                remoteerror_reqs_counter++;
+                // these aren't 'test results' exactly
+                test_reqs_counter--;
+                if (requirement.type == 'invalid-gating-yaml')
+                    invalid_gating_repos.push(requirement.subject_identifier);
+                if (requirement.type == 'missing-gating-yaml')
+                    missing_gating_repos.push(requirement.subject_identifier);
+                if (requirement.type == 'failed-fetch-gating-yaml')
+                    failed_fetch_gating_repos.push(requirement.subject_identifier);
             }
             // the user may have already specified this in the required taskotron tests
             if ($.inArray(requirement.testcase, requirements) == -1) {
@@ -833,18 +849,21 @@ ${parent.javascript()}
           icon_class = icons['PASSED'];
         }
         var summary = [];
-        failed_reqs_counter = unsatisfied_reqs_counter - missing_reqs_counter - running_reqs_counter;
-        if (reqs_counter == 0) {
+        failed_reqs_counter = unsatisfied_reqs_counter - missing_reqs_counter - running_reqs_counter - remoteerror_reqs_counter;
+        if (test_reqs_counter == 0) {
             summary = ['no tests are required'];
         } else {
             if (failed_reqs_counter > 0) {
-                summary.push(failed_reqs_counter + ' of ' + reqs_counter + ' required tests failed');
+                summary.push(failed_reqs_counter + ' of ' + test_reqs_counter + ' required tests failed');
             }
             if (running_reqs_counter > 0) {
-                summary.push(running_reqs_counter + ' of ' + reqs_counter + ' required tests running');
+                summary.push(running_reqs_counter + ' of ' + test_reqs_counter + ' required tests running');
             }
             if (missing_reqs_counter > 0) {
-                summary.push(missing_reqs_counter + ' of ' + reqs_counter + ' required test results missing');
+                summary.push(missing_reqs_counter + ' of ' + test_reqs_counter + ' required test results missing');
+            }
+            if (remoteerror_reqs_counter > 0) {
+                summary.push(remoteerror_reqs_counter + ' errors handling remote rules');
             }
             if (summary.length == 0) {
                 summary = ['All required tests passed'];
@@ -906,8 +925,8 @@ ${parent.javascript()}
                         requirements.push(requirement.testcase);
                     }
                 });
-                reqs_counter += data['unsatisfied_requirements'].length;
-                reqs_counter += data['satisfied_requirements'].length;
+                test_reqs_counter += data['unsatisfied_requirements'].length;
+                test_reqs_counter += data['satisfied_requirements'].length;
                 handle_results(data.results, request.subject);
                 after_success();
             },
@@ -1025,7 +1044,7 @@ ${parent.javascript()}
 
         var table = $("<table class='table table-hover'><tbody></tbody></table>").appendTo("#resultsdb");
 
-        // show missing tests first
+        // show missing tests and remote rule yaml problems first
         if (buildname in missing_tests) {
           $.each(missing_tests[buildname], function(i, result) {
             table.append(make_row(
@@ -1037,6 +1056,33 @@ ${parent.javascript()}
             ));
           });
         }
+        $.each(invalid_gating_repos, function (i, repo) {
+          table.append(make_row(
+            'FAILED',
+            repo,
+            'remote policy gating.yaml parsing failed',
+            '',
+            ''
+          ));
+        });
+        $.each(missing_gating_repos, function (i, repo) {
+          table.append(make_row(
+            'FAILED',
+            repo,
+            'remote policy gating.yaml missing',
+            '',
+            ''
+          ));
+        });
+        $.each(failed_fetch_gating_repos, function (i, repo) {
+          table.append(make_row(
+            'FAILED',
+            repo,
+            'remote policy gating.yaml retrieval failed',
+            '',
+            ''
+          ));
+        });
 
         $.each(results, function(i, result) {
           var scenario = 'no_scenario';

@@ -19,8 +19,7 @@
 from unittest import mock
 import collections
 
-from pyramid import authentication, authorization, testing
-import munch
+from pyramid import testing
 
 from bodhi import server
 from bodhi.server import models
@@ -104,115 +103,10 @@ class TestGetReleases(base.BasePyTestCase):
         assert releases == models.Release.all_releases()
 
 
-class TestGetUser(base.BasePyTestCase):
-    """Test get_user()."""
-
-    def _make_request(self, userid):
-        class Request:
-            """
-            Fake a Request.
-
-            We don't use the DummyRequest because it doesn't allow us to set the
-            unauthenticated_user attribute. We don't use mock because it causes serialization
-            problems with the call to user.__json__().
-            """
-            cache = mock.MagicMock()
-            db = self.db
-            registry = mock.MagicMock()
-        request = Request()
-        request.unauthenticated_userid = userid
-        return request
-
-    def test_authenticated(self):
-        """Assert that a munch gets returned for an authenticated user."""
-        db_user = models.User.query.filter_by(name='guest').one()
-        user = server.get_user(self._make_request(db_user.name))
-
-        assert user['groups'] == [{'name': 'packager'}]
-        assert user['name'] == 'guest'
-        assert isinstance(user, munch.Munch)
-
-    def test_unauthenticated(self):
-        """Assert that None gets returned for an unauthenticated user."""
-        user = server.get_user(self._make_request(None))
-        assert user is None
-
-    def test_unknown_user(self):
-        """Assert that None gets returned for an unknown user."""
-        user = server.get_user(self._make_request("unknown"))
-        assert user is None
-
-
-class TestGroupfinder(base.BasePyTestCase):
-    """Test the groupfinder() function."""
-
-    def test_no_user(self):
-        """Test when there is not a user."""
-        request = testing.DummyRequest(user=base.DummyUser('guest'))
-        request.db = self.db
-
-        # The first argument isn't used, so just set it to None.
-        groups = server.groupfinder(None, request)
-
-        assert groups == ['group:packager']
-
-    def test_user(self):
-        """Test with a user."""
-        request = testing.DummyRequest(user=None)
-
-        # The first argument isn't used, so just set it to None.
-        assert server.groupfinder(None, request) is None
-
-
 class TestMain(base.BasePyTestCase):
     """
     Assert correct behavior from the main() function.
     """
-    @mock.patch('bodhi.server.Configurator.set_authentication_policy')
-    @mock.patch('bodhi.server.Configurator.set_authorization_policy')
-    def test_authtkt_timeout_defined(self, set_authorization_policy, set_authentication_policy):
-        """Ensure that main() uses the setting when authtkt.timeout is defined in settings."""
-        with mock.patch.dict(
-                self.app_settings,
-                {'authtkt.timeout': '10', 'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
-            server.main({}, session=self.db, **self.app_settings)
-
-        policy = set_authentication_policy.mock_calls[0][1][0]
-        assert isinstance(policy, authentication.AuthTktAuthenticationPolicy)
-        assert policy.callback == server.groupfinder
-        assert policy.cookie.hashalg == 'sha512'
-        assert policy.cookie.max_age == 10
-        assert policy.cookie.secure is True
-        assert policy.cookie.secret == 'hunter2'
-        assert policy.cookie.timeout == 10
-        set_authentication_policy.assert_called_once_with(policy)
-        # Ensure that the ACLAuthorizationPolicy was used
-        policy = set_authorization_policy.mock_calls[0][1][0]
-        assert isinstance(policy, authorization.ACLAuthorizationPolicy)
-        set_authorization_policy.assert_called_once_with(policy)
-
-    @mock.patch('bodhi.server.Configurator.set_authentication_policy')
-    @mock.patch('bodhi.server.Configurator.set_authorization_policy')
-    def test_authtkt_timeout_undefined(self, set_authorization_policy, set_authentication_policy):
-        """Ensure that main() uses a default if authtkt.timeout is undefined in settings."""
-        with mock.patch.dict(
-                self.app_settings, {'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
-            server.main({}, session=self.db, **self.app_settings)
-
-        policy = set_authentication_policy.mock_calls[0][1][0]
-        assert isinstance(policy, authentication.AuthTktAuthenticationPolicy)
-        assert policy.callback == server.groupfinder
-        assert policy.cookie.hashalg == 'sha512'
-        assert policy.cookie.max_age == 86400
-        assert policy.cookie.secure is True
-        assert policy.cookie.secret == 'hunter2'
-        assert policy.cookie.timeout == 86400
-        set_authentication_policy.assert_called_once_with(policy)
-        # Ensure that the ACLAuthorizationPolicy was used
-        policy = set_authorization_policy.mock_calls[0][1][0]
-        assert isinstance(policy, authorization.ACLAuthorizationPolicy)
-        set_authorization_policy.assert_called_once_with(policy)
-
     def test_calls_session_remove(self):
         """Let's assert that main() calls Session.remove()."""
         with mock.patch('bodhi.server.Session.remove') as remove:

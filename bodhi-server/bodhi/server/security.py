@@ -19,19 +19,71 @@
 import typing
 
 from cornice.errors import Errors
+from munch import munchify
+from pyramid.authentication import AuthTktCookieHelper
+from pyramid.authorization import (
+    ALL_PERMISSIONS, DENY_ALL, ACLHelper, Allow, Authenticated, Everyone
+)
+from pyramid.request import RequestLocalCache
 from pyramid.threadlocal import get_current_registry
-
-
-try:
-    # Pyramid >= 2.0
-    from pyramid.authorization import ALL_PERMISSIONS, Allow, DENY_ALL
-except ImportError:
-    # Pyramid < 2.0
-    from pyramid.security import ALL_PERMISSIONS, Allow, DENY_ALL
-
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     import pyramid.request.Request  # noqa: 401
+
+
+class BodhiSecurityPolicy:  # pragma: no cover
+    """Define a custom Pyramid security policy."""
+
+    def __init__(self, secret, secure, hashalg, timeout, max_age, samesite):
+        """Initialize the security policy."""
+        self.helper = AuthTktCookieHelper(secret)
+        self.identity_cache = RequestLocalCache(self.load_identity)
+        self.acl = ACLHelper()
+
+    def load_identity(self, request):
+        """Load authenticated user from database and returns a munch."""
+        from bodhi.server.models import User
+        identity = self.helper.identify(request)
+        if identity is None:
+            return None
+        user = request.db.query(User).filter_by(name=str(identity['userid'])).first()
+        if user is None:
+            return None
+        # Why munch?  https://github.com/fedora-infra/bodhi/issues/473
+        return munchify(user.__json__(request=request))
+
+    def identity(self, request):
+        """Load identity from cache if already loaded."""
+        return self.identity_cache.get_or_create(request)
+
+    def authenticated_userid(self, request):
+        """Return user name or None."""
+        # defer to the identity logic to determine if the user id logged in
+        # and return None if they are not
+        identity = self.identity(request)
+        if identity is not None:
+            return identity.name
+        return None
+
+    def permits(self, request, context, permission):
+        """Perform authorization on current request."""
+        # use the identity to build a list of principals, and pass them
+        # to the ACLHelper to determine allowed/denied
+        identity = self.identity(request)
+        principals = set([Everyone])
+        if identity is not None:
+            principals.add(Authenticated)
+            principals.add(identity.name)
+            principals.update(['group:' + group.name for group in identity.groups])
+        return self.acl.permits(context, principals, permission)
+
+    def remember(self, request, userid, **kw):
+        """Call helper function."""
+        return self.helper.remember(request, userid, **kw)
+
+    def forget(self, request, **kw):
+        """Call helper function."""
+        return self.helper.forget(request, **kw)
 
 
 #
@@ -193,5 +245,5 @@ class ProtectedRequest(object):
         self.errors = Errors()
         # But proxy other attributes to the real request
         self.real_request = real_request
-        for attr in ['db', 'registry', 'validated', 'buildinfo', 'user']:
+        for attr in ['db', 'registry', 'validated', 'buildinfo', 'identity']:
             setattr(self, attr, getattr(self.real_request, attr))

@@ -2441,7 +2441,7 @@ class Update(Base):
             tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
         """
         db = request.db
-        user = User.get(request.user.name)
+        user = User.get(request.identity.name)
         data['user'] = user
         caveats = []
         try:
@@ -2527,7 +2527,7 @@ class Update(Base):
         # The request to testing for side-tag updates is set within the signed consumer
         if not data.get("from_tag"):
             log.debug(f"Setting request for new update {up.alias}.")
-            up.set_request(db, req, request.user.name)
+            up.set_request(db, req, request.identity.name)
             if req == UpdateRequest.testing:
                 # set_request will update gating status if necessary
                 setgs = False
@@ -2629,7 +2629,7 @@ class Update(Base):
 
         # Comment on the update with details of added/removed builds
         # .. enumerate the builds in markdown format so they're pretty.
-        comment = '%s edited this update.' % request.user.name
+        comment = '%s edited this update.' % request.identity.name
         if new_builds:
             comment += '\n\nNew build(s):\n'
             for new_build in new_builds:
@@ -2689,7 +2689,7 @@ class Update(Base):
 
         req = data.pop("request", None)
         if req is not None and up.release.composed_by_bodhi:
-            up.set_request(db, req, request.user.name)
+            up.set_request(db, req, request.identity.name)
 
         for key, value in data.items():
             setattr(up, key, value)
@@ -2699,7 +2699,7 @@ class Update(Base):
         notifications.publish(update_schemas.UpdateEditV2.from_dict(
             message={
                 'update': up,
-                'agent': request.user.name,
+                'agent': request.identity.name,
                 'new_bugs': new_bugs,
                 'new_builds': new_builds,
                 'removed_builds': removed_builds
@@ -3251,7 +3251,8 @@ class Update(Base):
                 continue
 
             data = {
-                'subject': requirement['item'],
+                'subject_type': requirement['subject_type'],
+                'subject_identifier': requirement['subject_identifier'],
                 'testcase': requirement['testcase'],
                 'scenario': requirement.get('scenario', None),
                 'product_version': self.product_version,

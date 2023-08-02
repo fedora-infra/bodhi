@@ -186,14 +186,13 @@ class TestProtectedRequest:
         request = testing.DummyRequest()
         request.buildinfo = mock.MagicMock()
         request.db = mock.MagicMock()
-        request.user = mock.MagicMock()
         request.validated = mock.MagicMock()
         # This one shouldn't get copied.
         request.dontcopy = mock.MagicMock()
 
         pr = security.ProtectedRequest(request)
 
-        for attr in ('db', 'registry', 'validated', 'buildinfo', 'user'):
+        for attr in ('db', 'registry', 'validated', 'buildinfo', 'identity'):
             assert getattr(pr, attr) == getattr(request, attr)
 
         assert isinstance(pr.errors, errors.Errors)

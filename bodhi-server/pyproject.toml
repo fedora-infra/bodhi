@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhi-server"
-version = "7.2.0"
+version = "7.2.1"
 description = "Bodhi server"
 readme = "README.rst"
 authors = ["Fedora Infrastructure Team"]
@@ -66,6 +66,9 @@ exclude = [
     { path = "docs/_build", format = "sdist" }
         ]
 
+[tool.poetry.build]
+generate-setup-file = true
+
 [tool.poetry.dev-dependencies]
 bodhi-messages = {path = "../bodhi-messages"}
 pytest = ">=6.2.2"
@@ -103,9 +106,9 @@ psycopg2 = ">=2.8.6"
 py3dns = ">=3.2.1" # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
 pyLibravatar = ">=1.6"
 pymediawiki = "^0.7"
-pyramid = ">=1.10.5"
-pyramid-fas-openid = ">=0.4.0"
-pyramid-mako = ">=1.0.2"
+pyramid = "~2.0.0"
+pyramid-fas-openid = "^0.4.0"
+pyramid-mako = "^1.1"
 python-bugzilla = ">=3.2.0"
 PyYAML = ">=5.4.1"
 requests = ">=2.25.1"

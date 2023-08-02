@@ -103,7 +103,7 @@ class TestValidateAcls(BasePyTestCase):
             nvr='bodhi-2.0-1.fc17').one().update
         user = self.db.query(models.User).filter_by(id=1).one()
         mock_request = mock.Mock()
-        mock_request.user = user
+        mock_request.identity = user
         mock_request.db = self.db
         mock_request.errors = Errors()
         if not sidetag:
@@ -268,7 +268,9 @@ class TestValidateAcls(BasePyTestCase):
         assert len(mock_request.errors) == 0
         mock_access.assert_called_once()
         mock_gpcfp.assert_called_once()
-        warning.called_once_with('Unable to retrieve committers list from Pagure for bodhi.')
+        warning.assert_called_once_with(
+            'Unable to retrieve committers list from Pagure for bodhi.'
+        )
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     def test_validate_acls_dummy(self):

@@ -325,4 +325,4 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         assert update.status == UpdateStatus.pending
         assert update.pushed is False
         assert update.test_gating_status == TestGatingStatus.passed
-        assert add_tag.not_called()
+        add_tag.assert_not_called()

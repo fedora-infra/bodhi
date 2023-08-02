@@ -1,1 +1,0 @@
-client: do not rely on `HOME` being defined in os.environ variables

@@ -203,7 +203,7 @@ def _get_active_updates(request):
     update_status = [models.UpdateStatus.pending, models.UpdateStatus.testing]
     query = query.filter(sa.sql.or_(*[models.Update.status == s for s in update_status]))
 
-    user = models.User.get(request.user.name)
+    user = models.User.get(request.identity.name)
 
     query = query.filter(models.Update.user == user)
 
@@ -216,7 +216,7 @@ def _get_active_overrides(request):
     query = models.BuildrootOverride.query
 
     query = query.filter(models.BuildrootOverride.expired_date.is_(None))
-    user = models.User.get(request.user.name)
+    user = models.User.get(request.identity.name)
 
     query = query.filter(models.BuildrootOverride.submitter == user)
 
@@ -261,7 +261,7 @@ def home(request):
             _generate_home_page_stats().
     """
     data = _generate_home_page_stats()
-    if request.user:
+    if request.identity:
         data['active_updates'] = _get_active_updates(request)
         data['active_overrides'] = _get_active_overrides(request)
     return data

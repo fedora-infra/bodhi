@@ -214,7 +214,7 @@ def new_comment(request):
     data.pop('csrf_token')
 
     update = data.pop('update')
-    author = request.user and request.user.name
+    author = request.identity and request.identity.name
     if not author:
         # this can happen if we have a stale cached session, a 403
         # response will trigger the client to reauth:

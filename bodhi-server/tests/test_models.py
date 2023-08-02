@@ -1944,7 +1944,7 @@ class TestUpdateNew(BasePyTestCase):
                 'notes': 'simple update', 'type': 'unspecified'}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         self.db.flush()
 
         model.Update.new(request, data)
@@ -1992,7 +1992,7 @@ class TestUpdateEdit(BasePyTestCase):
             'edited': update.alias, 'builds': [update.builds[0].nvr], 'bugs': [12345, ], }
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         with mock_sends(Message):
             model.Update.edit(request, data)
 
@@ -2006,7 +2006,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         with mock_sends(Message):
             model.Update.edit(request, data)
 
@@ -2023,7 +2023,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
@@ -2053,7 +2053,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
@@ -2088,7 +2088,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
 
         with mock_sends(update_schemas.UpdateEditV2, update_schemas.UpdateReadyForTestingV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -2124,7 +2124,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
 
         with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -2160,7 +2160,7 @@ class TestUpdateEdit(BasePyTestCase):
             'bugs': [], 'display_name': '  '}
         request = mock.MagicMock()
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
 
         with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -2216,7 +2216,7 @@ class TestUpdateVersionHash(BasePyTestCase):
             build.nvr: {
                 'nvr': build._get_n_v_r(), 'info': buildsys.get_session().getBuild(build.nvr)}}
         request.db = self.db
-        request.user.name = 'tester'
+        request.identity.name = 'tester'
         self.db.flush()
         with mock_sends(Message):
             model.Update.edit(request, data)
@@ -4761,12 +4761,26 @@ class TestUpdate(ModelTest):
             "summary": "3 of 15 required tests failed",
             "applicable_policies": ["1"],
             "unsatisfied_requirements": [
-                {'item': {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}, 'result_id': "123",
-                 'testcase': 'dist.depcheck', 'type': 'test-result-failed'},
-                {'item': {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}, 'result_id': "124",
-                 'testcase': 'dist.rpmdeplint', 'type': 'test-result-failed'},
-                {'item': {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}, 'result_id': "125",
-                 'testcase': 'dist.someothertest', 'type': 'test-result-failed'}]}
+                {
+                    'subject_identifier': "bodhi-3.6.0-1.fc28",
+                    'subject_type': "koji_build",
+                    'testcase': 'dist.depcheck',
+                    'type': 'test-result-failed'
+                },
+                {
+                    'subject_identifier': "bodhi-3.6.0-1.fc28",
+                    'subject_type': "koji_build",
+                    'testcase': 'dist.rpmdeplint',
+                    'type': 'test-result-failed'
+                },
+                {
+                    'subject_identifier': "bodhi-3.6.0-1.fc28",
+                    'subject_type': "koji_build",
+                    'testcase': 'dist.someothertest',
+                    'type': 'test-result-failed'
+                }
+            ]
+        }
         post.return_value.status_code = 200
 
         config.update({
@@ -4786,7 +4800,9 @@ class TestUpdate(ModelTest):
                 "product_version": "{}".format(self.obj.product_version),
                 "testcase": "{}".format(test),
                 "scenario": None,
-                "subject": {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}}
+                "subject_identifier": "bodhi-3.6.0-1.fc28",
+                "subject_type": "koji_build"
+            }
             expected_calls.append(mock.call(
                 '{}/waivers/'.format(config.get('waiverdb_api_url')),
                 data=json.dumps(data),
@@ -4821,8 +4837,8 @@ class TestUpdate(ModelTest):
             "applicable_policies": ["1"],
             "unsatisfied_requirements": [
                 {
-                    'item': {"item": "%s" % update.builds[0].nvr, "type": "koji_build"},
-                    'result_id': "123",
+                    'subject_identifier': "%s" % update.builds[0].nvr,
+                    'subject_type': "koji_build",
                     'testcase': 'dist.depcheck',
                     'scenario': 'kde',
                     'type': 'test-result-failed'
@@ -4836,7 +4852,8 @@ class TestUpdate(ModelTest):
         })
         update.waive_test_results('foo', 'this is not true!')
         wdata = {
-            'subject': {"item": "%s" % update.builds[0].nvr, "type": "koji_build"},
+            'subject_identifier': "%s" % update.builds[0].nvr,
+            'subject_type': "koji_build",
             'testcase': 'dist.depcheck',
             'scenario': 'kde',
             'product_version': update.product_version,
