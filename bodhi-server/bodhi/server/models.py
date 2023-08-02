@@ -2194,8 +2194,6 @@ class Update(Base):
                 such as "f25" or "master".
         Returns:
             bool: ``True`` if the update contains a critical path package, ``False`` otherwise.
-        Raises:
-            RuntimeError: If the PDC did not give us a 200 code.
         """
         components = build_names_by_type(builds)
 
@@ -2441,8 +2439,6 @@ class Update(Base):
             data (dict): A key-value mapping of the new update's attributes.
         Returns:
             tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
-        Raises:
-            RuntimeError: If the PDC did not give us a 200 code.
         """
         db = request.db
         user = User.get(request.identity.name)
@@ -2556,7 +2552,6 @@ class Update(Base):
             tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
         Raises:
             LockedUpdateException: If the update is locked.
-            RuntimeError: If the PDC did not give us a 200 code.
         """
         db = request.db
         buildinfo = request.buildinfo
