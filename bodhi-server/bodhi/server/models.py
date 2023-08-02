@@ -3169,6 +3169,8 @@ class Update(Base):
         # If it's a new side-tag update, koji tags are managed by the celery task
         if action is UpdateRequest.testing and not self.from_tag:
             self.add_tag(self.release.pending_signing_tag)
+            if self.release.candidate_tag not in self.get_tags():
+                self.add_tag(self.release.candidate_tag)
         elif action is UpdateRequest.stable:
             self.add_tag(self.release.pending_stable_tag)
             if self.request == UpdateRequest.testing:
@@ -3178,8 +3180,6 @@ class Update(Base):
         # it to the pending state, and make sure it's tagged as a candidate
         if self.status in (UpdateStatus.obsolete, UpdateStatus.unpushed):
             self.status = UpdateStatus.pending
-            if self.release.candidate_tag not in self.get_tags():
-                self.add_tag(self.release.candidate_tag)
 
         self.request = action
 
@@ -3256,7 +3256,8 @@ class Update(Base):
                 continue
 
             data = {
-                'subject': requirement['item'],
+                'subject_type': requirement['subject_type'],
+                'subject_identifier': requirement['subject_identifier'],
                 'testcase': requirement['testcase'],
                 'scenario': requirement.get('scenario', None),
                 'product_version': self.product_version,
