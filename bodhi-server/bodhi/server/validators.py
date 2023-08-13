@@ -383,6 +383,58 @@ def validate_tags(request, **kwargs):
 
 
 @postschema_validator
+def validate_qa_acls(request, **kwargs):
+    """
+    Ensure the user is a QA engineer.
+
+    This is used to perform tasks related to CI, such as waive or re-trigger
+    tests on an update.
+    These tasks should be allowed on all updates for QA Engineers, despite
+    they're packagers/provenpackagers or not.
+
+    If this validation fails we just fall back to standard acl validator, so
+    we can check if a user has the rights to perform such actions.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    if not request.identity:
+        # If you're not logged in, obviously you don't have ACLs.
+        request.errors.add('cookies', 'user', 'No ACLs for anonymous user')
+        return
+    user = User.get(request.identity.name)
+    user_groups = [group.name for group in user.groups]
+
+    if 'update' in request.validated:
+        if request.validated['update'].release.state == ReleaseState.archived:
+            request.errors.add('body', 'update', 'cannot edit Update for an archived Release')
+            return
+    else:
+        log.warning("validate_qa_acls was passed data with nothing to validate.")
+        request.errors.add('body', 'update', 'ACL validation mechanism was '
+                           'unable to determine ACLs.')
+        return
+
+    # Allow certain groups full control on any package
+    admin_groups = config['admin_packager_groups']
+    for group in admin_groups:
+        if group in user_groups:
+            log.debug(f'{user.name} is in {group} admin group')
+            return
+
+    # Allow qa groups to waive/trigger tests for any update
+    ci_groups = config['qa_groups']
+    for group in ci_groups:
+        if group in user_groups:
+            log.debug(f'{user.name} is in {group} qa group')
+            return
+
+    # ...else fall back to standard ACLs
+    return validate_acls(request, **kwargs)
+
+
+@postschema_validator
 def validate_acls(request, **kwargs):
     """
     Ensure the user has privs to create or edit an update.

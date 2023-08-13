@@ -6101,6 +6101,57 @@ class TestWaiveTestResults(BasePyTestCase):
     """
     This class contains tests for the waive_test_results() function.
     """
+    def test_waive_test_results_acls(self, *args):
+        """Check expected ACLs on different users"""
+        nvr = 'bodhi-2.0-1.fc17'
+        update = Build.query.filter_by(nvr=nvr).one().update
+        user = User(name='bob')  # provenpackager
+        user2 = User(name='carlo')  # packager
+        user3 = User(name='alice')  # CI group member
+        self.db.add(user)
+        self.db.add(user2)
+        self.db.add(user3)
+        self.db.commit()
+        group = self.db.query(Group).filter_by(name='provenpackager').one()
+        user.groups.append(group)
+        group2 = self.db.query(Group).filter_by(name='packager').one()
+        user2.groups.append(group2)
+        group3 = self.db.query(Group).filter_by(name='fedora-ci-users').one()
+        user3.groups.append(group3)
+        self.db.commit()
+
+        # Test that the user who submitted the update can waive tests
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=update.user.name, session=self.db, **self.app_settings))
+
+        res = app.get(f'/updates/{update.alias}', status=200)
+        assert res.json_body['can_edit'] is True
+        assert res.json_body['ci_allowed'] is True
+
+        # Test that bob as provenpackager can waive tests
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing='bob', session=self.db, **self.app_settings))
+
+        res = app.get(f'/updates/{update.alias}', status=200)
+        assert res.json_body['can_edit'] is True
+        assert res.json_body['ci_allowed'] is True
+
+        # Test that alice as CI group member can waive tests but cannot edit update
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing='alice', session=self.db, **self.app_settings))
+
+        res = app.get(f'/updates/{update.alias}', status=200)
+        assert res.json_body['can_edit'] is False
+        assert res.json_body['ci_allowed'] is True
+
+        # Test that carlo cannot waive tests and cannot edit update
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing='carlo', session=self.db, **self.app_settings))
+
+        res = app.get(f'/updates/{update.alias}', status=200)
+        assert res.json_body['can_edit'] is False
+        assert res.json_body['ci_allowed'] is False
+
     def test_cannot_waive_test_results_on_locked_update(self, *args):
         """Ensure that we get an error if trying to waive test results of a locked update"""
         nvr = 'bodhi-2.0-1.fc17'

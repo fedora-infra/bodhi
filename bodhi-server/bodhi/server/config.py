@@ -451,6 +451,9 @@ class BodhiConfig(dict):
         'mandatory_packager_groups': {
             'value': ['packager'],
             'validator': _generate_list_validator()},
+        'qa_groups': {
+            'value': ['fedora-ci-users'],
+            'validator': _generate_list_validator()},
         'compose_dir': {
             'value': None,
             'validator': _validate_none_or(str)},

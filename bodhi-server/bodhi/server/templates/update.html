@@ -411,12 +411,12 @@ if can_edit and update.release.composed_by_bodhi:
                     <a class="gating-summary notblue" href="#">${update.test_gating_status}</a>
                     <i class="spinner fa fa-spinner fa-spin fa-fw"></i>
                   </div>
-                  % if can_edit and update.test_gating_status == models.TestGatingStatus.failed and update.status == models.UpdateStatus.testing:
+                  % if ci_allowed and update.test_gating_status == models.TestGatingStatus.failed and update.status == models.UpdateStatus.testing and self.util.can_trigger_tests(update):
                   <div id='trigger' class="btn btn-outline-primary btn-sm mt-1" data-bs-toggle="modal" data-bs-target="#trigger_tests">
                     <span class="fa fa-fw fa-retweet"></span> Re-Trigger Tests
                   </div>
                   % endif
-                  % if can_edit and self.util.can_waive_test_results(update):
+                  % if ci_allowed and self.util.can_waive_test_results(update):
                   <div id='waive' class="btn btn-outline-primary btn-sm mt-1" hidden="true" data-bs-toggle="modal" data-bs-target="#waive_test_results">
                     <span class="fa fa-fw fa-thumbs-up"></span> Waive Test Results
                   </div>
