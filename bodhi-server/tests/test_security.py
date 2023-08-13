@@ -63,6 +63,26 @@ class TestAdminACLFactory(base.BasePyTestCase):
              (Allow, 'group:cool_guys', ALL_PERMISSIONS)] + [DENY_ALL])
 
 
+class TestQAACLFactory(base.BaseTestCase):
+    """Test the QAACLFactory object."""
+
+    def test___acl__(self):
+        """Test correct return value from the __acl__() method."""
+        r = testing.DummyRequest()
+        r.registry.settings = {'mandatory_packager_groups': ['packagers'],
+                               'qa_groups': ['fedora-ci-users']}
+        f = security.QAACLFactory(r)
+
+        acls = f.__acl__()
+
+        self.assertCountEqual(
+            acls,
+            [(Allow, 'group:packagers', ALL_PERMISSIONS),
+             (Allow, 'group:fedora-ci-users', ALL_PERMISSIONS),
+             DENY_ALL]
+        )
+
+
 class FakeRegistry(object):
     def __init__(self):
         self.settings = {'cors_origins_ro': 'origin_1,origin_2'}

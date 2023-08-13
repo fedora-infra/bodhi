@@ -89,6 +89,100 @@ class TestGetValidRequirements:
 
 @mock.patch.dict(
     'bodhi.server.validators.config',
+    {'admin_packager_groups': ['provenpackager'], 'qa_groups': ['fedora-ci-users']})
+class TestValidateQAAcls(BasePyTestCase):
+    """ Test the validate_acls() function."""
+    def get_mock_request(self):
+        """
+        A helper function that creates a mock request.
+        :return: a Mock object representing a request
+        """
+        update = self.db.query(models.Build).filter_by(
+            nvr='bodhi-2.0-1.fc17').one().update
+        user = self.db.query(models.User).filter_by(id=1).one()
+        mock_request = mock.Mock()
+        mock_request.identity = user
+        mock_request.db = self.db
+        mock_request.errors = Errors()
+        mock_request.validated = {'update': update}
+        mock_request.buildinfo = {'bodhi-2.0-1.fc17': {}}
+        return mock_request
+
+    def test_validate_qa_acls_no_identity(self):
+        """Identity should be present."""
+        mock_request = self.get_mock_request()
+        mock_request.identity = None
+        validators.validate_qa_acls(mock_request)
+        error = [{
+            'location': 'cookies',
+            'name': 'user',
+            'description': 'No ACLs for anonymous user'
+        }]
+        assert mock_request.errors == error
+
+    def test_validate_qa_acls_archived_release(self):
+        """Test validate_acls when trying to edit an Update for an archived Release."""
+        mock_request = self.get_mock_request()
+        mock_request.validated['update'].release.state = models.ReleaseState.archived
+        validators.validate_qa_acls(mock_request)
+        error = [{
+            'location': 'body',
+            'name': 'update',
+            'description': 'cannot edit Update for an archived Release'
+        }]
+        assert mock_request.errors == error
+
+    def test_validate_qa_acls_no_update(self):
+        """An update in submitted data is mandatory."""
+        mock_request = self.get_mock_request()
+        mock_request.validated.pop('update', None)
+        validators.validate_qa_acls(mock_request)
+        error = [{
+            'location': 'body',
+            'name': 'update',
+            'description': 'ACL validation mechanism was unable to determine ACLs.'
+        }]
+        assert mock_request.errors == error
+
+    @mock.patch('bodhi.server.validators.validate_acls')
+    def test_validate_qa_acls_admin_group(self, mock_acls):
+        """A user in admin group has full control."""
+        user = self.db.query(models.User).filter_by(id=1).one()
+        group = self.db.query(models.Group).filter_by(
+            name='provenpackager').one()
+        user.groups.pop(0)
+        user.groups.append(group)
+        self.db.flush()
+        mock_request = self.get_mock_request()
+        validators.validate_qa_acls(mock_request)
+        assert not len(mock_request.errors)
+        mock_acls.assert_not_called()
+
+    @mock.patch('bodhi.server.validators.validate_acls')
+    def test_validate_qa_acls_ci_group(self, mock_acls):
+        """A user in CI group can edit."""
+        user = self.db.query(models.User).filter_by(id=1).one()
+        group = self.db.query(models.Group).filter_by(
+            name='fedora-ci-users').one()
+        user.groups.pop(0)
+        user.groups.append(group)
+        self.db.flush()
+        mock_request = self.get_mock_request()
+        validators.validate_qa_acls(mock_request)
+        assert not len(mock_request.errors)
+        mock_acls.assert_not_called()
+
+    @mock.patch('bodhi.server.validators.validate_acls')
+    def test_validate_qa_acls_fallback(self, mock_acls):
+        """Any other user falls back to standard ACLs validation."""
+        mock_request = self.get_mock_request()
+        validators.validate_qa_acls(mock_request)
+        assert not len(mock_request.errors)
+        mock_acls.assert_called_once()
+
+
+@mock.patch.dict(
+    'bodhi.server.validators.config',
     {'pagure_url': 'http://domain.local', 'admin_packager_groups': ['provenpackager'],
      'mandatory_packager_groups': ['packager']})
 class TestValidateAcls(BasePyTestCase):

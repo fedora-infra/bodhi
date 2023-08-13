@@ -136,6 +136,34 @@ class PackagerACLFactory(ACLFactory):
         ] + [DENY_ALL]
 
 
+class QAACLFactory(ACLFactory):
+    """
+    Define an ACL factory for QA engineers.
+
+    We want to allow some groups of users to be able to trigger and/or waive
+    tests on all updates without being packagers/provenpackagers.
+    """
+
+    def __acl__(self) -> list:
+        """
+        Define an ACL factory for trigger/waive tests.
+
+        We want to allow some groups of users to be able to trigger and/or waive
+        tests on all updates without being packagers/provenpackagers.
+
+        Returns:
+            A list of ACLs that allow all permissions for the qa_groups
+                defined in settings.
+        """
+        # Here we want to allow both packagers and QA engineers
+        # More granular authorization will be performed within validators
+        groups = set(self.request.registry.settings['mandatory_packager_groups']
+                     + self.request.registry.settings['qa_groups'])
+        return [
+            (Allow, 'group:' + group, ALL_PERMISSIONS) for group in groups
+        ] + [DENY_ALL]
+
+
 class CorsOrigins(object):
     """
     Proxy-list class to load CORS config after scan-time.

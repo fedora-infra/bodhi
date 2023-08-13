@@ -43,6 +43,7 @@ from bodhi.server.models import (
 from bodhi.server.tasks import handle_side_and_related_tags_task
 from bodhi.server.validators import (
     validate_acls,
+    validate_qa_acls,
     validate_bugs,
     validate_build_nvrs,
     validate_build_tags,
@@ -95,7 +96,7 @@ update_waive_test_results = Service(
     name='update_waive_test_results',
     path='/updates/{id}/waive-test-results',
     description='Waive test results that block transitioning the update to next state',
-    factory=security.PackagerACLFactory,
+    factory=security.QAACLFactory,
     cors_origins=bodhi.server.security.cors_origins_rw
 )
 
@@ -110,7 +111,7 @@ update_trigger_tests = Service(
     name='update_trigger_tests',
     path='/updates/{id}/trigger-tests',
     description='Trigger tests for a specific update',
-    factory=security.PackagerACLFactory,
+    factory=security.QAACLFactory,
     cors_origins=bodhi.server.security.cors_origins_rw
 )
 
@@ -132,12 +133,16 @@ def get_update(request):
             update: The update that was requested.
             can_edit: A boolean indicating whether the update can be edited.
     """
-    proxy_request = bodhi.server.security.ProtectedRequest(request)
-    validate_acls(proxy_request)
+    proxy_request_edit = bodhi.server.security.ProtectedRequest(request)
+    proxy_request_ci = bodhi.server.security.ProtectedRequest(request)
+    validate_acls(proxy_request_edit)
     # If validate_acls produced 0 errors, then we can edit this update.
-    can_edit = len(proxy_request.errors) == 0
+    can_edit = len(proxy_request_edit.errors) == 0
+    validate_qa_acls(proxy_request_ci)
+    # If validate_qa_acls produced 0 errors, then we are able to do CI actions.
+    ci_allowed = len(proxy_request_ci.errors) == 0
 
-    return dict(update=request.validated['update'], can_edit=can_edit)
+    return dict(update=request.validated['update'], can_edit=can_edit, ci_allowed=ci_allowed)
 
 
 @update_edit.get(accept="text/html", renderer="new_update.html",
@@ -661,7 +666,7 @@ def new_update(request):
 @update_waive_test_results.post(schema=bodhi.server.schemas.WaiveTestResultsSchema(),
                                 validators=(colander_body_validator,
                                             validate_update_id,
-                                            validate_acls),
+                                            validate_qa_acls),
                                 permission='edit', renderer='json',
                                 error_handler=bodhi.server.services.errors.json_handler)
 def waive_test_results(request):
@@ -733,7 +738,7 @@ def get_test_results(request):
 @update_trigger_tests.post(schema=bodhi.server.schemas.TriggerTestsSchema(),
                            validators=(colander_body_validator,
                                        validate_update_id,
-                                       validate_acls),
+                                       validate_qa_acls),
                            permission='edit', renderer='json',
                            error_handler=bodhi.server.services.errors.json_handler)
 def trigger_tests(request):

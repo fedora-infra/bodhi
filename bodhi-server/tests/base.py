@@ -165,6 +165,8 @@ def populate(db):
     db.add(provenpackager)
     packager = models.Group(name='packager')
     db.add(packager)
+    ci = models.Group(name='fedora-ci-users')
+    db.add(ci)
     user.groups.append(packager)
     release = models.Release(
         name='F17', long_name='Fedora 17',
