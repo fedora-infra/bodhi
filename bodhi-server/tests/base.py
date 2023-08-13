@@ -497,8 +497,8 @@ def mkmetadatadir(path, updateinfo=None, comps=None, source=False):
 <comps>
   <group>
     <id>testable</id>
-    <_name>Testable</_name>
-    <_description>comps group for testing</_description>
+    <name>Testable</name>
+    <description>comps group for testing</description>
     <packagelist>
       <packagereq>testpkg</packagereq>
     </packagelist>
