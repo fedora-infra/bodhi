@@ -1,4 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["local>fedora-infra/shared:renovate-config"]
+  "extends": ["local>fedora-infra/shared:renovate-config"],
+  "ignorePaths": [
+      "devel/ci/**"
+  ],
 }
