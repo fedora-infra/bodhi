@@ -478,7 +478,7 @@ class TransactionalSessionMaker(object):
             raise
 
 
-def mkmetadatadir(path, updateinfo=None, comps=None, source=False):
+def mkmetadatadir(path, updateinfo=None, comps=None, source=False, compress_type='xz'):
     """
     Generate package metadata for a given directory.
 
@@ -524,7 +524,10 @@ def mkmetadatadir(path, updateinfo=None, comps=None, source=False):
         with open(updateinfo, 'w') as f:
             f.write(updateinfofile)
 
-    createrepo_command = ['createrepo_c', '--xz', '--database', '--quiet', path]
+    createrepo_command = ['createrepo_c', '--database', '--quiet', path]
+
+    if compress_type:
+        createrepo_command.insert(1, f'--compress-type={compress_type}')
 
     if not source:
         for arg in ('--deltas', 'comps.xml', '--groupfile'):

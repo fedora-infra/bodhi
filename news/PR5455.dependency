@@ -1,0 +1,1 @@
+libcomps >= 0.20 is required to correctly validate repodata created with createrepo_c >= 1.0. Bodhi can now support all compression method available in createrepo_c

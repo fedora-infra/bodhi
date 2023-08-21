@@ -4,7 +4,7 @@ LABEL maintainer="Mattia Verga <mattia.verga@tiscali.it>"
 # RUN echo "fastestmirror=False" >> /etc/dnf/dnf.conf
 # RUN echo "zchunk = False" >> /etc/dnf/dnf.conf
 
-RUN dnf install -y \
+RUN dnf --best install -y \
     createrepo_c \
     fedora-messaging \
     findutils \
@@ -57,6 +57,7 @@ RUN dnf install -y \
     python3-webtest \
     python3-wheel \
     python3-yaml \
+    python3-zstandard \
     rpm-build \
     rpmdevtools \
     skopeo

@@ -22,10 +22,13 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from importlib import import_module
 from urllib.parse import urlencode
+import bz2
 import errno
 import functools
+import gzip
 import hashlib
 import json
+import lzma
 import os
 import re
 import socket
@@ -47,6 +50,7 @@ import packaging
 import pkg_resources
 import requests
 import rpm
+import zstandard
 
 from bodhi.server import ffmarkdown, log, buildsys, Session
 from bodhi.server.config import config
@@ -320,7 +324,21 @@ def sanity_check_repodata(myurl, repo_type):
             # Test comps
             comps = libcomps.Comps()
             try:
-                ret = comps.fromxml_f(repo_info['group'])
+                # createrepo_c >= 1.0 also compresses the comps file
+                if repo_info['group'].endswith('xz'):
+                    xml_content = lzma.open(repo_info['group']).read()
+                    ret = comps.fromxml_str(xml_content.decode())
+                elif repo_info['group'].endswith('gz'):
+                    xml_content = gzip.open(repo_info['group']).read()
+                    ret = comps.fromxml_str(xml_content.decode())
+                elif repo_info['group'].endswith('zst'):
+                    xml_content = zstandard.open(repo_info['group']).read()
+                    ret = comps.fromxml_str(xml_content.decode())
+                elif repo_info['group'].endswith('bz2'):
+                    xml_content = bz2.open(repo_info['group']).read()
+                    ret = comps.fromxml_str(xml_content.decode())
+                else:
+                    ret = comps.fromxml_f(repo_info['group'])
             except Exception:
                 raise RepodataException('Comps file unable to be parsed')
             if len(comps.groups) < 1:
