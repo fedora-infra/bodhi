@@ -26,6 +26,7 @@ import tempfile
 
 from webob.multidict import MultiDict
 import bleach
+import createrepo_c
 import packaging
 import pkg_resources
 import pytest
@@ -404,9 +405,46 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         shutil.rmtree(self.tempdir)
         super().teardown_method(method)
 
-    def test_correct_yum_repo(self):
-        """No Exception should be raised if the repo is normal."""
+    def test_correct_yum_repo_with_xz_compress(self):
+        """No Exception should be raised if the repo is normal.
+
+        This is using default XZ compression.
+        """
         base.mkmetadatadir(self.tempdir)
+
+        # No exception should be raised here.
+        util.sanity_check_repodata(self.tempdir, repo_type='yum')
+
+    def test_correct_yum_repo_with_gz_compress(self):
+        """No Exception should be raised if the repo is normal.
+
+        This is using GZ compression.
+        """
+        base.mkmetadatadir(self.tempdir, compress_type='gz')
+
+        # No exception should be raised here.
+        util.sanity_check_repodata(self.tempdir, repo_type='yum')
+
+    def test_correct_yum_repo_with_bz2_compress(self):
+        """No Exception should be raised if the repo is normal.
+
+        This is using BZ2 compression.
+        """
+        base.mkmetadatadir(self.tempdir, compress_type='bz2')
+
+        # No exception should be raised here.
+        util.sanity_check_repodata(self.tempdir, repo_type='yum')
+
+    @pytest.mark.skipif(
+        pkg_resources.parse_version(createrepo_c.VERSION) < pkg_resources.parse_version('1.0.0'),
+        reason='ZSTD compression requires createrepo_c 1.0.0 or higher'
+    )
+    def test_correct_yum_repo_with_zstd_compress(self):
+        """No Exception should be raised if the repo is normal.
+
+        This is using ZSTD compression.
+        """
+        base.mkmetadatadir(self.tempdir, compress_type='zstd')
 
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='yum')

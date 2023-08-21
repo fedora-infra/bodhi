@@ -25,7 +25,9 @@ BuildRequires:  python3-sphinx
 BuildRequires:  python3-responses
 BuildRequires:  python3-webtest
 BuildRequires:  python3-librepo
+BuildRequires:  python3dist(libcomps) >= 0.1.20
 BuildRequires:  python3-createrepo_c
+BuildRequires:  python3-zstandard
 BuildRequires:  createrepo_c
 BuildRequires:  skopeo
 BuildRequires:  dnf
