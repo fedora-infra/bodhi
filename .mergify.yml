@@ -8,10 +8,15 @@ queue_rules:
     - status-success=Unit Tests (f38, bodhi-client)
     - status-success=Unit Tests (f38, bodhi-messages)
     - status-success=Unit Tests (f38, bodhi-server)
+    - status-success=Integration Tests (f39)
+    - status-success=Unit Tests (f39, bodhi-client)
+    - status-success=Unit Tests (f39, bodhi-messages)
+    - status-success=Unit Tests (f39, bodhi-server)
     - status-success=Unit Tests (pip, bodhi-client)
     - status-success=Unit Tests (pip, bodhi-messages)
     - status-success=Unit Tests (pip, bodhi-server)
     - status-success=Build Documentation (f38)
+    - status-success=Build Documentation (f39)
     - status-success=Build Documentation (pip)
 
 
@@ -34,10 +39,15 @@ pull_request_rules:
   - status-success=Unit Tests (f38, bodhi-client)
   - status-success=Unit Tests (f38, bodhi-messages)
   - status-success=Unit Tests (f38, bodhi-server)
+  - status-success=Integration Tests (f39)
+  - status-success=Unit Tests (f39, bodhi-client)
+  - status-success=Unit Tests (f39, bodhi-messages)
+  - status-success=Unit Tests (f39, bodhi-server)
   - status-success=Unit Tests (pip, bodhi-client)
   - status-success=Unit Tests (pip, bodhi-messages)
   - status-success=Unit Tests (pip, bodhi-server)
   - status-success=Build Documentation (f38)
+  - status-success=Build Documentation (f39)
   - status-success=Build Documentation (pip)
 
 - name: backport 7.0
