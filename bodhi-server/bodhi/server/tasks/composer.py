@@ -1430,11 +1430,11 @@ class ModuleComposerThread(PungiComposerThread):
             build (bodhi.server.models.Build): build for which the koji.multiCall() returned
                 this result.
         """
-        if type(result) == list and not result:
+        if type(result) is list and not result:
             err = 'Empty list returned for getBuild("%s").' % build.nvr
             log.error(err)
             raise Exception(err)
-        elif type(result) != list:
+        elif type(result) is not list:
             err = 'Unexpected data returned for getBuild("%s"): %r.' \
                 % (build.nvr, result)
             log.error(err)

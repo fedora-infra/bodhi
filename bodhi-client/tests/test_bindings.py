@@ -1404,7 +1404,7 @@ class TestUpdateNotFound:
         exc = bindings.UpdateNotFound('bodhi-2.2.4-1.el7')
 
         assert exc.update == 'bodhi-2.2.4-1.el7'
-        assert type(exc.update) == str
+        assert isinstance(exc.update, str)
 
     def test_updatenotfound_str(self):
         """
@@ -1413,7 +1413,7 @@ class TestUpdateNotFound:
         exc = bindings.UpdateNotFound('bodhi-2.2.4-1.el7')
 
         assert str(exc.update) == 'bodhi-2.2.4-1.el7'
-        assert type(str(exc.update)) == str
+        assert isinstance(str(exc.update), str)
         assert str(exc) == 'Update not found: bodhi-2.2.4-1.el7'
 
 

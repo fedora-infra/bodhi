@@ -53,11 +53,6 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
 
 
-if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.server import models  # noqa: 401
-    import mako  # noqa: 401
-
-
 _ = TranslationStringFactory('bodhi')
 
 http_session = requests.Session()
