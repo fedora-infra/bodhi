@@ -662,11 +662,16 @@ class TestUpdateMessage:
     def test_comment_v1(self):
         expected = {
             "topic": "bodhi.update.comment",
-            "summary": "ralph commented on bodhi update FEDORA-EPEL-2019-f2d195dada (karma: -1)",
+            "summary": (
+                "ralph commented on update abrt-addon-python3-2.1.11-50.el7 "
+                "asciine… (karma: -1)"
+            ),
             "__str__": (
+                "ralph commented on tdawson's update FEDORA-EPEL-2019-f2d195dada with karma -1:\n\n"
                 "Can you believe how much testing we're doing? "
                 "/cc @codeblock.\n"
-                "Nothing from this e-mail should match the regex: test@example.com"
+                "Nothing from this e-mail should match the regex: test@example.com\n\n"
+                "Builds:\nabrt-addon-python3-2.1.11-50.el7\nasciinema-1.4.0-2.el7"
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",

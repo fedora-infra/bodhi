@@ -159,7 +159,14 @@ class UpdateCommentV1(UpdateMessage):
         Returns:
             A human readable representation of this message.
         """
-        return self.body['comment']['text']
+        new_line = "\n"
+        return (
+            f"{self.user.name} commented on {self.update.user.name}'s "
+            f"update {self.update.alias} with karma {self.karma}:\n\n"
+            f"{self.body['comment']['text']}\n\n"
+            "Builds:\n"
+            f"{new_line.join([b.nvr for b in self.update.builds])}"
+        )
 
     @property
     def karma(self) -> int:
@@ -177,7 +184,7 @@ class UpdateCommentV1(UpdateMessage):
         Returns:
             A summary for this message.
         """
-        return (f"{self.user.name} commented on bodhi update {self.update.alias} "
+        return (f"{self.user.name} commented on update {self._builds_summary} "
                 f"(karma: {self.karma})")
 
     @property
