@@ -229,7 +229,7 @@ class TestBodhiConfigValidate:
         c._validate()
 
         for k in ('koji_hub', 'krb_ccache', 'krb_keytab', 'krb_principal'):
-            assert type(c[k]) is str
+            assert isinstance(c[k], str)
         # And the values should match what we did above.
         assert c['koji_hub'] == 'http://example.com/kojihub'
         assert c['krb_ccache'] == '/tmp/krb5cc_%{uid}'
