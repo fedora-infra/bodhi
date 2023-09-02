@@ -70,7 +70,7 @@ class ModelTest(BasePyTestCase):
     def setup_method(self):
         super(ModelTest, self).setup_method(self)
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
-        if type(self) != ModelTest:
+        if type(self) is not ModelTest:  # noqa: E721
             try:
                 new_attrs = {}
                 new_attrs.update(self.attrs)
@@ -99,11 +99,11 @@ class ModelTest(BasePyTestCase):
 
     def test_json(self):
         """ Ensure our models can return valid JSON """
-        if type(self) != ModelTest:
+        if type(self) is not ModelTest:
             assert isinstance(json.dumps(self.obj.__json__()), str)
 
     def test_get(self):
-        if type(self) != ModelTest:
+        if type(self) is not ModelTest:
             for col in self.obj.__get_by__:
                 assert self.klass.get(getattr(self.obj, col)) == self.obj
 
@@ -439,7 +439,7 @@ class TestEnumMeta:
 
         for v in iter(m):
             assert repr(v) == '<{}>'.format(expected_values.pop(0))
-            assert type(v) == model.EnumSymbol
+            assert type(v) is model.EnumSymbol  # noqa: E721
 
         assert expected_values == []
 
@@ -497,7 +497,7 @@ class TestEnumSymbol:
         s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
 
         assert str(s) == 'value'
-        assert type(str(s)) == str
+        assert isinstance(str(s), str)
 
 
 class TestCompose(BasePyTestCase):

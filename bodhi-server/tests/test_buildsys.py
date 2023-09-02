@@ -126,7 +126,7 @@ class TestKojiLogin:
 
         for key in default_koji_opts:
             assert default_koji_opts[key] == client.opts[key]
-        assert type(client) == koji.ClientSession
+        assert type(client) is koji.ClientSession
         # Due to the use of backoff, we should have called gssapi_login three times.
         assert gssapi_login.mock_calls == (
             [mock.call(ccache='a_ccache', keytab='a_keytab', principal='a_principal')] * 3)
@@ -157,7 +157,7 @@ class TestKojiLogin:
 
         for key in default_koji_opts:
             assert default_koji_opts[key] == client.opts[key]
-        assert type(client) == koji.ClientSession
+        assert type(client) is koji.ClientSession
         # Since authenticate was False, the login should not have happened.
         assert gssapi_login.call_count == 0
         # No error should have been logged
@@ -175,7 +175,7 @@ class TestKojiLogin:
 
         client = buildsys.koji_login(config, authenticate=True)
 
-        assert type(client) == koji.ClientSession
+        assert type(client) is koji.ClientSession
         gssapi_login.assert_called_once_with(ccache='a_ccache', keytab='a_keytab',
                                              principal='a_principal')
         error.assert_called_once_with('Koji gssapi_login failed')
@@ -202,7 +202,7 @@ class TestKojiLogin:
 
         for key in default_koji_opts:
             assert default_koji_opts[key] == client.opts[key]
-        assert type(client) == koji.ClientSession
+        assert type(client) is koji.ClientSession
         gssapi_login.assert_called_once_with(ccache='a_ccache', keytab='a_keytab',
                                              principal='a_principal')
         # No error should have been logged

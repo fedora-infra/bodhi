@@ -298,7 +298,7 @@ class DeclEnumType(SchemaType, TypeDecorator):
         if value is None:
             return None
 
-        if type(value) is str:
+        if isinstance(value, str):
             return value
         return value.value
 
