@@ -77,10 +77,16 @@ def main():
             pending_signing_tag = update.release.pending_signing_tag
             pending_testing_tag = update.release.pending_testing_tag
             for build in builds:
+                build_tags = [t['name'] for t in kc.listTags(build=build.nvr)]
                 if build.signed:
                     log.debug(f'{build.nvr} already marked as signed')
+                    if (update.release.testing_tag in build_tags
+                            and update.release.candidate_tag not in build_tags):
+                        # The update was probably ejected from a compose and is stuck
+                        log.debug(f'Resubmitting {update.alias} to testing')
+                        update.set_request(session, models.UpdateRequest.testing, 'bodhi')
+                        break
                     continue
-                build_tags = [t['name'] for t in kc.listTags(build=build.nvr)]
                 if pending_signing_tag not in build_tags and pending_testing_tag in build_tags:
                     # Our composer missed the message that the build got signed
                     log.debug(f'Changing signed status of {build.nvr}')

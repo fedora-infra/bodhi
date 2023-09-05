@@ -20,7 +20,7 @@ This module contains tests for the bodhi.server.tasks.check_signed_builds module
 """
 
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 from bodhi.server import models
 from bodhi.server.tasks import check_signed_builds_task
@@ -103,6 +103,31 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
 
         buildsys.get_session.assert_called_once()
         debug.assert_called_once_with('bodhi-2.0-1.fc17 already marked as signed')
+
+    @patch('bodhi.server.models.Update.set_request')
+    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
+    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    def test_check_signed_builds_stuck_Update_with_signed_build(self, debug, buildsys, request):
+        """
+        The update was probably ejected from a compose and is stuck.
+        """
+        update = models.Update.query.first()
+        assert update.builds[0].signed
+
+        self.db.commit()
+
+        listTags = [
+            {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+             'name': 'f17-updates-testing', 'perm': None, 'perm_id': None}, ]
+
+        buildsys.get_session.return_value.listTags.return_value = listTags
+        check_signed_builds_main()
+
+        buildsys.get_session.assert_called_once()
+        calls = [call('bodhi-2.0-1.fc17 already marked as signed'),
+                 call(f'Resubmitting {update.alias} to testing')]
+        debug.assert_has_calls(calls)
+        request.assert_called_once()
 
     @patch('bodhi.server.tasks.check_signed_builds.buildsys')
     @patch('bodhi.server.tasks.check_signed_builds.log.debug')
