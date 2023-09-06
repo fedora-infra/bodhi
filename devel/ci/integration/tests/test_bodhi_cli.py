@@ -210,14 +210,17 @@ def test_releases_info(bodhi_container, db_container):
   Pending Stable Tag:       {pending_stable_tag}
   Override Tag:             {override_tag}
   State:                    {state}
+  Beta Status:              .*
   Email Template:           {mail_template}
   Composed by Bodhi:        {composed_by_bodhi}
   Create Automatic Updates: {create_automatic_updates}
   Package Manager:          {package_manager}
   Testing Repository:       {testing_repository}
+  Released On:              {released_on}
   End of Life:              {eol}
 """.format(**release)
-        assert result.output == expected
+        expected_regex = re.compile(expected)
+        assert re.fullmatch(expected_regex, result.output) is not None
 
 
 def test_releases_list(bodhi_container, db_container):
@@ -228,6 +231,7 @@ def test_releases_list(bodhi_container, db_container):
     query_archived_releases = "SELECT name FROM releases WHERE state = 'archived'"
     query_current_releases = "SELECT name FROM releases WHERE state = 'current'"
     query_frozen_releases = "SELECT name FROM releases WHERE state = 'frozen'"
+    order_by = " ORDER BY name ASC"
     pending_releases = []
     archived_releases = []
     current_releases = []
@@ -235,16 +239,16 @@ def test_releases_list(bodhi_container, db_container):
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
     with conn:
         with conn.cursor() as curs:
-            curs.execute(query_pending_releases)
+            curs.execute(query_pending_releases + order_by)
             for record in curs:
                 pending_releases.append(record[0])
-            curs.execute(query_archived_releases)
+            curs.execute(query_archived_releases + order_by)
             for record in curs:
                 archived_releases.append(record[0])
-            curs.execute(query_current_releases)
+            curs.execute(query_current_releases + order_by)
             for record in curs:
                 current_releases.append(record[0])
-            curs.execute(query_frozen_releases)
+            curs.execute(query_frozen_releases + order_by)
             for record in curs:
                 frozen_releases.append(record[0])
     conn.close()

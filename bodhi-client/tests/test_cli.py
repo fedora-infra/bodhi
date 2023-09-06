@@ -2089,7 +2089,7 @@ class TestCreate:
         mocked_client_class.send_request.assert_called_once_with(
             'releases/', verb='POST', auth=True,
             data={'dist_tag': None, 'csrf_token': 'a_csrf_token', 'staging': False,
-                  'eol': None, 'name': 'F27',
+                  'released_on': None, 'eol': None, 'name': 'F27',
                   'testing_tag': None, 'pending_stable_tag': None, 'long_name': None, 'state': None,
                   'version': None, 'override_tag': None, 'branch': None, 'id_prefix': None,
                   'pending_testing_tag': None, 'pending_signing_tag': None, 'stable_tag': None,
@@ -2150,7 +2150,8 @@ class TestEditRelease:
                   'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                   'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True,
                   'create_automatic_updates': False, 'package_manager': 'unspecified',
-                  'testing_repository': None, 'eol': None})
+                  'testing_repository': None, 'released_on': None, 'eol': None,
+                  'setting_status': None})
 
     def test_new_name_flag(self, mocked_client_class):
         """
@@ -2183,7 +2184,8 @@ class TestEditRelease:
                   'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                   'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True,
                   'create_automatic_updates': False, 'package_manager': 'unspecified',
-                  'testing_repository': None, 'eol': None})
+                  'testing_repository': None, 'released_on': None, 'eol': None,
+                  'setting_status': None})
 
     def test_edit_no_name_provided(self, mocked_client_class):
         """
@@ -2247,7 +2249,8 @@ class TestEditRelease:
                   'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                   'mail_template': 'edited_fedora_errata_template', 'composed_by_bodhi': True,
                   'create_automatic_updates': False, 'package_manager': 'unspecified',
-                  'testing_repository': None, 'eol': None})
+                  'testing_repository': None, 'released_on': None, 'eol': None,
+                  'setting_status': None})
 
     def test_edit_not_composed_by_bodhi_flag(self, mocked_client_class):
         """
@@ -2279,7 +2282,8 @@ class TestEditRelease:
                   'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                   'mail_template': 'fedora_errata_template',
                   'composed_by_bodhi': False, 'package_manager': 'unspecified',
-                  'testing_repository': None, 'eol': None, 'create_automatic_updates': False})
+                  'testing_repository': None, 'released_on': None, 'eol': None,
+                  'setting_status': None, 'create_automatic_updates': False})
 
     def test_edit_create_automatic_updates_flag(self, mocked_client_class):
         """
@@ -2312,7 +2316,8 @@ class TestEditRelease:
                   'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                   'mail_template': 'fedora_errata_template',
                   'composed_by_bodhi': True, 'create_automatic_updates': True,
-                  'package_manager': 'unspecified', 'testing_repository': None, 'eol': None})
+                  'package_manager': 'unspecified', 'testing_repository': None,
+                  'released_on': None, 'eol': None, 'setting_status': None})
 
     def test_edit_eol(self, mocked_client_class):
         """
@@ -2354,8 +2359,113 @@ class TestEditRelease:
                 "mail_template": "fedora_errata_template",
                 "create_automatic_updates": False,
                 "package_manager": "unspecified",
+                "released_on": None,
+                "setting_status": None,
                 "testing_repository": None,
                 "eol": date(2021, 6, 14),
+                "edited": "F27",
+                "csrf_token": "a_csrf_token",
+                "staging": False,
+            },
+        )
+
+    def test_release_date(self, mocked_client_class):
+        """
+        Assert release date is correctly set if requested.
+        """
+        mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_RELEASE_MUNCH
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            cli.edit_release, ["--name", "F27",
+                               "--state", "current",
+                               "--released-on", "2021-06-14"]
+        )
+
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_RELEASE_OUTPUT
+        assert mocked_client_class.send_request.call_count == 2
+        assert mocked_client_class.send_request.mock_calls[0] == mock.call(
+            "releases/F27", verb="GET", auth=True
+        )
+        assert mocked_client_class.send_request.mock_calls[1] == mock.call(
+            "releases/",
+            verb="POST",
+            auth=True,
+            data={
+                "dist_tag": "f27",
+                "testing_tag": "f27-updates-testing",
+                "branch": "f27",
+                "pending_stable_tag": "f27-updates-pending",
+                "pending_signing_tag": "f27-signing-pending",
+                "long_name": "Fedora 27",
+                "state": "current",
+                "version": "27",
+                "name": "F27",
+                "override_tag": "f27-override",
+                "id_prefix": "FEDORA",
+                "composed_by_bodhi": True,
+                "pending_testing_tag": "f27-updates-testing-pending",
+                "stable_tag": "f27-updates",
+                "candidate_tag": "f27-updates-candidate",
+                "mail_template": "fedora_errata_template",
+                "create_automatic_updates": False,
+                "package_manager": "unspecified",
+                "released_on": date(2021, 6, 14),
+                "setting_status": None,
+                "testing_repository": None,
+                "eol": None,
+                "edited": "F27",
+                "csrf_token": "a_csrf_token",
+                "staging": False,
+            },
+        )
+
+    def test_release_date_automatically_set(self, mocked_client_class):
+        """
+        Assert release date is set automatically on release.
+        """
+        mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_RELEASE_MUNCH
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            cli.edit_release, ["--name", "F27",
+                               "--state", "current"]
+        )
+
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_RELEASE_OUTPUT
+        assert mocked_client_class.send_request.call_count == 2
+        assert mocked_client_class.send_request.mock_calls[0] == mock.call(
+            "releases/F27", verb="GET", auth=True
+        )
+        assert mocked_client_class.send_request.mock_calls[1] == mock.call(
+            "releases/",
+            verb="POST",
+            auth=True,
+            data={
+                "dist_tag": "f27",
+                "testing_tag": "f27-updates-testing",
+                "branch": "f27",
+                "pending_stable_tag": "f27-updates-pending",
+                "pending_signing_tag": "f27-signing-pending",
+                "long_name": "Fedora 27",
+                "state": "current",
+                "version": "27",
+                "name": "F27",
+                "override_tag": "f27-override",
+                "id_prefix": "FEDORA",
+                "composed_by_bodhi": True,
+                "pending_testing_tag": "f27-updates-testing-pending",
+                "stable_tag": "f27-updates",
+                "candidate_tag": "f27-updates-candidate",
+                "mail_template": "fedora_errata_template",
+                "create_automatic_updates": False,
+                "package_manager": "unspecified",
+                "released_on": datetime.now().date(),
+                "setting_status": None,
+                "testing_repository": None,
+                "eol": None,
                 "edited": "F27",
                 "csrf_token": "a_csrf_token",
                 "staging": False,

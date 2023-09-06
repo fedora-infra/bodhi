@@ -330,6 +330,8 @@ def query_releases_json(request):
     if state is not None:
         query = query.filter(Release.state == ReleaseState.from_string(state))
 
+    query = query.order_by(Release.name.asc())
+
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
     count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
