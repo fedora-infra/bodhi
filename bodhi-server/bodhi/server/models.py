@@ -837,11 +837,13 @@ class Release(Base):
             the values defined in :class:`PackageManager`.
         testing_repository (str): The name of repository where updates are placed for
             testing before being pushed to the main repository.
+        released_on (str): Date of first release in a datetime.date() format '2020-05-17'.
         eol (str): End-of-life of the release in a datetime.date() format '2020-05-17'.
     """
 
     __tablename__ = 'releases'
     __exclude_columns__ = ('id', 'builds', 'composes')
+    __include_extras__ = ('setting_status', )
     __get_by__ = ('name', 'long_name', 'dist_tag')
 
     name = Column(Unicode(10), unique=True, nullable=False)
@@ -868,6 +870,7 @@ class Release(Base):
 
     package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
     testing_repository = Column(UnicodeText, nullable=True)
+    released_on = Column(Date, nullable=True)
     eol = Column(Date, nullable=True)
 
     # One-to-many relationships

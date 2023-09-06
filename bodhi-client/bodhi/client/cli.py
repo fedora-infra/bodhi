@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """The bodhi CLI client."""
 
+from datetime import datetime
 import functools
 import logging
 import os
@@ -180,6 +181,8 @@ release_options = [
     click.option('--branch', help='Git branch name (eg: f20)'),
     click.option('--dist-tag', help='Koji dist tag (eg: f20)'),
     click.option('--stable-tag', help='Koji stable tag (eg: f20-updates)'),
+    click.option('--released-on', type=click.DateTime(formats=["%Y-%m-%d"]),
+                 help='Date of first release (eg. 2016-06-14)'),
     click.option('--eol', type=click.DateTime(formats=["%Y-%m-%d"]),
                  help='Release end-of-life date (eg. 2016-06-14)'),
     click.option('--testing-tag',
@@ -1228,6 +1231,7 @@ def create_release(url: str, id_provider: str, client_id: str, debug: bool, **kw
         kwargs['composed_by_bodhi'] = True
     if kwargs['create_automatic_updates'] is None:
         kwargs['create_automatic_updates'] = False
+    kwargs['released_on'] = kwargs.pop('released_on').date() if kwargs['released_on'] else None
     kwargs['eol'] = kwargs.pop('eol').date() if kwargs['eol'] else None
     save(client, **kwargs)
 
@@ -1246,6 +1250,7 @@ def edit_release(url: str, id_provider: str, client_id: str, debug: bool, **kwar
 
     edited = kwargs.pop('name')
 
+    kwargs['released_on'] = kwargs.pop('released_on').date() if kwargs['released_on'] else None
     kwargs['eol'] = kwargs.pop('eol').date() if kwargs['eol'] else None
 
     if edited is None:
@@ -1266,6 +1271,10 @@ def edit_release(url: str, id_provider: str, client_id: str, debug: bool, **kwar
 
     if new_name is not None:
         data['name'] = new_name
+
+    if (data['state'] == 'pending' and kwargs['state'] == 'current'
+            and kwargs['released_on'] is None):
+        kwargs['released_on'] = datetime.now().date()
 
     for k, v in kwargs.items():
         if v is not None:
@@ -1395,11 +1404,13 @@ def print_release(release: munch.Munch):
     click.echo(f"  Pending Stable Tag:       {release['pending_stable_tag']}")
     click.echo(f"  Override Tag:             {release['override_tag']}")
     click.echo(f"  State:                    {release['state']}")
+    click.echo(f"  Beta Status:              {release['setting_status']}")
     click.echo(f"  Email Template:           {release['mail_template']}")
     click.echo(f"  Composed by Bodhi:        {release['composed_by_bodhi']}")
     click.echo(f"  Create Automatic Updates: {release['create_automatic_updates']}")
     click.echo(f"  Package Manager:          {release['package_manager']}")
     click.echo(f"  Testing Repository:       {release['testing_repository']}")
+    click.echo(f"  Released On:              {release['released_on']}")
     click.echo(f"  End of Life:              {release['eol']}")
 
 
