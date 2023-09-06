@@ -782,8 +782,10 @@ ${parent.javascript()}
 
     // These are the required taskotron tests
     var requirements = ${update.requirements_json | h};
-    // These are the known waivers of failed testcases.
+    // These are the known waivers of failed testcases (key - waiver id, value - waiver)
     var waivers = {};
+    // These are waived test failures (key - subject, value - hash: key - testcase##scenario, value - waiver id)
+    var waived = {};
     // show the Greenwave decision
     var greenwave_api_url = '${request.registry.settings["greenwave_api_url"]}';
     var missing_tests = {};
@@ -798,7 +800,7 @@ ${parent.javascript()}
     var greenwave_errors = 0;
 
     // handle Greenwave decision
-    var handle_unsatisfied_requirements = function(data){
+    var handle_unsatisfied_requirements = function(data) {
         $.each(data['unsatisfied_requirements'], function(i, requirement) {
             unsatisfied_reqs_counter++;
             if (requirement.type == 'test-result-missing') {
@@ -876,26 +878,22 @@ ${parent.javascript()}
           '</span></span> ';
         html += '<a class="gating-summary notblue" href="#">' + summary;
         html += '</a>';
-        if (Object.keys(waivers).length != 0) {
+        if (Object.keys(waived).length != 0) {
             var seensubjects = [];
             // Create urls to waiverdb with waivers for this update
-            $.each(Object.keys(waivers), function(i, testcase) {
-                $.each(waivers[testcase], function(j, waiver) {
-                    if (!seensubjects.includes(waiver.subject_identifier)) {
-                        seensubjects.push(waiver.subject_identifier);
-                        var url = '${request.registry.settings["waiverdb_api_url"]}';
-                        url += '/waivers'
-                        url += '/?product_version=' + waiver.product_version;
-                        url += '&subject_type=' + waiver.subject_type;
-                        url += '&subject_identifier=' + waiver.subject_identifier;
-                        html += '<a class="notblue" target="_blank" href=' + url + '>';
-                        html += '<span data-toggle="tooltip" data-placement="top" ' +
-                        'title="Some test failures or missing tests were waived." ' +
-                        'class="fa fa-asterisk">' +
-                        '</span>';
-                        html += '</a>';
-                    }
-                });
+            $.each(Object.keys(waived), function(i, subject) {
+                if (!seensubjects.includes(subject)) {
+                    seensubjects.push(subject);
+                    var url = '${request.registry.settings["waiverdb_api_url"]}';
+                    url += '/waivers'
+                    url += '?subject_identifier=' + subject;
+                    html += '<a class="notblue" target="_blank" href=' + url + '>';
+                    html += '<span data-toggle="tooltip" data-placement="top" ' +
+                    'title="Some test failures or missing tests were waived." ' +
+                    'class="fa fa-asterisk">' +
+                    '</span>';
+                    html += '</a>';
+                }
             });
         }
         $('#test_status_badge').html(html);
@@ -915,14 +913,21 @@ ${parent.javascript()}
             data: JSON.stringify(request),
             success: function(data) {
                 $.each(data.waivers, function(i, waiver) {
-                  if (!(waiver.testcase in waivers)) { waivers[waiver.testcase] = []; }
-                  waivers[waiver.testcase].push(waiver);
+                  if (!(waiver.id in waivers)) { waivers[waiver.id] = waiver; }
                 });
                 handle_unsatisfied_requirements(data);
                 $.each(data['satisfied_requirements'], function(i, requirement) {
                     // the user may have already specified this in the required taskotron tests
                     if ($.inArray(requirement.testcase, requirements) == -1) {
                         requirements.push(requirement.testcase);
+                    }
+                    // stash data about waived failures
+                    if (requirement.type == "test-result-failed-waived") {
+                        if (!(requirement.subject_identifier in waived)) {
+                            waived[requirement.subject_identifier] = {};
+                        }
+                        var key = [requirement.testcase, requirement.scenario].join('##');
+                        waived[requirement.subject_identifier][key] = requirement.waiver_id;
                     }
                 });
                 test_reqs_counter += data['unsatisfied_requirements'].length;
@@ -937,21 +942,24 @@ ${parent.javascript()}
         });
     };
 
-    var make_row = function(outcome, testcase, note, arch, time, url, flavor) {
+    var make_row = function(subject, scenario, outcome, testcase, note, arch, time, url) {
       var icon = '<span data-bs-toggle="tooltip" data-placement="top" ' +
         'title="' + outcome + '" ' +
         'class="fa fa-' + icons[outcome] + ' text-' + classes[outcome] + '">'+
         '</span>';
 
+      var flavor;
+      if (scenario.includes("fedora.updates-")) {
+        // this gets a correct flavor from an openQA scenario, e.g.
+        // 'kde' from 'fedora.updates-kde.x86_64.64bit'
+        flavor = scenario.split(".")[1].slice(8);
+      }
+
       var required = '';
-      if (testcase in waivers) {
-        var reason = 'Waived by ';
-        var comments = [];
-        for (let w of waivers[testcase]) {
-          waiver_details = "@" + w.username + ": '" + w.comment.replace("'", "&#39;") + "'"
-          comments.push(waiver_details);
-        }
-	reason += comments.join(", ")
+      var key = [testcase, scenario].join('##');
+      if (subject in waived && key in waived[subject]) {
+        var w = waivers[waived[subject][key]];
+        var reason = 'Waived by @' + w.username + ": '" + w.comment.replace("'", "&#39;") + "'";
         required = '<span style="white-space:pre-line;" data-bs-toggle="tooltip" data-placement="top" ' +
           'title="' + reason + '" ' +
           'class="fa fa-thumbs-up">' +
@@ -1090,22 +1098,16 @@ ${parent.javascript()}
               scenario = result.data.scenario[0];
           }
 
-          var flavor;
-          if (scenario.includes("fedora.updates-")) {
-            // this gets a correct flavor from an openQA scenario, e.g.
-            // 'kde' from 'fedora.updates-kde.x86_64.64bit'
-            flavor = scenario.split(".")[1].slice(8);
-          }
-
           table.append(make_row(
+              result.data.item[0],
+              scenario,
               result.outcome,
               result.testcase.name,
               result.note,
               // note: this is a single-item array
               result.data.arch,
               result.submit_time,
-              result.ref_url,
-              flavor
+              result.ref_url
           ));
         });
       });
