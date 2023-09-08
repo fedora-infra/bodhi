@@ -6001,6 +6001,76 @@ class TestUpdatesService(BasePyTestCase):
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
     @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
+    def test_edit_testing_update_with_build_from_unpushed_update(self, *args):
+        """
+        Allow to move a build from an unpushed update into another existing update
+        """
+        # Create an update with a build that we will try and add to another update
+        nvr1 = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr1)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', args)
+
+        # Mark it as unpushed
+        upd = Update.get(r.json['alias'])
+        unpushed_alias = upd.alias
+        upd.status = UpdateStatus.unpushed
+        upd.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        # Create an update for a different build
+        nvr2 = 'koji-2.0.0-1.fc17'
+        args = self.get_update(nvr2)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', args)
+
+        # Mark it as testing
+        upd = Update.get(r.json['alias'])
+        upd.status = UpdateStatus.testing
+        upd.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        # Edit the nvr2 update and add nvr1
+        args['edited'] = upd.alias
+        args['builds'] = '%s,%s' % (nvr1, nvr2)
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1,
+                                    update_schemas.UpdateEditV2):
+            r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        assert len(up['builds']) == 2
+        assert up['comments'][-1]['text'] == 'This update has been submitted for testing by guest. '
+        comment = textwrap.dedent("""
+        guest edited this update.
+
+        New build(s):
+
+        - bodhi-2.0.0-2.fc17
+
+        Karma has been reset.
+        """).strip()
+        assert_multiline_equal(up['comments'][-2]['text'], comment)
+
+        # The newer update should have both builds
+        up = Update.get(upd.alias)
+        assert up.status == UpdateStatus.pending
+        assert up.request == UpdateRequest.testing
+        assert len(up.builds) == 2
+
+        # The unpushed update should have no builds
+        unpushed_update = Update.get(unpushed_alias)
+        unpushed_update.title == unpushed_alias
+        assert unpushed_update.status == UpdateStatus.unpushed
+        assert len(unpushed_update.builds) == 0
+
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
+    @mock.patch(**mock_valid_requirements)
     def test_meets_testing_requirements_since_karma_reset_critpath(self, *args):
         """
         Ensure a critpath update still meets testing requirements after receiving negative karma

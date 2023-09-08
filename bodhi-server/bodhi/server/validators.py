@@ -286,19 +286,21 @@ def validate_builds(request, **kwargs):
         for nvr in builds:
             # Ensure it doesn't already exist in another update
             build = request.db.query(Build).filter_by(nvr=nvr).first()
-            if build and build.update is not None and up.alias != build.update.alias:
+            if (build and build.update is not None and up.alias != build.update.alias
+                    and build.update.status != UpdateStatus.unpushed):
                 request.errors.add('body', 'builds',
                                    "Update for {} already exists".format(nvr))
+                return
 
         return
 
     for nvr in builds:
         build = request.db.query(Build).filter_by(nvr=nvr).first()
-        if build and build.update is not None:
-            if build.update.status != UpdateStatus.unpushed:
-                request.errors.add('body', 'builds',
-                                   "Update for {} already exists".format(nvr))
-                return
+        if (build and build.update is not None
+                and build.update.status != UpdateStatus.unpushed):
+            request.errors.add('body', 'builds',
+                               "Update for {} already exists".format(nvr))
+            return
 
 
 @postschema_validator
