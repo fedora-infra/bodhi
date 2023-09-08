@@ -297,6 +297,9 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_route('liveness', '/healthz/live')
     config.add_route('readyness', '/healthz/ready')
 
+    # service endpoints
+    config.add_route('get_critpath_components', '/get_critpath_components')
+
     # Legacy: Redirect the previously self-hosted documentation
     # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hybrid.html#using-subpath-in-a-route-pattern
     config.add_route("docs", "/docs/*subpath")

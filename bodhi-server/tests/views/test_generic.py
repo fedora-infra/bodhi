@@ -26,6 +26,7 @@ import pytest
 import webtest
 
 from bodhi.server import __version__, main, util
+from bodhi.server.config import config
 from bodhi.server.models import Release, ReleaseState, Update, UpdateStatus
 
 from .. import base
@@ -542,3 +543,47 @@ class TestNotfoundView(base.BasePyTestCase):
 
         assert '404 <small>Not Found</small>' in res
         assert '<p class="lead">/makemerich</p>' in res
+
+
+class TestCritpathEndpoint(base.BasePyTestCase):
+    """Test the critpath endpoint."""
+    @mock.patch('bodhi.server.util.get_grouped_critpath_components')
+    def test_defaults(self, mocked_get_critpath):
+        """Defaults should return rpms for rawhide."""
+        mocked_get_critpath.return_value = {}
+        self.app.get('/get_critpath_components')
+        mocked_get_critpath.assert_called_once_with('rawhide', 'rpm', None)
+
+    def test_collection(self, critpath_json_config):
+        """Collection parameter should look into the proper json file."""
+        (tempdir, testdata) = critpath_json_config
+        config.update({
+            'critpath.type': 'json',
+            'critpath.jsonpath': tempdir
+        })
+        res = self.app.get('/get_critpath_components', {'collection': 'f36'})
+        body = res.json_body
+        assert body == testdata['rpm']
+
+    def test_component_list(self, critpath_json_config):
+        """Components parameter is a comma separated values list."""
+        (tempdir, testdata) = critpath_json_config
+        config.update({
+            'critpath.type': 'json',
+            'critpath.jsonpath': tempdir
+        })
+        res = self.app.get('/get_critpath_components',
+                           {'collection': 'f36',
+                            'components': 'ModemManager-glib,NetworkManager'})
+        body = res.json_body
+        assert body == {'core': ['ModemManager-glib', 'NetworkManager']}
+
+    def test_server_error(self):
+        """Return a server error if not set to use critpath json file."""
+        res = self.app.get('/get_critpath_components', status=500)
+        assert res.json_body == \
+            {
+                "status": "error",
+                "errors": [{"location": "body", "name": "ValueError",
+                            "description": "critpath.type (default) does not support groups"}]
+            }
