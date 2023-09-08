@@ -622,3 +622,22 @@ def docs(request):
     subpath = "/".join(request.subpath)
     url = f"https://fedora-infra.github.io/bodhi/{major_minor_version}/{subpath}"
     raise HTTPMovedPermanently(url)
+
+
+@view_config(route_name='get_critpath_components', renderer='json')
+def get_critpath_components(request):
+    """
+    Return critical path components configured in bodhi.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+    Returns:
+        dict: A dictionary with a "version" key indexing a string of the Bodhi version.
+    """
+    collection = request.params.get('collection', 'rawhide')
+    component_type = request.params.get('component_type', 'rpm')
+    components = request.params.get('components')
+    if components is not None:
+        components = components.split(',')
+    return bodhi.server.util.get_grouped_critpath_components(collection, component_type,
+                                                             components)
