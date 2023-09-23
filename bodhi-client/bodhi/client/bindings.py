@@ -108,7 +108,8 @@ class ComposeNotFound(BodhiClientException):
         """
         super().__init__(**kwargs)
         self.release = release
-        self.request = request
+        # self.request is already defined in parent class as type Request
+        self.release_request = request
 
     def __str__(self) -> str:
         """
@@ -117,7 +118,8 @@ class ComposeNotFound(BodhiClientException):
         Returns:
             An error message.
         """
-        return f'Compose with request "{self.request}" not found for release "{self.release}"'
+        return (f'Compose with request "{self.release_request}" '
+                f'not found for release "{self.release}"')
 
 
 def errorhandled(method: typing.Callable) -> typing.Callable:
@@ -364,7 +366,7 @@ class BodhiClient:
             return self.send_request(f'updates/{update}/waive-test-results',
                                      verb='POST', auth=True, data=data)
         except RequestException as exc:
-            if exc.response.status_code == 404:
+            if exc.response is not None and exc.response.status_code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
                 raise UpdateNotFound(update)
             else:
@@ -385,7 +387,7 @@ class BodhiClient:
                 f'updates/{update}/trigger-tests', verb='POST', auth=True,
                 data={'update': update, 'csrf_token': self.csrf()})
         except RequestException as exc:
-            if exc.response.status_code == 404:
+            if exc.response is not None and exc.response.status_code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
                 raise UpdateNotFound(update)
             else:
@@ -568,7 +570,7 @@ class BodhiClient:
         try:
             return self.send_request(f'composes/{release}/{request}', verb='GET')
         except RequestException as exc:
-            if exc.response.status_code == 404:
+            if exc.response is not None and exc.response.status_code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an ComposeNotFound.
                 raise ComposeNotFound(release, request)
             else:
