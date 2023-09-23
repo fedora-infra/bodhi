@@ -317,7 +317,7 @@ class TestCompose(BodhiClientTestCase):
             client.get_compose('EPEL-7', 'stable')
 
         assert exc.value.release == 'EPEL-7'
-        assert exc.value.request == 'stable'
+        assert exc.value.release_request == 'stable'
 
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
 
