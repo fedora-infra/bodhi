@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+import hashlib
 from http.client import IncompleteRead
 from unittest import mock
 from urllib.error import HTTPError, URLError
@@ -102,6 +103,24 @@ mock_absent_taskotron_results = {
     'target': 'bodhi.server.util.taskotron_results',
     'return_value': [],
 }
+
+
+def _expected_skopeo_args(config, source, dtag, extra_args=[]):
+    source_repository, source_version_release = source.split(':')
+    # Match how buildsys.py creates a fake digest
+    source_digest = hashlib.sha256(source_version_release.encode("UTF-8")).hexdigest()
+
+    return [config['skopeo.cmd'], 'copy'] + extra_args + [
+        'docker://{}/{}@sha256:{}'.format(config['container.source_registry'],
+                                          source_repository, source_digest),
+        'docker://{}/{}:{}'.format(config['container.destination_registry'],
+                                   source_repository, dtag)
+    ]
+
+
+def _expected_skopeo_call(config, source, dtag, extra_args=[]):
+    return mock.call(_expected_skopeo_args(config, source, dtag, extra_args=extra_args),
+                     shell=False, stderr=-1, stdout=-1, cwd=None)
 
 
 class TestTask:
@@ -2363,15 +2382,10 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         # Popen should have been called three times per build, once for each of the destination
         # tags. With two builds that is a total of 6 calls to Popen.
         expected_mock_calls = []
-        for source in ('testcontainer1:2.0.1-71.fc28container',
-                       'testcontainer2:1.0.1-1.fc28container'):
+        for source in ('f28/testcontainer1:2.0.1-71.fc28container',
+                       'f28/testcontainer2:1.0.1-1.fc28container'):
             for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'testing']:
-                mock_call = mock.call(
-                    [config['skopeo.cmd'], 'copy',
-                     'docker://{}/f28/{}'.format(config['container.source_registry'], source),
-                     'docker://{}/f28/{}:{}'.format(config['container.destination_registry'],
-                                                    source.split(':')[0], dtag)],
-                    shell=False, stderr=-1, stdout=-1, cwd=None)
+                mock_call = _expected_skopeo_call(config, source, dtag)
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
         assert Popen.mock_calls == expected_mock_calls
@@ -2392,15 +2406,10 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         # Popen should have been called three times per build, once for each of the destination
         # tags. With two builds that is a total of 6 calls to Popen.
         expected_mock_calls = []
-        for source in ('testcontainer1:2.0.1-71.fc28container',
-                       'testcontainer2:1.0.1-1.fc28container'):
+        for source in ('f28/testcontainer1:2.0.1-71.fc28container',
+                       'f28/testcontainer2:1.0.1-1.fc28container'):
             for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'latest']:
-                mock_call = mock.call(
-                    [config['skopeo.cmd'], 'copy',
-                     'docker://{}/f28/{}'.format(config['container.source_registry'], source),
-                     'docker://{}/f28/{}:{}'.format(config['container.destination_registry'],
-                                                    source.split(':')[0], dtag)],
-                    shell=False, stderr=-1, stdout=-1, cwd=None)
+                mock_call = _expected_skopeo_call(config, source, dtag)
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
         assert Popen.mock_calls == expected_mock_calls
@@ -2420,12 +2429,9 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
             t._compose_updates()
 
         # Popen should have been called once.
-        skopeo_cmd = [
-            config['skopeo.cmd'], 'copy',
-            'docker://{}/f28/testcontainer1:2.0.1-71.fc28container'.format(
-                config['container.source_registry']),
-            'docker://{}/f28/testcontainer1:2.0.1-71.fc28container'.format(
-                config['container.destination_registry'])]
+        skopeo_cmd = _expected_skopeo_args(config,
+                                           "f28/testcontainer1:2.0.1-71.fc28container",
+                                           "2.0.1-71.fc28container")
         Popen.assert_called_once_with(skopeo_cmd, shell=False, stderr=-1, stdout=-1, cwd=None)
         assert f"{' '.join(skopeo_cmd)} returned a non-0 exit code: 1" in str(exc.value)
 
@@ -2445,15 +2451,11 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         # Popen should have been called three times per build, once for each of the destination
         # tags. With two builds that is a total of 6 calls to Popen.
         expected_mock_calls = []
-        for source in ('testcontainer1:2.0.1-71.fc28container',
-                       'testcontainer2:1.0.1-1.fc28container'):
+        for source in ('f28/testcontainer1:2.0.1-71.fc28container',
+                       'f28/testcontainer2:1.0.1-1.fc28container'):
             for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'testing']:
-                mock_call = mock.call(
-                    [config['skopeo.cmd'], 'copy', '--dest-tls-verify=false',
-                     'docker://{}/f28/{}'.format(config['container.source_registry'], source),
-                     'docker://{}/f28/{}:{}'.format(config['container.destination_registry'],
-                                                    source.split(':')[0], dtag)],
-                    shell=False, stderr=-1, stdout=-1, cwd=None)
+                mock_call = _expected_skopeo_call(config, source, dtag,
+                                                  extra_args=['--dest-tls-verify=false'])
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
         assert Popen.mock_calls == expected_mock_calls
@@ -2539,12 +2541,7 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
         expected_mock_calls = []
         for source in ('testflatpak1:2.0.1-71.fc28flatpak', 'testflatpak2:1.0.1-1.fc28flatpak'):
             for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'testing']:
-                mock_call = mock.call(
-                    [config['skopeo.cmd'], 'copy',
-                     'docker://{}/{}'.format(config['container.source_registry'], source),
-                     'docker://{}/{}:{}'.format(config['container.destination_registry'],
-                                                source.split(':')[0], dtag)],
-                    shell=False, stderr=-1, stdout=-1, cwd=None)
+                mock_call = _expected_skopeo_call(config, source, dtag)
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
         assert Popen.mock_calls == expected_mock_calls
