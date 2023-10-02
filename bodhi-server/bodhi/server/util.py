@@ -1153,7 +1153,7 @@ def _get_build_repository(build):
     koji = buildsys.get_session()
     koji_build = koji.getBuild(build.nvr)
 
-    pull_specs = koji_build['extra']['image']['index']['pull']
+    pull_specs = koji_build['extra']['typeinfo']['image']['index']['pull']
     # All the pull specs should have the same repository, so which one we use is arbitrary
     base, tag = re.compile(r'[:@]').split(pull_specs[0], 1)
     server, repository = base.split('/', 1)

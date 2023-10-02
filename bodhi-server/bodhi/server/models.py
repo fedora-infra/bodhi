@@ -593,7 +593,7 @@ class ContentType(DeclEnum):
         if 'module' in extra.get('typeinfo', {}):
             identity = cls.module
         elif 'container_koji_task_id' in extra:
-            if 'flatpak' in extra['image']:
+            if 'flatpak' in extra['typeinfo']['image']:
                 identity = cls.flatpak
             else:
                 identity = cls.container

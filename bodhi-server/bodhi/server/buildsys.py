@@ -248,18 +248,20 @@ class DevBuildsys:
 
                 data['extra'] = {
                     'container_koji_task_id': 19708268,
-                    'image': {
-                        'index': {
-                            'pull': ['{registry}/{repository}@sha256:{hash}'
-                                     .format(**format_data),
-                                     '{registry}/{repository}:{version}-{release}'
-                                     .format(**format_data)],
-                        }
+                    'typeinfo': {
+                        'image': {
+                            'index': {
+                                'pull': ['{registry}/{repository}@sha256:{hash}'
+                                         .format(**format_data),
+                                         '{registry}/{repository}:{version}-{release}'
+                                         .format(**format_data)],
+                            }
+                        },
                     },
                 }
 
                 if token.endswith("flatpak"):
-                    data['extra']['image']['flatpak'] = True
+                    data['extra']['typeinfo']['image']['flatpak'] = True
 
                 break
 
