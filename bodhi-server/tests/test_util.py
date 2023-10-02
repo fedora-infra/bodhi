@@ -1467,29 +1467,28 @@ class TestCMDFunctions:
         mock_debug.assert_called_with('subprocess output: output\nerror')
 
     @mock.patch('bodhi.server.buildsys.get_session')
-    def test__get_build_repository(self, session):
+    def test__get_build_repository_and_digest(self, session):
+        pull_specs = [
+            'candidate-registry.fedoraproject.org/f29/cockpit:176-5.fc28',
+            'candidate-registry.fedoraproject.org/myrepo@sha256:abcdefg123456'
+        ]
+
         session.return_value = mock.Mock()
-        session.return_value.getBuild.side_effect = [
-            {
-                'extra': {
-                    'typeinfo': {
-                        'image': {
-                            'index': {
-                                'pull': [pullspec]
-                            }
+        session.return_value.getBuild.return_value = {
+            'extra': {
+                'typeinfo': {
+                    'image': {
+                        'index': {
+                            'pull': pull_specs
                         }
                     }
                 }
             }
-            for pullspec in [
-                'candidate-registry.fedoraproject.org/f29/cockpit:176-5.fc28',
-                'candidate-registry.fedoraproject.org/myrepo@sha256:abcdefg123456'
-            ]
-        ]
+        }
+
         build = mock.Mock()
         build.nvr = 'cockpit-167-5'
-        assert util._get_build_repository(build) == 'f29/cockpit'
-        assert util._get_build_repository(build) == 'myrepo'
+        assert util._get_build_repository_and_digest(build) == ('myrepo', 'sha256:abcdefg123456')
         session.return_value.getBuild.assert_called_with('cockpit-167-5')
 
     def test_build_evr(self):
@@ -1503,8 +1502,11 @@ class TestCMDFunctions:
 
 
 @mock.patch('bodhi.server.util.cmd', autospec=True)
-@mock.patch('bodhi.server.util._container_image_url', new=lambda sr, r, st: f'{sr}:{r}:{st}')
-@mock.patch('bodhi.server.util._get_build_repository', new=lambda b: 'testrepo')
+@mock.patch('bodhi.server.util._container_image_url',
+            new=lambda sr, r, tag=None, digest=None:
+                f'{sr}:{r}:{tag}' if tag else f'{sr}:{r}@{digest}')
+@mock.patch('bodhi.server.util._get_build_repository_and_digest',
+            new=lambda b: ('testrepo', 'sha256:f00d00'))
 class TestCopyContainer(base.BasePyTestCase):
     """Test the copy_container() function."""
 
@@ -1523,21 +1525,24 @@ class TestCopyContainer(base.BasePyTestCase):
         """Test the default code path."""
         util.copy_container(self.build)
 
-        cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'dest:testrepo:1-1'],
+        cmd.assert_called_once_with(['skopeo', 'copy',
+                                     'src:testrepo@sha256:f00d00', 'dest:testrepo:1-1'],
                                     raise_on_error=True)
 
     def test_with_destination_registry(self, cmd):
         """Test with specified destination_registry."""
         util.copy_container(self.build, destination_registry='boo')
 
-        cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'boo:testrepo:1-1'],
+        cmd.assert_called_once_with(['skopeo', 'copy',
+                                     'src:testrepo@sha256:f00d00', 'boo:testrepo:1-1'],
                                     raise_on_error=True)
 
     def test_with_destination_tag(self, cmd):
         """Test with specified destination_tag."""
         util.copy_container(self.build, destination_tag='2-2')
 
-        cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'dest:testrepo:2-2'],
+        cmd.assert_called_once_with(['skopeo', 'copy',
+                                     'src:testrepo@sha256:f00d00', 'dest:testrepo:2-2'],
                                     raise_on_error=True)
 
     def test_with_extra_copy_flags(self, cmd):
@@ -1546,7 +1551,7 @@ class TestCopyContainer(base.BasePyTestCase):
         util.copy_container(self.build)
 
         cmd.assert_called_once_with(['skopeo', 'copy', '--quiet', '--remove-signatures',
-                                     'src:testrepo:1-1', 'dest:testrepo:1-1'],
+                                     'src:testrepo@sha256:f00d00', 'dest:testrepo:1-1'],
                                     raise_on_error=True)
 
 
