@@ -247,7 +247,6 @@ class DevBuildsys:
                     format_data['repository'] = "{}/{}".format(fedora_release, name)
 
                 data['extra'] = {
-                    'container_koji_task_id': 19708268,
                     'typeinfo': {
                         'image': {
                             'index': {
