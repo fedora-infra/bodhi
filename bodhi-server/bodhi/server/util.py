@@ -1137,13 +1137,12 @@ class no_autoflush(object):
         self.session.autoflush = self.autoflush
 
 
-def _get_build_repository(build):
+def _get_build_repository_and_digest(build):
     """
-    Return the registry repository name for the given Build from the container's pull string.
+    Return the registry repository and container digest from the container's pull string.
 
-    Examples -
-    'candidate-registry.fedoraproject.org/f29/cockpit:176-5.fc28' => 'f29/cockpit'.
-    'candidate-registry.fedoraproject.org/myrepo@sha256:<hash>' => 'myrepo'.
+    Example -
+    'candidate-registry.fedoraproject.org/myrepo@sha256:<hash>' => 'myrepo', 'sha256:<hash>.
 
     Args:
         build (bodhi.server.models.Build): A Build representing a container or flatpak.
@@ -1154,11 +1153,12 @@ def _get_build_repository(build):
     koji_build = koji.getBuild(build.nvr)
 
     pull_specs = koji_build['extra']['typeinfo']['image']['index']['pull']
-    # All the pull specs should have the same repository, so which one we use is arbitrary
-    base, tag = re.compile(r'[:@]').split(pull_specs[0], 1)
+    digest_pull_spec = [spec for spec in pull_specs if '@' in spec][0]
+
+    base, digest = digest_pull_spec.split('@', 1)
     server, repository = base.split('/', 1)
 
-    return repository
+    return repository, digest
 
 
 def copy_container(build, destination_registry=None, destination_tag=None):
@@ -1177,17 +1177,16 @@ def copy_container(build, destination_registry=None, destination_tag=None):
         RuntimeError: If skopeo returns a non-0 exit code.
     """
     source_registry = config['container.source_registry']
-    source_tag = '{}-{}'.format(build.nvr_version, build.nvr_release)
 
     if destination_tag is None:
-        destination_tag = source_tag
+        destination_tag = '{}-{}'.format(build.nvr_version, build.nvr_release)
     if destination_registry is None:
         destination_registry = config['container.destination_registry']
 
-    repository = _get_build_repository(build)
+    repository, digest = _get_build_repository_and_digest(build)
 
-    source_url = _container_image_url(source_registry, repository, source_tag)
-    destination_url = _container_image_url(destination_registry, repository, destination_tag)
+    source_url = _container_image_url(source_registry, repository, digest=digest)
+    destination_url = _container_image_url(destination_registry, repository, tag=destination_tag)
 
     skopeo_cmd = [
         config.get('skopeo.cmd'), 'copy', source_url, destination_url]
@@ -1197,7 +1196,7 @@ def copy_container(build, destination_registry=None, destination_tag=None):
     cmd(skopeo_cmd, raise_on_error=True)
 
 
-def _container_image_url(registry, repository, tag=None):
+def _container_image_url(registry, repository, *, tag=None, digest=None):
     """
     Return a URL suitable for use in Skopeo for copying or deleting container images.
 
@@ -1212,7 +1211,10 @@ def _container_image_url(registry, repository, tag=None):
     Returns:
         str: A URL referencing the given build and tag in the given registry.
     """
-    return 'docker://{}/{}:{}'.format(registry, repository, tag)
+    if tag:
+        return 'docker://{}/{}:{}'.format(registry, repository, tag)
+    else:
+        return 'docker://{}/{}@{}'.format(registry, repository, digest)
 
 
 def get_absolute_path(location):
