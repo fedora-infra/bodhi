@@ -586,6 +586,8 @@ class ContentType(DeclEnum):
         Returns:
             BodhiBase: The type-specific child class of base that is appropriate to use with the
             given koji build.
+        Raises:
+            ValueError: If there is no appropriate child class
         """
         # Default value.  Overridden below if we find markers in the build info
         identity = cls.rpm
@@ -593,8 +595,14 @@ class ContentType(DeclEnum):
         extra = build.get('extra') or {}
         if 'module' in extra.get('typeinfo', {}):
             identity = cls.module
-        elif 'container_koji_task_id' in extra:
-            if 'flatpak' in extra['typeinfo']['image']:
+        elif 'image' in extra.get('typeinfo', {}):
+            image_info = extra['typeinfo']['image']
+            if 'pull' not in image_info.get('index', {}):
+                raise ValueError(
+                    (f"Image build {build['nvr']} cannot be used for update, "
+                     "it has no pull specs")
+                )
+            if 'flatpak' in image_info:
                 identity = cls.flatpak
             else:
                 identity = cls.container

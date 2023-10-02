@@ -34,7 +34,7 @@ import requests
 
 from bodhi.messages.schemas import base as base_schemas
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server import main
+from bodhi.server import buildsys, main
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.models import (
@@ -677,6 +677,32 @@ class TestNewUpdate(BasePyTestCase):
         assert up['alias'] == f'FEDORA-{YEAR}-033713b73b'
         assert up['karma'] == 0
         assert up['requirements'] == 'rpmlint'
+
+    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_valid_requirements)
+    def test_new_image_update_no_pull(self, *args):
+        self.create_release('28F')
+        data = self.get_update('mariadb-10.1-10.f28flatpak')
+
+        build = buildsys.get_session().getBuild('mariadb-10.1-10.f28flatpak')
+        del build['extra']['typeinfo']['image']['index']['pull']
+
+        with mock.patch("bodhi.server.buildsys.DevBuildsys.getBuild", return_value=build):
+            r = self.app.post_json('/updates/', data, status=500)
+
+        assert r.json_body == {
+            'errors': [
+                {
+                    'description': (
+                        'Image build mariadb-10.1-10.f28flatpak cannot be used for update, '
+                        'it has no pull specs'
+                    ),
+                    'location': 'body',
+                    'name': 'ValueError',
+                }
+            ],
+            'status': 'error',
+        }
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     @mock.patch(**mock_valid_requirements)
