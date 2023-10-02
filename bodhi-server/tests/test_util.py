@@ -1235,9 +1235,11 @@ class TestCMDFunctions:
         session.return_value.getBuild.side_effect = [
             {
                 'extra': {
-                    'image': {
-                        'index': {
-                            'pull': [pullspec]
+                    'typeinfo': {
+                        'image': {
+                            'index': {
+                                'pull': [pullspec]
+                            }
                         }
                     }
                 }
