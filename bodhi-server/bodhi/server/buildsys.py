@@ -18,6 +18,7 @@
 """Define tools for interacting with the build system and a fake build system for development."""
 
 from functools import wraps
+import hashlib
 from threading import Lock
 import logging
 import os
@@ -235,7 +236,9 @@ class DevBuildsys:
 
                 format_data = {
                     'registry': 'candidate-registry.fedoraproject.org',
-                    'hash': 'sha256:2bd64a888...',
+                    # We make up a fake digest for the image manifest using a
+                    # digest of the version-release string
+                    'hash': hashlib.sha256(f"{version}-{release}".encode("UTF-8")).hexdigest(),
                     'version': version,
                     'release': release
                 }
