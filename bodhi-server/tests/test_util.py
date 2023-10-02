@@ -1264,6 +1264,21 @@ class TestCMDFunctions:
         assert util.build_evr(build) == ('2', '1', '2.fc30')
 
 
+class TestMakeValidContainerTag(base.BasePyTestCase):
+    """Test the make_valid_container_tag() function."""
+
+    def test_valid_tag(self):
+        def E(input, result):
+            assert util.make_valid_container_tag(input) == result
+
+        # Invalid characters turned to _
+        E("%{foo}-%{bar}", "__foo_-__bar_")
+        # . is only invalid when leading
+        E(".f-.g", "_f-.g")
+        # truncate to 128 characters
+        E("x" * 129, "x" * 128)
+
+
 @mock.patch('bodhi.server.util.cmd', autospec=True)
 @mock.patch('bodhi.server.util._container_image_url',
             new=lambda sr, r, tag=None, digest=None:

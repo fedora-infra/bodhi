@@ -1161,6 +1161,34 @@ def _get_build_repository_and_digest(build):
     return repository, digest
 
 
+def make_valid_container_tag(original_tag):
+    """
+    Create a valid container tag from an arbitrary string.
+
+    Turns an arbitrary string (typically a koji 'version' or 'version-release' string),
+    into a valid OCI registry tag. This operation isn't reversable - multiple
+    tags might end up as the same thing. For example, 1.0_a5', '1.0^a5', and '1.0~a5'
+    all end up as '1.0_a5'.
+
+    Args:
+        original_tag: str: an arbitrary string
+    Returns:
+        str: a valid OCI registry tag based on original tag
+    """
+    # https://github.com/opencontainers/distribution-spec/blob/main/spec.md#pulling-manifests
+    #
+    #    Throughout this document, <reference> as a tag MUST be at most 128 characters in length
+    #    and MUST match the following regular expression
+    #
+    #  [a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}
+
+    # Replace invalid characters with _
+    new_tag = re.sub(r'^[^a-zA-Z0-9_]|[^a-zA-Z0-9._-]', '_', original_tag)
+
+    # Truncate to 128 characters
+    return new_tag[0:128]
+
+
 def copy_container(build, destination_registry=None, destination_tag=None):
     """
     Copy a ContainerBuild from the source registry to a destination registry under the given tag.
@@ -1186,7 +1214,8 @@ def copy_container(build, destination_registry=None, destination_tag=None):
     repository, digest = _get_build_repository_and_digest(build)
 
     source_url = _container_image_url(source_registry, repository, digest=digest)
-    destination_url = _container_image_url(destination_registry, repository, tag=destination_tag)
+    destination_url = _container_image_url(destination_registry, repository,
+                                           tag=make_valid_container_tag(destination_tag))
 
     skopeo_cmd = [
         config.get('skopeo.cmd'), 'copy', source_url, destination_url]
