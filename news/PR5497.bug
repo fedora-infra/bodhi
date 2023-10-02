@@ -1,0 +1,1 @@
+Fix handling container tags which aren't valid OCI tags
