@@ -4,6 +4,32 @@ Release notes
 
 .. towncrier release notes start
 
+v7.2.2
+======
+
+
+
+Released on 2023-10-03.
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed the detection of Flatpak update type (:pr:`5496`).
+* Fix handling container tags which aren't valid OCI tags (:pr:`5497`).
+* Fixed display of waived failures in the Automated Tests tab (:issue:`5397`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Owen Taylor
+* Adam Williamson
+* Mattia Verga
+
+
 v7.2.1
 ======
 

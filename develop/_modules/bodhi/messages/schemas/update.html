@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bodhi.messages.schemas.update &#8212; bodhi 7.2.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b76e3c8a" />
+    <title>bodhi.messages.schemas.update &#8212; bodhi 7.2.2 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=71a681cb" />
-    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js?v=8a4d788c"></script>
+    <script src="../../../../_static/documentation_options.js?v=9fcf24ae"></script>
     <script src="../../../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -61,7 +61,9 @@
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">BodhiMessage</span><span class="p">,</span> <span class="n">BuildV1</span><span class="p">,</span> <span class="n">ReleaseV1</span><span class="p">,</span> <span class="n">SCHEMA_URL</span><span class="p">,</span> <span class="n">UpdateV1</span><span class="p">,</span> <span class="n">UserV1</span>
 
 
-<div class="viewcode-block" id="UpdateMessage"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateMessage">[docs]</a><span class="k">class</span> <span class="nc">UpdateMessage</span><span class="p">(</span><span class="n">BodhiMessage</span><span class="p">):</span>
+<div class="viewcode-block" id="UpdateMessage">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateMessage">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateMessage</span><span class="p">(</span><span class="n">BodhiMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for update messages.&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
@@ -128,7 +130,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;s&quot;</span>
 
-<div class="viewcode-block" id="UpdateMessage.__str__"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateMessage.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="UpdateMessage.__str__">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateMessage.__str__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
@@ -138,10 +142,14 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A human readable representation of this message.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary</span></div>
+</div>
 
 
-<div class="viewcode-block" id="UpdateCommentV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCommentV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateCommentV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateCommentV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCommentV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateCommentV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when a comment is made on an update.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -180,7 +188,9 @@
 
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">&quot;bodhi.update.comment&quot;</span>
 
-<div class="viewcode-block" id="UpdateCommentV1.__str__"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCommentV1.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="UpdateCommentV1.__str__">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCommentV1.__str__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
@@ -190,7 +200,15 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A human readable representation of this message.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;comment&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">]</span></div>
+        <span class="n">new_line</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> commented on </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;s &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;update </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s2"> with karma </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">karma</span><span class="si">}</span><span class="s2">:</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;comment&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Builds:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_line</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">nvr</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">builds</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">karma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -208,7 +226,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A summary for this message.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> commented on bodhi update </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s2"> &quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> commented on update </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_builds_summary</span><span class="si">}</span><span class="s2"> &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;(karma: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">karma</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -232,7 +250,10 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;comment&#39;</span><span class="p">][</span><span class="s1">&#39;update&#39;</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="UpdateCompleteStableV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCompleteStableV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateCompleteStableV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateCompleteStableV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCompleteStableV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateCompleteStableV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an update is available in the stable repository.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -266,7 +287,9 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;s </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_builds_summary</span><span class="si">}</span><span class="s2"> &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;bodhi update completed push to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="UpdateCompleteStableV1.__str__"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCompleteStableV1.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="UpdateCompleteStableV1.__str__">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCompleteStableV1.__str__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
@@ -281,10 +304,14 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;s Bodhi update </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s2"> &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;completed push to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;Builds:</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_line</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">nvr</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">builds</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span></div></div>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_line</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">nvr</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">builds</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="UpdateCompleteTestingV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCompleteTestingV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateCompleteTestingV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateCompleteTestingV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCompleteTestingV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateCompleteTestingV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an update is available in the testing repository.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -318,7 +345,9 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;s </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_builds_summary</span><span class="si">}</span><span class="s2"> &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;bodhi update completed push to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="UpdateCompleteTestingV1.__str__"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCompleteTestingV1.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="UpdateCompleteTestingV1.__str__">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCompleteTestingV1.__str__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
@@ -333,10 +362,14 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;s Bodhi update </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s2"> &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;completed push to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;Builds:</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_line</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">nvr</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">builds</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span></div></div>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_line</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">nvr</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">builds</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="UpdateEditV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateEditV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateEditV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateEditV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateEditV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateEditV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an update is edited.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -393,7 +426,9 @@
             <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_builds_summary</span><span class="si">}</span><span class="s2">)&quot;</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="UpdateEditV1.__str__"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateEditV1.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="UpdateEditV1.__str__">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateEditV1.__str__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
@@ -406,10 +441,14 @@
         <span class="k">return</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_name</span><span class="si">}</span><span class="s2"> edited </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s2"> &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;adding </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;new_bugs&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> new bugs&quot;</span>
-        <span class="p">)</span></div></div>
+        <span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="UpdateEditV2"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateEditV2">[docs]</a><span class="k">class</span> <span class="nc">UpdateEditV2</span><span class="p">(</span><span class="n">UpdateEditV1</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateEditV2">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateEditV2">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateEditV2</span><span class="p">(</span><span class="n">UpdateEditV1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sent when an update is edited. Newer version.</span>
 
@@ -438,7 +477,9 @@
     <span class="p">}</span>
     <span class="n">body_schema</span><span class="p">[</span><span class="s1">&#39;required&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="s1">&#39;new_builds&#39;</span><span class="p">,</span> <span class="s1">&#39;removed_builds&#39;</span><span class="p">))</span>
 
-<div class="viewcode-block" id="UpdateEditV2.__str__"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateEditV2.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="UpdateEditV2.__str__">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateEditV2.__str__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
@@ -453,10 +494,14 @@
             <span class="sa">f</span><span class="s2">&quot;adding </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;new_bugs&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> new bug(s), &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;adding </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;new_builds&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> build(s), and &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;removing </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;removed_builds&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> build(s)&quot;</span>
-        <span class="p">)</span></div></div>
+        <span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="UpdateEjectV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateEjectV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateEjectV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateEjectV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateEjectV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateEjectV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an update is ejected from the push.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -509,7 +554,10 @@
             <span class="sa">f</span><span class="s2">&quot;bodhi update was ejected from the </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">repo</span><span class="si">}</span><span class="s2"> mash. Reason: </span><span class="se">\&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">reason</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="UpdateKarmaThresholdV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateKarmaThresholdV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateKarmaThresholdV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateKarmaThresholdV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateKarmaThresholdV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateKarmaThresholdV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an update reaches its karma threshold.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -554,7 +602,9 @@
             <span class="sa">f</span><span class="s2">&quot;has reached the </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2"> karma threshold&quot;</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="UpdateKarmaThresholdV1.__str__"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateKarmaThresholdV1.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="UpdateKarmaThresholdV1.__str__">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateKarmaThresholdV1.__str__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
@@ -570,10 +620,14 @@
             <span class="sa">f</span><span class="s2">&quot;has reached the </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2"> karma threshold.</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;Builds:</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_line</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">nvr</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">builds</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span></div></div>
+        <span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="UpdateRequestMessage"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestMessage">[docs]</a><span class="k">class</span> <span class="nc">UpdateRequestMessage</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateRequestMessage">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestMessage">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateRequestMessage</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an update&#39;s request is changed.&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
@@ -599,7 +653,9 @@
                 <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_builds_summary</span><span class="si">}</span><span class="s2">) to </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="UpdateRequestMessage.__str__"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestMessage.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="UpdateRequestMessage.__str__">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestMessage.__str__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
@@ -621,10 +677,14 @@
             <span class="n">content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; to </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;.</span><span class="se">\n</span><span class="s2">Builds:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">nvr</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">builds</span><span class="p">]))</span>
-        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="UpdateRequestRevokeV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestRevokeV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateRequestRevokeV1</span><span class="p">(</span><span class="n">UpdateRequestMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateRequestRevokeV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestRevokeV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateRequestRevokeV1</span><span class="p">(</span><span class="n">UpdateRequestMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an update is revoked.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -648,7 +708,10 @@
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">&quot;bodhi.update.request.revoke&quot;</span></div>
 
 
-<div class="viewcode-block" id="UpdateRequestStableV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestStableV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateRequestStableV1</span><span class="p">(</span><span class="n">UpdateRequestMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateRequestStableV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestStableV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateRequestStableV1</span><span class="p">(</span><span class="n">UpdateRequestMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an update is submitted as a stable candidate.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -672,7 +735,10 @@
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">&quot;bodhi.update.request.stable&quot;</span></div>
 
 
-<div class="viewcode-block" id="UpdateRequestTestingV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestTestingV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateRequestTestingV1</span><span class="p">(</span><span class="n">UpdateRequestMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateRequestTestingV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestTestingV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateRequestTestingV1</span><span class="p">(</span><span class="n">UpdateRequestMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an update is submitted as a testing candidate.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -696,7 +762,10 @@
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">&quot;bodhi.update.request.testing&quot;</span></div>
 
 
-<div class="viewcode-block" id="UpdateRequestUnpushV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestUnpushV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateRequestUnpushV1</span><span class="p">(</span><span class="n">UpdateRequestMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateRequestUnpushV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestUnpushV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateRequestUnpushV1</span><span class="p">(</span><span class="n">UpdateRequestMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an update is requested to be unpushed.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -720,7 +789,10 @@
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">&quot;bodhi.update.request.unpush&quot;</span></div>
 
 
-<div class="viewcode-block" id="UpdateRequestObsoleteV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestObsoleteV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateRequestObsoleteV1</span><span class="p">(</span><span class="n">UpdateRequestMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateRequestObsoleteV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequestObsoleteV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateRequestObsoleteV1</span><span class="p">(</span><span class="n">UpdateRequestMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an update is requested to be obsoleted.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -744,7 +816,10 @@
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">&quot;bodhi.update.request.obsolete&quot;</span></div>
 
 
-<div class="viewcode-block" id="UpdateRequirementsMetStableV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequirementsMetStableV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateRequirementsMetStableV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateRequirementsMetStableV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequirementsMetStableV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateRequirementsMetStableV1</span><span class="p">(</span><span class="n">UpdateMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when all the update requirements are met for stable.&quot;&quot;&quot;</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
@@ -779,7 +854,9 @@
             <span class="sa">f</span><span class="s2">&quot;bodhi update has met stable testing requirements&quot;</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="UpdateRequirementsMetStableV1.__str__"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequirementsMetStableV1.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="UpdateRequirementsMetStableV1.__str__">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateRequirementsMetStableV1.__str__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
@@ -795,10 +872,14 @@
             <span class="sa">f</span><span class="s2">&quot; has met stable testing requirements.</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;Builds:</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_line</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="o">.</span><span class="n">nvr</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">builds</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span></div></div>
+        <span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="UpdateReadyForTestingV1"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateReadyForTestingV1">[docs]</a><span class="k">class</span> <span class="nc">UpdateReadyForTestingV1</span><span class="p">(</span><span class="n">BodhiMessage</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateReadyForTestingV1">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateReadyForTestingV1">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateReadyForTestingV1</span><span class="p">(</span><span class="n">BodhiMessage</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sent when an update is ready to be tested. Original version.</span>
 
@@ -941,7 +1022,9 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">truncate</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="s1">&#39;nvr&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;artifact&#39;</span><span class="p">][</span><span class="s1">&#39;builds&#39;</span><span class="p">]]))</span><span class="si">}</span><span class="s2"> &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;bodhi update is ready for testing&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="UpdateReadyForTestingV1.__str__"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateReadyForTestingV1.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="UpdateReadyForTestingV1.__str__">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateReadyForTestingV1.__str__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
@@ -956,6 +1039,7 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;contact&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;s Bodhi update is ready for testing</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;Builds:</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_line</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="s1">&#39;nvr&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;artifact&#39;</span><span class="p">][</span><span class="s1">&#39;builds&#39;</span><span class="p">]])</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1001,7 +1085,10 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;agent&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="UpdateReadyForTestingV2"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateReadyForTestingV2">[docs]</a><span class="k">class</span> <span class="nc">UpdateReadyForTestingV2</span><span class="p">(</span><span class="n">UpdateReadyForTestingV1</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateReadyForTestingV2">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateReadyForTestingV2">[docs]</a>
+<span class="k">class</span> <span class="nc">UpdateReadyForTestingV2</span><span class="p">(</span><span class="n">UpdateReadyForTestingV1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sent when an update is ready to be tested. Newer version.</span>
 
@@ -1037,7 +1124,9 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">truncate</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="s1">&#39;nvr&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;artifact&#39;</span><span class="p">][</span><span class="s1">&#39;builds&#39;</span><span class="p">]]))</span><span class="si">}</span><span class="s2"> &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;bodhi update is ready for testing&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="UpdateReadyForTestingV2.__str__"><a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateReadyForTestingV2.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="UpdateReadyForTestingV2.__str__">
+<a class="viewcode-back" href="../../../../server_api/messages/update.html#bodhi.messages.schemas.update.UpdateReadyForTestingV2.__str__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
@@ -1051,7 +1140,9 @@
         <span class="k">return</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;update&#39;</span><span class="p">][</span><span class="s1">&#39;user&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;s Bodhi update is ready for testing</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="sa">f</span><span class="s2">&quot;Builds:</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_line</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="s1">&#39;nvr&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;artifact&#39;</span><span class="p">][</span><span class="s1">&#39;builds&#39;</span><span class="p">]])</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span></div></div>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">new_line</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">b</span><span class="p">[</span><span class="s1">&#39;nvr&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;artifact&#39;</span><span class="p">][</span><span class="s1">&#39;builds&#39;</span><span class="p">]])</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span></div>
+</div>
+
 </pre></div>
 
           </div>
@@ -1145,7 +1236,7 @@
       &copy;2007-2023, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
