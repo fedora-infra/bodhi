@@ -1,7 +1,7 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-client
 %global src_name bodhi_client
-%global pypi_version 7.2.1
+%global pypi_version 7.2.2
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
