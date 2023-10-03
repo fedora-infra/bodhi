@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>4.x release notes &#8212; bodhi 7.2.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b76e3c8a" />
+    <title>4.x release notes &#8212; bodhi 7.2.2 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=71a681cb" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=8a4d788c"></script>
+    <script src="../_static/documentation_options.js?v=9fcf24ae"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="3.x release notes" href="3.x_release_notes.html" />
@@ -32,20 +32,20 @@
           <div class="body" role="main">
             
   <section id="x-release-notes">
-<h1>4.x release notes<a class="headerlink" href="#x-release-notes" title="Permalink to this heading">¶</a></h1>
+<h1>4.x release notes<a class="headerlink" href="#x-release-notes" title="Link to this heading">¶</a></h1>
 <p>These are the release notes for the 4.x series of Bodhi releases.</p>
 <section id="v4-1-0">
-<h2>v4.1.0<a class="headerlink" href="#v4-1-0" title="Permalink to this heading">¶</a></h2>
+<h2>v4.1.0<a class="headerlink" href="#v4-1-0" title="Link to this heading">¶</a></h2>
 <p>This is a feature release that adds single-package gating.</p>
 <section id="server-upgrade-instructions">
-<h3>Server upgrade instructions<a class="headerlink" href="#server-upgrade-instructions" title="Permalink to this heading">¶</a></h3>
+<h3>Server upgrade instructions<a class="headerlink" href="#server-upgrade-instructions" title="Link to this heading">¶</a></h3>
 <p>This release contains database migrations. To apply them, run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
 </pre></div>
 </div>
 </section>
 <section id="features">
-<h3>Features<a class="headerlink" href="#features" title="Permalink to this heading">¶</a></h3>
+<h3>Features<a class="headerlink" href="#features" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Add autopush and stable_days to an update.  When <code class="docutils literal notranslate"><span class="pre">autopush</span></code> is true, the
 approve_testing cronjob will push the update to stable if it has meet the
@@ -62,7 +62,7 @@ the database migration.</p></li>
 </ul>
 </section>
 <section id="bug-fixes">
-<h3>Bug fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this heading">¶</a></h3>
+<h3>Bug fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Log permanent failures for debugging.  Previously, exceptions were raised
 which caused the affected messages to be placed back into the queue
@@ -86,7 +86,7 @@ effect to improve the performance of bodhi’s requests to greenwave.</p></li>
 </ul>
 </section>
 <section id="development-improvements">
-<h3>Development improvements<a class="headerlink" href="#development-improvements" title="Permalink to this heading">¶</a></h3>
+<h3>Development improvements<a class="headerlink" href="#development-improvements" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Leave the global log level in peace when testing.</p></li>
 <li><p>Update the Developer documentation</p></li>
@@ -95,7 +95,7 @@ effect to improve the performance of bodhi’s requests to greenwave.</p></li>
 </ul>
 </section>
 <section id="contributors">
-<h3>Contributors<a class="headerlink" href="#contributors" title="Permalink to this heading">¶</a></h3>
+<h3>Contributors<a class="headerlink" href="#contributors" title="Link to this heading">¶</a></h3>
 <p>The following developers contributed to Bodhi 4.1.0:</p>
 <ul class="simple">
 <li><p>Aurélien Bompard</p></li>
@@ -112,16 +112,16 @@ effect to improve the performance of bodhi’s requests to greenwave.</p></li>
 </section>
 </section>
 <section id="v4-0-2">
-<h2>v4.0.2<a class="headerlink" href="#v4-0-2" title="Permalink to this heading">¶</a></h2>
+<h2>v4.0.2<a class="headerlink" href="#v4-0-2" title="Link to this heading">¶</a></h2>
 <p>This is a bugfix release.</p>
 <section id="id1">
-<h3>Bug fixes<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<h3>Bug fixes<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Drop updateinfo &lt;id&gt; tag detection (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3269">#3269</a>).</p></li>
 </ul>
 </section>
 <section id="id2">
-<h3>Contributors<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
+<h3>Contributors<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
 <p>The following developers contributed to Bodhi 4.0.2:</p>
 <ul class="simple">
 <li><p>Patrick Uiterwijk</p></li>
@@ -129,17 +129,17 @@ effect to improve the performance of bodhi’s requests to greenwave.</p></li>
 </section>
 </section>
 <section id="v4-0-1">
-<h2>v4.0.1<a class="headerlink" href="#v4-0-1" title="Permalink to this heading">¶</a></h2>
+<h2>v4.0.1<a class="headerlink" href="#v4-0-1" title="Link to this heading">¶</a></h2>
 <p>This is a bugfix release.</p>
 <section id="id3">
-<h3>Bug fixes<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
+<h3>Bug fixes<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Fix zchunk updateinfo getting injected as updateinfo_zck (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3261">#3261</a>).</p></li>
 <li><p>Fix a broken template in <code class="docutils literal notranslate"><span class="pre">bodhi-push</span></code> (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/3256">#3256</a>).</p></li>
 </ul>
 </section>
 <section id="id4">
-<h3>Contributors<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
+<h3>Contributors<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
 <p>The following developers contributed to Bodhi 4.0.1:</p>
 <ul class="simple">
 <li><p>Randy Barlow</p></li>
@@ -148,10 +148,10 @@ effect to improve the performance of bodhi’s requests to greenwave.</p></li>
 </section>
 </section>
 <section id="v4-0-0">
-<h2>v4.0.0<a class="headerlink" href="#v4-0-0" title="Permalink to this heading">¶</a></h2>
+<h2>v4.0.0<a class="headerlink" href="#v4-0-0" title="Link to this heading">¶</a></h2>
 <p>This is a major release with many backwards incompatible changes.</p>
 <section id="backwards-incompatible-changes">
-<h3>Backwards incompatible changes<a class="headerlink" href="#backwards-incompatible-changes" title="Permalink to this heading">¶</a></h3>
+<h3>Backwards incompatible changes<a class="headerlink" href="#backwards-incompatible-changes" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Values NULL and 0 are not allowed in update’s stable_karma and unstable_karma (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1029">#1029</a>).</p></li>
 <li><p>Updates no longer have a <code class="docutils literal notranslate"><span class="pre">title</span></code> attribute. This affects many elements of Bodhi’s REST API,
@@ -213,7 +213,7 @@ to get the schema adjusted accordingly. Bodhi’s messages are now documented in
 </ul>
 </section>
 <section id="dependency-changes">
-<h3>Dependency changes<a class="headerlink" href="#dependency-changes" title="Permalink to this heading">¶</a></h3>
+<h3>Dependency changes<a class="headerlink" href="#dependency-changes" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>pkgdb is no longer required (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1970">#1970</a>).</p></li>
 <li><p>cryptography is no longer required (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2700">#2700</a>).</p></li>
@@ -232,7 +232,7 @@ liberation-mono-fonts, but this wasn’t a strict requirement since the font was
 </ul>
 </section>
 <section id="id5">
-<h3>Server upgrade instructions<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
+<h3>Server upgrade instructions<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
 <p>The Bodhi server must be upgraded from Bodhi 3.13.0 or newer to 4.0.0 (i.e., it is not supported to
 upgrade a server older than 3.13.0 directly to 4.0.0 as 4.0.0 has trimmed database migrations from
 the older releases.</p>
@@ -242,7 +242,7 @@ the older releases.</p>
 </div>
 </section>
 <section id="id6">
-<h3>Features<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
+<h3>Features<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Bodhi now provides a <code class="docutils literal notranslate"><span class="pre">RateLimiter</span></code> log filter and documents how to use it. Together with
 <code class="docutils literal notranslate"><span class="pre">pyramid_sawing</span></code> it is now possible to get rate limited e-mail tracebacks from the web server
@@ -272,7 +272,7 @@ including update retrieval in the API, CLI, and web UI (<a class="reference exte
 </ul>
 </section>
 <section id="id7">
-<h3>Bug fixes<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
+<h3>Bug fixes<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Since the <code class="docutils literal notranslate"><span class="pre">active_releases</span></code> query parameter was dropped, an issue causing strange pagination
 results is no longer present (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2316">#2316</a>).</p></li>
@@ -297,7 +297,7 @@ display error messages (<a class="reference external" href="https://github.com/f
 </ul>
 </section>
 <section id="id8">
-<h3>Development improvements<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
+<h3>Development improvements<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Removed flash_log, since it didn’t make sense (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1165">#1165</a>).</p></li>
 <li><p>Removed some useless assert statements (<a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/1200">#1200</a>, <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2848">#2848</a>, and <a class="reference external" href="https://github.com/fedora-infra/bodhi/issues/2888">#2888</a>).</p></li>
@@ -314,7 +314,7 @@ display error messages (<a class="reference external" href="https://github.com/f
 </ul>
 </section>
 <section id="id9">
-<h3>Contributors<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
+<h3>Contributors<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
 <p>The following developers contributed to Bodhi 4.0.0:</p>
 <ul class="simple">
 <li><p>Adam Williamson</p></li>
@@ -336,7 +336,7 @@ display error messages (<a class="reference external" href="https://github.com/f
 </section>
 </section>
 <section id="older-releases">
-<h2>Older releases<a class="headerlink" href="#older-releases" title="Permalink to this heading">¶</a></h2>
+<h2>Older releases<a class="headerlink" href="#older-releases" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="3.x_release_notes.html">3.x release notes</a><ul>
@@ -496,7 +496,7 @@ display error messages (<a class="reference external" href="https://github.com/f
       &copy;2007-2023, Red Hat, Inc..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
