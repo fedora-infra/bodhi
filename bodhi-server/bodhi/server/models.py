@@ -2681,16 +2681,17 @@ class Update(Base):
                 # and release-candidate tag if builds are in side-tag
                 builds_to_tag = new_builds
 
+            tags = []
             if up.from_tag and not up.release.composed_by_bodhi:
-                tags = [up.release.get_pending_signing_side_tag(up.from_tag)]
+                tags.append(up.release.get_pending_signing_side_tag(up.from_tag))
             elif up.from_tag:
-                tags = [up.release.candidate_tag]
+                tags.append(up.release.candidate_tag)
                 if up.release.pending_signing_tag:
                     tags.append(up.release.pending_signing_tag)
             else:
                 # For normal updates the builds already have candidate_tag
                 if up.release.pending_signing_tag:
-                    tags = [up.release.pending_signing_tag]
+                    tags.append(up.release.pending_signing_tag)
 
             for tag in tags:
                 tag_update_builds_task.delay(tag=tag, builds=builds_to_tag)
