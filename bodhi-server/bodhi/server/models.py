@@ -2657,9 +2657,6 @@ class Update(Base):
         # Updates with new or removed builds always go back to testing
         if new_builds or removed_builds:
             data['request'] = UpdateRequest.testing
-            # And, updates with new or removed builds always get their karma reset.
-            # https://github.com/fedora-infra/bodhi/issues/511
-            data['karma_critipath'] = 0
             up.date_testing = None
 
             if (
