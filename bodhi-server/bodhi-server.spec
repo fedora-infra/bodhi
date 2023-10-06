@@ -128,7 +128,6 @@ install -p -D -m 0644 %{name}.sysusers %{buildroot}%{_sysusersdir}/%{name}.sysus
 %{_bindir}/bodhi-push
 %{_bindir}/bodhi-sar
 %{_bindir}/bodhi-shell
-%{_bindir}/bodhi-skopeo-lite
 %{_bindir}/bodhi-untag-branched
 %{_bindir}/initialize_bodhi_db
 %config(noreplace) %{_sysconfdir}/bodhi/alembic.ini
