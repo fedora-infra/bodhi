@@ -81,6 +81,8 @@ from bodhi.server.util import (
     pagure_api_get,
     tokenize,
     build_names_by_type,
+    markdown_to_text,
+    wrap_text,
 )
 
 
@@ -2971,15 +2973,10 @@ class Update(Base):
         """
         val = ''
         if show_titles:
-            i = 0
+            bugstr = []
             for bug in self.bugs:
-                bugstr = '%s%s - %s\n' % (
-                    i and ' ' * 11 + ': ' or '', bug.bug_id, bug.title)
-                val += '\n'.join(wrap(
-                    bugstr, width=67,
-                    subsequent_indent=' ' * 11 + ': ')) + '\n'
-                i += 1
-            val = val[:-1]
+                bugstr.append(f"{bug.bug_id} - {bug.title}")
+            val = '\n'.join(bugstr)
         else:
             val = ' '.join([str(bug.bug_id) for bug in self.bugs])
         return val
@@ -3435,45 +3432,51 @@ class Update(Base):
         Returns:
             str: A string representation of the update.
         """
-        val = "%s\n%s\n%s\n" % ('=' * 80, '\n'.join(wrap(
-            self.alias, width=80, initial_indent=' ' * 5,
-            subsequent_indent=' ' * 5)), '=' * 80)
-        val += """    Release: %s
-     Status: %s
-       Type: %s
-   Severity: %s
-      Karma: %d""" % (self.release.long_name, self.status.description,
-                      self.type.description, self.severity, self.karma)
+        nl = '\n'
+        val = f"""{'=' * 80}
+{nl.join(wrap(self.alias, width=79, initial_indent=' ' * 5, subsequent_indent=' ' * 5))}
+{'=' * 80}
+{'Release:' : >12} {self.release.long_name}
+{'Status:' : >12} {self.status.description}
+{'Type:' : >12} {self.type.description}
+{'Severity:' : >12} {self.severity}
+{'Karma:' : >12} {self.karma}"""
         if self.critpath:
-            val += "\n   Critpath: %s" % self.critpath
+            val += f"{nl}{'Critpath:' : >12} {self.critpath}"
         if self.request is not None:
-            val += "\n    Request: %s" % self.request.description
+            val += f"{nl}{'Request:' : >12} {self.request.description}"
         if self.bugs:
-            bugs = self.get_bugstring(show_titles=True)
-            val += "\n       Bugs: %s" % bugs
+            bugs = wrap_text(
+                self.get_bugstring(show_titles=True), width=79,
+                initial_indent=f"{'Bugs:' : >12} ",
+                subsequent_indent=f"{' ' * 13}")
+            val += f"{nl}{bugs}"
         if self.notes:
-            notes = wrap(
-                self.notes, width=67, subsequent_indent=' ' * 11 + ': ')
-            val += "\n      Notes: %s" % '\n'.join(notes)
+            notes = wrap_text(
+                markdown_to_text(self.notes).strip(), width=79,
+                initial_indent=f"{'Notes:' : >12} ",
+                subsequent_indent=f"{' ' * 13}")
+            val += f"{nl}{notes}"
         username = None
         if self.user:
             username = self.user.name
-        val += """
-  Submitter: %s
-  Submitted: %s\n""" % (username, self.date_submitted)
+        val += f"""
+{'Submitter:' : >12} {username}
+{'Submitted:' : >12} {self.date_submitted}
+"""
         if self.comments_since_karma_reset:
-            val += "   Comments: "
-            comments = []
-            for comment in self.comments_since_karma_reset:
-                comments.append("%s%s - %s (karma %s)" % (' ' * 13,
-                                comment.user.name, comment.timestamp,
-                                comment.karma))
+            comments_list = []
+            for comment in reversed(self.comments_since_karma_reset):
+                comments_list.append(f"{comment.user.name} - {comment.timestamp} "
+                                     f"(karma {comment.karma})")
                 if comment.text:
-                    text = wrap(comment.text, initial_indent=' ' * 13,
-                                subsequent_indent=' ' * 13, width=67)
-                    comments.append('\n'.join(text))
-            val += '\n'.join(comments).lstrip() + '\n'
-        val += "\n  %s\n" % self.abs_url()
+                    comments_list.append(comment.text)
+            comments = wrap_text(
+                '\n'.join(comments_list), width=79,
+                initial_indent=f"{'Comments:' : >12} ",
+                subsequent_indent=f"{' ' * 13}")
+            val += f"{comments}{nl}"
+        val += f"{nl}  {self.abs_url()}"
         return val
 
     def update_bugs(self, bug_ids, session):

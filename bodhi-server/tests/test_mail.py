@@ -143,6 +143,25 @@ class TestGetTemplate(BasePyTestCase):
         # The advisory flag should be included in the dnf instructions.
         assert 'dnf --enablerepo=updates-testing upgrade --advisory {}'.format(u.alias) in t
 
+    def test_no_markdown(self):
+        """Update notes should be sent in plaintext."""
+        u = models.Update.query.first()
+        u.notes = """Some **fancy** update description:
+
+- first element
+- second element
+
+Let's also have some code:
+```<test@example.com>```
+"""
+
+        t = mail.get_template(u)
+
+        # Assemble the template for easier asserting.
+        t = '\n'.join([line for line in t[0]])
+        assert 'Some fancy update description:' in t
+        assert '```<test@example.com>```' not in t
+
     def test_read_template(self):
         """Ensure that email template is read correctly."""
         tpl_name = "maillist_template"
