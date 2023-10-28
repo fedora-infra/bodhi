@@ -251,6 +251,14 @@ class TestReleasesService(base.BasePyTestCase):
         body = res.json_body
         assert len(body['releases']) == 0
 
+    def test_list_releases_by_multiple_states(self):
+        """ Test that we can filter releases using multiple states """
+        res = self.app.get('/releases/', {"state": ['current', 'disabled']})
+        body = res.json_body
+        assert len(body['releases']) == 2
+        assert body['releases'][0]['name'] == 'F17'
+        assert body['releases'][1]['name'] == 'F22'
+
     def test_list_releases_with_a_wrong_state(self):
         """ Test that we get a 400 error when we use an undefined state """
         res = self.app.get('/releases/', {"state": 'active'}, status=400)
