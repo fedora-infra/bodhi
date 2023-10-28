@@ -81,6 +81,13 @@ class Releases(colander.SequenceSchema):
     release = colander.SchemaNode(colander.String())
 
 
+class ReleaseStates(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of ReleaseState objects."""
+
+    release_state = colander.SchemaNode(colander.String(),
+                                        validator=colander.OneOf(list(ReleaseState.values())))
+
+
 class ReleaseIds(colander.SequenceSchema):
     """A SequenceSchema to validate a list of Release ID objects."""
 
@@ -341,10 +348,11 @@ class ListReleaseSchema(PaginatedSchema):
         preparer=[util.splitter],
     )
 
-    state = colander.SchemaNode(
-        colander.String(),
-        validator=colander.OneOf(list(ReleaseState.values())),
+    state = ReleaseStates(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
         missing=None,
+        preparer=[util.splitter],
     )
 
     exclude_archived = colander.SchemaNode(

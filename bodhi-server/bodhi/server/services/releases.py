@@ -328,7 +328,7 @@ def query_releases_json(request):
 
     state = data.get('state')
     if state is not None:
-        query = query.filter(Release.state == ReleaseState.from_string(state))
+        query = query.filter(or_(*[Release.state == ReleaseState.from_string(s) for s in state]))
 
     query = query.order_by(Release.name.asc())
 
