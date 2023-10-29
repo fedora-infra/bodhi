@@ -104,7 +104,7 @@ check_deps = False
 
 # CREATEREPO
 createrepo_deltas = False
-[% if release.version_int >= 30 %]
+[% if cr_config.zchunk %]
 createrepo_extra_args = ['--zck', '--zck-dict-dir=/usr/share/fedora-repo-zdicts/f[[ release.version_int ]]']
 [% endif %]
 

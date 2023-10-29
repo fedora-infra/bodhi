@@ -353,7 +353,8 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
             if record.title == title:
                 return record
 
-    def test___init___uses_bz2_for_epel(self):
+    @mock.patch('bodhi.server.util.log.info')
+    def test___init___uses_bz2_for_epel(self, info):
         """Assert that the __init__() method sets the comp_type attribute to cr.BZ2 for EPEL."""
         epel_7 = Release(id_prefix="FEDORA-EPEL", stable_tag='epel7')
 
@@ -361,8 +362,21 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
 
         assert md.comp_type == createrepo_c.BZ2
         assert not md.zchunk
+        info.assert_any_call('Using custom createrepo_c config for FEDORA-EPEL.')
 
-    def test___init___uses_xz_for_fedora(self):
+    @mock.patch('bodhi.server.util.log.info')
+    def test___init___uses_xz_for_epel8(self, info):
+        """Assert that the __init__() method sets the comp_type attribute to cr.XZ for EPEL-8."""
+        epel_8 = Release(name="EPEL-8", id_prefix="FEDORA-EPEL", stable_tag='epel8')
+
+        md = UpdateInfoMetadata(epel_8, UpdateRequest.stable, self.db, self.tempdir)
+
+        assert md.comp_type == createrepo_c.XZ
+        assert not md.zchunk
+        info.assert_any_call('Using custom createrepo_c config for EPEL-8.')
+
+    @mock.patch('bodhi.server.util.log.info')
+    def test___init___uses_xz_for_fedora(self, info):
         """Assert that the __init__() method sets the comp_type attribute to cr.XZ for Fedora."""
         fedora = Release.query.one()
 
@@ -370,6 +384,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
 
         assert md.comp_type == createrepo_c.XZ
         assert md.zchunk
+        info.assert_any_call('Using createrepo_c defaults config.')
 
     def test_extended_metadata_once(self):
         """Assert that a single call to update the metadata works as expected."""

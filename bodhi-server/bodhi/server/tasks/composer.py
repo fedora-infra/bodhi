@@ -62,6 +62,7 @@ from bodhi.server.models import (
 from bodhi.server.tasks.clean_old_composes import main as clean_old_composes
 from bodhi.server.util import (
     copy_container,
+    get_createrepo_config,
     sanity_check_repodata,
     sorted_updates,
     transactional_session_maker,
@@ -991,6 +992,7 @@ class PungiComposerThread(ComposerThread):
     def _create_pungi_config(self):
         """Create a temp dir and render the Pungi config templates into the dir."""
         loader = jinja2.FileSystemLoader(searchpath=config.get('pungi.basepath'))
+        createrepo_c_settings = get_createrepo_config(self.compose.release)
         env = jinja2.Environment(loader=loader,
                                  autoescape=False,
                                  block_start_string='[%',
@@ -1004,6 +1006,7 @@ class PungiComposerThread(ComposerThread):
         env.globals['release'] = self.compose.release
         env.globals['request'] = self.compose.request
         env.globals['updates'] = self.compose.updates
+        env.globals['cr_config'] = createrepo_c_settings
 
         config_template = config.get(self.pungi_template_config_key)
         template = env.get_template(config_template)

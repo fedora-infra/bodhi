@@ -1525,3 +1525,88 @@ class TestEOLReleases(base.BasePyTestCase):
         self.f37.eol = datetime.utcnow().date() - timedelta(days=20)
         self.db.commit()
         assert util.eol_releases() == []
+
+
+class TestGetCreaterepoConfig(base.BasePyTestCase):
+    """Tests for the get_createrepo_config() method."""
+    def setup_method(self, method):
+        super().setup_method(method)
+        self.tempdir = tempfile.mkdtemp('bodhi')
+        self.createrepo_config = os.path.join(self.tempdir, 'createrepo_c.ini')
+        with open(self.createrepo_config, 'w') as crconf:
+            crconf.write('[DEFAULT]\n'
+                         'updateinfo-compress-type = XZ\n'
+                         'repodata-compress-type =\n'
+                         'general-compress = False\n'
+                         'zchunk = True\n'
+                         '[prefix.FEDORA]\n'
+                         'updateinfo-compress-type = BZ2\n'
+                         'zchunk = False\n'
+                         '[release.F40]\n'
+                         'repodata-compress-type = xz\n'
+                         'zchunk = False\n')
+        self.f40 = self.create_release('40')
+
+    @mock.patch('bodhi.server.util.log.info')
+    def test_load_defaults(self, info_log):
+        """Ensure defaults from config file are returned if no override match."""
+        self.f40.name = 'F39'
+        self.f40.id_prefix = 'DONT-MATCH'
+        self.db.commit()
+        with mock.patch.dict(config, {'createrepo_c_config': self.createrepo_config}):
+            cr_config = util.get_createrepo_config(self.f40)
+        assert cr_config.uinfo_comp == 'XZ'
+        assert cr_config.repodata_comp == ''
+        assert cr_config.general_comp is False
+        assert cr_config.zchunk is True
+        info_log.assert_any_call('Using createrepo_c defaults config.')
+
+    @mock.patch('bodhi.server.util.log.info')
+    def test_load_prefix_override(self, info_log):
+        """Ensure Release.id_prefix override defaults."""
+        self.f40.name = 'F39'
+        self.db.commit()
+        with mock.patch.dict(config, {'createrepo_c_config': self.createrepo_config}):
+            cr_config = util.get_createrepo_config(self.f40)
+        assert cr_config.uinfo_comp == 'BZ2'
+        assert cr_config.repodata_comp == ''
+        assert cr_config.general_comp is False
+        assert cr_config.zchunk is False
+        info_log.assert_any_call(f'Using custom createrepo_c config for {self.f40.id_prefix}.')
+
+    @mock.patch('bodhi.server.util.log.info')
+    def test_load_release_override(self, info_log):
+        """Ensure Release.name override defaults and NOT inherit from id_prefix also."""
+        with mock.patch.dict(config, {'createrepo_c_config': self.createrepo_config}):
+            cr_config = util.get_createrepo_config(self.f40)
+        assert cr_config.uinfo_comp == 'XZ'
+        assert cr_config.repodata_comp == 'xz'
+        assert cr_config.general_comp is False
+        assert cr_config.zchunk is False
+        info_log.assert_any_call(f'Using custom createrepo_c config for {self.f40.name}.')
+
+    @mock.patch('bodhi.server.util.log.warning')
+    def test_config_file_not_found(self, warn_log):
+        """Ensure hardcoded defaults are returned if no config file is found."""
+        with mock.patch.dict(config, {'createrepo_c_config': './no_conf.ini'}):
+            cr_config = util.get_createrepo_config(self.f40)
+        assert cr_config.uinfo_comp == 'XZ'
+        assert cr_config.repodata_comp == ''
+        assert cr_config.general_comp is False
+        assert cr_config.zchunk is True
+        warn_log.assert_any_call('No createrepo_c config file found.')
+
+    @mock.patch('bodhi.server.util.log')
+    def test_bad_config_file(self, mock_log):
+        """Ensure hardcoded defaults are returned with an error using a bad config file."""
+        broken_config = os.path.join(self.tempdir, 'broken_conf.ini')
+        with open(broken_config, 'w') as crconf:
+            crconf.write('bad file\n')
+        with mock.patch.dict(config, {'createrepo_c_config': broken_config}):
+            cr_config = util.get_createrepo_config(self.f40)
+        assert cr_config.uinfo_comp == 'XZ'
+        assert cr_config.repodata_comp == ''
+        assert cr_config.general_comp is False
+        assert cr_config.zchunk is True
+        mock_log.error.assert_any_call(f'Error reading {broken_config}.')
+        mock_log.warning.assert_any_call('No createrepo_c config file found.')

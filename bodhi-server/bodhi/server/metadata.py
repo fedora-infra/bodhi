@@ -137,25 +137,10 @@ class UpdateInfoMetadata(object):
 
         self.uinfo = cr.UpdateInfo()
 
-        self.comp_type = cr.XZ
+        createrepo_c_settings = util.get_createrepo_config(release)
+        self.comp_type = getattr(cr, createrepo_c_settings.uinfo_comp)
+        self.zchunk = createrepo_c_settings.zchunk
 
-        # Some repos such as FEDORA-EPEL, are primarily targeted at
-        # distributions that use the yum client, which does not support zchunk metadata
-        self.legacy_repos = ['FEDORA-EPEL']
-        self.zchunk = True
-
-        if release.id_prefix in self.legacy_repos:
-            # FIXME: I'm not sure which versions of RHEL support xz metadata
-            # compression, so use the lowest common denominator for now.
-            self.comp_type = cr.BZ2
-
-            log.warning(
-                'Zchunk data is disabled for repo {release.id_prefix} until it moves to a client'
-                ' with Zchunk support'
-            )
-            self.zchunk = False
-
-        self.uinfo = cr.UpdateInfo()
         for update in self.updates:
             self.add_update(update)
 

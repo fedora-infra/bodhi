@@ -24,6 +24,7 @@ from importlib import import_module
 from textwrap import TextWrapper
 from urllib.parse import urlencode
 import bz2
+import configparser
 import errno
 import functools
 import gzip
@@ -40,6 +41,7 @@ import types
 import typing
 
 from bs4 import BeautifulSoup
+from munch import munchify
 from pyramid.i18n import TranslationStringFactory
 import arrow
 import bleach
@@ -1407,3 +1409,59 @@ def wrap_text(text: str, width: int = 80, initial_indent: str = '',
                                        f"{paragraph}"))
 
     return '\n'.join(paragraphs)
+
+
+def get_createrepo_config(rel):
+    """
+    Load and return createrepo_c settings defined for a Release.
+
+    Args:
+        rel: the Release for which we want to retrieve settings.
+    Returns:
+        A munchified object with createrepo_c settings.
+    """
+    configfile = None
+    configpath = config.get('createrepo_c_config')
+    if os.path.exists(configpath):
+        try:
+            configfile = configparser.ConfigParser()
+            configfile.read(configpath)
+            log.info(f'Loaded createrepo_c config from {configpath}.')
+        except Exception:
+            configfile = None
+            log.error(f'Error reading {configpath}.')
+    if not configfile:
+        log.warning('No createrepo_c config file found.')
+        return munchify({'uinfo_comp': 'XZ',
+                         'repodata_comp': '',
+                         'general_comp': False,
+                         'zchunk': True})
+    if f'release.{rel.name}' in configfile.sections():
+        log.info(f'Using custom createrepo_c config for {rel.name}.')
+        return munchify(
+            {'uinfo_comp': configfile[f'release.{rel.name}'].get('updateinfo-compress-type'),
+             'repodata_comp':
+                 configfile[f'release.{rel.name}'].get('repodata-compress-type', None),
+             'general_comp': configfile[f'release.{rel.name}'].getboolean('general-compress'),
+             'zchunk': configfile[f'release.{rel.name}'].getboolean('zchunk')
+             }
+        )
+    elif f'prefix.{rel.id_prefix}' in configfile.sections():
+        log.info(f'Using custom createrepo_c config for {rel.id_prefix}.')
+        return munchify(
+            {'uinfo_comp': configfile[f'prefix.{rel.id_prefix}'].get('updateinfo-compress-type'),
+             'repodata_comp':
+                 configfile[f'prefix.{rel.id_prefix}'].get('repodata-compress-type', None),
+             'general_comp': configfile[f'prefix.{rel.id_prefix}'].getboolean('general-compress'),
+             'zchunk': configfile[f'prefix.{rel.id_prefix}'].getboolean('zchunk')
+             }
+        )
+    else:
+        log.info('Using createrepo_c defaults config.')
+        return munchify(
+            {'uinfo_comp': configfile['DEFAULT'].get('updateinfo-compress-type'),
+             'repodata_comp': configfile['DEFAULT'].get('repodata-compress-type', None),
+             'general_comp': configfile['DEFAULT'].getboolean('general-compress'),
+             'zchunk': configfile['DEFAULT'].getboolean('zchunk')
+             }
+        )
