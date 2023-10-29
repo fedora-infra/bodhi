@@ -1,9 +1,14 @@
+# Import shared settings from pungi_general.conf
+from pungi_general import *
+# Import multilib settings from pungi_multilib.conf
+from pungi_multilib import *
+
 # PRODUCT INFO
-release_name = '[[ release.id_prefix.title() ]]'
-release_short = '[[ release.id_prefix.title() ]]'
 release_version = '[[ release.version ]]'
 release_type = 'updates[% if request.name == 'testing' %]-testing[% endif %]'
-release_is_layered = False
+release_name = '[[ release.id_prefix.title() ]]'
+release_short = '[[ release.id_prefix.title() ]]'
+
 
 # GENERAL SETTINGS
 bootable = False
@@ -12,49 +17,92 @@ variants_file='module-variants.xml'
 sigkeys = [
 [% if release.version_int == 28 %]
 	'9db62fb1',
-[% elif release.version_int == 29 %]
-	'429476b4',
 [% elif release.version_int == 30 %]
 	'cfc659b9',
+[% elif release.version_int == 31 %]
+	'3c3359c4',
+[% elif release.version_int == 32 %]
+	'12c944d0',
+[% elif release.version_int == 33 %]
+	'9570ff31',
+[% elif release.version_int == 34 %]
+    '45719a39',
+[% elif release.version_int == 35 %]
+    '9867c58f',
+[% elif release.version_int == 36 %]
+    '38ab71f4',
+[% elif release.version_int == 37 %]
+    '5323552a',
+[% elif release.version_int == 38 %]
+    'eb10b464',
+[% elif release.version_int == 39 %]
+    '18B8e74c',
+[% elif release.version_int == 40 %]
+    'a15B79cc',
+[% elif release.version_int == 8 %]
+    '2f86d6a1',
 [% endif %]
 {% if env == "staging" %}
-	None
+    [% if release.version_int == 8 %]
+        'd300e724',
+    [% endif %]
 {% endif %}
 ]
 
 module_defaults_dir = {
     'scm': 'git',
-    'repo': 'https://pagure.io/releng/fedora-module-defaults.git',
-    'branch': 'f[[ release.version_int ]]',
+    {% if env == "staging" %}
+        'repo': 'https://pagure.io/modularity/fedora-stg-module-defaults.git',
+        [% if release.version_int == 8 %]
+            'branch': 'el[[ release.version_int ]]',
+        [% else %]
+            'branch': 'f[[ release.version_int ]]',
+        [% endif %]
+    {% else %}
+        'repo': 'https://pagure.io/releng/fedora-module-defaults.git',
+        [% if release.version_int == 8 %]
+            'branch': 'el[[ release.version_int ]]',
+        [% else %]
+            'branch': 'f[[ release.version_int ]]',
+        [% endif %]
+    {% endif %}
     'dir': '.'
 }
 
-hashed_directories = True
+module_obsoletes_dir = {
+    'scm': 'git',
+    {% if env == "staging" %}
+        'repo': 'https://pagure.io/modularity/fedora-stg-module-defaults.git',
+        [% if release.version_int == 8 %]
+            'branch': 'el[[ release.version_int ]]',
+        [% else %]
+            'branch': 'f[[ release.version_int ]]',
+        [% endif %]
+    {% else %}
+        'repo': 'https://pagure.io/releng/fedora-module-defaults.git',
+        [% if release.version_int == 8 %]
+            'branch': 'el[[ release.version_int ]]',
+        [% else %]
+            'branch': 'f[[ release.version_int ]]',
+        [% endif %]
+    {% endif %}
+    'dir': 'obsoletes'
+}
 
 # RUNROOT settings
 runroot = False
 
-# PKGSET
-pkgset_source = 'koji' # koji, repos
-
-# PKGSET - KOJI
-# pkgset_koji_tag is not used by the modular compose, but Pungi needs this
-# option to appear in a config, otherwise it fails. Once this is fixed, we can
-# remove this option completely.
-pkgset_koji_tag = 'not-used'
-pkgset_koji_inherit = False
-
-filter_system_release_packages = False
+# PDC settings
+pdc_url = 'https://pdc{{ env_suffix }}.fedoraproject.org/rest_api/v1'
+pdc_insecure = False
+pdc_develop = True
 
 # GATHER
 gather_method = 'nodeps'
 gather_profiler = True
 check_deps = False
-greedy_method = 'build'
 
 # CREATEREPO
-createrepo_c = True
-createrepo_checksum = 'sha256'
 createrepo_deltas = False
 [% if release.version_int >= 30 %]
 createrepo_extra_args = ['--zck', '--zck-dict-dir=/usr/share/fedora-repo-zdicts/f[[ release.version_int ]]']
@@ -80,4 +128,13 @@ createiso_skip = [
             'src': True
         }),
 ]
+
+filter_modules = [
+    ('(Everything)$', {
+        '*': [
+        'perl*bootstrap:*',
+        ]
+    }),
+]
+
 koji_profile = 'bodhi_koji'
