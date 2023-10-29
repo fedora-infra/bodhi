@@ -351,6 +351,9 @@ class BodhiConfig(dict):
         'cors_origins_rw': {
             'value': 'https://bodhi.fedoraproject.org',
             'validator': str},
+        'createrepo_c_config': {
+            'value': '/etc/bodhi/createrepo_c.ini',
+            'validator': str},
         'critpath_pkgs': {
             'value': [],
             'validator': _generate_list_validator()},

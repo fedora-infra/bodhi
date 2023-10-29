@@ -87,14 +87,18 @@ createrepo_deltas = [
     ('^Everything$', {'*': True})
 ]
 createrepo_database = True
-[% if release.version_int >= 30 %]
-createrepo_extra_args = ['--zck', '--zck-dict-dir=/usr/share/fedora-repo-zdicts/f[[ release.version_int ]]']
+createrepo_extra_args = [
+[% if cr_config.zchunk %]
+    '--zck', '--zck-dict-dir=/usr/share/fedora-repo-zdicts/f[[ release.version_int ]]',
 [% endif %]
-# For epel8 we want to use xz compression for repodata
-# https://pagure.io/epel/issue/71
-[% if release.version_int == 8 %]
-createrepo_extra_args = ['--xz']
+[% if cr_config.repodata_comp %]
+[% if cr_config.general_comp %]
+    '--general-compress-type=[[ cr_config.repodata_comp ]]',
+[% else %]
+    '--compress-type=[[ cr_config.repodata_comp ]]',
 [% endif %]
+[% endif %]
+]
 
 # CHECKSUMS
 media_checksums = ['sha256']
