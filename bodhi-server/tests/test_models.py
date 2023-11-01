@@ -5001,6 +5001,32 @@ class TestUpdate(ModelTest):
         new_update.obsolete_older_updates(self.db)
         assert new_update.notes == 'b' * 101
 
+    def test_update__str__(self):
+        """
+        Test the __str__ representation of the Update.
+        """
+        update = self.obj
+        update.notes = 'a' * 100
+        expected = f"""\
+================================================================================
+     {update.alias}
+================================================================================
+    Release: Fedora 11
+     Status: pending
+       Type: security
+   Severity: medium
+      Karma: 0
+    Request: testing
+       Bugs: 1 - None
+             2 - None
+      Notes: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+             aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  Submitter: lmacken
+  Submitted: {update.date_submitted}
+
+  {update.abs_url()}"""
+        assert update.__str__() == expected
+
 
 class TestUser(ModelTest):
     klass = model.User

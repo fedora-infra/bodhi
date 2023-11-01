@@ -21,6 +21,7 @@ from collections import defaultdict
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from importlib import import_module
+from textwrap import TextWrapper
 from urllib.parse import urlencode
 import bz2
 import errno
@@ -38,6 +39,7 @@ import time
 import types
 import typing
 
+from bs4 import BeautifulSoup
 from pyramid.i18n import TranslationStringFactory
 import arrow
 import bleach
@@ -1362,3 +1364,46 @@ def eol_releases(days: int = 30) -> list:
             eol_releases.append((release.long_name, release.eol))
 
     return eol_releases
+
+
+def markdown_to_text(markdown_string: str) -> str:
+    """
+    Convert a markdown string to plaintext.
+
+    Credit about this method goes to Github gist at
+    https://gist.github.com/lorey/eb15a7f3338f959a78cc3661fbc255fe
+
+    Args:
+        markdown_string: a markdown formatted text.
+    Returns:
+        Text with markdown tags stripped out.
+    """
+    html = markdown.markdown(markdown_string, extensions=['fenced_code'])
+
+    # extract text
+    soup = BeautifulSoup(html, "html.parser")
+    text = ''.join(soup.findAll(string=True))
+
+    return text
+
+
+def wrap_text(text: str, width: int = 80, initial_indent: str = '',
+              subsequent_indent: str = '', **kwargs) -> str:
+    """
+    Wrap text to the specified line length preserving existing newlines.
+
+    Args:
+        text: the text that needs to be wrapped.
+        width: the maximum line length.
+    Returns:
+        Text wrapped at the desired length.
+    """
+    wrapper = TextWrapper(width=width, subsequent_indent=subsequent_indent, **kwargs)
+
+    paragraphs = []
+    for i, paragraph in enumerate(text.splitlines()):
+        paragraphs.extend(wrapper.wrap(f"{not i and initial_indent or ''}"
+                                       f"{i and subsequent_indent or ''}"
+                                       f"{paragraph}"))
+
+    return '\n'.join(paragraphs)

@@ -17,14 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 """A collection of utilities for sending e-mail to Bodhi users."""
-from textwrap import wrap
 import os
 import smtplib
 import typing
 
 from bodhi.server import log
 from bodhi.server.config import config
-from bodhi.server.util import get_rpm_header, get_absolute_path
+from bodhi.server.util import get_rpm_header, get_absolute_path, markdown_to_text, wrap_text
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from bodhi.server.models import Update  # noqa: 401
@@ -307,8 +306,8 @@ def get_template(update: 'Update', use_template: str = 'fedora_errata_template')
         info['product'] = update.release.long_name
         info['notes'] = ""
         if update.notes and len(update.notes):
-            info['notes'] = "Update Information:\n\n%s\n" % \
-                '\n'.join(wrap(update.notes, width=80))
+            plaintext = markdown_to_text(update.notes)
+            info['notes'] = f"Update Information:\n\n{wrap_text(plaintext)}\n"
             info['notes'] += line
 
         # Add this update's referenced Bugzillas
