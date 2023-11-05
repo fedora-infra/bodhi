@@ -194,7 +194,7 @@ def _get_sidetags(koji, user=None, contains_builds=False):
                 'builds': builds[i][0]
             })
 
-    return result
+    return sorted(result, key=lambda d: d['name'])
 
 
 def _get_active_updates(request):
