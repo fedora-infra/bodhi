@@ -41,7 +41,7 @@ __version__ = METADATA['version']
 
 
 # This is a regular expression used to match username mentions in comments.
-MENTION_RE = r'(?<!\S)(@\w+)'
+MENTION_RE = r'(?<!\S)(@[\w-]+)'
 
 log = python_logging.getLogger(__name__)
 

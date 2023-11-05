@@ -156,6 +156,14 @@ class TestGenericViews(base.BasePyTestCase):
             ('<div class="markdown"><p>I vote for '
              '<a href="http://localhost/users/number80">@number80</a></p></div>')
 
+    def test_markdown_with_mention_with_dash(self):
+        res = self.app.get('/markdown', {
+            'text': 'See comment from @tin-tin',
+        }, status=200)
+        assert res.json_body['html'] == \
+            ('<div class="markdown"><p>See comment from '
+             '<a href="http://localhost/users/tin-tin">@tin-tin</a></p></div>')
+
     def test_markdown_with_unprefixed_bugzilla(self):
         res = self.app.get('/markdown', {
             'text': 'Crazy.  #12345 is still busted.',
