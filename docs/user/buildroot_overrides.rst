@@ -2,6 +2,10 @@
 Buildroot Overrides
 ===================
 
+.. warning:: | Using buildroot overrides affects every user building their packages while the
+               override is active. For that reason, buildroot overrides usage is highly deprecated.
+             | For most purposes using `side-tags`_ is sufficient and easier.
+
 Koji's buildroot is the set of packages that are available to use during a build. Normally this set
 of packages only includes packages that have been marked as stable in Bodhi. There are times when a
 developer will want to add a package to Koji's buildroot that is not yet stable so that it can be
@@ -18,3 +22,5 @@ package is present in the buildroot, subsequent builds that depend on it may be 
 Buildroot overrides have expiration dates, and Bodhi will automatically remove them from the build
 root when those dates are reached. Developers can also use the web interface or CLI to manually
 expire them if desired.
+
+.. _side-tags: https://docs.fedoraproject.org/en-US/package-maintainers/Package_Update_Guide/#multiple_packages
