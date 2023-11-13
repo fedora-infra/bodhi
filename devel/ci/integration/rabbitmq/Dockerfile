@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora:latest
+FROM quay.io/fedora/fedora:38
 LABEL \
   name="rabbitmq" \
   vendor="Fedora Infrastructure" \
