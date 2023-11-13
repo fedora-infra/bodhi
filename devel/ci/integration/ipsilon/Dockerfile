@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora:latest
+FROM quay.io/fedora/fedora:38
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/main/f/files/common/fedora-infra-tags.repo
 RUN dnf install -y ipsilon ipsilon-openid ipsilon-openidc patch git
 RUN git clone https://pagure.io/fedora-infra/ipsilon-fedora.git /opt/ipsilon-fedora
