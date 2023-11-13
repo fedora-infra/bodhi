@@ -3436,33 +3436,33 @@ class Update(Base):
         val = f"""{'=' * 80}
 {nl.join(wrap(self.alias, width=79, initial_indent=' ' * 5, subsequent_indent=' ' * 5))}
 {'=' * 80}
-{'Release:' : >12} {self.release.long_name}
-{'Status:' : >12} {self.status.description}
-{'Type:' : >12} {self.type.description}
-{'Severity:' : >12} {self.severity}
-{'Karma:' : >12} {self.karma}"""
+{'Release:':>12} {self.release.long_name}
+{'Status:':>12} {self.status.description}
+{'Type:':>12} {self.type.description}
+{'Severity:':>12} {self.severity}
+{'Karma:':>12} {self.karma}"""
         if self.critpath:
-            val += f"{nl}{'Critpath:' : >12} {self.critpath}"
+            val += f"{nl}{'Critpath:':>12} {self.critpath}"
         if self.request is not None:
-            val += f"{nl}{'Request:' : >12} {self.request.description}"
+            val += f"{nl}{'Request:':>12} {self.request.description}"
         if self.bugs:
             bugs = wrap_text(
                 self.get_bugstring(show_titles=True), width=79,
-                initial_indent=f"{'Bugs:' : >12} ",
+                initial_indent=f"{'Bugs:':>12} ",
                 subsequent_indent=f"{' ' * 13}")
             val += f"{nl}{bugs}"
         if self.notes:
             notes = wrap_text(
                 markdown_to_text(self.notes).strip(), width=79,
-                initial_indent=f"{'Notes:' : >12} ",
+                initial_indent=f"{'Notes:':>12} ",
                 subsequent_indent=f"{' ' * 13}")
             val += f"{nl}{notes}"
         username = None
         if self.user:
             username = self.user.name
         val += f"""
-{'Submitter:' : >12} {username}
-{'Submitted:' : >12} {self.date_submitted}
+{'Submitter:':>12} {username}
+{'Submitted:':>12} {self.date_submitted}
 """
         if self.comments_since_karma_reset:
             comments_list = []
@@ -3473,7 +3473,7 @@ class Update(Base):
                     comments_list.append(comment.text)
             comments = wrap_text(
                 '\n'.join(comments_list), width=79,
-                initial_indent=f"{'Comments:' : >12} ",
+                initial_indent=f"{'Comments:':>12} ",
                 subsequent_indent=f"{' ' * 13}")
             val += f"{comments}{nl}"
         val += f"{nl}  {self.abs_url()}"

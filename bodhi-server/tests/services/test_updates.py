@@ -2107,11 +2107,11 @@ class TestUpdatesService(BasePyTestCase):
     def test_list_updates_rss_formatting(self):
         """Test the formatting of update description in rss feed."""
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        update_details = f'<h1>FEDORA-{datetime.utcnow().year}-a3bbe1a8f2</h1>\n' \
-                         f'<h2>Packages in this update:</h2>\n' \
-                         f'<ul>\n<li>bodhi-2.0-1.fc17</li>\n</ul>\n' \
-                         f'<h2>Update description:</h2>\n' \
-                         f'<p>Useful details!</p>'
+        update_details = (f'<h1>FEDORA-{datetime.utcnow().year}-a3bbe1a8f2</h1>\n'
+                          f'<h2>Packages in this update:</h2>\n'
+                          f'<ul>\n<li>bodhi-2.0-1.fc17</li>\n</ul>\n'
+                          f'<h2>Update description:</h2>\n'
+                          f'<p>Useful details!</p>')
         res = self.app.get('/rss/updates/',
                            headers={'Accept': 'application/atom+xml'})
         assert 'application/rss+xml' in res.headers['Content-Type']
