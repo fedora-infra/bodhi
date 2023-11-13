@@ -33,5 +33,5 @@ for module in (buildroot_override, compose, errata, update):
             attr = getattr(module, attr)
             if hasattr(attr, 'body_schema') and hasattr(attr, 'topic') and attr.topic:
                 indented_json = json.dumps(attr.body_schema, indent=4).replace('\n', '\n    ')
-                rst.write(f"{attr.topic}\n{'-'*len(attr.topic)}\n::"
+                rst.write(f"{attr.topic}\n{'-' * len(attr.topic)}\n::"
                           f'\n\n    {indented_json}\n\n')

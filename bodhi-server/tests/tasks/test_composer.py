@@ -626,7 +626,7 @@ That was the actual one''' % compose_dir
 
         assert t.testing_digest['Fedora 17']['bodhi-2.0-1.fc17'] == f"""\
 ================================================================================
- libseccomp-2.1.0-1.fc20 (FEDORA-{ time.strftime('%Y') }-a3bbe1a8f2)
+ libseccomp-2.1.0-1.fc20 (FEDORA-{time.strftime('%Y')}-a3bbe1a8f2)
  Enhanced seccomp library
 --------------------------------------------------------------------------------
 Update Information:
@@ -1623,7 +1623,7 @@ testmodule:master:20172:2
             t._raise_on_get_build_multicall_error([], build)
 
         assert (
-            f'Empty list returned for getBuild("{ build.nvr }").'
+            f'Empty list returned for getBuild("{build.nvr}").'
             in str(exc.value)
         )
 
@@ -1640,7 +1640,7 @@ testmodule:master:20172:2
             t._raise_on_get_build_multicall_error({}, build)
 
         assert (
-            f'Unexpected data returned for getBuild("{ build.nvr }"): {{}}.'
+            f'Unexpected data returned for getBuild("{build.nvr}"): {{}}.'
             in str(exc.value)
         )
 
@@ -2825,8 +2825,8 @@ class TestComposerThread__determine_tag_actions(ComposerThreadBaseTestCase):
         expected_messages = (
             update_schemas.UpdateEjectV1.from_dict({
                 'repo': 'f17-updates', 'update': self.db.query(Update).one().__json__(),
-                'reason': f"Cannot find relevant tag for bodhi-2.0-1.fc17.  None of {tags} are in "
-                          f"{Release.get_tags()[0]['candidate']}.",
+                'reason': (f"Cannot find relevant tag for bodhi-2.0-1.fc17.  None of {tags} are "
+                           f"in {Release.get_tags()[0]['candidate']}."),
                 'request': UpdateRequest.testing,
                 'release': t.compose.release, 'agent': 'bowlofeggs'}),)
 
@@ -3570,7 +3570,7 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
         assert os.path.islink(link)
         assert os.readlink(link) == t.path
         assert mocked_log.info.mock_calls == \
-            [mock.call(f'Creating symlink: { link } => { t.path }')]
+            [mock.call(f'Creating symlink: {link} => {t.path}')]
 
     @mock.patch('bodhi.server.tasks.composer.log')
     def test_stage_dir_de(self, mocked_log):
@@ -3592,7 +3592,7 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
         assert os.path.islink(link)
         assert os.readlink(link) == t.path
         assert mocked_log.info.mock_calls == \
-            [mock.call(f'Creating symlink: { link } => { t.path }')]
+            [mock.call(f'Creating symlink: {link} => {t.path}')]
 
     @mock.patch('bodhi.server.tasks.composer.log')
     def test_stage_dir_dne(self, mocked_log):
@@ -3613,7 +3613,7 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
         assert os.readlink(link) == t.path
         assert mocked_log.info.mock_calls == \
             [mock.call('Creating compose_stage_dir %s', stage_dir),
-             mock.call(f'Creating symlink: { link } => { t.path }')]
+             mock.call(f'Creating symlink: {link} => {t.path}')]
 
 
 class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCase):
