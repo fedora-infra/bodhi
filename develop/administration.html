@@ -167,6 +167,7 @@ use = egg:bodhi-server
 #  * &#39;release&#39;: The Release being composed.
 #  * &#39;request&#39;: The request being composed.
 #  * &#39;updates&#39;: The Updates being composed.
+#  * &#39;cr_config&#39;: The createrepo_c settings loaded from config file.
 #
 # NOTE: The jinja2 configuration for these templates replaces the {&#39;s and }&#39;s with [&#39;s and ]&#39;.
 # e.g.: a block becomes [% if &lt;something %], and a variable is [[ varname ]].
@@ -191,15 +192,12 @@ use = egg:bodhi-server
 # What to pass to Pungi&#39;s --label flag, which is metadata included in its composeinfo.json.
 # pungi.labeltype = Update
 
+# Path to the file with createrepo_c settings
+# createrepo_c_config = /etc/bodhi/createrepo_c.ini
+
 # The skopeo executable to use to copy container images.
 # You can put credentials for skopeo to use in $HOME/.docker/config.json
 # https://github.com/projectatomic/skopeo#private-registries-with-authentication
-#
-# An alternative command is bodhi-skopeo-lite, installed by bodhi. It has various limitations
-# (including not reading $HOME/.docker/config.json - it supports certificate authentication
-# and credentials passed on the command line), but supports manifest lists and OCI image indexes,
-# allowing copying multi-arch containers. See https://github.com/containers/image/pull/400 for
-# work to add such support to skopeo proper.
 #
 # skopeo.cmd = /usr/bin/skopeo
 
