@@ -1862,9 +1862,9 @@ class TestEdit:
         else:
             label = "'UPDATE'"
             extra_help = 'Try \'edit --help\' for help.\n'
-        expected = f'Usage: edit [OPTIONS] UPDATE\n{extra_help}\n' \
-                   f'Error: Invalid value for {label}: ' \
-                   f'Please provide an Update ID\n'
+        expected = (f'Usage: edit [OPTIONS] UPDATE\n{extra_help}\n'
+                    f'Error: Invalid value for {label}: '
+                    f'Please provide an Update ID\n')
 
         assert result.output == expected
 
