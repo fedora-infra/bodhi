@@ -638,8 +638,9 @@ if can_edit and update.release.composed_by_bodhi:
         <h3>Automated Test Results</h3>
         % if update.test_gating_status == models.TestGatingStatus.failed:
         <div class="alert alert-danger" role="alert">
-          For help debugging failed Fedora CI tests (fedora-ci.*), contact <a href="https://web.libera.chat/?channels=#fedora-ci" target="_blank">#fedora-ci on Libera.chat</a><br/>
-          For help debugging failed openQA tests (update.*), contact <a href="https://matrix.to/#/#quality:fedoraproject.org" target="_blank">the Fedora Quality team</a>, who will usually investigate and diagnose all failures within 24 hours
+          For help debugging failed Fedora CI tests (fedora-ci.*), contact <a href="https://web.libera.chat/?channels=#fedora-ci" target="_blank">#fedora-ci on Libera.chat</a>.<br/>
+          For help debugging failed Fedora CoreOS tests (coreos.*), contact <a href="https://matrix.to/#/#coreos:fedoraproject.org" target="_blank">the Fedora CoreOS team</a>.<br/>
+          For help debugging failed openQA tests (update.*), contact <a href="https://matrix.to/#/#quality:fedoraproject.org" target="_blank">the Fedora Quality team</a>, who will usually investigate and diagnose all failures within 24 hours.
         </div>
         % endif
         <div id="gating-summary-tab">
