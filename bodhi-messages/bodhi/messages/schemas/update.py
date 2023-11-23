@@ -1028,3 +1028,109 @@ class UpdateReadyForTestingV2(UpdateReadyForTestingV1):
             f"{self.body['update']['user']['name']}'s Bodhi update is ready for testing\n"
             f"Builds:\n"
             f"{new_line.join([b['nvr'] for b in self.body['artifact']['builds']])} ")
+
+
+class UpdateReadyForTestingV3(UpdateMessage):
+    """
+    Sent when an update is ready to be tested. Simplified version.
+
+    Inherits from UpdateMessage and only contains as much extra
+    information (in the 'artifact' dict) as the Fedora CI schedulers
+    actually need.
+    """
+
+    body_schema = {
+        'id': f'{SCHEMA_URL}/v1/bodhi.update.status.testing#',
+        '$schema': 'http://json-schema.org/draft-04/schema#',
+        'description': 'Schema for message sent when an update is ready for testing',
+        'type': 'object',
+        'properties': {
+            'agent': {
+                'type': 'string',
+                'description': 'Re-trigger request: name of requester, trigger on push: "bodhi".',
+            },
+            'artifact': {
+                'description': 'Details about the builds to test.',
+                'type': 'object',
+                'properties': {
+                    'type': {
+                        'description': 'Artifact type, in this case "koji-build-group".',
+                        'type': 'string',
+                    },
+                    'builds': {
+                        'type': 'array',
+                        'description': 'A list of builds included in this group',
+                        'items': {'$ref': '#/definitions/artifactbuild'}
+                    },
+                },
+                'required': ['type', 'builds'],
+            },
+            're-trigger': {
+                'type': 'boolean',
+                'description': 'This flag is True if the message is sent to re-trigger tests'
+            },
+            'update': UpdateV1.schema(),
+        },
+        'required': ['agent', 'artifact', 'update'],
+        'definitions': {
+            'artifactbuild': {
+                'description': 'Details about a build that are not in the update builds dict',
+                'type': 'object',
+                'properties': {
+                    'type': {
+                        'description': 'Artifact type, in this case "koji-build"',
+                        'type': 'string',
+                    },
+                    'id': {
+                        'description': 'Build ID of the koji build.',
+                        'type': 'integer',
+                    },
+                    'task_id': {
+                        'description': 'Task ID of the koji build.',
+                        'type': ['null', 'integer'],
+                    },
+                    'nvr': {
+                        'description': 'Name-version-release of the artifact.',
+                        'type': 'string',
+                    }
+                },
+                'required': ['type', 'id', 'task_id', 'nvr'],
+            },
+            'build': BuildV1.schema(),
+        }
+    }
+
+    topic = "bodhi.update.status.testing.koji-build-group.build.complete"
+    severity = DEBUG
+
+    @property
+    def summary(self) -> str:
+        """
+        Return a short, human-readable representation of this message.
+
+        This should provide a short summary of the message, much like the subject line
+        of an email.
+
+        Returns:
+            A summary for this message.
+        """
+        return (
+            f"{self.update.user.name}'s {self._builds_summary} "
+            f"bodhi update is ready for testing")
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        new_line = "\n"
+        return (
+            f"{self.update.user.name}'s Bodhi update {self.update.alias} "
+            f"is ready for testing\n"
+            f"Builds:\n"
+            f"{new_line.join([b.nvr for b in self.update.builds])} ")

@@ -27,6 +27,7 @@ from bodhi.messages.schemas.update import (
     UpdateKarmaThresholdV1,
     UpdateReadyForTestingV1,
     UpdateReadyForTestingV2,
+    UpdateReadyForTestingV3,
     UpdateRequestObsoleteV1,
     UpdateRequestRevokeV1,
     UpdateRequestStableV1,
@@ -312,6 +313,60 @@ class TestUpdateMessage:
                 },
                 "generated_at": "2019-10-22 13:08:10.222602",
                 "version": "0.2.2",
+                "agent": "mohanboddu",
+            }
+        )
+        check_message(msg, expected)
+
+    def test_ready_for_testing_v3(self):
+        expected = {
+            "topic": "bodhi.update.status.testing.koji-build-group.build.complete",
+            "summary": (
+                "plautrba's libselinux-2.8-6.fc29.x86_64 libsepol-2.… bodhi update "
+                "is ready for testing"
+            ),
+            "__str__": (
+                "plautrba's Bodhi update FEDORA-2019-d64d0caab3 is ready for testing\nBuilds:"
+                "\nlibselinux-2.8-6.fc29.x86_64\nlibsepol-2.8-3.fc29.x86_64 "
+            ),
+            "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
+            "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
+            "agent_avatar": (
+                "https://seccdn.libravatar.org/avatar/"
+                "20652954adacfd9f6e26536bbcf3b5fbc850dc61f8a2e67c5bfbc6e345032976"
+                "?s=64&d=retro"
+            ),
+            "usernames": ["mohanboddu", "plautrba"],
+            "packages": ["libselinux", "libsepol"],
+        }
+        msg = UpdateReadyForTestingV3(
+            body={
+                "artifact": {
+                    "type": "koji-build-group",
+                    "builds":
+                        [{
+                            "type": "koji-build",
+                            "id": 14546275,
+                            "task_id": 14546276,
+                            "nvr": "libselinux-2.8-6.fc29.x86_64",
+                        }, {
+                            "type": "koji-build",
+                            "id": 14546278,
+                            "task_id": None,
+                            "nvr": "libsepol-2.8-3.fc29.x86_64",
+                        }],
+                },
+                "update": {
+                    "alias": "FEDORA-2019-d64d0caab3",
+                    "builds": [{"nvr": "libselinux-2.8-6.fc29.x86_64"},
+                               {"nvr": "libsepol-2.8-3.fc29.x86_64"}],
+                    "title": "flibselinux-2.8-6.fc29",
+                    'release': {"name": "F29"},
+                    'request': None,
+                    "status": "testing",
+                    "user": {"name": "plautrba"}
+                },
                 "agent": "mohanboddu",
             }
         )

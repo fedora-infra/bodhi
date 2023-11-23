@@ -4229,37 +4229,22 @@ class Update(Base):
         Returns:
             dict: A dictionary corresponding to the message sent
         """
-        contact = {
-            "name": "Bodhi",
-            "email": "admin@fp.o",
-            "team": "Fedora CI",
-            "docs": "https://docs.fedoraproject.org/en-US/ci/",
-        }
         builds = []
         for build in self.builds:
             builds.append({
                 "type": "koji-build",
                 "id": build.get_build_id(),
                 "task_id": build.get_task_id(),
-                "issuer": build.get_owner_name(),
-                "component": build.nvr_name,
                 "nvr": build.nvr,
-                "scratch": False,
             })
 
         artifact = {
             "type": "koji-build-group",
-            "id": f"{self.alias}-{self.version_hash}",
-            "repository": self.abs_url(),
             "builds": builds,
-            "release": self.release.dist_tag,
         }
         return {
-            "contact": contact,
             "artifact": artifact,
             "update": self,
-            "generated_at": datetime.utcnow().isoformat() + 'Z',
-            "version": "0.2.2",
             'agent': agent,
             're-trigger': retrigger,
         }
@@ -4289,7 +4274,7 @@ class Update(Base):
         if target.content_type != ContentType.rpm:
             return
 
-        message = update_schemas.UpdateReadyForTestingV2.from_dict(
+        message = update_schemas.UpdateReadyForTestingV3.from_dict(
             message=target._build_group_test_message()
         )
         notifications.publish(message)
