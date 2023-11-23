@@ -2090,7 +2090,7 @@ class TestUpdateEdit(BasePyTestCase):
         request.db = self.db
         request.identity.name = 'tester'
 
-        with mock_sends(update_schemas.UpdateEditV2, update_schemas.UpdateReadyForTestingV2):
+        with mock_sends(update_schemas.UpdateEditV2, update_schemas.UpdateReadyForTestingV3):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
                     'policies_satisfied': False,
@@ -4921,19 +4921,20 @@ class TestUpdate(ModelTest):
     def test_set_status_testing(self):
         """Test that setting an update's status to testing sends a message."""
         self.db.info['messages'] = []
-        with mock_sends(update_schemas.UpdateReadyForTestingV2):
+        with mock_sends(update_schemas.UpdateReadyForTestingV3):
             self.obj.status = UpdateStatus.testing
             msg = self.db.info['messages'][0]
             self.db.commit()
-        assert msg.body["artifact"]["builds"][0]["component"] == "TurboGears"
-        assert msg.body["artifact"]["id"].startswith("FEDORA-")
+        assert msg.body["artifact"]["builds"][0]["nvr"] == "TurboGears-1.0.8-3.fc11"
+        assert msg.body["artifact"]["builds"][0]["task_id"] == 127621
+        assert msg.body["artifact"]["builds"][0]["id"] == 16058
         assert msg.body["artifact"]["type"] == "koji-build-group"
         assert msg.packages == ['TurboGears']
 
     def test_create_with_status_testing(self):
         """Test that creating an update with the status set to testing sends a message."""
         self.db.info['messages'] = []
-        with mock_sends(update_schemas.UpdateReadyForTestingV2):
+        with mock_sends(update_schemas.UpdateReadyForTestingV3):
             self.get_update(name="TurboGears-1.0.8-4.fc11", override_args={
                 "status": UpdateStatus.testing,
                 "user": self.db.query(model.User).filter_by(name='lmacken').one()
@@ -4941,8 +4942,9 @@ class TestUpdate(ModelTest):
             assert len(self.db.info['messages']) == 1
             msg = self.db.info['messages'][0]
             self.db.commit()
-        assert msg.body["artifact"]["builds"][0]["component"] == "TurboGears"
-        assert msg.body["artifact"]["id"].startswith("FEDORA-")
+        assert msg.body["artifact"]["builds"][0]["nvr"] == "TurboGears-1.0.8-4.fc11"
+        assert msg.body["artifact"]["builds"][0]["task_id"] == 127621
+        assert msg.body["artifact"]["builds"][0]["id"] == 16058
         assert msg.body["artifact"]["type"] == "koji-build-group"
         assert msg.packages == ['TurboGears']
 
