@@ -472,7 +472,7 @@ That was the actual one''' % compose_dir
                 'ctype': 'rpm',
                 'updates': ['bodhi-2.0-1.fc17'],
                 'agent': 'bowlofeggs'}),
-            update_schemas.UpdateReadyForTestingV2,
+            update_schemas.UpdateReadyForTestingV3,
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(dict(
                 success=True, repo='f17-updates-testing', ctype='rpm', agent='bowlofeggs')))
@@ -571,8 +571,8 @@ That was the actual one''' % compose_dir
                 'ctype': 'rpm',
                 'updates': ['bodhi-2.0-1.fc17', 'bodhi-2.0-2.fc17'],
                 'agent': 'bowlofeggs'}),
-            update_schemas.UpdateReadyForTestingV2,
-            update_schemas.UpdateReadyForTestingV2,
+            update_schemas.UpdateReadyForTestingV3,
+            update_schemas.UpdateReadyForTestingV3,
             update_schemas.UpdateCompleteTestingV1,
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(dict(
@@ -970,7 +970,7 @@ That was the actual one'''
                 'ctype': 'rpm',
                 'updates': [u'bodhi-2.0-1.fc17'],
                 'agent': 'bowlofeggs'}),
-            update_schemas.UpdateReadyForTestingV2,
+            update_schemas.UpdateReadyForTestingV3,
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(
                 {'success': True,
@@ -1043,7 +1043,7 @@ That was the actual one'''
                 'ctype': 'rpm',
                 'updates': [u'bodhi-2.0-1.fc17'],
                 'agent': 'bowlofeggs'}),
-            update_schemas.UpdateReadyForTestingV2,
+            update_schemas.UpdateReadyForTestingV3,
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(
                 {'success': True,
@@ -2169,7 +2169,7 @@ testmodule:master:20172:2
         expected_messages = (
             compose_schemas.ComposeStartV1,
             compose_schemas.ComposeComposingV1,
-            update_schemas.UpdateReadyForTestingV2,
+            update_schemas.UpdateReadyForTestingV3,
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(dict(
                 success=True, repo='f17-updates-testing', ctype='rpm', agent='bowlofeggs')))
