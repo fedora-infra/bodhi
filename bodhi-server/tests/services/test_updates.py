@@ -7207,13 +7207,13 @@ class TestTriggerTests(BasePyTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
 
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV2):
+        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3):
             self.db.commit()
 
         post_data = dict(
             csrf_token=self.get_csrf_token()
         )
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV2):
+        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3):
             res = self.app.post_json(f'/updates/{up.alias}/trigger-tests', post_data, status=200)
 
         assert res.status_code == 200
