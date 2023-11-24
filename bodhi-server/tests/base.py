@@ -141,11 +141,12 @@ def create_update(session, build_nvrs, release_name='F17'):
                                             expiration_date=expiration_date)
         session.add(override)
 
-    update = models.Update(
-        builds=builds, user=user, request=models.UpdateRequest.testing,
-        notes='Useful details!', type=models.UpdateType.bugfix,
-        date_submitted=datetime(1984, 11, 2),
-        requirements='rpmlint', stable_karma=3, unstable_karma=-3, release=release)
+    with mock.patch('bodhi.server.models.notifications'):
+        update = models.Update(
+            builds=builds, user=user, request=models.UpdateRequest.testing,
+            notes='Useful details!', type=models.UpdateType.bugfix,
+            date_submitted=datetime(1984, 11, 2),
+            requirements='rpmlint', stable_karma=3, unstable_karma=-3, release=release)
     session.add(update)
     return update
 
@@ -185,7 +186,8 @@ def populate(db):
     db.flush()
     # This mock will help us generate a consistent update alias.
     with mock.patch(target='uuid.uuid4', return_value='wat'):
-        update = create_update(db, ['bodhi-2.0-1.fc17'])
+        with mock.patch('bodhi.server.models.notifications'):
+            update = create_update(db, ['bodhi-2.0-1.fc17'])
     update.type = models.UpdateType.bugfix
     update.severity = models.UpdateSeverity.medium
     bug = models.Bug(bug_id=12345)
@@ -247,11 +249,12 @@ class BaseTestCaseMixin:
         self.db = Session()
         self.db.begin_nested()
 
+        buildsys.setup_buildsystem({'buildsystem': 'dev'})
+
         if self._populate_db:
             populate(self.db)
 
         bugs.set_bugtracker()
-        buildsys.setup_buildsystem({'buildsystem': 'dev'})
 
         self._request_sesh = mock.patch('bodhi.server.webapp._complete_database_session',
                                         webapp._rollback_or_commit)

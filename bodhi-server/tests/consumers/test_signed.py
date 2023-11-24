@@ -232,8 +232,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
     def test_consume_from_tag(self):
         """
         Assert that update created from tag is handled correctly when message
-        is received.
-        Update status is changed to testing and corresponding message is sent.
+        is received: update status is changed to testing.
         """
         self.handler.db_factory = base.TransactionalSessionMaker(self.Session)
         update = self.db.query(Update).join(Build).filter(Build.nvr == 'bodhi-2.0-1.fc17').one()
@@ -265,8 +264,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
                 'unsatisfied_requirements': []
             }
             mock_greenwave.return_value = greenwave_response
-            with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3):
-                self.handler(self.sample_side_tag_message)
+            self.handler(self.sample_side_tag_message)
 
         assert update.builds[0].signed is True
         assert update.builds[0].update.request is None

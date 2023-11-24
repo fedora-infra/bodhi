@@ -208,7 +208,9 @@ class DevBuildsys:
                     'package_name': 'gnome-backgrounds',
                     'release': '1.fc17',
                     'tag_name': 'f17-build-side-7777',
-                    'version': '3.0'}
+                    'version': '3.0',
+                    'id': 16061,
+                    'task_id': 15051}
 
         theid = 16058
         if other and not testing:
