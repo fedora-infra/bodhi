@@ -2943,9 +2943,6 @@
         <span class="c1"># Updates with new or removed builds always go back to testing</span>
         <span class="k">if</span> <span class="n">new_builds</span> <span class="ow">or</span> <span class="n">removed_builds</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;request&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span>
-            <span class="c1"># And, updates with new or removed builds always get their karma reset.</span>
-            <span class="c1"># https://github.com/fedora-infra/bodhi/issues/511</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;karma_critipath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">up</span><span class="o">.</span><span class="n">date_testing</span> <span class="o">=</span> <span class="kc">None</span>
 
             <span class="k">if</span> <span class="p">(</span>
@@ -5599,11 +5596,11 @@
 
 <h3>Navigation</h3>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../user/testing.html">Testing updates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../user/update_states.html">Update states</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../user/buildroot_overrides.html">Buildroot Overrides</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../user/automatic_updates.html">Automatic Updates</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../user/release_notes.html">Release notes</a></li>
