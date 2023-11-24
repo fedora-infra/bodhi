@@ -2717,6 +2717,11 @@ class Update(Base):
                 'removed_builds': removed_builds
             }
         ))
+        if (new_builds or removed_builds) and up.content_type == ContentType.rpm:
+            message = update_schemas.UpdateReadyForTestingV3.from_dict(
+                message=up._build_group_test_message(agent=request.identity.name)
+            )
+            notifications.publish(message)
 
         # If editing a Pending update, all of whose builds are signed, for a release
         # which isn't composed by Bodhi (i.e. Rawhide), move it directly to Testing.
