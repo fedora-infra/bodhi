@@ -6,6 +6,15 @@
   eol_list = eol_releases()
 %>
 
+<%block name="pagetitle">
+% if not update:
+Create New Update&nbsp;
+% else:
+Editing update ${update.alias}&nbsp;
+% endif
+&mdash; Fedora Updates System
+</%block>
+
 <%block name="css">
 ${parent.css()}
 <link href="${request.static_url('bodhi.server:static/vendor/messenger/css/messenger.css') }" rel="stylesheet" />
