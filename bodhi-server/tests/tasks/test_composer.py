@@ -472,7 +472,6 @@ That was the actual one''' % compose_dir
                 'ctype': 'rpm',
                 'updates': ['bodhi-2.0-1.fc17'],
                 'agent': 'bowlofeggs'}),
-            update_schemas.UpdateReadyForTestingV3,
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(dict(
                 success=True, repo='f17-updates-testing', ctype='rpm', agent='bowlofeggs')))
@@ -571,24 +570,23 @@ That was the actual one''' % compose_dir
                 'ctype': 'rpm',
                 'updates': ['bodhi-2.0-1.fc17', 'bodhi-2.0-2.fc17'],
                 'agent': 'bowlofeggs'}),
-            update_schemas.UpdateReadyForTestingV3,
-            update_schemas.UpdateReadyForTestingV3,
             update_schemas.UpdateCompleteTestingV1,
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(dict(
                 success=True, repo='f17-updates-testing', ctype='rpm', agent='bowlofeggs')))
 
         with self.db_factory() as session:
-            firstupdate = session.query(Update).one()
-            build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package,
-                             release=firstupdate.release, signed=True)
-            session.add(build)
-            update = Update(
-                builds=[build], type=UpdateType.bugfix,
-                request=UpdateRequest.testing, notes='second update', user=firstupdate.user,
-                stable_karma=3, unstable_karma=-3, release=firstupdate.release)
-            session.add(update)
-            session.flush()
+            with mock.patch('bodhi.server.models.notifications'):
+                firstupdate = session.query(Update).one()
+                build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package,
+                                 release=firstupdate.release, signed=True)
+                session.add(build)
+                update = Update(
+                    builds=[build], type=UpdateType.bugfix,
+                    request=UpdateRequest.testing, notes='second update', user=firstupdate.user,
+                    stable_karma=3, unstable_karma=-3, release=firstupdate.release)
+                session.add(update)
+                session.flush()
 
         with mock_sends(*expected_messages):
             # Start the push
@@ -621,7 +619,7 @@ That was the actual one''' % compose_dir
         t = RPMComposerThread(self.semmock, task['composes'][0],
                               'ralph', self.db_factory, self.tempdir)
 
-        with mock_sends(*[base_schemas.BodhiMessage] * 4):
+        with mock_sends(*[base_schemas.BodhiMessage] * 3):
             t.run()
 
         assert t.testing_digest['Fedora 17']['bodhi-2.0-1.fc17'] == f"""\
@@ -970,7 +968,6 @@ That was the actual one'''
                 'ctype': 'rpm',
                 'updates': [u'bodhi-2.0-1.fc17'],
                 'agent': 'bowlofeggs'}),
-            update_schemas.UpdateReadyForTestingV3,
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(
                 {'success': True,
@@ -1043,7 +1040,6 @@ That was the actual one'''
                 'ctype': 'rpm',
                 'updates': [u'bodhi-2.0-1.fc17'],
                 'agent': 'bowlofeggs'}),
-            update_schemas.UpdateReadyForTestingV3,
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(
                 {'success': True,
@@ -1843,7 +1839,7 @@ testmodule:master:20172:2
     def test_modify_testing_bugs(self, on_qa, modified, *args):
         self.expected_sems = 1
 
-        with mock_sends(*[base_schemas.BodhiMessage] * 5):
+        with mock_sends(*[base_schemas.BodhiMessage] * 4):
             task = self._make_task()
             api_version = task.pop("api_version")
             self.handler.run(api_version, task)
@@ -1903,7 +1899,7 @@ testmodule:master:20172:2
             up = session.query(Update).one()
             assert len(up.comments) == 2
 
-        with mock_sends(*[base_schemas.BodhiMessage] * 5):
+        with mock_sends(*[base_schemas.BodhiMessage] * 4):
             task = self._make_task()
             api_version = task.pop("api_version")
             self.handler.run(api_version, task)
@@ -2024,7 +2020,7 @@ testmodule:master:20172:2
         task = self._make_task()
         api_version = task.pop("api_version")
         task['resume'] = True
-        with mock_sends(*[base_schemas.BodhiMessage] * 5):
+        with mock_sends(*[base_schemas.BodhiMessage] * 4):
             self.handler.run(api_version, task)
 
         with self.db_factory() as session:
@@ -2079,7 +2075,7 @@ testmodule:master:20172:2
         task = self._make_task()
         api_version = task.pop("api_version")
         task['resume'] = True
-        with mock_sends(*[base_schemas.BodhiMessage] * 5):
+        with mock_sends(*[base_schemas.BodhiMessage] * 4):
             self.handler.run(api_version, task)
 
         # Assert we did not actually recompose
@@ -2144,7 +2140,7 @@ testmodule:master:20172:2
         task = self._make_task()
         api_version = task.pop("api_version")
         task['resume'] = True
-        with mock_sends(*[base_schemas.BodhiMessage] * 7):
+        with mock_sends(*[base_schemas.BodhiMessage] * 6):
             self.handler.run(api_version, task)
 
         with mock_sends(*[base_schemas.BodhiMessage] * 2):
@@ -2169,7 +2165,6 @@ testmodule:master:20172:2
         expected_messages = (
             compose_schemas.ComposeStartV1,
             compose_schemas.ComposeComposingV1,
-            update_schemas.UpdateReadyForTestingV3,
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(dict(
                 success=True, repo='f17-updates-testing', ctype='rpm', agent='bowlofeggs')))
@@ -2250,7 +2245,7 @@ testmodule:master:20172:2
             # Clear pending messages
             self.db.info['messages'] = []
 
-        with mock_sends(*[base_schemas.BodhiMessage] * 5):
+        with mock_sends(*[base_schemas.BodhiMessage] * 4):
             task = self._make_task()
             api_version = task.pop("api_version")
             self.handler.run(api_version, task)

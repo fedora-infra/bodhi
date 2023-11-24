@@ -75,7 +75,11 @@ class ModelTest(BasePyTestCase):
                 new_attrs = {}
                 new_attrs.update(self.attrs)
                 new_attrs.update(self.do_get_dependencies())
-                self.obj = self.klass(**new_attrs)
+                # suppress message publication on update creation, the
+                # message somehow 'leaks' into mock_sends if we let it
+                # get published here
+                with mock.patch('bodhi.server.models.notifications'):
+                    self.obj = self.klass(**new_attrs)
                 self.db.add(self.obj)
                 self.db.flush()
                 return self.obj
@@ -1938,6 +1942,8 @@ class TestUpdateNew(BasePyTestCase):
         build = model.RpmBuild(nvr='bodhi-6.0.0-1.fc36', release=release,
                                package=package, signed=False)
         self.db.add(build)
+        user = model.User(name='tester')
+        self.db.add(user)
         data = {'release': release, 'builds': [build], 'from_tag': 'f36-build-side-1234',
                 'bugs': [], 'requirements': '', 'edited': '', 'autotime': True,
                 'stable_days': 3, 'stable_karma': 3, 'unstable_karma': -1,
@@ -1947,7 +1953,8 @@ class TestUpdateNew(BasePyTestCase):
         request.identity.name = 'tester'
         self.db.flush()
 
-        model.Update.new(request, data)
+        with mock_sends(update_schemas.UpdateReadyForTestingV3):
+            model.Update.new(request, data)
 
         warning.assert_called_with('Not configured to handle bugs')
 
@@ -2090,7 +2097,7 @@ class TestUpdateEdit(BasePyTestCase):
         request.db = self.db
         request.identity.name = 'tester'
 
-        with mock_sends(update_schemas.UpdateEditV2, update_schemas.UpdateReadyForTestingV3):
+        with mock_sends(update_schemas.UpdateEditV2):
             with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
                     'policies_satisfied': False,
@@ -2640,7 +2647,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.status = UpdateStatus.testing
         update.stable_karma = 1
         # Now let's add some karma to get it to the required threshold
-        with mock_sends(Message, Message):
+        with mock_sends(Message):
             update.comment(self.db, 'testing', author='hunter2', karma=1)
 
         # meets_testing_requirement() should return True since the karma threshold has been reached
@@ -2889,9 +2896,10 @@ class TestUpdate(ModelTest):
         attrs = self.attrs.copy()
         pkg = self.db.query(model.RpmPackage).filter_by(name='TurboGears').one()
         rel = self.db.query(model.Release).filter_by(name='F11').one()
+        user = self.db.query(model.User).first()
         attrs.update(dict(
             builds=[model.RpmBuild(nvr=name, package=pkg, release=rel)],
-            release=rel))
+            release=rel, user=user))
         attrs.update(override_args or {})
         return self.klass(**attrs)
 
@@ -4917,36 +4925,6 @@ class TestUpdate(ModelTest):
 
         # We should have two comments, one for each test_gating_status change
         assert len(self.obj.comments) == 2
-
-    def test_set_status_testing(self):
-        """Test that setting an update's status to testing sends a message."""
-        self.db.info['messages'] = []
-        with mock_sends(update_schemas.UpdateReadyForTestingV3):
-            self.obj.status = UpdateStatus.testing
-            msg = self.db.info['messages'][0]
-            self.db.commit()
-        assert msg.body["artifact"]["builds"][0]["nvr"] == "TurboGears-1.0.8-3.fc11"
-        assert msg.body["artifact"]["builds"][0]["task_id"] == 127621
-        assert msg.body["artifact"]["builds"][0]["id"] == 16058
-        assert msg.body["artifact"]["type"] == "koji-build-group"
-        assert msg.packages == ['TurboGears']
-
-    def test_create_with_status_testing(self):
-        """Test that creating an update with the status set to testing sends a message."""
-        self.db.info['messages'] = []
-        with mock_sends(update_schemas.UpdateReadyForTestingV3):
-            self.get_update(name="TurboGears-1.0.8-4.fc11", override_args={
-                "status": UpdateStatus.testing,
-                "user": self.db.query(model.User).filter_by(name='lmacken').one()
-            })
-            assert len(self.db.info['messages']) == 1
-            msg = self.db.info['messages'][0]
-            self.db.commit()
-        assert msg.body["artifact"]["builds"][0]["nvr"] == "TurboGears-1.0.8-4.fc11"
-        assert msg.body["artifact"]["builds"][0]["task_id"] == 127621
-        assert msg.body["artifact"]["builds"][0]["id"] == 16058
-        assert msg.body["artifact"]["type"] == "koji-build-group"
-        assert msg.packages == ['TurboGears']
 
     @mock.patch('bodhi.server.models.Update.obsolete')
     @mock.patch('bodhi.server.models.Update.comment')

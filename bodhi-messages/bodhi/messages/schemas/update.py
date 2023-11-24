@@ -1034,6 +1034,15 @@ class UpdateReadyForTestingV3(UpdateMessage):
     """
     Sent when an update is ready to be tested. Simplified version.
 
+    Specifically, this message is sent:
+
+    * When an update is created
+    * When an update is edited and its builds change
+    * When a "re-trigger tests" request is made via the web UI or API
+
+    These are the points where we expect that automated systems will
+    test the update.
+
     Inherits from UpdateMessage and only contains as much extra
     information (in the 'artifact' dict) as the Fedora CI schedulers
     actually need.
