@@ -2225,7 +2225,7 @@ class TestUpdateVersionHash(BasePyTestCase):
         request.db = self.db
         request.identity.name = 'tester'
         self.db.flush()
-        with mock_sends(Message):
+        with mock_sends(Message, Message):
             model.Update.edit(request, data)
 
         # now, with two builds, check the hash has changed
