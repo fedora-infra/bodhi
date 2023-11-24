@@ -950,10 +950,14 @@ ${parent.javascript()}
         '</span>';
 
       var flavor;
+      var machine;
       if (scenario.includes("fedora.updates-")) {
         // this gets a correct flavor from an openQA scenario, e.g.
         // 'kde' from 'fedora.updates-kde.x86_64.64bit'
         flavor = scenario.split(".")[1].slice(8);
+        // this gets the 'machine', which distinguishes between e.g.
+        // BIOS and UEFI tests
+        machine = scenario.split(".")[3];
       }
 
       var required = '';
@@ -972,7 +976,12 @@ ${parent.javascript()}
           '</span>';
       }
 
-      if (arch != undefined) {
+      // for openQA tests, 'machine' tells us everything 'arch' does,
+      // so we don't need both
+      if (machine != undefined) {
+        testcase = testcase + "&nbsp;<span class='badge text-bg-secondary'>"
+          + machine + "</label>";
+      } else if (arch != undefined) {
         testcase = testcase + "&nbsp;<span class='badge text-bg-secondary'>"
           + arch + "</label>";
       }

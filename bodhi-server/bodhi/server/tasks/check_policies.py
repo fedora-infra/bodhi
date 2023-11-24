@@ -37,6 +37,8 @@ def main():
         ).filter(
             models.Update.release_id == models.Release.id
         ).filter(
+            models.Update.locked.is_(False)
+        ).filter(
             models.Release.state.in_([
                 models.ReleaseState.current,
                 models.ReleaseState.pending,

@@ -46,6 +46,8 @@ def main():
         updates = models.Update.query.filter(
             models.Update.status == models.UpdateStatus.pending
         ).filter(
+            models.Update.locked.is_(False)
+        ).filter(
             models.Update.release_id == models.Release.id
         ).filter(
             models.Release.state.in_([
