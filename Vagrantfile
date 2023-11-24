@@ -16,9 +16,9 @@ VAGRANTFILE_API_VERSION = "2"
 fas_username = ""
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
- config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/38/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-38-1.6.x86_64.vagrant-libvirt.box"
- config.vm.box = "f38-cloud-libvirt"
- config.vm.box_download_checksum = "67aeda42f7f302907cc4229affe5444fd74398cc63698ede64488f2c7c5be2d7"
+ config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/39/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-39-1.5.x86_64.vagrant-libvirt.box"
+ config.vm.box = "f39-cloud-libvirt"
+ config.vm.box_download_checksum = "d8883192077049ad32f50c7b3414fc199cb7071aa60d736ba194f43f4be5836a"
  config.vm.box_download_checksum_type = "sha256"
 
  # Forward traffic on the host to the development server on the guest.

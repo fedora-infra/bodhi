@@ -12,6 +12,10 @@ ipa = python_freeipa.ClientLegacy(
 )
 ipa.login("admin", "password")
 
+untouched_ipa = python_freeipa.ClientLegacy(
+    host="ipa.tinystage.test", verify_ssl="/etc/ipa/ca.crt"
+)
+
 for group in ["packager", "provenpackager"]:
     if ipa.group_find(cn=group).get('result') != []:
         print(f"group {group} is already in tinystage")
@@ -42,6 +46,9 @@ for username in ["tinystage_packager", "tinystage_provenpackager", "{{ fas_usern
             fastimezone="Australia/Brisbane",
             fasstatusnote="active",
             fasgpgkeyid=[],
+        )
+        untouched_ipa.change_password(
+            username, new_password=USER_PASSWORD, old_password=USER_PASSWORD
         )
         ipa._request("fasagreement_add_user", "FPCA", {"user": username})
         ipa.group_add_member("packager", username)
