@@ -59,11 +59,12 @@ class TestFilterReleases(base.BasePyTestCase):
         self.db.add(build)
 
         # And an Update with the RpmBuild.
-        self.archived_release_update = models.Update(
-            builds=[build], user=self.user,
-            request=models.UpdateRequest.stable, notes='Useful details!', release=archived_release,
-            date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
-            unstable_karma=-3, type=models.UpdateType.bugfix)
+        with mock.patch('bodhi.server.models.notifications'):
+            self.archived_release_update = models.Update(
+                builds=[build], user=self.user, request=models.UpdateRequest.stable,
+                notes='Useful details!', release=archived_release,
+                date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
+                unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(self.archived_release_update)
         self.db.commit()
 
@@ -119,16 +120,18 @@ class TestFilterReleases(base.BasePyTestCase):
         self.db.add(disabled_build)
         self.db.add(pending_build)
         # Now let's create updates for both packages.
-        disabled_release_update = models.Update(
-            builds=[disabled_build], user=self.user,
-            request=models.UpdateRequest.stable, notes='Useful details!', release=disabled_release,
-            date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
-            unstable_karma=-3, type=models.UpdateType.bugfix)
-        pending_release_update = models.Update(
-            builds=[pending_build], user=self.user,
-            request=models.UpdateRequest.stable, notes='Useful details!', release=pending_release,
-            date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
-            unstable_karma=-3, type=models.UpdateType.bugfix)
+        with mock.patch('bodhi.server.models.notifications'):
+            disabled_release_update = models.Update(
+                builds=[disabled_build], user=self.user, request=models.UpdateRequest.stable,
+                notes='Useful details!', release=disabled_release,
+                date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
+                unstable_karma=-3, type=models.UpdateType.bugfix)
+        with mock.patch('bodhi.server.models.notifications'):
+            pending_release_update = models.Update(
+                builds=[pending_build], user=self.user, request=models.UpdateRequest.stable,
+                notes='Useful details!', release=pending_release,
+                date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
+                unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(disabled_release_update)
         self.db.add(pending_release_update)
         self.db.commit()
@@ -162,11 +165,12 @@ class TestFilterReleases(base.BasePyTestCase):
         current_build = models.RpmBuild(nvr='bodhi-2.3.2-1.fc18', release=current_release,
                                         package=pkg)
         self.db.add(current_build)
-        current_release_update = models.Update(
-            builds=[current_build], user=self.user,
-            request=models.UpdateRequest.stable, notes='Useful details!', release=current_release,
-            date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
-            unstable_karma=-3, type=models.UpdateType.bugfix)
+        with mock.patch('bodhi.server.models.notifications'):
+            current_release_update = models.Update(
+                builds=[current_build], user=self.user, request=models.UpdateRequest.stable,
+                notes='Useful details!', release=current_release,
+                date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
+                unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(current_release_update)
         self.db.commit()
 
@@ -432,8 +436,9 @@ class TestPush(base.BasePyTestCase):
         Make some updates that can be pushed.
         """
         super().setup_method(method)
-        python_nose = self.create_update(['python-nose-1.3.7-11.fc17'])
-        python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc17'])
+        with mock.patch('bodhi.server.models.notifications'):
+            python_nose = self.create_update(['python-nose-1.3.7-11.fc17'])
+            python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc17'])
         # Make it so we have two builds to push out
         python_nose.builds[0].signed = True
         python_paste_deploy.builds[0].signed = True

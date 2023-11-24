@@ -42,6 +42,7 @@ from .. import base
 
 
 @mock.patch('bodhi.server.consumers.automatic_updates.work_on_bugs_task', mock.Mock())
+@mock.patch('bodhi.server.models.notifications', mock.Mock())
 class TestAutomaticUpdateHandler(base.BasePyTestCase):
     """Test the automatic update handler."""
 

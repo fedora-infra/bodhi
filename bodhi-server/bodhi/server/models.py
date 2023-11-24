@@ -2009,13 +2009,14 @@ class Update(Base):
         alias = '%s-%s-%s' % (prefix, year, id)
         self.alias = alias
         self.release_id = kwargs['release'].id
+        # we need this to be set for message publishing to work
+        self.status = kwargs.get('status', UpdateStatus.pending)
 
         super(Update, self).__init__(*args, **kwargs)
 
         log.debug('Set alias for %s to %s' % (self.get_title(), alias))
 
-        if self.status == UpdateStatus.testing:
-            self._ready_for_testing(self, self.status, None, None)
+        self._ready_for_testing(self, None)
 
     @property
     def version_hash(self):
@@ -4215,10 +4216,10 @@ class Update(Base):
         """
         Build the dictionary sent when an update is ready to be tested.
 
-        This is used in bodhi.server.models.Update._ready_for_testing and in
-        bodhi.server.services.updates.trigger_tests which are the two places
-        where we send notifications about an update being ready to be tested
-        by any CI system.
+        This is used when we send notifications about an update being
+        ready to be tested by any CI system - on update creation, any
+        time the update is edited and its builds change, and if someone
+        sends a Re-Trigger Tests request via the web UI or API.
 
         Args:
             agent (str): For the case where the message is sent as a test
@@ -4250,23 +4251,19 @@ class Update(Base):
         }
 
     @staticmethod
-    def _ready_for_testing(target, value, old, initiator):
+    def _ready_for_testing(target, old):
         """
-        Signal that the update has been moved to testing.
+        Signal that the update is ready for testing.
 
-        This happens in the following cases:
-        - for stable releases: the update lands in the testing repository
-        - for rawhide: all packages in an update have been built by koji
+        This happens when the update is created. The same message is
+        also published when the update is edited and its builds change
+        and when a "re-trigger tests" request is sent, but not by this
+        method.
 
         Args:
-            target (Update): The update that has had a change to its status attribute.
-            value (EnumSymbol): The new value of Update.status.
-            old (EnumSymbol): The old value of the Update.status
-            initiator (sqlalchemy.orm.attributes.Event): The event object that is initiating this
-                transition.
+            target (Update): The update that has been created.
+            old (EnumSymbol): The old value of the Update.status.
         """
-        if value != UpdateStatus.testing or value == old:
-            return
         if old == NEVER_SET:
             # This is the object initialization phase. This instance is not ready, don't create
             # the message now. This method will be called again at the end of __init__
@@ -4286,14 +4283,6 @@ event.listen(
     Update.comment_on_test_gating_status_change,
     active_history=True,
     raw=True,
-)
-
-
-event.listen(
-    Update.status,
-    'set',
-    Update._ready_for_testing,
-    active_history=True,
 )
 
 
