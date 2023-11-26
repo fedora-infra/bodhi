@@ -42,6 +42,8 @@ if can_edit and update.release.composed_by_bodhi:
       actions['unpush'] = True
       if update.meets_testing_requirements and not update.request:
         actions['push to stable'] = True
+elif can_edit and update.status.value == 'testing' and update.test_gating_status.value == 'failed':
+  actions['unpush'] = True
 %>
 <div class="subheader pt-3">
 <div class="container">
