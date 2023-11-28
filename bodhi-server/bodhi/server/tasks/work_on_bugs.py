@@ -76,8 +76,11 @@ def main(alias: str, bugs: typing.List[int]):
                     update.type = UpdateType.security
 
                 log.info(f'Commenting on {bug.bug_id}')
-                comment = config['initial_bug_msg'] % (
-                    update.alias, update.release.long_name, update.abs_url())
+                msg_data = {'update_alias': update.alias,
+                            'update_beauty_title': update.get_title(beautify=True, nvr=True),
+                            'update_release': update.release.long_name,
+                            'update_url': update.abs_url()}
+                comment = config['initial_bug_msg'].format(**msg_data)
 
                 log.info(f'Modifying {bug.bug_id}')
                 bug.modified(update, comment)
