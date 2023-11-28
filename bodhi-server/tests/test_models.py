@@ -325,7 +325,7 @@ class TestBugDefaultMessage(BasePyTestCase):
         message = bug.default_message(update)
 
         warning.assert_called_once_with("No 'testing_bug_epel_msg' found in the config.")
-        assert 'cool fedora stuff {}'.format(config['base_address'] + update.get_url()) == message
+        assert f'cool fedora stuff {update.abs_url()}' == message
 
 
 class TestBugModified(BasePyTestCase):
