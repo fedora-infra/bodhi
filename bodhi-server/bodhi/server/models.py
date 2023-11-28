@@ -4756,7 +4756,7 @@ class Bug(Base):
                     'update_alias': update.alias,
                     'repo': f'{update.release.long_name} {update.status.description}',
                     'install_instructions': install_msg,
-                    'update_url': f'{config.get("base_address")}{update.get_url()}'}
+                    'update_url': update.abs_url()}
 
         if update.status is UpdateStatus.stable:
             message = config['stable_bug_msg'].format(**msg_data)
