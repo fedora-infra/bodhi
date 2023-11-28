@@ -79,3 +79,13 @@ pull_request_rules:
   - label!=WIP
   - -draft
   - label=7.2-backports
+
+- name: backport 8.0
+  actions:
+    backport:
+      branches:
+      - '8.0'
+  conditions:
+  - label!=WIP
+  - -draft
+  - label=8.0-backports
