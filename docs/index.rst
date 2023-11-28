@@ -31,11 +31,11 @@ User Guide
 .. toctree::
    :maxdepth: 2
 
+   user/automatic_updates
+   user/buildroot_overrides
+   user/fedora-flavored-markdown
    user/testing
    user/update_states
-   user/buildroot_overrides
-   user/automatic_updates
-   user/fedora-flavored-markdown
 
 .. toctree::
    :maxdepth: 1
