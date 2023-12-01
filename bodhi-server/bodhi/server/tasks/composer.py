@@ -116,7 +116,7 @@ class ComposerHandler(object):
       - track which packages are in the push
       - lock updates
     - Make sure things are safe to move? (ideally we should trust our own state)
-    - Check with taskotron to see if updates are pushable.
+    - Eject updates that don't currently pass gating (for stable composes)
     - Update security bug titles
     - Move build tags
     - Expire buildroot overrides

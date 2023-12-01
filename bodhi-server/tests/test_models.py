@@ -1945,7 +1945,7 @@ class TestUpdateNew(BasePyTestCase):
         user = model.User(name='tester')
         self.db.add(user)
         data = {'release': release, 'builds': [build], 'from_tag': 'f36-build-side-1234',
-                'bugs': [], 'requirements': '', 'edited': '', 'autotime': True,
+                'bugs': [], 'edited': '', 'autotime': True,
                 'stable_days': 3, 'stable_karma': 3, 'unstable_karma': -1,
                 'notes': 'simple update', 'type': 'unspecified'}
         request = mock.MagicMock()
@@ -2036,7 +2036,7 @@ class TestUpdateEdit(BasePyTestCase):
                 greenwave_response = {
                     'policies_satisfied': False,
                     'summary': 'what have you done‽',
-                    'applicable_policies': ['taskotron_release_critical_tasks'],
+                    'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
@@ -2066,7 +2066,7 @@ class TestUpdateEdit(BasePyTestCase):
                 greenwave_response = {
                     'policies_satisfied': False,
                     'summary': 'what have you done‽',
-                    'applicable_policies': ['taskotron_release_critical_tasks'],
+                    'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
@@ -2102,7 +2102,7 @@ class TestUpdateEdit(BasePyTestCase):
                 greenwave_response = {
                     'policies_satisfied': False,
                     'summary': 'what have you done‽',
-                    'applicable_policies': ['taskotron_release_critical_tasks'],
+                    'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
@@ -2138,7 +2138,7 @@ class TestUpdateEdit(BasePyTestCase):
                 greenwave_response = {
                     'policies_satisfied': False,
                     'summary': 'what have you done‽',
-                    'applicable_policies': ['taskotron_release_critical_tasks'],
+                    'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
@@ -2174,7 +2174,7 @@ class TestUpdateEdit(BasePyTestCase):
                 greenwave_response = {
                     'policies_satisfied': False,
                     'summary': 'what have you done‽',
-                    'applicable_policies': ['taskotron_release_critical_tasks'],
+                    'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
@@ -2546,7 +2546,6 @@ class TestUpdateValidateBuilds(BasePyTestCase):
             notes='Useless details!',
             release=model.Release.query.filter_by(name='F17').one(),
             date_submitted=datetime(1984, 11, 2),
-            requirements='rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             type=UpdateType.bugfix
@@ -3870,7 +3869,7 @@ class TestUpdate(ModelTest):
             greenwave_response = {
                 'policies_satisfied': False,
                 'summary': 'what have you done‽',
-                'applicable_policies': ['taskotron_release_critical_tasks'],
+                'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
                 'unsatisfied_requirements': [
                     {'testcase': 'dist.rpmdeplint',
                      'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
@@ -3899,7 +3898,7 @@ class TestUpdate(ModelTest):
             greenwave_response = {
                 'policies_satisfied': False,
                 'summary': 'what have you done‽',
-                'applicable_policies': ['taskotron_release_critical_tasks'],
+                'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
                 'unsatisfied_requirements': [
                     {'testcase': 'dist.rpmdeplint',
                      'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
@@ -4493,131 +4492,43 @@ class TestUpdate(ModelTest):
             [config['{}_test_announce_list'.format(release_name)]],
             msg.encode('utf-8'))
 
-    def test_check_requirements_empty(self):
-        '''Empty requirements are OK'''
-        update = self.obj
-        settings = {'resultsdb_api_url': ''}
-
-        for req in ['', None]:
-            update.requirements = req
-
-            result, reason = update.check_requirements(None, settings)
-
-            assert result
-            assert reason == "No checks required."
-
-    @mock.patch('bodhi.server.models.Update.last_modified',
-                new_callable=mock.PropertyMock)
-    def test_check_requirements_no_last_modified(self, mock_last_modified):
-        '''Missing last_modified should fail the check'''
-        update = self.obj
-        mock_last_modified.return_value = None
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-
-        result, reason = update.check_requirements(None, settings)
-
-        assert not result
-        assert "Failed to determine last_modified" in reason
-
-    @mock.patch('bodhi.server.util.taskotron_results')
-    def test_check_requirements_query_error(self, mock_taskotron_results):
-        '''Error during retrieving results should fail'''
-        update = self.obj
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-        mock_taskotron_results.side_effect = Exception('Query failed')
-
-        result, reason = update.check_requirements(None, settings)
-
-        assert not result
-        assert "Failed retrieving requirements results" in reason
-
-    @mock.patch('bodhi.server.util.taskotron_results')
-    def test_check_requirements_no_results(self, mock_taskotron_results):
-        '''No results for a testcase means fail'''
-        update = self.obj
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-        results = [{'testcase': {'name': 'rpmlint'},
-                    'data': {},
-                    'outcome': 'PASSED'}]
-        mock_taskotron_results.return_value = iter(results)
-
-        result, reason = update.check_requirements(None, settings)
-
-        assert not result
-        assert reason == "No result found for required testcase abicheck"
-
-    @mock.patch('bodhi.server.util.taskotron_results')
-    def test_check_requirements_failed_results(self, mock_taskotron_results):
-        '''Failed results for a testcase means fail'''
-        update = self.obj
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-        results = [{'testcase': {'name': 'rpmlint'},
-                    'data': {},
-                    'outcome': 'FAILED'}]
-        mock_taskotron_results.return_value = iter(results)
-
-        result, reason = update.check_requirements(None, settings)
-
-        assert not result
-        assert reason == "Required task rpmlint returned FAILED"
-
-    @mock.patch('bodhi.server.util.taskotron_results')
-    def test_check_requirements_pass(self, mock_taskotron_results):
-        '''All testcases pass means pass'''
-        update = self.obj
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-        results = [{'testcase': {'name': 'rpmlint'},
-                    'data': {},
-                    'outcome': 'PASSED'},
-                   {'testcase': {'name': 'abicheck'},
-                    'data': {},
-                    'outcome': 'PASSED'}]
-        mock_taskotron_results.return_value = iter(results)
-
-        result, reason = update.check_requirements(None, settings)
-
-        assert result
-        assert reason == "All checks pass."
-
-    @mock.patch('bodhi.server.util.taskotron_results')
-    @mock.patch('bodhi.server.buildsys.DevBuildsys.multiCall')
-    def test_check_requirements_koji_error(self, mock_multiCall,
-                                           mock_taskotron_results):
-        '''Koji error means fail'''
-        update = self.obj
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-        results = []
-        mock_taskotron_results.return_value = iter(results)
-        mock_multiCall.return_value = [{'error code': 'error description'}]
-
-        result, reason = update.check_requirements(None, settings)
-
-        assert not result
-        assert "Failed retrieving requirements results:" in reason
-        assert "Error retrieving data from Koji for" in reason
+    def test_check_requirements_test_gating_disabled(self):
+        '''Should pass regardless if gating is disabled.'''
+        self.obj.test_gating_status = model.TestGatingStatus.failed
+        with mock.patch.dict(config, {'test_gating.required': False}):
+            assert self.obj.check_requirements(self.db, config) == (True, 'No checks required.')
 
     def test_check_requirements_test_gating_status_failed(self):
         """check_requirements() should return False when test_gating_status is failed."""
-        self.obj.requirements = ''
         self.obj.test_gating_status = model.TestGatingStatus.failed
 
         with mock.patch.dict(config, {'test_gating.required': True}):
             assert self.obj.check_requirements(self.db, config) == (
-                (False, 'Required tests did not pass on this update'))
+                False, 'Required tests did not pass on this update.')
 
     def test_check_requirements_test_gating_status_passed(self):
         """check_requirements() should return True when test_gating_status is passed."""
-        self.obj.requirements = ''
         self.obj.test_gating_status = model.TestGatingStatus.passed
 
         with mock.patch.dict(config, {'test_gating.required': True}):
-            assert self.obj.check_requirements(self.db, config) == (True, 'No checks required.')
+            assert self.obj.check_requirements(self.db, config) == (
+                True, 'All required tests passed or were waived.')
+
+    def test_check_requirements_test_gating_status_ignored(self):
+        """check_requirements() should return True when test_gating_status is ignored."""
+        self.obj.test_gating_status = model.TestGatingStatus.ignored
+
+        with mock.patch.dict(config, {'test_gating.required': True}):
+            assert self.obj.check_requirements(self.db, config) == (
+                True, 'No checks required.')
+
+    def test_check_requirements_test_gating_status_waiting(self):
+        """check_requirements() should return False when test_gating_status is waiting."""
+        self.obj.test_gating_status = model.TestGatingStatus.waiting
+
+        with mock.patch.dict(config, {'test_gating.required': True}):
+            assert self.obj.check_requirements(self.db, config) == (
+                False, 'Required tests for this update are still running.')
 
     def test_num_admin_approvals_after_karma_reset(self):
         """Make sure number of admin approvals is counted correctly for the build."""

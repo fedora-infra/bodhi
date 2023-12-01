@@ -79,7 +79,6 @@ from bodhi.server.util import (
     get_rpm_header,
     header,
     pagure_api_get,
-    tokenize,
     build_names_by_type,
     markdown_to_text,
     wrap_text,
@@ -1108,8 +1107,6 @@ class Package(Base):
 
     Attributes:
         name (str): A text string that uniquely identifies the package.
-        requirements (str): A text string that lists space-separated taskotron test
-            results that must pass for this package
         type (int): The polymorphic identity column. This is used to identify what Python
             class to create when loading rows from the database.
         builds (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Build` objects.
@@ -1120,7 +1117,6 @@ class Package(Base):
     __exclude_columns__ = ('id', 'builds',)
 
     name = Column(UnicodeText, nullable=False)
-    requirements = Column(UnicodeText)
     type = Column(ContentType.db_type(), nullable=False)
 
     # One-to-many relationships
@@ -1850,8 +1846,6 @@ class Update(Base):
             needs to spend in testing before being automatically marked as stable.
         unstable_karma (int): A positive integer that indicates the amount of "bad"
             karma the update must receive before being automatically marked as unstable.
-        requirements (str): A list of taskotron tests that must pass for this
-            update to be considered stable.
         require_bugs (bool): Indicates whether or not positive feedback needs to be
             provided for the associated bugs before the update can be considered
             stable.
@@ -1926,7 +1920,6 @@ class Update(Base):
     stable_karma = Column(Integer, nullable=False)
     stable_days = Column(Integer, nullable=False, default=0)
     unstable_karma = Column(Integer, nullable=False)
-    requirements = Column(UnicodeText)
     require_bugs = Column(Boolean, default=False)
     require_testcases = Column(Boolean, default=False)
 
@@ -2484,15 +2477,6 @@ class Update(Base):
                     db.flush()
                 bugs.append(bug)
         data['bugs'] = bugs
-
-        # If no requirements are provided, then gather some defaults from the
-        # packages of the associated builds.
-        # See https://github.com/fedora-infra/bodhi/issues/101
-        if not data['requirements']:
-            data['requirements'] = " ".join(list(set(sum([
-                list(tokenize(pkg.requirements)) for pkg in [
-                    build.package for build in data['builds']
-                ] if pkg.requirements], []))))
 
         del data['edited']
 
@@ -3171,8 +3155,8 @@ class Update(Base):
                         else:
                             action = UpdateRequest.testing
 
-        # Add the appropriate 'pending' koji tag to this update, so tools like
-        # AutoQA can compose repositories of them for testing.
+        # Add the appropriate 'pending' koji tag to this update, so tools
+        # could compose repositories of them for testing.
         # If it's a new side-tag update, koji tags are managed by the celery task
         if action is UpdateRequest.testing and not self.from_tag:
             self.add_tag(self.release.pending_signing_tag)
@@ -3704,8 +3688,7 @@ class Update(Base):
                 "Can only revoke a pending, testing, unpushed, or obsolete "
                 "update, not one that is %s" % self.status.description)
 
-        # Remove the 'pending' koji tags from this update so taskotron stops
-        # evaluating them.
+        # Remove the 'pending' koji tags from this update
         if self.request is UpdateRequest.testing:
             self.remove_tag(self.release.pending_signing_tag)
             self.remove_tag(self.release.pending_testing_tag)
@@ -3795,79 +3778,18 @@ class Update(Base):
             tuple: A tuple containing (result, reason) where result is a bool
                 and reason is a str.
         """
-        if config.get('test_gating.required') and not self.test_gating_passed:
-            return (False, "Required tests did not pass on this update")
-
-        requirements = tokenize(self.requirements or '')
-        requirements = list(requirements)
-
-        if not requirements:
-            return True, "No checks required."
-
-        try:
-            # https://github.com/fedora-infra/bodhi/issues/362
-            since = self.last_modified.isoformat().rsplit('.', 1)[0]
-        except Exception as e:
-            log.exception("Failed to determine last_modified from %r : %r",
-                          self.last_modified, str(e))
-            return False, "Failed to determine last_modified: %r" % str(e)
-
-        try:
-            # query results for this update
-            query = dict(type='bodhi_update', item=self.alias, since=since,
-                         testcases=','.join(requirements))
-            results = list(util.taskotron_results(settings, **query))
-
-            # query results for each build
-            # retrieve timestamp for each build so that queries can be optimized
-            koji = buildsys.get_session()
-            koji.multicall = True
-            for build in self.builds:
-                koji.getBuild(build.nvr)
-            buildinfos = koji.multiCall()
-
-            for index, build in enumerate(self.builds):
-                multicall_response = buildinfos[index]
-                if not isinstance(multicall_response, list) \
-                        or not isinstance(multicall_response[0], dict):
-                    msg = ("Error retrieving data from Koji for %r: %r" %
-                           (build.nvr, multicall_response))
-                    log.error(msg)
-                    raise TypeError(msg)
-
-                buildinfo = multicall_response[0]
-                ts = datetime.utcfromtimestamp(buildinfo['completion_ts']).isoformat()
-
-                query = dict(type='koji_build', item=build.nvr, since=ts,
-                             testcases=','.join(requirements))
-                build_results = list(util.taskotron_results(settings, **query))
-                results.extend(build_results)
-
-        except Exception as e:
-            log.exception("Failed retrieving requirements results: %r", str(e))
-            return False, "Failed retrieving requirements results: %r" % str(e)
-
-        for testcase in requirements:
-            relevant = [result for result in results
-                        if result['testcase']['name'] == testcase]
-
-            if not relevant:
-                return False, 'No result found for required testcase %s' % testcase
-
-            by_arch = defaultdict(list)
-            for result in relevant:
-                arch = result['data'].get('arch', ['noarch'])[0]
-                by_arch[arch].append(result)
-
-            for arch, result in by_arch.items():
-                latest = relevant[0]  # resultsdb results are ordered chronologically
-                if latest['outcome'] not in ['PASSED', 'INFO']:
-                    return False, "Required task %s returned %s" % (
-                        latest['testcase']['name'], latest['outcome'])
-
         # TODO - check require_bugs and require_testcases also?
+        if config.get('test_gating.required'):
+            if self.test_gating_status == TestGatingStatus.passed:
+                return (True, "All required tests passed or were waived.")
+            elif self.test_gating_status in (TestGatingStatus.ignored, None):
+                return (True, "No checks required.")
+            elif self.test_gating_status == TestGatingStatus.waiting:
+                return (False, "Required tests for this update are still running.")
+            else:
+                return (False, "Required tests did not pass on this update.")
 
-        return True, "All checks pass."
+        return (True, "No checks required.")
 
     def check_karma_thresholds(self, db, agent):
         """
@@ -3939,23 +3861,11 @@ class Update(Base):
         return json.dumps([build.nvr for build in self.builds])
 
     @property
-    def requirements_json(self):
-        """
-        Return a JSON representation of this update's requirements.
-
-        Returns:
-            str: A JSON representation of this update's requirements.
-        """
-        return json.dumps(list(tokenize(self.requirements or '')))
-
-    @property
     def last_modified(self):
         """
         Return the last time this update was edited or created.
 
-        This gets used specifically by taskotron/resultsdb queries so we only
-        query for test runs that occur *after* the last time this update
-        (in its current form) was in play.
+        This gets used for setting gating status - see _get_test_gating_status.
 
         Returns:
             datetime.datetime: The most recent time of modification or creation.
