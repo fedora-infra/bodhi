@@ -453,7 +453,6 @@ def test_get_user_view(bodhi_container, db_container):
 def create_avatar_url(username, size):
     hardcoded_avatars = {
         'bodhi': f'https://apps.fedoraproject.org/img/icons/bodhi-{size}.png',
-        'taskotron': f'https://apps.fedoraproject.org/img/icons/taskotron-{size}.png'
     }
     if username in hardcoded_avatars:
         return hardcoded_avatars[username]
@@ -717,7 +716,6 @@ def test_get_packages_json(bodhi_container, db_container):
                 package = {}
                 package['name'] = package_name
                 package['type'] = row[0]
-                package['requirements'] = None
                 packages.append(package)
     conn.close()
 

@@ -301,19 +301,6 @@ value="${update.display_name | h}"
 >
           </div>
           <div class="card-body pt-0">
-              <div class="row">
-                  <div class="col-12">
-                      <h6 class="fw-bold" title="If specified, the update will be blocked from stable until all of the listed taskotron tests are passing.">Required Taskotron checks</h6>
-                      <input type="text" name="requirements" id="requirements" class="form-control" 
-                  placeholder="Required taskotron tasks"
-                      % if update and update.requirements:
-                      value="${update.requirements | h}"
-                      % endif
-                    >
-                  </div>
-                </div>
-          </div>
-          <div class="card-body pt-0">
               <div class="form-check form-switch">
                   <input type="checkbox"  class="form-check-input" role="switch" name="autokarma" id="autokarma" data-singleton="true"
                   % if update and update.autokarma:

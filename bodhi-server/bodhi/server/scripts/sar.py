@@ -90,7 +90,7 @@ def get_user_data(username, human_readable):
     sar_data[user.name]['name'] = user.name
     sar_data[user.name]['updates'] = [
         {'autokarma': u.autokarma, 'stable_karma': u.stable_karma,
-         'unstable_karma': u.unstable_karma, 'requirements': u.requirements,
+         'unstable_karma': u.unstable_karma,
          'require_bugs': u.require_bugs, 'require_testcases': u.require_testcases,
          'notes': u.notes, 'type': str(u.type), 'severity': str(u.severity),
          'suggest': str(u.suggest), 'close_bugs': u.close_bugs, 'alias': u.alias,
