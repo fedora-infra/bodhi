@@ -756,7 +756,7 @@ ${parent.javascript()}
       tabTrigger.show();
     });
 
-    // Some handy lookups that map taskotron states to bootstrap CSS classes.
+    // Some handy lookups that map resultsdb states to bootstrap CSS classes.
     var classes = {
       PASSED: 'success',
       INFO: 'info',
@@ -783,8 +783,8 @@ ${parent.javascript()}
     var update = '${update.alias}';
     var builds = ${update.builds_json | n};
 
-    // These are the required taskotron tests
-    var requirements = ${update.requirements_json | h};
+    // These are the required tests (from greenwave)
+    var requirements = [];
     // These are the known waivers of failed testcases (key - waiver id, value - waiver)
     var waivers = {};
     // These are waived test failures (key - subject, value - hash: key - testcase##scenario, value - waiver id)
@@ -828,7 +828,6 @@ ${parent.javascript()}
                 if (requirement.type == 'failed-fetch-gating-yaml')
                     failed_fetch_gating_repos.push(requirement.subject_identifier);
             }
-            // the user may have already specified this in the required taskotron tests
             if ($.inArray(requirement.testcase, requirements) == -1) {
                 requirements.push(requirement.testcase);
             }
@@ -920,7 +919,6 @@ ${parent.javascript()}
                 });
                 handle_unsatisfied_requirements(data);
                 $.each(data['satisfied_requirements'], function(i, requirement) {
-                    // the user may have already specified this in the required taskotron tests
                     if ($.inArray(requirement.testcase, requirements) == -1) {
                         requirements.push(requirement.testcase);
                     }

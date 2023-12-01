@@ -146,7 +146,7 @@ def create_update(session, build_nvrs, release_name='F17'):
             builds=builds, user=user, request=models.UpdateRequest.testing,
             notes='Useful details!', type=models.UpdateType.bugfix,
             date_submitted=datetime(1984, 11, 2),
-            requirements='rpmlint', stable_karma=3, unstable_karma=-3, release=release)
+            stable_karma=3, unstable_karma=-3, release=release)
     session.add(update)
     return update
 
@@ -311,7 +311,6 @@ class BaseTestCaseMixin:
             'autokarma': True,
             'stable_karma': stable_karma,
             'unstable_karma': unstable_karma,
-            'requirements': 'rpmlint',
             'require_bugs': False,
             'require_testcases': True,
             'csrf_token': self.get_csrf_token(),
