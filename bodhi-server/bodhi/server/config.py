@@ -390,7 +390,7 @@ class BodhiConfig(dict):
             'value': 100,
             'validator': int},
         'exclude_mail': {
-            'value': ['autoqa', 'taskotron'],
+            'value': [],
             'validator': _generate_list_validator()},
         'file_url': {
             'value': 'https://download.fedoraproject.org/pub/fedora/linux/updates',
@@ -544,15 +544,9 @@ class BodhiConfig(dict):
         'release_team_address': {
             'value': 'bodhiadmin-members@fedoraproject.org',
             'validator': str},
-        'resultsdb_api_url': {
-            'value': 'https://taskotron.fedoraproject.org/resultsdb_api/',
-            'validator': str},
         'session.secret': {
             'value': 'CHANGEME',
             'validator': _validate_secret},
-        'site_requirements': {
-            'value': 'dist.rpmdeplint',
-            'validator': str},
         'skopeo.cmd': {
             'value': '/usr/bin/skopeo',
             'validator': str,
@@ -572,10 +566,10 @@ class BodhiConfig(dict):
                       'If problem still persists, please make note of it in this bug report.'),
             'validator': str},
         'stats_blacklist': {
-            'value': ['bodhi', 'anonymous', 'autoqa', 'taskotron'],
+            'value': ['bodhi', 'anonymous'],
             'validator': _generate_list_validator()},
         'system_users': {
-            'value': ['bodhi', 'autoqa', 'taskotron'],
+            'value': ['bodhi'],
             'validator': _generate_list_validator()},
         'test_case_base_url': {
             'value': 'https://fedoraproject.org/wiki/',

@@ -55,7 +55,6 @@ from bodhi.server.validators import (
     validate_release,
     validate_releases,
     validate_request,
-    validate_requirements,
     validate_severity,
     validate_update_id,
     validate_username,
@@ -470,7 +469,6 @@ def query_updates(request):
         validate_builds_or_from_tag_exist,
         validate_acls,
         validate_enums,
-        validate_requirements,
         validate_bugs,
         validate_severity,
     )

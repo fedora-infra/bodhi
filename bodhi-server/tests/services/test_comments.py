@@ -50,7 +50,6 @@ class TestCommentsService(base.BasePyTestCase):
             notes='Useful details!',
             release=release,
             date_submitted=datetime(1984, 11, 2),
-            requirements='rpmlint',
             stable_karma=3,
             unstable_karma=-3,
         )
@@ -386,7 +385,6 @@ class TestCommentsService(base.BasePyTestCase):
             type=UpdateType.enhancement,
             notes='Useful details!',
             date_submitted=datetime(1984, 11, 2),
-            requirements='rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
@@ -435,7 +433,6 @@ class TestCommentsService(base.BasePyTestCase):
             type=UpdateType.enhancement,
             notes='Just another update.',
             date_submitted=datetime(1981, 10, 11),
-            requirements='rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
@@ -481,7 +478,6 @@ class TestCommentsService(base.BasePyTestCase):
             type=UpdateType.enhancement,
             notes='Just another update.',
             date_submitted=datetime(1981, 10, 11),
-            requirements='rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
@@ -536,7 +532,6 @@ class TestCommentsService(base.BasePyTestCase):
             type=UpdateType.enhancement,
             notes='Just another update.',
             date_submitted=datetime(1981, 10, 11),
-            requirements='rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()

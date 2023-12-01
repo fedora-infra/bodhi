@@ -81,30 +81,6 @@ mock_exc = mock.Mock()
 mock_exc.side_effect = Exception
 
 
-mock_taskotron_results = {
-    'target': 'bodhi.server.util.taskotron_results',
-    'return_value': [{
-        "outcome": "PASSED",
-        "data": {},
-        "testcase": {"name": "rpmlint"}
-    }],
-}
-
-mock_failed_taskotron_results = {
-    'target': 'bodhi.server.util.taskotron_results',
-    'return_value': [{
-        "outcome": "FAILED",
-        "data": {},
-        "testcase": {"name": "rpmlint"}
-    }],
-}
-
-mock_absent_taskotron_results = {
-    'target': 'bodhi.server.util.taskotron_results',
-    'return_value': [],
-}
-
-
 def _expected_skopeo_args(config, source, dtag, extra_args=[]):
     source_repository, source_version_release = source.split(':')
     # Match how buildsys.py creates a fake digest
@@ -419,7 +395,6 @@ That was the actual one''' % compose_dir
         composes = self.handler._get_composes(api_version, task)
         assert len(composes) == 0
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -456,7 +431,6 @@ That was the actual one''' % compose_dir
             with pytest.raises(LockedUpdateException):
                 up.set_request(session, UpdateRequest.stable, 'bodhi')
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -549,7 +523,6 @@ That was the actual one''' % compose_dir
             up = session.query(Update).one()
             assert up.request is None
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -604,7 +577,6 @@ That was the actual one''' % compose_dir
         assert self.koji.__moved__[1] == \
             ('f17-updates-candidate', 'f17-updates-testing', 'bodhi-2.0-2.fc17')
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -942,7 +914,6 @@ That was the actual one'''
         assert 'completed_repo' not in t._checkpoints
         save_state.assert_called()
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1023,7 +994,6 @@ That was the actual one'''
             api_version = task.pop("api_version")
             self.handler.run(api_version, task)
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1106,7 +1076,6 @@ That was the actual one'''
             api_version = task.pop("api_version")
             self.handler.run(api_version, task)
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1202,7 +1171,6 @@ That was the actual one'''
         with pytest.raises(NotImplementedError):
             t._copy_additional_pungi_files(None, None)
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1233,7 +1201,6 @@ That was the actual one'''
             assert compose.error_message == 'Pungi returned error, aborting!'
         assert t._checkpoints == {'determine_and_perform_tag_actions': True}
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1265,7 +1232,6 @@ That was the actual one'''
             assert compose.error_message == 'Pungi exited with status 1'
         assert t._checkpoints == {'determine_and_perform_tag_actions': True}
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1355,7 +1321,6 @@ That was the actual one'''
              'status_comments': True}
         assert os.path.exists(compose_dir)
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1457,7 +1422,6 @@ That was the actual one'''
              'status_comments': True}
         assert os.path.exists(compose_dir)
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1510,7 +1474,6 @@ That was the actual one'''
              'status_comments': True}
         assert os.path.exists(compose_dir)
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1640,54 +1603,6 @@ testmodule:master:20172:2
             in str(exc.value)
         )
 
-    @mock.patch(**mock_failed_taskotron_results)
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._generate_updateinfo')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_sync')
-    @mock.patch('bodhi.server.tasks.composer.time.sleep')
-    def test_failed_gating(self, *args):
-        self.expected_sems = 1
-
-        # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request('bodhi-2.0-1.fc17')
-        task = self._make_task()
-        t = RPMComposerThread(
-            self.semmock, task['composes'][0], 'ralph', self.db_factory,
-            self.tempdir)
-        expected_messages = (
-            compose_schemas.ComposeComposingV1,
-            update_schemas.UpdateEjectV1,
-            compose_schemas.ComposeCompleteV1.from_dict(dict(
-                success=True, repo='f17-updates', ctype='rpm', agent='ralph')))
-
-        with self.db_factory() as session:
-            with mock.patch('bodhi.server.tasks.composer.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name='F17').one()
-                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
-                with mock_sends(*expected_messages):
-                    t.run()
-
-        assert Popen.mock_calls == \
-            [mock.call(
-                [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
-                 '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
-                 t.compose_dir, '--no-latest-link', '--label', t._label],
-                cwd=t.compose_dir, shell=False, stderr=-1,
-                stdin=mock.ANY,
-                stdout=mock.ANY)]
-        d = datetime.datetime.utcnow()
-        assert t._checkpoints == \
-            {'completed_repo': os.path.join(
-                self.tempdir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
-             'compose_done': True,
-             'determine_and_perform_tag_actions': True,
-             'modify_bugs': True,
-             'send_stable_announcements': True,
-             'send_testing_digest': True,
-             'status_comments': True}
-
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1702,7 +1617,6 @@ testmodule:master:20172:2
         self.set_stable_request('bodhi-2.0-1.fc17')
         u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         u.test_gating_status = TestGatingStatus.failed
-        u.requirements = ''
         task = self._make_task()
         t = RPMComposerThread(
             self.semmock, task['composes'][0], 'ralph', self.db_factory,
@@ -1727,7 +1641,7 @@ testmodule:master:20172:2
         u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         assert u.comments[-1].text == \
             (f"{u.alias} ejected from the push because 'Required tests did not pass on this "
-             "update'")
+             "update.'")
         # The request got sent back to None since it was ejected.
         assert u.request is None
         assert u.status == UpdateStatus.pending
@@ -1746,7 +1660,6 @@ testmodule:master:20172:2
         self.set_stable_request('bodhi-2.0-1.fc17')
         u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         u.test_gating_status = TestGatingStatus.passed
-        u.requirements = ''
         task = self._make_task()
         t = RPMComposerThread(
             self.semmock, task['composes'][0], 'ralph', self.db_factory,
@@ -1779,54 +1692,6 @@ testmodule:master:20172:2
         assert u.request is None
         assert u.status == UpdateStatus.stable
 
-    @mock.patch(**mock_absent_taskotron_results)
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._generate_updateinfo')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_sync')
-    @mock.patch('bodhi.server.tasks.composer.time.sleep')
-    def test_absent_gating(self, *args):
-        # Set the request to stable right out the gate so we can test gating
-        self.expected_sems = 1
-
-        self.set_stable_request('bodhi-2.0-1.fc17')
-        task = self._make_task()
-
-        t = RPMComposerThread(self.semmock, task['composes'][0], 'ralph',
-                              self.db_factory, self.tempdir)
-        expected_messages = (
-            compose_schemas.ComposeComposingV1,
-            update_schemas.UpdateEjectV1,
-            compose_schemas.ComposeCompleteV1.from_dict(dict(
-                success=True, ctype='rpm', repo='f17-updates', agent='ralph')))
-
-        with self.db_factory() as session:
-            with mock.patch('bodhi.server.tasks.composer.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name='F17').one()
-                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
-                with mock_sends(*expected_messages):
-                    t.run()
-
-        assert Popen.mock_calls == \
-            [mock.call(
-                [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
-                 '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
-                 t.compose_dir, '--no-latest-link', '--label', t._label],
-                cwd=t.compose_dir, shell=False, stderr=-1,
-                stdin=mock.ANY,
-                stdout=mock.ANY)]
-        d = datetime.datetime.utcnow()
-        assert t._checkpoints == \
-            {'completed_repo': os.path.join(
-                self.tempdir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
-             'compose_done': True,
-             'determine_and_perform_tag_actions': True,
-             'modify_bugs': True,
-             'send_stable_announcements': True,
-             'send_testing_digest': True,
-             'status_comments': True}
-
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1856,7 +1721,6 @@ testmodule:master:20172:2
                 f'/updates/FEDORA-{time.strftime("%Y")}-a3bbe1a8f2'))
         on_qa.assert_called_once_with(12345, expected_message)
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1884,7 +1748,6 @@ testmodule:master:20172:2
                      f'Fedora 17 stable repository.\nIf problem still persists, '
                      f'please make note of it in this bug report.'))
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1909,7 +1772,6 @@ testmodule:master:20172:2
             assert len(up.comments) == 3
             assert up.comments[-1]['text'] == 'This update has been pushed to testing.'
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1935,7 +1797,6 @@ testmodule:master:20172:2
             assert len(up.comments) == 3
             assert up.comments[-1]['text'] == 'This update has been pushed to stable.'
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1961,7 +1822,6 @@ testmodule:master:20172:2
             assert len(updates) == 1
             assert updates[0].title == u.builds[0].nvr
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -1987,7 +1847,6 @@ testmodule:master:20172:2
             assert up.locked is False
             assert up.status == UpdateStatus.stable
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo',
                 side_effect=[Exception, None])
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
@@ -2028,7 +1887,6 @@ testmodule:master:20172:2
             assert up.status == UpdateStatus.testing
             assert up.request is None
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -2040,7 +1898,7 @@ testmodule:master:20172:2
     def test_retry_done_compose(self, mock_cmd, sleep,
                                 mock_wait_for_sync, mock_generate_updateinfo,
                                 mock_wait_for_repo_signature, mock_stage_repo,
-                                mock_sanity_check_repo, mock_taskotron_results):
+                                mock_sanity_check_repo):
         self.expected_sems = 2
 
         # Crash during wait_for_sync. The compose itself is done.
@@ -2088,7 +1946,6 @@ testmodule:master:20172:2
         mock_wait_for_sync.assert_called()
         sleep.assert_called_once_with(3)
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -2153,7 +2010,6 @@ testmodule:master:20172:2
                 assert not up.locked
                 assert up.request == UpdateRequest.stable
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -2212,7 +2068,6 @@ testmodule:master:20172:2
             assert up.request is None
             assert up.date_stable is not None
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -2261,7 +2116,6 @@ testmodule:master:20172:2
             assert up.status == UpdateStatus.testing
             assert up.request is None
 
-    @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
@@ -2685,6 +2539,7 @@ class TestComposerThread_perform_gating(ComposerThreadBaseTestCase):
 
     def test_expires_compose_updates(self):
         """Ensure that the method expires the compose's updates attribute."""
+        config["test_gating.required"] = True
         task = self._make_task()
         t = ComposerThread(self.semmock, task['composes'][0],
                            'bowlofeggs', self.Session, self.tempdir)

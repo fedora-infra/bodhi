@@ -1,5 +1,5 @@
 DATABASE_URI = 'postgresql+psycopg2://waiverdb@wdb:5432/waiverdb'
-RESULTSDB_API_URL = 'https://taskotron.fedoraproject.org/resultsdb_api/api/v2.0'
+RESULTSDB_API_URL = 'https://resultsdb.fedoraproject.org/api/v2.0'
 SECRET_KEY = 'this-is-only-for-development'
 CORS_URL = '*'
 

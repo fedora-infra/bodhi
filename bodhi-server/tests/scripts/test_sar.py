@@ -77,7 +77,7 @@ EXPECTED_JSON_OUTPUT = (
     '"ALIAS", "autokarma": true, "bugs": [12345], "builds": '
     '["bodhi-2.0-1.fc17"], "close_bugs": true, "date_submitted": "1984-11-02 00:00:00", '
     '"notes": "Useful details!", "release_name": "F17", "require_bugs": false, '
-    '"require_testcases": false, "requirements": "rpmlint", "severity": "medium", '
+    '"require_testcases": false, "severity": "medium", '
     '"stable_karma": 3, "suggest": "unspecified", "type": "bugfix", '
     '"unstable_karma": -3, "user": "guest"}]}}\n'
 )

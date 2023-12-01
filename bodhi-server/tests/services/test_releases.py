@@ -558,7 +558,6 @@ class TestReleasesHTML(base.BasePyTestCase):
                             notes='Useful details!',
                             release=release,
                             date_submitted=datetime(1984, 11, 2),
-                            requirements='rpmlint',
                             stable_karma=3,
                             unstable_karma=-3,
                         )

@@ -238,10 +238,6 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
         colander.String(),
         missing='',
     )
-    requirements = colander.SchemaNode(
-        colander.String(),
-        missing=None,
-    )
     require_bugs = colander.SchemaNode(
         colander.Boolean(),
         missing=True,

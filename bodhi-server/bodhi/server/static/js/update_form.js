@@ -214,17 +214,6 @@ $(document).ready(function() {
     $('#updatetypes').selectize();
     $('#severity').selectize();
     $('#suggest').selectize();
-    $('#requirements').selectize({
-        plugins: ['remove_button','restore_on_backspace'],
-        delimiter: ' ',
-        persist: false,
-        create: function(input) {
-            return {
-                value: input,
-                text: input
-            }
-        }
-    });
 
 
     // this is the dropdown that shows on the new update form, allowing the user to 
