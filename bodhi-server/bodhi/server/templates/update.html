@@ -32,7 +32,7 @@ if can_edit and update.release.composed_by_bodhi:
   if not update.locked:
     if not update.pushed:
       if update.request is None:
-        if update.status.value != 'testing':
+        if update.status.value != 'testing' and update.signed:
           actions['push to testing'] = True
       else:
         actions['revoke'] = True
