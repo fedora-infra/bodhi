@@ -1076,6 +1076,31 @@ class Release(Base):
             f'{self.setting_prefix}.koji-signing-pending-side-tag', "-signing-pending")
         return from_tag + side_tag_postfix
 
+    @property
+    def inherited_override_tags(self) -> list:
+        """
+        Return the override tags inherited from other Releases.
+
+        The override tags inheritance is configured by defining the list of
+        Releases we should extend from in the config file the same way of setting_prefix.
+        For example, if the release is epel9-n using epel-9.override-extend=EPEL-9N,EPEL-8
+        will make this method to return the override tag set for EPEL-9N and EPEL-8.
+
+        Note: pay attention, 'epel-9.override-extend' uses the release name in lowercase,
+        while the list of releases should match the release names case sensitive.
+
+        Returns:
+            A list of override tags inherited from other releases.
+        """
+        tags = []
+        inheritance = config.get(f'{self.setting_prefix}.override-extend', None)
+        if inheritance is not None:
+            rel_list = [Release.get(name.strip()) for name in inheritance.split(',')]
+            for rel in rel_list:
+                if rel is not None:
+                    tags.append(rel.override_tag)
+        return list(filter(None, tags))
+
 
 class TestCase(Base):
     """
@@ -3725,12 +3750,13 @@ class Update(Base):
         log.info("Untagging %s", self.alias)
         koji = buildsys.get_session()
         tag_types, tag_rels = Release.get_tags()
+        override_tags = self.release.inherited_override_tags + [self.release.override_tag]
         koji.multicall = True
         for build in self.builds:
             for tag in build.get_tags():
                 # Only remove tags that we know about
                 if tag in tag_rels:
-                    if preserve_override and tag == self.release.override_tag:
+                    if preserve_override and tag in override_tags:
                         log.info("Skipping override tag")
                     else:
                         koji.untagBuild(tag, build.nvr, force=True)
@@ -5060,7 +5086,8 @@ class BuildrootOverride(Base):
     def enable(self) -> None:
         """Mark the BuildrootOverride as enabled."""
         koji_session = buildsys.get_session()
-        koji_session.tagBuild(self.build.release.override_tag, self.build.nvr)
+        for tag in self.build.release.inherited_override_tags + [self.build.release.override_tag]:
+            koji_session.tagBuild(tag, self.build.nvr)
 
         notifications.publish(override_schemas.BuildrootOverrideTagV1.from_dict(
             dict(override=self)))
@@ -5073,11 +5100,11 @@ class BuildrootOverride(Base):
             return
 
         koji_session = buildsys.get_session()
-        try:
-            koji_session.untagBuild(self.build.release.override_tag,
-                                    self.build.nvr, strict=True)
-        except Exception as e:
-            log.error('Unable to untag override %s: %s' % (self.build.nvr, e))
+        for tag in self.build.release.inherited_override_tags + [self.build.release.override_tag]:
+            try:
+                koji_session.untagBuild(tag, self.build.nvr, strict=True)
+            except Exception as e:
+                log.error(f"Unable to untag override {self.build.nvr} from {tag}: '{e}'")
         self.expired_date = datetime.utcnow()
 
         notifications.publish(override_schemas.BuildrootOverrideUntagV1.from_dict(

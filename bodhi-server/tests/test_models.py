@@ -858,6 +858,25 @@ class TestRelease(ModelTest):
         """
         assert self.obj.get_pending_testing_side_tag("side-tag") == "side-tag-testing-pending"
 
+    def test_inherit_override_tags(self):
+        """
+        Assert that override tags are inherited from other releases.
+        """
+        self.create_release('17')
+        config.update({
+            'f11.override-extend': 'F17'
+        })
+        assert self.obj.inherited_override_tags == ['f17-override']
+
+    def test_inherit_override_tags_wrong_release_name(self):
+        """
+        Assert empty answer if user refer a non-existent release.
+        """
+        config.update({
+            'f11.override-extend': 'f17'
+        })
+        assert self.obj.inherited_override_tags == []
+
 
 class TestReleaseCritpathMinKarma(BasePyTestCase):
     """Tests for the Release.critpath_min_karma property."""
@@ -5049,7 +5068,8 @@ class TestBuildrootOverride(ModelTest):
 
         get_session.return_value.untagBuild.assert_called_once_with(bro.build.release.override_tag,
                                                                     bro.build.nvr, strict=True)
-        error.assert_called_once_with('Unable to untag override {}: {}'.format(bro.nvr, 'oh no!'))
+        error.assert_called_once_with(f"Unable to untag override {bro.nvr} "
+                                      f"from {bro.build.release.override_tag}: 'oh no!'")
 
     def test_new_already_exists(self):
         """new() should put an error on the request if the BRO already exists."""
@@ -5064,3 +5084,37 @@ class TestBuildrootOverride(ModelTest):
         assert req.errors == (
             [{'location': 'body', 'name': 'nvr',
               'description': '{} is already in a override'.format(bro.build.nvr)}])
+
+    @mock.patch('bodhi.server.models.buildsys.get_session')
+    def test_override_with_inheritance(self, get_session):
+        """Build must be tagged/untagged in each inherited tag also."""
+        self.create_release('17')
+        config.update({
+            'f11.override-extend': 'F17'
+        })
+        package = model.RpmPackage(name='notbodhi')
+        self.db.add(package)
+        release_f17 = model.Release.get('F17')
+        release_f11 = model.Release.get('F11')
+        build = model.RpmBuild(nvr='notbodhi-1.0.0-1.fc11', release=release_f11,
+                               package=package, signed=True)
+        self.db.add(build)
+        self.db.commit()
+        user = model.User.query.first()
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+        req = DummyRequest(user=user)
+        req.db = self.db
+
+        # Test tagging
+        model.BuildrootOverride.new(req, build=build, submitter=user,
+                                    expiration_date=expiration_date, notes='blabla')
+        calls = [mock.call(release_f17.override_tag, build.nvr),
+                 mock.call(build.release.override_tag, build.nvr)]
+        get_session.return_value.tagBuild.assert_has_calls(calls)
+
+        # Test untagging
+        bro = model.BuildrootOverride.get(build.id)
+        bro.expire()
+        calls = [mock.call(release_f17.override_tag, build.nvr, strict=True),
+                 mock.call(build.release.override_tag, build.nvr, strict=True)]
+        get_session.return_value.untagBuild.assert_has_calls(calls)
