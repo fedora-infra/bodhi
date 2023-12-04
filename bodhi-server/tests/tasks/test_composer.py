@@ -1744,8 +1744,8 @@ testmodule:master:20172:2
         close.assert_called_with(
             12345,
             versions=dict(bodhi='bodhi-2.0-1.fc17'),
-            comment=(f'FEDORA-{time.strftime("%Y")}-a3bbe1a8f2 has been pushed to the '
-                     f'Fedora 17 stable repository.\nIf problem still persists, '
+            comment=(f'FEDORA-{time.strftime("%Y")}-a3bbe1a8f2 (bodhi-2.0-1.fc17) has been '
+                     f'pushed to the Fedora 17 stable repository.\nIf problem still persists, '
                      f'please make note of it in this bug report.'))
 
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')

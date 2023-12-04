@@ -404,7 +404,8 @@ class BodhiConfig(dict):
                       'bodhiadmin'],
             'validator': _generate_list_validator()},
         'initial_bug_msg': {
-            'value': '%s has been submitted as an update to %s. %s',
+            'value': ('{update_alias} ({update_beauty_title}) has been submitted as '
+                      'an update to {update_release}.\n{update_url}'),
             'validator': str},
         'greenwave_api_url': {
             'value': 'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0',
@@ -562,7 +563,8 @@ class BodhiConfig(dict):
             'value': 'postgresql://localhost/bodhi',
             'validator': str},
         'stable_bug_msg': {
-            'value': ('{update_alias} has been pushed to the {repo} repository.\n'
+            'value': ('{update_alias} ({update_beauty_title}) has been pushed to '
+                      'the {repo} repository.\n'
                       'If problem still persists, please make note of it in this bug report.'),
             'validator': str},
         'stats_blacklist': {
