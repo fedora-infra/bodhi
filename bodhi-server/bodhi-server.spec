@@ -113,7 +113,9 @@ install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 install -p -D -m 0644 %{name}.sysusers %{buildroot}%{_sysusersdir}/%{name}.sysusers
 
 %check
-%{pytest} -v
+# sanity_checks tests rely on dnf command, but system's dnf cache is not accessible
+# from koji
+%{pytest} -v -k 'not sanity_check and not TestSanityCheckRepodata'
 
 %pre -n %{pypi_name}
 %sysusers_create_compat %{name}.sysusers
