@@ -3530,28 +3530,12 @@ class Update(Base):
         session.flush()
         return new
 
-    def obsolete_if_unstable(self, db):
-        """
-        Obsolete the update if it reached the negative karma threshold while pending.
-
-        Args:
-            db (sqlalchemy.orm.session.Session): A database session.
-        """
-        if self.autokarma and self.status is UpdateStatus.pending \
-                and self.request is UpdateRequest.testing\
-                and self.karma <= self.unstable_karma:
-            log.info("%s has reached unstable karma thresholds", self.alias)
-            self.obsolete(db)
-            log.debug("%s has been obsoleted.", self.alias)
-        return
-
     def comment(self, session, text, karma=0, author=None, karma_critpath=0,
-                bug_feedback=None, testcase_feedback=None, check_karma=True,
-                email_notification=True):
+                bug_feedback=None, testcase_feedback=None, email_notification=True):
         """Add a comment to this update.
 
         If the karma reaches the 'stable_karma' value, then request that this update be marked
-        as stable. If it reaches the 'unstable_karma', it is unpushed.
+        as stable. If it reaches the 'unstable_karma' value, then unpush it (obsolete it).
         """
         if not author:
             raise ValueError('You must provide a comment author')
@@ -3606,7 +3590,7 @@ class Update(Base):
 
             log.info("Updated %s karma to %d", self.alias, self.karma)
 
-            if check_karma and author not in config.get('system_users'):
+            if author not in config.get('system_users'):
                 try:
                     self.check_karma_thresholds(session, 'bodhi')
                 except LockedUpdateException:
@@ -3619,9 +3603,6 @@ class Update(Base):
                     caveats.append({
                         'name': 'karma', 'description': str(e),
                     })
-
-            # Obsolete pending update if it reaches unstable karma threshold
-            self.obsolete_if_unstable(session)
 
         session.flush()
 
