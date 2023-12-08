@@ -4815,8 +4815,7 @@ class TestUpdatesService(BasePyTestCase):
         # this unconditionally because we might have hit the earlier disable-
         # autokarma path
         if (
-            status is not UpdateStatus.testing
-            or req is UpdateRequest.stable
+            req is UpdateRequest.stable
             or not composed_by_bodhi
         ):
             assert up.autokarma is autokarma
@@ -5022,8 +5021,8 @@ class TestUpdatesService(BasePyTestCase):
     def test_autopush_disabled_on_negative_karma(
             self, negk, autokarma, autotime, critpath, cbb, status):
         """check_karma_thresholds() should disable all autopush settings if negative
-        karma is received, on updates in testing status for releases composed by Bodhi,
-        whether or not the update is critical path."""
+        karma is received, for updates on releases composed by Bodhi, whether or not
+        the update is critical path."""
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['autokarma'] = autokarma
@@ -5043,7 +5042,7 @@ class TestUpdatesService(BasePyTestCase):
             up.comment(self.db, "foo", -1, 'biz')
         else:
             up.comment(self.db, "foo", 0, 'biz')
-        if negk and cbb and status is UpdateStatus.testing:
+        if negk and cbb:
             assert up.autokarma is False
             assert up.autotime is False
             if autokarma or autotime:
