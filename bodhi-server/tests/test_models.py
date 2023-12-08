@@ -313,7 +313,7 @@ class TestBugDefaultMessage(BasePyTestCase):
         config.update({
             'testing_bug_msg': 'cool fedora stuff {update_url}',
             'base_address': 'b',
-            'critpath.min_karma': 1,
+            'min_karma': 1,
             'fedora_epel.mandatory_days_in_testing': 0
         })
         del config["testing_bug_epel_msg"]
@@ -769,8 +769,8 @@ class TestRelease(ModelTest):
         release has no status.
         """
         config.update({
-            'critpath.stable_after_days_without_negative_karma': 11,
-            'f11.current.critpath.stable_after_days_without_negative_karma': 42
+            'critpath.mandatory_days_in_testing': 11,
+            'f11.current.critpath.mandatory_days_in_testing': 42
         })
         assert self.obj.critpath_mandatory_days_in_testing == 11
 
@@ -780,7 +780,7 @@ class TestRelease(ModelTest):
         release has status, but no override set.
         """
         config.update({
-            'critpath.stable_after_days_without_negative_karma': 11,
+            'critpath.mandatory_days_in_testing': 11,
             'f11.status': 'current'
         })
         assert self.obj.critpath_mandatory_days_in_testing == 11
@@ -791,9 +791,9 @@ class TestRelease(ModelTest):
         release has status and override set.
         """
         config.update({
-            'critpath.stable_after_days_without_negative_karma': 11,
+            'critpath.mandatory_days_in_testing': 11,
             'f11.status': 'current',
-            'f11.current.critpath.stable_after_days_without_negative_karma': 42
+            'f11.current.critpath.mandatory_days_in_testing': 42
         })
         assert self.obj.critpath_mandatory_days_in_testing == 42
 
@@ -879,31 +879,31 @@ class TestRelease(ModelTest):
 
 
 class TestReleaseCritpathMinKarma(BasePyTestCase):
-    """Tests for the Release.critpath_min_karma property."""
+    """Tests for the Release.min_karma property."""
 
     @mock.patch.dict(
-        config, {'critpath.min_karma': 2, 'f17.beta.critpath.min_karma': 42, 'f17.status': "beta"})
+        config, {'min_karma': 2, 'f17.beta.min_karma': 42, 'f17.status': "beta"})
     def test_setting_status_min(self):
         """If a min is defined for the release, it should be returned."""
         release = model.Release.query.first()
 
-        assert release.critpath_min_karma == 42
+        assert release.min_karma == 42
 
     @mock.patch.dict(
-        config, {'critpath.min_karma': 25, 'f17.status': "beta"})
+        config, {'min_karma': 25, 'f17.status': "beta"})
     def test_setting_status_no_min(self):
         """If no min is defined for the release, the general min karma config should be returned."""
         release = model.Release.query.first()
 
-        assert release.critpath_min_karma == 25
+        assert release.min_karma == 25
 
     @mock.patch.dict(
-        config, {'critpath.min_karma': 72})
+        config, {'min_karma': 72})
     def test_setting_status_no_setting_status(self):
         """If no status is defined for the release, the general min karma should be returned."""
         release = model.Release.query.first()
 
-        assert release.critpath_min_karma == 72
+        assert release.min_karma == 72
 
 
 class TestReleaseModular(ModelTest):
@@ -2654,7 +2654,7 @@ class TestUpdateValidateBuilds(BasePyTestCase):
 @mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
 class TestUpdateMeetsTestingRequirements(BasePyTestCase):
     """
-    Test the Update.meets_testing_requirements() method.
+    Test the Update.meets_testing_requirements() method and friends.
 
     It is significant and not obvious that the update used by these tests
     starts out with karma of +1/-0. These tests also rely on manual and automatic
@@ -2664,11 +2664,14 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
 
     @pytest.mark.parametrize('critpath', (True, False))
     @pytest.mark.parametrize("autokarma", (True, False))
-    def test_update_reaching_stable_karma_not_critpath_min_karma(self, autokarma, critpath):
+    def test_update_reaching_stable_karma_not_min_karma(self, autokarma, critpath):
         """
-        Assert that meets_testing_requirements() returns the correct result for updates
-        that haven't reached the days in testing or critpath_min_karma, but have reached
-        stable_karma.
+        Assert that meets_testing_requirements() returns False for updates that
+        haven't reached the days in testing or min_karma, but have reached stable_karma.
+        It should be very uncommon to encounter this situation these days because we disallow
+        setting the stable_karma threshold lower than min_karma when creating or editing an
+        update, but it could theoretically happen if min_karma for a release was increased
+        while an update which had stable_karma set to the previous minimum value was in-flight.
         """
         update = model.Update.query.first()
         update.autokarma = autokarma
@@ -2677,18 +2680,17 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.stable_karma = 1
 
         # check, and make it clear, what we're assuming the karma value is now
-        # and the critpath_min_karma value we're testing against
+        # and the min_karma value we're testing against
         assert update.karma == 1
-        assert update.release.critpath_min_karma == 2
-        # this means 'False for critpath, True for non-critpath'. critpath
-        # should be required to meet critpath_min_karma, but non-critpath
-        # should not
-        assert update.meets_testing_requirements is not critpath
+        assert update.release.min_karma == 2
+        # this should always be False. in the past we allowed non-critpath
+        # updates to be pushed stable in this case but we no longer do
+        assert not update.meets_testing_requirements
 
     @pytest.mark.parametrize('critpath', (True, False))
     @pytest.mark.parametrize('autokarma', (True, False))
     def test_update_below_stable_karma(self, autokarma, critpath):
-        """It should return False for all updates below stable karma, critpath_min_karma
+        """It should return False for all updates below stable karma, min_karma
         and time."""
         update = model.Update.query.first()
         update.autokarma = autokarma
@@ -2713,7 +2715,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.critpath = critpath
         update.request = None
         if critpath:
-            # the default critpath.stable_after_days_without_negative_karma
+            # the default critpath.mandatory_days_in_testing
             # value is 14
             update.date_testing = datetime.utcnow() - timedelta(days=15)
         else:
@@ -2732,7 +2734,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.critpath = critpath
         update.request = None
         if critpath:
-            # the default critpath.stable_after_days_without_negative_karma
+            # the default critpath.mandatory_days_in_testing
             # value is 14
             update.date_testing = datetime.utcnow() - timedelta(days=13)
         else:
@@ -2745,15 +2747,16 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
 
     @pytest.mark.parametrize('critpath', (True, False))
     def test_update_reaching_time_in_testing_negative_karma(self, critpath):
-        """If an update meets the mandatory_days_in_testing and stable_karma thresholds
-        but not the critpath_min_karma threshold, it should return False for critical path
-        updates but True for non-critical-path updates."""
+        """If an update meets mandatory_days_in_testing but not min_karma, it
+        should still return True. In the past we did not allow critical path updates
+        through for days_in_testing if they had any negative karma, but this is not
+        part of the Fedora or EPEL update policies."""
         update = model.Update.query.first()
         update.critpath = critpath
         update.status = model.UpdateStatus.testing
         update.request = None
         if critpath:
-            # the default critpath.stable_after_days_without_negative_karma
+            # the default critpath.mandatory_days_in_testing
             # value is 14
             update.date_testing = datetime.utcnow() - timedelta(days=15)
         else:
@@ -2762,33 +2765,30 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.stable_karma = 1
         update.comment(self.db, 'testing', author='enemy', karma=-1)
         # This gets the update back to positive karma, but not to the required
-        # +2 karma needed to clear the critpath_min_karma requirement
+        # +2 karma needed to clear the min_karma requirement
         update.comment(self.db, 'testing', author='bro', karma=1)
 
         assert update.karma == 1
-        assert update.release.critpath_min_karma == 2
-        # this means 'False for critpath, True for non-critpath'
-        assert update.meets_testing_requirements is not critpath
+        assert update.release.min_karma == 2
+        assert update.meets_testing_requirements is True
 
     @pytest.mark.parametrize('critpath', (True, False))
-    def test_update_reaching_critpath_min_karma(self, critpath):
+    def test_update_reaching_min_karma(self, critpath):
         """Both critpath and non-critpath packages should be allowed to go stable when
         meeting the policy minimum karma requirement for critpath packages, even if there
         is negative karma."""
         update = model.Update.query.first()
         update.critpath = critpath
+        # make sure no autopush gets in the way
         update.stable_karma = 3
         update.comment(self.db, 'testing', author='enemy', karma=-1)
         update.comment(self.db, 'testing', author='bro', karma=1)
-        # Despite meeting the stable_karma, the function should still not
-        # mark this as meeting testing requirements because critpath packages
-        # have a higher requirement for minimum karma - at this point we
-        # are in the same state as test_critpath_14_days_negative_karma.
-        # So add a third +1 so total is +2, which meets critpath_min_karma
+        # at this point we're at +1 as the update starts at +1. Add
+        # another +1 so total is +2, which meets min_karma
         update.comment(self.db, 'testing', author='ham', karma=1)
 
         assert update.karma == 2
-        assert update.release.critpath_min_karma == 2
+        assert update.release.min_karma == 2
         assert update.meets_testing_requirements
 
     @pytest.mark.parametrize('critpath', (True, False))
@@ -2800,7 +2800,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
             (TestGatingStatus.running, False),
             (TestGatingStatus.passed, True),
             (TestGatingStatus.failed, False),
-            (None, True),
+            (None, False),
             (TestGatingStatus.greenwave_failed, False)
         )
     )
@@ -2819,7 +2819,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.comment(self.db, 'testing', author='bro', karma=1)
         # Assert that our preconditions from the docblock are correct.
         assert update.karma == 2
-        assert update.release.critpath_min_karma == 2
+        assert update.release.min_karma == 2
         assert update.meets_testing_requirements is expected
 
     def test_test_gating_not_required(self):
@@ -2838,6 +2838,33 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         # Assert that our preconditions from the docblock are correct.
         assert update.karma == 2
         assert update.meets_testing_requirements
+
+    def test_other_interfaces(self):
+        """
+        Check the other related interfaces: meets_requirements_why
+        (around which meets_testing_requirements is now a wrapper),
+        critpath_approved (which is now a deprecated synonym for
+        meets_testing_requirements), and check_requirements (which is
+        now a deprecated synonym for meets_requirements_why).
+        """
+        config["test_gating.required"] = False
+        update = model.Update.query.first()
+        update.autokarma = False
+        update.stable_karma = 1
+        update.test_gating_status = TestGatingStatus.running
+        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
+                       author='bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        assert update.karma == 2
+        expwhy = (
+            True,
+            "Test gating is disabled, and the update has at least 2 karma."
+        )
+        assert update.meets_requirements_why == expwhy
+        with pytest.deprecated_call():
+            assert update.check_requirements(self.db, config) == expwhy
+        with pytest.deprecated_call():
+            assert update.critpath_approved
 
 
 @mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
@@ -3087,7 +3114,7 @@ class TestUpdate(ModelTest):
         update.critpath = True
 
         # Configured value.
-        expected = int(config.get('critpath.stable_after_days_without_negative_karma'))
+        expected = int(config.get('critpath.mandatory_days_in_testing'))
 
         assert update.mandatory_days_in_testing == expected
 
@@ -3121,7 +3148,7 @@ class TestUpdate(ModelTest):
         update.date_testing = datetime.utcnow() + timedelta(days=-4)
 
         critpath_days_to_stable = int(
-            config.get('critpath.stable_after_days_without_negative_karma'))
+            config.get('critpath.mandatory_days_in_testing'))
 
         assert update.days_to_stable == critpath_days_to_stable - 4
 
@@ -3132,9 +3159,10 @@ class TestUpdate(ModelTest):
         """
         update = self.obj
         update.autokarma = False
-        update.stable_karma = 1
         update.comment(self.db, 'I found $100 after applying this update.', karma=1,
                        author='bowlofeggs')
+        update.comment(self.db, 'This update saved my life!', karma=1,
+                       author='ralph')
         # Assert that our preconditions from the docblock are correct.
         assert update.meets_testing_requirements
 
@@ -3598,32 +3626,6 @@ class TestUpdate(ModelTest):
 
         assert self.obj._composite_karma == (2, -1)
 
-    def test_critpath_approved_no_release_requirements(self):
-        """critpath_approved() should use the broad requirements if the release doesn't have any."""
-        self.obj.critpath = True
-        self.obj.comment(self.db, "foo", 1, 'biz')
-        release_name = self.obj.release.name.lower().replace('-', '')
-
-        with mock.patch.dict(
-                config,
-                {'{}.status'.format(release_name): 'stable', 'critpath.num_admin_approvals': 0,
-                 'critpath.min_karma': 1}):
-            assert self.obj.critpath_approved
-
-    def test_critpath_approved_release_requirements(self):
-        """critpath_approved() should use the release requirements if they are defined."""
-        self.obj.critpath = True
-        self.obj.comment(self.db, "foo", 1, 'biz')
-        release_name = self.obj.release.name.lower().replace('-', '')
-
-        with mock.patch.dict(
-                config,
-                {'{}.status'.format(release_name): 'stable', 'critpath.num_admin_approvals': 0,
-                 'critpath.min_karma': 1,
-                 '{}.{}.critpath.num_admin_approvals'.format(release_name, 'stable'): 0,
-                 '{}.{}.critpath.min_karma'.format(release_name, 'stable'): 2}):
-            assert not self.obj.critpath_approved
-
     def test_last_modified_no_dates(self):
         """last_modified() should raise ValueError if there are no available dates."""
         self.obj.date_submitted = None
@@ -3771,14 +3773,15 @@ class TestUpdate(ModelTest):
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
         assert self.obj.status == UpdateStatus.pending
-        self.obj.stable_karma = 1
         # disable autokarma, so sending the comment doesn't do the request
         self.obj.autokarma = False
         self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+        self.obj.comment(self.db, 'sure does', karma=1, author='ralph')
         # make sure we are actually doing something here
         assert self.obj.request is not UpdateRequest.stable
 
         expected_messages = (
+            update_schemas.UpdateCommentV1,
             update_schemas.UpdateCommentV1,
             update_schemas.UpdateRequestStableV1,
         )
@@ -3801,8 +3804,13 @@ class TestUpdate(ModelTest):
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
         assert self.obj.status == UpdateStatus.pending
-        self.obj.stable_karma = 1
         self.obj.release.state = ReleaseState.frozen
+        # disable autokarma, so sending the comment doesn't do the request
+        self.obj.autokarma = False
+        # make sure we meet the karma requirements, so we *could* push
+        # stable if we weren't frozen
+        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+        self.obj.comment(self.db, 'sure does', karma=1, author='ralph')
 
         with pytest.raises(BodhiException) as exc:
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
@@ -3903,7 +3911,10 @@ class TestUpdate(ModelTest):
         assert self.obj.status == UpdateStatus.pending
         with pytest.raises(BodhiException) as exc:
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
-        assert str(exc.value) == config.get('not_yet_tested_msg')
+        assert str(exc.value) == (
+            f"{config.get('not_yet_tested_msg')}: Test gating is disabled, but "
+            "update has less than 2 karma and has been in testing less than 7 days."
+        )
         assert self.obj.request == UpdateRequest.testing
         assert self.obj.status == UpdateStatus.pending
 
@@ -3991,7 +4002,10 @@ class TestUpdate(ModelTest):
         with pytest.raises(BodhiException) as exc:
             with mock_sends():
                 self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
-        assert str(exc.value) == config['not_yet_tested_epel_msg']
+        assert str(exc.value) == (
+            f"{config['not_yet_tested_epel_msg']}: Test gating is disabled, "
+            "but update has less than 2 karma and has been in testing less than 14 days."
+        )
 
         assert self.obj.request is None
 
@@ -4037,17 +4051,10 @@ class TestUpdate(ModelTest):
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
 
         expected_msg = (
-            'This critical path update has not yet been approved for pushing to the '
-            'stable repository.  It must first reach a karma of %s, consisting of %s '
-            'positive karma from proventesters, along with %d additional karma from '
-            'the community. Or, it must spend %s days in testing without any negative '
-            'feedback')
-        expected_msg = expected_msg % (
-            config.get('critpath.min_karma'),
-            config.get('critpath.num_admin_approvals'),
-            (config.get('critpath.min_karma') - config.get('critpath.num_admin_approvals')),
-            config.get('critpath.stable_after_days_without_negative_karma'))
-        expected_msg += ' Additionally, it must pass automated tests.'
+            'This update has not yet met the minimum testing requirements defined in the '
+            '<a href="https://fedoraproject.org/wiki/Package_update_acceptance_criteria">'
+            'Package Update Acceptance Criteria</a>: Required tests did not pass on this update.'
+        )
         assert str(exc.value) == expected_msg
 
     def test_set_request_string_action(self):
@@ -4058,12 +4065,13 @@ class TestUpdate(ModelTest):
         assert self.obj.status == UpdateStatus.pending
         # disable autokarma, so sending the comment doesn't do the request
         self.obj.autokarma = False
-        self.obj.stable_karma = 1
         self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+        self.obj.comment(self.db, 'sure does', karma=1, author='ralph')
         # make sure we are actually doing something here
         assert self.obj.request is not UpdateRequest.stable
 
         expected_messages = (
+            update_schemas.UpdateCommentV1,
             update_schemas.UpdateCommentV1,
             update_schemas.UpdateRequestStableV1,
         )
@@ -4340,65 +4348,6 @@ class TestUpdate(ModelTest):
             config['bodhi_email'],
             [config['{}_test_announce_list'.format(release_name)]],
             msg.encode('utf-8'))
-
-    def test_check_requirements_test_gating_disabled(self):
-        '''Should pass regardless if gating is disabled.'''
-        self.obj.test_gating_status = model.TestGatingStatus.failed
-        with mock.patch.dict(config, {'test_gating.required': False}):
-            assert self.obj.check_requirements(self.db, config) == (True, 'No checks required.')
-
-    def test_check_requirements_test_gating_status_failed(self):
-        """check_requirements() should return False when test_gating_status is failed."""
-        self.obj.test_gating_status = model.TestGatingStatus.failed
-
-        with mock.patch.dict(config, {'test_gating.required': True}):
-            assert self.obj.check_requirements(self.db, config) == (
-                False, 'Required tests did not pass on this update.')
-
-    def test_check_requirements_test_gating_status_passed(self):
-        """check_requirements() should return True when test_gating_status is passed."""
-        self.obj.test_gating_status = model.TestGatingStatus.passed
-
-        with mock.patch.dict(config, {'test_gating.required': True}):
-            assert self.obj.check_requirements(self.db, config) == (
-                True, 'All required tests passed or were waived.')
-
-    def test_check_requirements_test_gating_status_ignored(self):
-        """check_requirements() should return True when test_gating_status is ignored."""
-        self.obj.test_gating_status = model.TestGatingStatus.ignored
-
-        with mock.patch.dict(config, {'test_gating.required': True}):
-            assert self.obj.check_requirements(self.db, config) == (
-                True, 'No checks required.')
-
-    def test_check_requirements_test_gating_status_waiting(self):
-        """check_requirements() should return False when test_gating_status is waiting."""
-        self.obj.test_gating_status = model.TestGatingStatus.waiting
-
-        with mock.patch.dict(config, {'test_gating.required': True}):
-            assert self.obj.check_requirements(self.db, config) == (
-                False, 'Required tests for this update are still running.')
-
-    def test_num_admin_approvals_after_karma_reset(self):
-        """Make sure number of admin approvals is counted correctly for the build."""
-        update = model.Update.query.first()
-
-        # Approval from admin 'bodhiadmin' {config.admin_groups}
-        user_group = [model.Group(name='bodhiadmin')]
-        user = model.User(name='bodhiadmin', groups=user_group)
-        comment = model.Comment(text='Test comment', karma=1, user=user)
-        self.db.add(comment)
-        update.comments.append(comment)
-
-        assert update.num_admin_approvals == 1
-
-        # This is a "karma reset event", so the above comments should not be counted in the karma.
-        user = model.User(name='bodhi')
-        comment = model.Comment(text="New build", karma=0, user=user)
-        self.db.add(comment)
-        update.comments.append(comment)
-
-        assert update.num_admin_approvals == 0
 
     def test_validate_release_failure(self):
         """Test the validate_release() method for the failure case."""

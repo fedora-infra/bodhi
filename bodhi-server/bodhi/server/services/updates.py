@@ -211,21 +211,10 @@ def set_request(request):
                            "Pushing back to testing a stable update is not allowed")
         return
 
-    if action == UpdateRequest.stable:
-        settings = request.registry.settings
-        result, reason = update.check_requirements(request.db, settings)
-        if not result:
-            log.info(
-                f'Unable to set request for {update.alias} to stable due to failed requirements: '
-                f'{reason}')
-            request.errors.add('body', 'request',
-                               'Requirement not met %s' % reason)
-            return
-
     try:
         update.set_request(request.db, action, request.identity.name)
     except BodhiException as e:
-        log.info("Failed to set the request: %s", e)
+        log.info(f"Failed to set the request: {e}")
         request.errors.add('body', 'request', str(e))
     except Exception as e:
         log.exception("Unhandled exception in set_request")

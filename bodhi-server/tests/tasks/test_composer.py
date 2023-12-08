@@ -483,8 +483,14 @@ That was the actual one''' % compose_dir
             comp = session.query(Compose).first()
             if comp is not None:
                 session.delete(comp)
-            # Set the update request to stable and the release to pending
             up = session.query(Update).one()
+            # Have the update reach the stable karma threshold
+            assert up.karma == 1
+            up.comment(session, "foo", 1, 'foo')
+            # Clear pending messages
+            self.db.info['messages'] = []
+            assert up.karma == 2
+            # Set the update request to stable and the release to pending
             up.release.state = ReleaseState.pending
             up.request = UpdateRequest.stable
 
@@ -948,6 +954,10 @@ That was the actual one'''
 
         with self.db_factory() as db:
             up = db.query(Update).one()
+            # Have the update reach the stable karma threshold
+            assert up.karma == 1
+            up.comment(db, "foo", 1, 'foo')
+            assert up.karma == 2
             user = db.query(User).first()
 
             # Create a security update for a different release
@@ -980,6 +990,10 @@ That was the actual one'''
                 type=UpdateType.security)
 
             db.add(update)
+            # Have the update reach the stable karma threshold
+            update.comment(db, "foo", 1, 'foo')
+            update.comment(db, "test", 1, 'test')
+            assert update.karma == 2
 
             update.test_gating_status = TestGatingStatus.passed
 
@@ -1030,6 +1044,10 @@ That was the actual one'''
             up = db.query(Update).one()
             up.type = UpdateType.security
             up.request = UpdateRequest.testing
+            # Have the update reach the stable karma threshold
+            assert up.karma == 1
+            up.comment(db, "foo", 1, 'foo')
+            assert up.karma == 2
             user = db.query(User).first()
 
             # Create a security update for a different release
@@ -1062,6 +1080,10 @@ That was the actual one'''
                 type=UpdateType.enhancement)
 
             db.add(update)
+            # Have the update reach the stable karma threshold
+            update.comment(db, "foo", 1, 'foo')
+            update.comment(db, "test", 1, 'test')
+            assert update.karma == 2
 
             update.test_gating_status = TestGatingStatus.passed
 
@@ -1100,6 +1122,10 @@ That was the actual one'''
 
         with self.db_factory() as db:
             up = db.query(Update).one()
+            # Have the update reach the stable karma threshold
+            assert up.karma == 1
+            up.comment(db, "foo", 1, 'foo')
+            assert up.karma == 2
             up.type = UpdateType.security
             up.status = UpdateStatus.testing
             up.request = UpdateRequest.stable
@@ -1135,6 +1161,10 @@ That was the actual one'''
                 type=UpdateType.security)
 
             db.add(update)
+            # Have the update reach the stable karma threshold
+            update.comment(db, "foo", 1, 'foo')
+            update.comment(db, "test", 1, 'test')
+            assert update.karma == 2
 
             update.test_gating_status = TestGatingStatus.passed
 
@@ -1237,10 +1267,11 @@ That was the actual one'''
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
-    def test_clean_old_composes_false(self, *args):
-        """Test work() with clean_old_composes set to False."""
+    @pytest.mark.parametrize('clean_old', (False, True))
+    def test_clean_old_composes_param(self, sleep, wfs, wfrs, stage, scr, clean_old):
+        """Test work() with clean_old_composes set to False or True."""
         self.expected_sems = 1
-        config["clean_old_composes"] = False
+        config["clean_old_composes"] = clean_old
 
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request('bodhi-2.0-1.fc17')
@@ -1275,6 +1306,7 @@ That was the actual one'''
                               'ralph', self.db_factory, compose_dir)
         t.keep_old_composes = 2
         expected_messages = (
+            update_schemas.UpdateCommentV1,
             compose_schemas.ComposeComposingV1,
             override_schemas.BuildrootOverrideUntagV1,
             update_schemas.UpdateCompleteStableV1,
@@ -1283,6 +1315,12 @@ That was the actual one'''
                 success=True, repo='f17-updates', ctype='rpm', agent='ralph')))
 
         with self.db_factory() as session:
+            # have the update reach karma threshold
+            up = session.query(Update).one()
+            assert up.karma == 1
+            up.comment(session, "foo", 1, 'foo')
+            assert up.karma == 2
+
             with mock.patch('bodhi.server.tasks.composer.subprocess.Popen') as Popen:
                 release = session.query(Release).filter_by(name='F17').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
@@ -1294,108 +1332,22 @@ That was the actual one'''
             if os.path.isdir(os.path.join(compose_dir, d))
             and not d.startswith("Fedora-17-updates")])
 
-        # No dirs should have been removed since we had clean_old_composes set False.
-        assert actual_dirs == dirs
-        # The cool file should still be here
-        actual_files = [f for f in os.listdir(compose_dir)
-                        if os.path.isfile(os.path.join(compose_dir, f))]
-        assert actual_files == ['COOL_FILE.txt']
-
-        assert Popen.mock_calls == \
-            [mock.call(
-                [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
-                 '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
-                 t.compose_dir, '--no-latest-link', '--label', t._label],
-                cwd=t.compose_dir, shell=False, stderr=-1,
-                stdin=mock.ANY,
-                stdout=mock.ANY)]
-        d = datetime.datetime.utcnow()
-        assert t._checkpoints == \
-            {'completed_repo': os.path.join(
-                compose_dir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
-             'compose_done': True,
-             'determine_and_perform_tag_actions': True,
-             'modify_bugs': True,
-             'send_stable_announcements': True,
-             'send_testing_digest': True,
-             'status_comments': True}
-        assert os.path.exists(compose_dir)
-
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
-    @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_sync')
-    @mock.patch('bodhi.server.tasks.composer.time.sleep')
-    def test_clean_old_composes_true(self, *args):
-        """Test work() with clean_old_composes set to True."""
-        config["clean_old_composes"] = True
-        self.expected_sems = 1
-
-        # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request('bodhi-2.0-1.fc17')
-        task = self._make_task()
-        compose_dir = os.path.join(self.tempdir, 'cool_dir')
-        config["compose_dir"] = compose_dir
-
-        # Set up some directories that look similar to what might be found in production, with
-        # some directories that don't match the pattern of ending in -<timestamp>.
-        dirs = [
-            'dist-5E-epel-161003.0724', 'dist-5E-epel-161011.0458', 'dist-5E-epel-161012.1854',
-            'dist-5E-epel-161013.1711', 'dist-5E-epel-testing-161001.0424',
-            'dist-5E-epel-testing-161003.0856', 'dist-5E-epel-testing-161006.0053',
-            'dist-6E-epel-161002.2331', 'dist-6E-epel-161003.2046',
-            'dist-6E-epel-testing-161001.0528', 'epel7-161003.0724', 'epel7-161003.2046',
-            'epel7-161004.1423', 'epel7-161005.1122', 'epel7-testing-161001.0424',
-            'epel7-testing-161003.0621', 'epel7-testing-161003.2217', 'f23-updates-161002.2331',
-            'f23-updates-161003.1302', 'f23-updates-161004.1423', 'f23-updates-161005.0259',
-            'f23-updates-testing-161001.0424', 'f23-updates-testing-161003.0621',
-            'f23-updates-testing-161003.2217', 'f24-updates-161002.2331',
-            'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
-            'this_should_get_left_alone', 'f23-updates-should_be_untouched',
-            'f23-updates.repocache', 'f23-updates-testing-blank']
-        [os.makedirs(os.path.join(compose_dir, d)) for d in dirs]
-        # Now let's make a few files here and there.
-        with open(os.path.join(compose_dir, 'dist-5E-epel-161003.0724', 'oops.txt'), 'w') as oops:
-            oops.write('This compose failed to get cleaned and left this file around, oops!')
-        with open(os.path.join(compose_dir, 'COOL_FILE.txt'), 'w') as cool_file:
-            cool_file.write('This file should be allowed to hang out here because it\'s cool.')
-
-        t = RPMComposerThread(self.semmock, task['composes'][0],
-                              'ralph', self.db_factory, compose_dir)
-        t.keep_old_composes = 2
-        expected_messages = (
-            compose_schemas.ComposeComposingV1,
-            override_schemas.BuildrootOverrideUntagV1,
-            update_schemas.UpdateCompleteStableV1,
-            errata_schemas.ErrataPublishV1,
-            compose_schemas.ComposeCompleteV1.from_dict(dict(
-                success=True, repo='f17-updates', ctype='rpm', agent='ralph')))
-
-        with self.db_factory() as session:
-            with mock.patch('bodhi.server.tasks.composer.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name='F17').one()
-                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
-                with mock_sends(*expected_messages):
-                    t.run()
-
-        # We expect these and only these directories to remain.
-        expected_dirs = {
-            'dist-5E-epel-161012.1854', 'dist-5E-epel-161013.1711',
-            'dist-5E-epel-testing-161003.0856', 'dist-5E-epel-testing-161006.0053',
-            'dist-6E-epel-161002.2331', 'dist-6E-epel-161003.2046',
-            'dist-6E-epel-testing-161001.0528', 'epel7-161004.1423', 'epel7-161005.1122',
-            'epel7-testing-161003.0621', 'epel7-testing-161003.2217', 'f23-updates-161004.1423',
-            'f23-updates-161005.0259', 'f23-updates-testing-161003.0621',
-            'f23-updates-testing-161003.2217', 'f24-updates-161002.2331',
-            'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
-            'this_should_get_left_alone', 'f23-updates-should_be_untouched',
-            'f23-updates.repocache', 'f23-updates-testing-blank'}
-        actual_dirs = set([
-            d for d in os.listdir(compose_dir)
-            if os.path.isdir(os.path.join(compose_dir, d))
-            and not d.startswith("Fedora-17-updates")])
-
-        # Assert that remove_old_composes removes the correct items and leaves the rest in place.
+        if clean_old:
+            # We expect these and only these directories to remain.
+            expected_dirs = {
+                'dist-5E-epel-161012.1854', 'dist-5E-epel-161013.1711',
+                'dist-5E-epel-testing-161003.0856', 'dist-5E-epel-testing-161006.0053',
+                'dist-6E-epel-161002.2331', 'dist-6E-epel-161003.2046',
+                'dist-6E-epel-testing-161001.0528', 'epel7-161004.1423', 'epel7-161005.1122',
+                'epel7-testing-161003.0621', 'epel7-testing-161003.2217', 'f23-updates-161004.1423',
+                'f23-updates-161005.0259', 'f23-updates-testing-161003.0621',
+                'f23-updates-testing-161003.2217', 'f24-updates-161002.2331',
+                'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
+                'this_should_get_left_alone', 'f23-updates-should_be_untouched',
+                'f23-updates.repocache', 'f23-updates-testing-blank'}
+        else:
+            # No dirs should have been removed since we had clean_old_composes set False.
+            expected_dirs = dirs
         assert actual_dirs == expected_dirs
         # The cool file should still be here
         actual_files = [f for f in os.listdir(compose_dir)
@@ -1440,6 +1392,7 @@ That was the actual one'''
                               'ralph', self.db_factory, compose_dir)
         t.keep_old_composes = 2
         expected_messages = (
+            update_schemas.UpdateCommentV1,
             compose_schemas.ComposeComposingV1,
             override_schemas.BuildrootOverrideUntagV1,
             update_schemas.UpdateCompleteStableV1,
@@ -1448,6 +1401,12 @@ That was the actual one'''
                 success=True, repo='f17-updates', ctype='rpm', agent='ralph')))
 
         with self.db_factory() as session:
+            # have the update reach karma threshold
+            up = session.query(Update).one()
+            assert up.karma == 1
+            up.comment(session, "foo", 1, 'foo')
+            assert up.karma == 2
+
             with mock.patch('bodhi.server.tasks.composer.subprocess.Popen') as Popen:
                 release = session.query(Release).filter_by(name='F17').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
@@ -1509,6 +1468,10 @@ That was the actual one'''
                 type=UpdateType.security)
 
             db.add(update)
+            # Have the update reach the stable karma threshold
+            update.comment(db, "foo", 1, 'foo')
+            update.comment(db, "test", 1, 'test')
+            assert update.karma == 2
 
             update.test_gating_status = TestGatingStatus.passed
 
@@ -1622,6 +1585,7 @@ testmodule:master:20172:2
             self.semmock, task['composes'][0], 'ralph', self.db_factory,
             self.tempdir)
         expected_messages = (
+            update_schemas.UpdateCommentV1,
             compose_schemas.ComposeComposingV1.from_dict({
                 'repo': u'f17-updates',
                 'ctype': 'rpm',
@@ -1632,6 +1596,12 @@ testmodule:master:20172:2
                 success=True, repo='f17-updates', ctype='rpm', agent='ralph')))
 
         with self.db_factory() as session:
+            # have the update reach karma threshold
+            up = session.query(Update).one()
+            assert up.karma == 1
+            up.comment(session, "foo", 1, 'foo')
+            assert up.karma == 2
+
             with mock.patch('bodhi.server.tasks.composer.subprocess.Popen') as Popen:
                 release = session.query(Release).filter_by(name='F17').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
@@ -1665,6 +1635,7 @@ testmodule:master:20172:2
             self.semmock, task['composes'][0], 'ralph', self.db_factory,
             self.tempdir)
         expected_messages = (
+            update_schemas.UpdateCommentV1,
             compose_schemas.ComposeComposingV1.from_dict(
                 {'repo': 'f17-updates', 'updates': [u.builds[0].nvr], 'agent': 'ralph',
                  'ctype': 'rpm'}),
@@ -1676,6 +1647,12 @@ testmodule:master:20172:2
                 success=True, ctype='rpm', repo='f17-updates', agent='ralph')))
 
         with self.db_factory() as session:
+            # have the update reach karma threshold
+            up = session.query(Update).one()
+            assert up.karma == 1
+            up.comment(session, "foo", 1, 'foo')
+            assert up.karma == 2
+
             with mock.patch('bodhi.server.tasks.composer.subprocess.Popen') as Popen:
                 release = session.query(Release).filter_by(name='F17').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
@@ -1684,7 +1661,7 @@ testmodule:master:20172:2
                     # t.run() modified some of the objects we used to construct the expected
                     # messages above, so we need to inject the altered data into them so the
                     # assertions are correct.
-                    expected_messages[1].body['override'] = u.builds[0].override.__json__()
+                    expected_messages[2].body['override'] = u.builds[0].override.__json__()
 
         u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         assert u.comments[-1].text == 'This update has been pushed to stable.'
@@ -1734,6 +1711,15 @@ testmodule:master:20172:2
 
         self.set_stable_request('bodhi-2.0-1.fc17')
         task = self._make_task()
+
+        with self.db_factory() as session:
+            # have the update reach karma threshold
+            up = session.query(Update).one()
+            assert up.karma == 1
+            up.comment(session, "foo", 1, 'foo')
+            # Clear pending messages
+            self.db.info['messages'] = []
+            assert up.karma == 2
 
         t = RPMComposerThread(self.semmock, task['composes'][0],
                               'ralph', self.db_factory, self.tempdir)
@@ -1785,7 +1771,13 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             up = session.query(Update).one()
             up.request = UpdateRequest.stable
-            assert len(up.comments) == 2
+            # Have the update reach the stable karma threshold
+            assert up.karma == 1
+            up.comment(session, "foo", 1, 'foo')
+            # Clear pending messages
+            self.db.info['messages'] = []
+            assert up.karma == 2
+            assert len(up.comments) == 3
 
         with mock_sends(*[base_schemas.BodhiMessage] * 6):
             task = self._make_task()
@@ -1794,7 +1786,7 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            assert len(up.comments) == 3
+            assert len(up.comments) == 4
             assert up.comments[-1]['text'] == 'This update has been pushed to stable.'
 
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
@@ -1835,7 +1827,13 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             up = session.query(Update).one()
             up.request = UpdateRequest.stable
-            assert len(up.comments) == 2
+            # Have the update reach the stable karma threshold
+            assert up.karma == 1
+            up.comment(session, "foo", 1, 'foo')
+            # Clear pending messages
+            self.db.info['messages'] = []
+            assert up.karma == 2
+            assert len(up.comments) == 3
 
         with mock_sends(*[base_schemas.BodhiMessage] * 6):
             task = self._make_task()
@@ -2047,6 +2045,12 @@ testmodule:master:20172:2
             assert up.date_testing is not None
             assert up.date_stable is None
             up.request = UpdateRequest.stable
+            # Have the update reach the stable karma threshold
+            assert up.karma == 1
+            up.comment(session, "foo", 1, 'foo')
+            # Clear pending messages
+            self.db.info['messages'] = []
+            assert up.karma == 2
 
         self.koji.clear()
         expected_messages = (
@@ -2134,6 +2138,12 @@ testmodule:master:20172:2
             up = db.query(Update).one()
             up.release.state = ReleaseState.pending
             up.request = UpdateRequest.stable
+            # Have the update reach the stable karma threshold
+            assert up.karma == 1
+            up.comment(db, "foo", 1, 'foo')
+            # Clear pending messages
+            self.db.info['messages'] = []
+            assert up.karma == 2
         task = self._make_task()
         api_version = task.pop("api_version")
 

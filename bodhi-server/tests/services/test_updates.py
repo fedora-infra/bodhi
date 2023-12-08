@@ -705,20 +705,32 @@ class TestNewUpdate(BasePyTestCase):
         assert up['errors'][0]['description'] == "-1 is less than minimum value 0"
 
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_update_stable_days(self, publish, *args):
+    def test_new_update_stable_days(self, publish, *args):
         args = self.get_update(u'bodhi-2.0.0-2.fc17')
         args['stable_days'] = '50'
         r = self.app.post_json('/updates/', args)
         assert r.json['stable_days'] == 50
 
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_update_too_low_stable_days(self, publish, *args):
+    def test_new_update_too_low_stable_days(self, publish, *args):
         args = self.get_update(u'bodhi-2.0.0-2.fc17')
         args['stable_days'] = '1'
+        args['stable_karma'] = '50'
         r = self.app.post_json('/updates/', args)
         assert r.json['stable_days'] == 7
         assert r.json['caveats'][0]['description'] == (
             'The number of stable days required was set to the mandatory release value of 7 days'
+        )
+
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_new_update_too_low_stable_karma(self, publish, *args):
+        args = self.get_update(u'bodhi-2.0.0-2.fc17')
+        args['stable_days'] = '50'
+        args['stable_karma'] = '1'
+        r = self.app.post_json('/updates/', args)
+        assert r.json['stable_karma'] == 2
+        assert r.json['caveats'][0]['description'] == (
+            'The stable karma required was set to the mandatory release value of 2'
         )
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
@@ -1134,6 +1146,7 @@ class TestSetRequest(BasePyTestCase):
         up.locked = False
         up.test_gating_status = TestGatingStatus.failed
         up.date_testing = datetime.utcnow() - timedelta(days=8)
+        up.status = UpdateStatus.testing
         up.request = None
         post_data = dict(update=nvr, request='stable', csrf_token=self.get_csrf_token())
 
@@ -1143,11 +1156,11 @@ class TestSetRequest(BasePyTestCase):
         assert up.request is None
         assert res.json_body['status'] == 'error'
         assert res.json_body['errors'][0]['description'] == (
-            "Requirement not met Required tests did not pass on this update."
+            f"{config.get('not_yet_tested_msg')}: Required tests did not pass on this update."
         )
         info_logs = '\n'.join([c[1][0] for c in info.mock_calls])
-        assert (f'Unable to set request for {up.alias} to stable due to failed requirements: '
-                'Required tests did not pass on this update.') in info_logs
+        assert (f"Failed to set the request: {config.get('not_yet_tested_msg')}: "
+                "Required tests did not pass on this update.") in info_logs
 
     @mock.patch.dict(config, {'test_gating.required': True})
     def test_test_gating_status_passed(self):
@@ -1167,11 +1180,11 @@ class TestSetRequest(BasePyTestCase):
         assert res.json['update']['request'] == 'stable'
 
     @mock.patch('bodhi.server.services.updates.Update.set_request',
-                side_effect=BodhiException('BodhiException. oops!'))
-    @mock.patch('bodhi.server.services.updates.Update.check_requirements',
-                return_value=(True, "a fake reason"))
+                side_effect=BodhiException('oops!'))
+    @mock.patch('bodhi.server.services.updates.Update.meets_requirements_why',
+                (True, "a fake reason"))
     @mock.patch('bodhi.server.services.updates.log.info')
-    def test_BodhiException_exception(self, log_info, check_requirements, send_request, *args):
+    def test_BodhiException_exception(self, log_info, send_request, *args):
         """Ensure that an BodhiException Exception is handled by set_request()."""
         nvr = 'bodhi-2.0-1.fc17'
 
@@ -1186,16 +1199,16 @@ class TestSetRequest(BasePyTestCase):
                                  status=400)
 
         assert res.json_body['status'] == 'error'
-        assert res.json_body['errors'][0]['description'] == 'BodhiException. oops!'
+        assert res.json_body['errors'][0]['description'] == 'oops!'
         assert log_info.call_count == 1
-        assert log_info.call_args_list[0][0][0] == "Failed to set the request: %s"
+        assert log_info.call_args_list[0][0][0] == "Failed to set the request: oops!"
 
     @mock.patch('bodhi.server.services.updates.Update.set_request',
                 side_effect=IOError('IOError. oops!'))
-    @mock.patch('bodhi.server.services.updates.Update.check_requirements',
-                return_value=(True, "a fake reason"))
+    @mock.patch('bodhi.server.services.updates.Update.meets_requirements_why',
+                (True, "a fake reason"))
     @mock.patch('bodhi.server.services.updates.log.exception')
-    def test_unexpected_exception(self, log_exception, check_requirements, send_request, *args):
+    def test_unexpected_exception(self, log_exception, send_request, *args):
         """Ensure that an unexpected Exception is handled by set_request()."""
         nvr = 'bodhi-2.0-1.fc17'
 
@@ -1597,7 +1610,11 @@ class TestUpdatesService(BasePyTestCase):
 
         # Ensure we can't push it until it meets the requirements
         assert res.json_body['status'] == 'error'
-        assert res.json_body['errors'][0]['description'] == config.get('not_yet_tested_msg')
+        exp = (
+            f"{config.get('not_yet_tested_msg')}: Test gating is disabled, but update has "
+            "less than 2 karma and has been in testing less than 7 days."
+        )
+        assert res.json['errors'][0]['description'] == exp
 
         update = Build.query.filter_by(nvr=nvr).one().update
         assert update.stable_karma == 3
@@ -1699,43 +1716,21 @@ class TestUpdatesService(BasePyTestCase):
         res = app.get(f'/updates/{update.alias}', status=200)
         assert res.json_body['can_edit'] is False
 
-    def test_provenpackager_request_update_queued_in_test_gating(self, *args):
-        """Ensure provenpackagers cannot request changes for any update which
-        test gating status is `queued`"""
-        nvr = 'bodhi-2.1-1.fc17'
-        user = User(name='bob')
-        self.db.add(user)
-        group = self.db.query(Group).filter_by(name='provenpackager').one()
-        user.groups.append(group)
-        self.db.commit()
-
-        up_data = self.get_update(nvr)
-        up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            res = self.app.post_json('/updates/', up_data)
-
-        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.update.test_gating_status = TestGatingStatus.queued
-        assert build.update.request == UpdateRequest.testing
-
-        # Try and submit the update to stable as a provenpackager
-        post_data = dict(update=nvr, request='stable',
-                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
-        with mock.patch.dict(config, {'test_gating.required': True}):
-            res = self.app.post_json(f'/updates/{build.update.alias}/request',
-                                     post_data, status=400)
-
-        # Ensure we can't push it until it passed test gating
-        assert res.json_body['status'] == 'error'
-        assert res.json_body['errors'][0]['description'] == (
-            'Requirement not met Required tests did not pass on this update.'
+    @pytest.mark.parametrize(
+        "status,canchange",
+        (
+            (TestGatingStatus.queued, False),
+            (TestGatingStatus.running, False),
+            (TestGatingStatus.failed, False),
+            (TestGatingStatus.failed, False),
+            (TestGatingStatus.waiting, False),
+            (None, False),
+            (TestGatingStatus.passed, True),
         )
-
-    def test_provenpackager_request_update_running_in_test_gating(self, *args):
-        """Ensure provenpackagers cannot request changes for any update which
-        test gating status is `running`"""
+    )
+    def test_provenpackager_request_update_test_gating_status(self, status, canchange):
+        """Ensure provenpackagers can request changes when test gating
+        is passed or ignored, but otherwise cannot."""
         nvr = 'bodhi-2.1-1.fc17'
         user = User(name='bob')
         self.db.add(user)
@@ -1750,155 +1745,33 @@ class TestUpdatesService(BasePyTestCase):
                                     update_schemas.UpdateRequestTestingV1):
             res = self.app.post_json('/updates/', up_data)
 
-        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.update.test_gating_status = TestGatingStatus.running
-        assert build.update.request == UpdateRequest.testing
+        update = Build.query.filter_by(nvr=nvr).one().update
+        update.test_gating_status = status
+        # have the update meet karma requirements
+        update.comment(self.db, 'LGTM', author='ralph', karma=1)
+        update.comment(self.db, 'LGTM', author='test', karma=1)
+        # Clear pending messages
+        self.db.info['messages'] = []
+        assert update.request == UpdateRequest.testing
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
                          csrf_token=self.app.get('/csrf').json_body['csrf_token'])
         with mock.patch.dict(config, {'test_gating.required': True}):
-            res = self.app.post_json(f'/updates/{build.update.alias}/request',
-                                     post_data, status=400)
+            if canchange is False:
+                res = self.app.post_json(f'/updates/{update.alias}/request', post_data, status=400)
+            else:
+                with fml_testing.mock_sends(update_schemas.UpdateRequestStableV1):
+                    res = self.app.post_json(f'/updates/{update.alias}/request', post_data)
 
-        # Ensure we can't push it until it passed test gating
-        assert res.json_body['status'] == 'error'
-        assert res.json_body['errors'][0]['description'] == (
-            'Requirement not met Required tests did not pass on this update.'
-        )
-
-    def test_provenpackager_request_update_failed_test_gating(self, *args):
-        """Ensure provenpackagers cannot request changes for any update which
-        test gating status is `failed`"""
-        nvr = 'bodhi-2.1-1.fc17'
-        user = User(name='bob')
-        self.db.add(user)
-        group = self.db.query(Group).filter_by(name='provenpackager').one()
-        user.groups.append(group)
-        self.db.commit()
-
-        up_data = self.get_update(nvr)
-        up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            res = self.app.post_json('/updates/', up_data)
-
-        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.update.test_gating_status = TestGatingStatus.failed
-        assert build.update.request == UpdateRequest.testing
-
-        # Try and submit the update to stable as a provenpackager
-        post_data = dict(update=nvr, request='stable',
-                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
-        with mock.patch.dict(config, {'test_gating.required': True}):
-            res = self.app.post_json(f'/updates/{build.update.alias}/request',
-                                     post_data, status=400)
-
-        # Ensure we can't push it until it passed test gating
-        assert res.json_body['status'] == 'error'
-        assert res.json_body['errors'][0]['description'] == (
-            'Requirement not met Required tests did not pass on this update.'
-        )
-
-    def test_provenpackager_request_update_ignored_by_test_gating(self, *args):
-        """Ensure provenpackagers can request changes for any update which
-        test gating status is `ignored`"""
-        nvr = 'bodhi-2.1-1.fc17'
-        user = User(name='bob')
-        self.db.add(user)
-        group = self.db.query(Group).filter_by(name='provenpackager').one()
-        user.groups.append(group)
-        self.db.commit()
-
-        up_data = self.get_update(nvr)
-        up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            res = self.app.post_json('/updates/', up_data)
-
-        assert 'does not have commit access to bodhi' not in res
-        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.update.test_gating_status = TestGatingStatus.ignored
-        assert build.update.request == UpdateRequest.testing
-
-        # Try and submit the update to stable as a provenpackager
-        post_data = dict(update=nvr, request='stable',
-                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
-        with mock.patch.dict(config, {'test_gating.required': True}):
-            res = self.app.post_json(f'/updates/{build.update.alias}/request',
-                                     post_data, status=400)
-
-        # Ensure the reason we cannot push isn't test gating this time
-        assert res.json_body['status'] == 'error'
-        assert res.json_body['errors'][0]['description'] == config.get('not_yet_tested_msg')
-
-    def test_provenpackager_request_update_waiting_on_test_gating(self, *args):
-        """Ensure provenpackagers cannot request changes for any update which
-        test gating status is `waiting`"""
-        nvr = 'bodhi-2.1-1.fc17'
-        user = User(name='bob')
-        self.db.add(user)
-        group = self.db.query(Group).filter_by(name='provenpackager').one()
-        user.groups.append(group)
-        self.db.commit()
-
-        up_data = self.get_update(nvr)
-        up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            res = self.app.post_json('/updates/', up_data)
-
-        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.update.test_gating_status = TestGatingStatus.waiting
-        assert build.update.request == UpdateRequest.testing
-
-        # Try and submit the update to stable as a provenpackager
-        post_data = dict(update=nvr, request='stable',
-                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
-        with mock.patch.dict(config, {'test_gating.required': True}):
-            res = self.app.post_json(f'/updates/{build.update.alias}/request',
-                                     post_data, status=400)
-
-        # Ensure we can't push it until it passed test gating
-        assert res.json_body['status'] == 'error'
-        assert res.json_body['errors'][0]['description'] == (
-            'Requirement not met Required tests for this update are still running.'
-        )
-
-    def test_provenpackager_request_update_with_none_test_gating(self, *args):
-        """Ensure provenpackagers cannot request changes for any update which
-        test gating status is `None`"""
-        nvr = 'bodhi-2.1-1.fc17'
-        user = User(name='bob')
-        self.db.add(user)
-        group = self.db.query(Group).filter_by(name='provenpackager').one()
-        user.groups.append(group)
-        self.db.commit()
-
-        up_data = self.get_update(nvr)
-        up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            res = self.app.post_json('/updates/', up_data)
-
-        build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.update.test_gating_status = None
-        assert build.update.request == UpdateRequest.testing
-
-        # Try and submit the update to stable as a provenpackager
-        post_data = dict(update=nvr, request='stable',
-                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
-        with mock.patch.dict(config, {'test_gating.required': True}):
-            res = self.app.post_json(f'/updates/{build.update.alias}/request',
-                                     post_data, status=400)
-
-        # Ensure the reason we can't push is not test gating
-        assert res.json_body['status'] == 'error'
-        assert res.json_body['errors'][0]['description'] == config.get('not_yet_tested_msg')
+        if canchange is False:
+            # Ensure we can't push it until it passed test gating
+            assert res.json_body['status'] == 'error'
+            assert res.json_body['errors'][0]['description'] in (
+                f"{config.get('not_yet_tested_msg')}: Required tests did not pass on this update.",
+                f"{config.get('not_yet_tested_msg')}: "
+                "Required tests for this update are queued or running.",
+            )
 
     def test_404(self):
         self.app.get('/a', status=404)
@@ -3710,6 +3583,64 @@ class TestUpdatesService(BasePyTestCase):
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         assert up.builds == [build]
 
+    def test_edit_update_too_low_stable_days(self, *args):
+        """Check stable days below the minimum is increased on edit"""
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['stable_days'] = 50
+        args['stable_karma'] = 50
+
+        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
+                                    update_schemas.UpdateRequestTestingV1):
+            self.app.post_json('/updates/', args, status=200)
+
+        up = self.db.query(Build).filter_by(nvr=nvr).one().update
+        up.locked = True
+        up.status = UpdateStatus.testing
+        up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
+
+        args['edited'] = up.alias
+        args['stable_days'] = 1
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
+            up = self.app.post_json('/updates/', args, status=200).json_body
+
+        assert up['stable_days'] == 7
+        assert up['caveats'][0]['description'] == (
+            'The number of stable days required was raised to the mandatory release value of 7 days'
+        )
+
+    def test_edit_update_too_low_stable_karma(self, *args):
+        """Check stable karma below the minimum is increased on edit"""
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['stable_days'] = 50
+        args['stable_karma'] = 50
+
+        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
+                                    update_schemas.UpdateRequestTestingV1):
+            self.app.post_json('/updates/', args, status=200)
+
+        up = self.db.query(Build).filter_by(nvr=nvr).one().update
+        up.locked = True
+        up.status = UpdateStatus.testing
+        up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
+
+        args['edited'] = up.alias
+        args['stable_karma'] = 1
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
+            up = self.app.post_json('/updates/', args, status=200).json_body
+
+        assert up['stable_karma'] == 2
+        assert up['caveats'][0]['description'] == (
+            'The stable karma required was raised to the mandatory release value of 2'
+        )
+
     def test_obsoletion_locked_with_open_request(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -3997,12 +3928,16 @@ class TestUpdatesService(BasePyTestCase):
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
             status=400)
         assert resp.json['status'] == 'error'
-        assert resp.json['errors'][0]['description'] == config.get('not_yet_tested_msg')
+        exp = (
+            f"{config.get('not_yet_tested_msg')}: Test gating is disabled, but update has "
+            "less than 2 karma and has been in testing less than 7 days."
+        )
+        assert resp.json['errors'][0]['description'] == exp
 
-    def test_request_to_stable_based_on_stable_karma(self, *args):
+    def test_request_to_stable_based_on_minimum_karma(self, *args):
         """
-        Test request to stable before an update reaches stable karma
-        and after it reaches stable karma when autokarma is disabled
+        Test request to stable before and after an update reaches minimum
+        karma threshold when autokarma is disabled
         """
         user = User(name='bob')
         self.db.add(user)
@@ -4011,7 +3946,6 @@ class TestUpdatesService(BasePyTestCase):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['autokarma'] = False
-        args['stable_karma'] = 1
         with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
                                     update_schemas.UpdateRequestTestingV1):
             response = self.app.post_json('/updates/', args)
@@ -4020,13 +3954,15 @@ class TestUpdatesService(BasePyTestCase):
         up.status = UpdateStatus.testing
         up.request = None
         assert len(up.builds) == 1
+        # just to set our base expectation
+        assert up.release.min_karma == 2
         up.test_gating_status = TestGatingStatus.passed
         # Clear pending messages
         self.db.info['messages'] = []
         self.db.commit()
 
-        # Checks failure for requesting to stable push before the update reaches stable karma
-        up.comment(self.db, 'Not working', author='ralph', karma=0)
+        # Checks failure for requesting to stable push before the update reaches min karma
+        up.comment(self.db, 'LGTM', author='ralph', karma=1)
 
         with fml_testing.mock_sends(api.Message):
             self.app.post_json(
@@ -4038,8 +3974,8 @@ class TestUpdatesService(BasePyTestCase):
         assert up.request is None
         assert up.status == UpdateStatus.testing
 
-        # Checks Success for requesting to stable push after the update reaches stable karma
-        up.comment(self.db, 'LGTM', author='ralph', karma=1)
+        # Checks Success for requesting to stable push after the update reaches min karma
+        up.comment(self.db, 'LGTM', author='foo', karma=2)
 
         with fml_testing.mock_sends(api.Message, api.Message):
             self.app.post_json(
@@ -4854,7 +4790,7 @@ class TestUpdatesService(BasePyTestCase):
         status = up.status
         request = up.request
         # just for clarity that stable_karma is not lower and both are reached
-        assert up.release.critpath_min_karma == 2
+        assert up.release.min_karma == 2
         up.comment(self.db, "foo", 1, 'biz')
         # nothing should have changed yet, on any path. we don't need to test the
         # messages published so far here, either
@@ -4878,7 +4814,7 @@ class TestUpdatesService(BasePyTestCase):
     def test_autopush_reached_main(self, autokarma, cbb, critpath, status):
         """The update should be autopushed (request set to stable) if update reaches
         stable_karma, autokarma is on and release is composed by Bodhi, whether or not the update
-        is critical path (so long as stable_karma is not lower than critpath_min_karma), and
+        is critical path (so long as stable_karma is not lower than min_karma), and
         whether its status is testing or pending. This test covers the main cases for autopush.
         Subsequent tests cover some other cases where updates that otherwise would be autopushed
         are not; these aren't covered in this test for reasons explained in the docstring of
@@ -4959,40 +4895,41 @@ class TestUpdatesService(BasePyTestCase):
     @pytest.mark.parametrize('critpath', (True, False))
     def test_autopush_reached_critpath_not(self, critpath, status):
         """If the stable_karma threshold is reached but it is lower than the release's
-        critpath_min_karma threshold and that is not reached, autopush should happen for
-        a non-critpath update but not for a critpath update. For a critpath update, if
-        status is testing, the request should not be changed; if it's pending, the
-        request should be changed to testing.
+        min_karma threshold and that is not reached, autopush should not happen
+        (whether or not the update is critical path). It should be very uncommon to
+        encounter this situation these days because we disallow setting the stable_karma
+        threshold lower than min_karma when creating or editing an update, but it
+        could theoretically happen if min_karma for a release was increased while an
+        update which had stable_karma set to the previous minimum value was in-flight.
         """
         up = self._prepare_autopush_update()
         up.critpath = critpath
         up.status = status
         up.stable_karma = 1
-        assert up.release.critpath_min_karma == 2
+        assert up.release.min_karma == 2
         # we don't use _reach_autopush_threshold here because this is a bit different
         with mock.patch('bodhi.server.models.notifications.publish', autospec=True) as publish:
             _, caveats = up.comment(self.db, "foo", 1, 'biz')
             msgs = [type(call[0][0]) for call in publish.call_args_list]
         assert up.karma == 1
-        if critpath and status is UpdateStatus.testing:
+        if status is UpdateStatus.testing:
             assert up.request is None
             # we should not set this, really, but currently we do
             assert up.date_approved is not None
             assert msgs == [update_schemas.UpdateCommentV1]
+            days = 7
+            if critpath:
+                days = 14
             assert caveats == (
                 [{'name': 'karma',
-                  'description': ('This critical path update has not yet been approved for pushing '
-                                  'to the stable repository.  It must first reach a karma of 2, '
-                                  'consisting of 0 positive karma from proventesters, along with 2 '
-                                  'additional karma from the community. Or, it must spend 14 days '
-                                  'in testing without any negative feedback')}])
+                  'description': ('This update has not yet met the minimum testing requirements '
+                                  'defined in the <a href="https://fedoraproject.org/wiki/'
+                                  'Package_update_acceptance_criteria">Package Update Acceptance '
+                                  'Criteria</a>: Test gating is disabled, but update has less than '
+                                  f'2 karma and has been in testing less than {days} days.')}])
         else:
-            if critpath:
-                assert up.request is UpdateRequest.testing
-                reqmsg = update_schemas.UpdateRequestTestingV1
-            else:
-                assert up.request is UpdateRequest.stable
-                reqmsg = update_schemas.UpdateRequestStableV1
+            assert up.request is UpdateRequest.testing
+            reqmsg = update_schemas.UpdateRequestTestingV1
             assert up.date_approved is not None
             assert msgs == [
                 reqmsg,
@@ -5076,14 +5013,29 @@ class TestUpdatesService(BasePyTestCase):
         assert 'Push to Stable' not in resp
         assert '<span class="fa fa-fw fa-pencil-square-o"></span> Edit' not in resp
 
-    @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
-    @mock.patch('bodhi.server.models.Update.update_test_gating_status')
-    def test_push_to_stable_button_not_present_when_test_gating_status_failed(self, update_tg):
-        """The push to stable button should not appear if the test_gating_status is failed."""
+    @pytest.mark.parametrize(
+        'tgon,tgmet,karmamet,timemet,urgent,critpath,frozen,present',
+        (
+            (True, True, True, False, False, False, False, True),
+            (True, True, True, False, True, False, False, True),
+            (True, True, True, False, False, True, False, True),
+            (True, True, True, False, True, False, True, False),
+            (True, False, True, True, False, False, False, False),
+            (False, False, True, False, False, False, False, True),
+            (False, False, False, True, False, False, False, True),
+            (False, False, False, False, False, False, False, False),
+            (False, False, False, False, True, False, False, False),
+            (False, False, False, False, False, True, False, False),
+        )
+    )
+    def test_push_to_stable_button_presence(
+        self, tgon, tgmet, karmamet, timemet, urgent, critpath, frozen, present
+    ):
+        """The push to stable button should be present when the update meets
+        requirements, but not otherwise. Whether the update is urgent or
+        critical path should not matter."""
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        update_tg.return_value = TestGatingStatus.failed
-
         with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
                                     update_schemas.UpdateRequestTestingV1):
             resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
@@ -5093,226 +5045,38 @@ class TestUpdatesService(BasePyTestCase):
         update.request = None
         update.pushed = True
         update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = TestGatingStatus.failed
-        update.comment(self.db, 'works', 1, 'bowlofeggs')
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-        self.registry.settings['test_gating.required'] = True
-
-        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
-
-        assert 'Push to Stable' not in resp
-        assert 'Edit' in resp
-
-    @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
-    @mock.patch('bodhi.server.models.Update.update_test_gating_status')
-    def test_push_to_stable_button_present_when_test_gating_status_passed(self, update_tg):
-        """The push to stable button should appear if the test_gating_status is passed."""
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        update_tg.return_value = TestGatingStatus.passed
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
-
-        update = Update.get(resp.json['alias'])
-        update.status = UpdateStatus.testing
-        update.request = None
-        update.pushed = True
-        update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = TestGatingStatus.passed
-        update.comment(self.db, 'works', 1, 'bowlofeggs')
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-        self.registry.settings['test_gating.required'] = True
-
-        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
-
-        assert 'Push to Stable' in resp
-        assert 'Edit' in resp
-
-    def test_push_to_stable_button_present_when_karma_reached(self, *args):
-        """
-        Assert that the "Push to Stable" button appears when the required karma is
-        reached.
-        """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        update = Update.get(resp.json['alias'])
-        update.status = UpdateStatus.testing
-        update.request = None
-        update.pushed = True
-        update.autokarma = False
-        update.stable_karma = 1
-        update.comment(self.db, 'works', 1, 'bowlofeggs')
+        if urgent:
+            update.severity = UpdateSeverity.urgent
+        if critpath:
+            update.critpath = True
+        if frozen:
+            # specific set of conditions we want to make sure the
+            # button does not appear in
+            update.release.state = ReleaseState.frozen
+            update.status = UpdateStatus.pending
+            update.pushed = False
+        if tgmet:
+            update.test_gating_status = TestGatingStatus.passed
+        else:
+            update.test_gating_status = TestGatingStatus.failed
+        if karmamet:
+            update.comment(self.db, 'works', 1, 'bowlofeggs')
+            update.comment(self.db, 'works', 1, 'ralph')
+        if timemet:
+            # This update has been in testing a while, so a "Push to Stable" button should appear.
+            update.date_testing = datetime.now() - timedelta(days=30)
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
 
-        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
+        with mock.patch.dict(config, [('test_gating.required', tgon)]):
+            resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
-        # Checks Push to Stable text in the html page for this update
         assert 'text/html' in resp.headers['Content-Type']
         assert nvr in resp
-        assert 'Push to Stable' in resp
-        assert 'Edit' in resp
-
-    def test_push_to_stable_button_present_when_karma_reached_urgent(self, *args):
-        """
-        Assert that the "Push to Stable" button appears when the required karma is
-        reached for an urgent update.
-        """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        update = Update.get(resp.json['alias'])
-        update.severity = UpdateSeverity.urgent
-        update.status = UpdateStatus.testing
-        update.request = None
-        update.pushed = True
-        update.autokarma = False
-        update.stable_karma = 1
-        update.comment(self.db, 'works', 1, 'bowlofeggs')
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
-
-        # Checks Push to Stable text in the html page for this update
-        assert 'text/html' in resp.headers['Content-Type']
-        assert nvr in resp
-        assert 'Push to Stable' in resp
-        assert 'Edit' in resp
-
-    def test_push_to_stable_button_present_when_time_reached(self, *args):
-        """
-        Assert that the "Push to Stable" button appears when the required time in testing is
-        reached.
-        """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        update = Update.get(resp.json['alias'])
-        update.status = UpdateStatus.testing
-        update.request = None
-        update.pushed = True
-        # This update has been in testing a while, so a "Push to Stable" button should appear.
-        update.date_testing = datetime.now() - timedelta(days=30)
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
-
-        # Checks Push to Stable text in the html page for this update
-        assert 'text/html' in resp.headers['Content-Type']
-        assert nvr in resp
-        assert 'Push to Stable' in resp
-        assert 'Edit' in resp
-
-    def test_push_to_stable_button_present_when_time_reached_and_urgent(self, *args):
-        """
-        Assert that the "Push to Stable" button appears when the required time in testing is
-        reached.
-        """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        update = Update.get(resp.json['alias'])
-        update.severity = UpdateSeverity.urgent
-        update.status = UpdateStatus.testing
-        update.request = None
-        update.pushed = True
-        # This urgent update has been in testing a while, so a "Push to Stable" button should
-        # appear.
-        update.date_testing = datetime.now() - timedelta(days=30)
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
-
-        # Checks Push to Stable text in the html page for this update
-        assert 'text/html' in resp.headers['Content-Type']
-        assert nvr in resp
-        assert 'Push to Stable' in resp
-        assert 'Edit' in resp
-
-    def test_push_to_stable_button_present_when_time_reached_critpath(self, *args):
-        """
-        Assert that the "Push to Stable" button appears when it should for a critpath update.
-        """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        update = Update.get(resp.json['alias'])
-        update.status = UpdateStatus.testing
-        update.request = None
-        update.pushed = True
-        update.critpath = True
-        # This update has been in testing a while, so a "Push to Stable" button should appear.
-        update.date_testing = datetime.now() - timedelta(days=30)
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
-
-        # Checks Push to Stable text in the html page for this update
-        assert 'text/html' in resp.headers['Content-Type']
-        assert nvr in resp
-        assert 'Push to Stable' in resp
-        assert 'Edit' in resp
-
-    def test_push_to_stable_button_not_present_when_karma_reached_and_frozen_release(self, *args):
-        """
-        Assert that the "Push to Stable" button is not displayed when the required karma is
-        reached, but the release is frozen and the update is still pending.
-        """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        update = Update.get(resp.json['alias'])
-        update.status = UpdateStatus.pending
-        update.request = UpdateRequest.testing
-        update.pushed = False
-        update.autokarma = False
-        update.stable_karma = 1
-        update.release.state = ReleaseState.frozen
-        update.comment(self.db, 'works', 1, 'bowlofeggs')
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
-
-        # Checks Push to Stable text in the html page for this update
-        assert 'text/html' in resp.headers['Content-Type']
-        assert nvr in resp
-        assert 'Push to Stable' not in resp
+        if present:
+            assert 'Push to Stable' in resp
+        else:
+            assert 'Push to Stable' not in resp
         assert 'Edit' in resp
 
     def assert_severity_html(self, severity, text=()):
@@ -5405,115 +5169,6 @@ class TestUpdatesService(BasePyTestCase):
         assert 'text/html' in resp.headers['Content-Type']
         assert nvr in resp
         assert '<strong>Update Severity</strong>' not in resp
-
-    def test_manually_push_to_stable_based_on_karma_request_none(self, *args):
-        """
-        Test manually push to stable when autokarma is disabled
-        and karma threshold is reached
-
-        This test starts the update with request None.
-        """
-        user = User(name='bob')
-        self.db.add(user)
-        self.db.commit()
-
-        # Makes autokarma disabled
-        # Sets stable karma to 1
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = False
-        args['stable_karma'] = 1
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        # Marks it as no request
-        upd = Update.get(resp.json['alias'])
-        upd.status = UpdateStatus.testing
-        upd.request = None
-        upd.pushed = True
-        upd.date_testing = datetime.now() - timedelta(days=1)
-        # Clear pending messages
-        self.db.info['messages'] = []
-        self.db.commit()
-
-        # Checks karma threshold is reached
-        # Makes sure stable karma is not None
-        # Ensures Request doesn't get set to stable automatically since autokarma is disabled
-        upd.comment(self.db, 'LGTM', author='ralph', karma=1)
-        upd = Update.get(upd.alias)
-        assert upd.karma == 1
-        assert upd.stable_karma == 1
-        assert upd.status == UpdateStatus.testing
-        assert upd.request is None
-        assert upd.autokarma is False
-        assert upd.pushed is True
-
-        text = str(config.get('testing_approval_msg'))
-        upd.comment(self.db, text, author='bodhi')
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        # Checks Push to Stable text in the html page for this update
-        resp = self.app.get(f'/updates/{upd.alias}',
-                            headers={'Accept': 'text/html'})
-        assert 'text/html' in resp.headers['Content-Type']
-        assert upd.builds[0].nvr in resp
-        assert 'Push to Stable' in resp
-
-    def test_manually_push_to_stable_based_on_karma_request_testing(self, *args):
-        """
-        Test manually push to stable when autokarma is disabled
-        and karma threshold is reached. Ensure that the option/button to push to
-        stable is not present prior to entering the stable request state.
-
-        This test starts the update with request testing.
-        """
-
-        # Disabled
-        # Sets stable karma to 1
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = False
-        args['stable_karma'] = 1
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        # Marks it as testing
-        upd = Update.get(resp.json['alias'])
-        upd.status = UpdateStatus.testing
-        upd.pushed = True
-        upd.request = None
-        upd.date_testing = datetime.now() - timedelta(days=1)
-        # Clear pending messages
-        self.db.info['messages'] = []
-        self.db.commit()
-
-        # Checks karma threshold is reached
-        # Makes sure stable karma is not None
-        # Ensures Request doesn't get set to stable automatically since autokarma is disabled
-        upd.comment(self.db, 'LGTM', author='ralph', karma=1)
-        upd = Update.get(upd.alias)
-        assert upd.karma == 1
-        assert upd.stable_karma == 1
-        assert upd.status == UpdateStatus.testing
-        assert upd.request is None
-        assert upd.autokarma is False
-
-        text = str(config.get('testing_approval_msg'))
-        upd.comment(self.db, text, author='bodhi')
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        # Checks Push to Stable text in the html page for this update
-        resp = self.app.get(f'/updates/{upd.alias}',
-                            headers={'Accept': 'text/html'})
-        assert 'text/html' in resp.headers['Content-Type']
-        assert upd.builds[0].nvr in resp
-        assert 'Push to Stable' in resp
 
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
     @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
@@ -5758,7 +5413,6 @@ class TestUpdatesService(BasePyTestCase):
         update.request = None
         update.critpath = True
         update.autokarma = True
-        update.date_testing = datetime.utcnow() + timedelta(days=-20)
         update.comment(self.db, 'lgtm', author='friend', karma=1)
         update.comment(self.db, 'lgtm', author='friend2', karma=1)
         update.comment(self.db, 'bad', author='enemy', karma=-1)
