@@ -27,6 +27,7 @@ import re
 import time
 import typing
 import uuid
+import warnings
 
 from mediawiki import MediaWiki
 from packaging.version import parse as parse_version
@@ -887,22 +888,22 @@ class Release(Base):
     composes = relationship('Compose', back_populates='release')
 
     @property
-    def critpath_min_karma(self) -> int:
+    def min_karma(self) -> int:
         """
-        Return the min_karma for critpath updates for this release.
+        Return the min_karma for updates for this release.
 
-        If the release doesn't specify a min_karma, the default critpath.min_karma setting is used
+        If the release doesn't specify a min_karma, the default min_karma setting is used
         instead.
 
         Returns:
-            The minimum karma required for critical path updates for this release.
+            The minimum karma required for updates for this release.
         """
         if self.setting_status:
             min_karma = config.get(
-                f'{self.setting_prefix}.{self.setting_status}.critpath.min_karma', None)
+                f'{self.setting_prefix}.{self.setting_status}.min_karma', None)
             if min_karma:
                 return int(min_karma)
-        return config.get('critpath.min_karma')
+        return config.get('min_karma')
 
     @property
     def version_int(self):
@@ -948,11 +949,11 @@ class Release(Base):
         """
         if self.setting_status:
             days = config.get(f'{self.setting_prefix}.{self.setting_status}'
-                              f'.critpath.stable_after_days_without_negative_karma', None)
+                              f'.critpath.mandatory_days_in_testing', None)
             if days is not None:
                 return int(days)
 
-        return config.get('critpath.stable_after_days_without_negative_karma', 0)
+        return config.get('critpath.mandatory_days_in_testing', 0)
 
     @property
     def collection_name(self):
@@ -2530,6 +2531,16 @@ class Update(Base):
                                f"release value of {up.mandatory_days_in_testing} days"
             })
 
+        # We also need to make sure stable_karma is not set below
+        # the policy minimum for this release
+        if release.min_karma > up.stable_karma:
+            up.stable_karma = release.min_karma
+            caveats.append({
+                'name': 'stable karma',
+                'description': "The stable karma required was set to the mandatory "
+                               f"release value of {release.min_karma}"
+            })
+
         log.debug(f"Adding new update to the db {up.alias}.")
         db.add(up)
         log.debug(f"Triggering db commit for new update {up.alias}.")
@@ -2597,6 +2608,16 @@ class Update(Base):
                 'name': 'stable days',
                 'description': "The number of stable days required was raised to the mandatory "
                                f"release value of {up.mandatory_days_in_testing} days"
+            })
+
+        # We also need to make sure stable_karma is not set below
+        # the policy minimum for this release
+        if up.release.min_karma > data.get('stable_karma', up.stable_karma):
+            data['stable_karma'] = up.release.min_karma
+            caveats.append({
+                'name': 'stable karma',
+                'description': "The stable karma required was raised to the mandatory "
+                               f"release value of {up.release.min_karma}"
             })
 
         # Determine which builds have been added
@@ -3128,57 +3149,25 @@ class Update(Base):
                 'The release of this update is frozen and the update has not yet been '
                 'pushed to testing. It is currently not possible to push it to stable.')
 
-        # Disable pushing critical path updates for pending releases directly to stable
-        if action == UpdateRequest.stable and self.critpath:
-            if config.get('critpath.num_admin_approvals') is not None:
-                if not self.critpath_approved:
-                    stern_note = (
-                        'This critical path update has not yet been approved for pushing to the '
-                        'stable repository.  It must first reach a karma of %s, consisting of %s '
-                        'positive karma from proventesters, along with %d additional karma from '
-                        'the community. Or, it must spend %s days in testing without any negative '
-                        'feedback')
-                    additional_karma = config.get('critpath.min_karma') \
-                        - config.get('critpath.num_admin_approvals')
-                    stern_note = stern_note % (
-                        config.get('critpath.min_karma'),
-                        config.get('critpath.num_admin_approvals'),
-                        additional_karma,
-                        config.get('critpath.stable_after_days_without_negative_karma'))
-                    if config.get('test_gating.required'):
-                        stern_note += ' Additionally, it must pass automated tests.'
-                    notes.append(stern_note)
+        # Don't allow push to stable unless testing requirements are met
+        if action == UpdateRequest.stable:
+            met, reason = self.meets_requirements_why
+            if not met:
+                if self.release.id_prefix == "FEDORA-EPEL":
+                    msg = config.get('not_yet_tested_epel_msg')
+                else:
+                    msg = config.get('not_yet_tested_msg')
+                msg = f'{msg}: {reason}'
+                notes.append(msg)
 
-                    if self.status is UpdateStatus.testing:
-                        self.request = None
-                        raise BodhiException('. '.join(notes))
-                    else:
-                        log.info('Forcing critical path update into testing')
-                        action = UpdateRequest.testing
-
-        # Ensure this update meets the minimum testing requirements
-        flash_notes = ''
-        if action == UpdateRequest.stable and not self.critpath:
-            # Check if we've met the karma requirements
-            if self.karma >= self.stable_karma or self.critpath_approved:
-                log.debug('%s meets stable karma requirements' % self.alias)
-            else:
-                # If we haven't met the stable karma requirements, check if it
-                # has met the mandatory time-in-testing requirements
-                if self.mandatory_days_in_testing:
-                    if not self.has_stable_comment and \
-                       not self.meets_testing_requirements:
-                        if self.release.id_prefix == "FEDORA-EPEL":
-                            flash_notes = config.get('not_yet_tested_epel_msg')
-                        else:
-                            flash_notes = config.get('not_yet_tested_msg')
-                        if self.status is UpdateStatus.testing:
-                            self.request = None
-                            raise BodhiException(flash_notes)
-                        elif self.request is UpdateRequest.testing:
-                            raise BodhiException(flash_notes)
-                        else:
-                            action = UpdateRequest.testing
+                if self.status is UpdateStatus.testing:
+                    self.request = None
+                    raise BodhiException('. '.join(notes))
+                elif self.request is UpdateRequest.testing:
+                    raise BodhiException('. '.join(notes))
+                else:
+                    log.info('Forcing update into testing')
+                    action = UpdateRequest.testing
 
         # Add the appropriate 'pending' koji tag to this update, so tools
         # could compose repositories of them for testing.
@@ -3200,10 +3189,9 @@ class Update(Base):
         self.request = action
 
         notes = notes and '. '.join(notes) + '.' or ''
-        flash_notes = flash_notes and '. %s' % flash_notes
         log.debug(
-            "%s has been submitted for %s. %s%s" % (
-                self.alias, action.description, notes, flash_notes))
+            "%s has been submitted for %s. %s" % (
+                self.alias, action.description, notes))
 
         comment_text = 'This update has been submitted for %s by %s. %s' % (
             action.description, username, notes)
@@ -3597,8 +3585,8 @@ class Update(Base):
                     pass
                 except BodhiException as e:
                     # This gets thrown if the karma is pushed over the
-                    # threshold, but it is a critpath update that is not
-                    # critpath_approved. ... among other cases.
+                    # threshold, but it does not meet testing requirements
+                    # for some reason (failed gating test...)
                     log.exception('Problem checking the karma threshold.')
                     caveats.append({
                         'name': 'karma', 'description': str(e),
@@ -3774,27 +3762,23 @@ class Update(Base):
 
     def check_requirements(self, session, settings):
         """
-        Check that an update meets its self-prescribed policy to be pushed.
+        Check that an update meets all requirements to be pushed stable.
+
+        See https://docs.fedoraproject.org/en-US/fesco/Updates_Policy .
+        Deprecated in favor of meets_requirements_why property.
 
         Args:
             session (sqlalchemy.orm.session.Session): A database session. Unused.
-            settings (bodhi.server.config.BodhiConfig): Bodhi's settings.
+            settings (bodhi.server.config.BodhiConfig): Bodhi's settings. Unused.
         Returns:
             tuple: A tuple containing (result, reason) where result is a bool
                 and reason is a str.
         """
-        # TODO - check require_bugs and require_testcases also?
-        if config.get('test_gating.required'):
-            if self.test_gating_status == TestGatingStatus.passed:
-                return (True, "All required tests passed or were waived.")
-            elif self.test_gating_status in (TestGatingStatus.ignored, None):
-                return (True, "No checks required.")
-            elif self.test_gating_status == TestGatingStatus.waiting:
-                return (False, "Required tests for this update are still running.")
-            else:
-                return (False, "Required tests did not pass on this update.")
-
-        return (True, "No checks required.")
+        warnings.warn(
+            "check_requirements is deprecated, use meets_requirements_why instead",
+            DeprecationWarning,
+        )
+        return self.meets_requirements_why
 
     def check_karma_thresholds(self, db, agent):
         """
@@ -3896,55 +3880,73 @@ class Update(Base):
         Returns:
             bool: True if this update meets critpath testing requirements, False otherwise.
         """
-        # https://fedorahosted.org/bodhi/ticket/642
-        if self.meets_testing_requirements:
-            return True
-        min_karma = self.release.critpath_min_karma
-        if self.release.setting_status:
-            num_admin_approvals = config.get(
-                f'{self.release.setting_prefix}.{self.release.setting_status}'
-                '.critpath.num_admin_approvals')
-            if num_admin_approvals is not None and min_karma:
-                return self.num_admin_approvals >= int(num_admin_approvals) and \
-                    self.karma >= min_karma
-        return self.num_admin_approvals >= config.get('critpath.num_admin_approvals') and \
-            self.karma >= min_karma
+        warnings.warn(
+            "critpath_approved is deprecated, use meets_testing_requirements instead",
+            DeprecationWarning,
+        )
+        return self.meets_testing_requirements
+
+    @property
+    def meets_requirements_why(self):
+        """
+        Return whether or not this update meets its release's testing requirements and why.
+
+        Checks gating requirements and then minimum karma and wait requirements, see
+        https://docs.fedoraproject.org/en-US/fesco/Updates_Policy . Note this is
+        checking the minimum policy requirements for a manual push (as specified in
+        the release configuration), not the per-update thresholds for an automatic push.
+        Before updates-testing enablement the minimum wait will be 0, so unless the gating
+        check fails, this will always return True.
+
+        FIXME: we should probably wire up the test case and bug feedback requirements
+        that are shown in the UI but not currently enforced.
+
+        Returns:
+            tuple: A tuple containing (result, reason) where result is a bool
+                and reason is a str.
+        """
+        req_days = self.mandatory_days_in_testing
+        req_karma = self.release.min_karma
+
+        if config.get('test_gating.required'):
+            tgs = self.test_gating_status
+            if tgs in (TestGatingStatus.waiting, TestGatingStatus.queued, TestGatingStatus.running):
+                return (False, "Required tests for this update are queued or running.")
+            elif tgs == TestGatingStatus.greenwave_failed:
+                return (False, "Greenwave failed to respond.")
+            elif tgs == TestGatingStatus.passed:
+                basemsg = "All required tests passed or were waived"
+            elif tgs == TestGatingStatus.ignored:
+                basemsg = "No checks required"
+            else:
+                return (False, "Required tests did not pass on this update.")
+        else:
+            basemsg = "Test gating is disabled,"
+
+        if self.karma >= req_karma:
+            return (True, basemsg + f" and the update has at least {req_karma} karma.")
+
+        if not req_days:
+            return (True, basemsg + " and there is no minimum wait set.")
+
+        # Any update that reaches req_days has met the testing requirements.
+        if self.days_in_testing >= req_days:
+            return (True, basemsg + " and update meets the wait time requirement.")
+        return (False,
+                basemsg + f" but update has less than {req_karma} karma and has been in testing "
+                f"less than {req_days} days.")
 
     @property
     def meets_testing_requirements(self):
         """
         Return whether or not this update meets its release's testing requirements.
 
-        If this update's release does not have a mandatory testing requirement, then
-        simply return True.
+        Same as meets_requirements_why, but without the reason.
 
         Returns:
             bool: True if the update meets testing requirements, False otherwise.
         """
-        num_days = self.mandatory_days_in_testing
-
-        if config.get('test_gating.required') and not self.test_gating_passed:
-            return False
-
-        if self.karma >= self.release.critpath_min_karma:
-            return True
-
-        if self.critpath:
-            # Ensure there is no negative karma. We're looking at the sum of
-            # each users karma for this update, which takes into account
-            # changed votes.
-            if self._composite_karma[1] < 0:
-                return False
-            return self.days_in_testing >= num_days
-
-        if not num_days:
-            return True
-
-        if self.karma >= self.stable_karma:
-            return True
-
-        # Any update that reaches num_days has met the testing requirements.
-        return self.days_in_testing >= num_days
+        return self.meets_requirements_why[0]
 
     @property
     def has_stable_comment(self):
@@ -3996,25 +3998,6 @@ class Update(Base):
             return (datetime.utcnow() - self.date_testing).days
         else:
             return 0
-
-    @property
-    def num_admin_approvals(self):
-        """
-        Return the number of Releng/QA approvals of this update.
-
-        Returns:
-            int: The number of admin approvals found in the comments of this update.
-        """
-        approvals = 0
-        for comment in self.comments_since_karma_reset:
-            if comment.karma != 1:
-                continue
-            admin_groups = config.get('admin_groups')
-            for group in comment.user.groups:
-                if group.name in admin_groups:
-                    approvals += 1
-                    break
-        return approvals
 
     @property
     def test_cases(self):

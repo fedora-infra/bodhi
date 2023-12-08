@@ -469,7 +469,7 @@ class ComposerThread(threading.Thread):
         """Eject Updates that don't meet testing requirements from the compose."""
         log.debug('Performing gating.')
         for update in self.compose.updates:
-            result, reason = update.check_requirements(self.db, config)
+            result, reason = update.meets_requirements_why
             if not result:
                 log.warning("%s failed gating: %s" % (update.alias, reason))
                 self.eject_from_compose(update, reason)
