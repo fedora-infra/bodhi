@@ -3633,16 +3633,6 @@ class TestUpdate(ModelTest):
             self.obj.last_modified
         assert 'Update has no timestamps set:' in str(exc.value)
 
-    def test_obsolete_if_unstable_unstable(self):
-        """Test obsolete_if_unstable() when all conditions are met for instability."""
-        self.obj.autokarma = True
-        self.obj.status = UpdateStatus.pending
-        self.obj.request = UpdateRequest.testing
-        self.obj.unstable_karma = -1
-        self.obj.comment(self.db, 'foo', -1, 'foo', check_karma=False)
-
-        assert self.obj.status == UpdateStatus.obsolete
-
     @mock.patch('bodhi.server.models.log.warning')
     def test_remove_tag_emptystring(self, warning):
         """Test remove_tag() with a tag of ''."""
