@@ -175,6 +175,9 @@ class TestMain(BaseTaskTestCase):
         self.update.autotime = True
         # a sprinkling of possible cases just to make sure our logic isn't broken
         # and we're not somehow relying on defaults
+        if stable_days < 7:
+            # our test config sets it to 7, so need to override it
+            config["fedora.mandatory_days_in_testing"] = stable_days
         self.update.stable_days = stable_days
         if stable_days > 0:
             # in this case we need to make sure we look like we've been in testing

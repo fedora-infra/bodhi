@@ -360,13 +360,7 @@ class BodhiConfig(dict):
         'critpath.jsonpath': {
             'value': '/etc/bodhi/critpath',
             'validator': str},
-        'critpath.min_karma': {
-            'value': 2,
-            'validator': int},
-        'critpath.num_admin_approvals': {
-            'value': 2,
-            'validator': int},
-        'critpath.stable_after_days_without_negative_karma': {
+        'critpath.mandatory_days_in_testing': {
             'value': 14,
             'validator': int},
         'critpath.type': {
@@ -452,6 +446,9 @@ class BodhiConfig(dict):
         'mako.directories': {
             'value': 'bodhi.server:templates',
             'validator': str},
+        'min_karma': {
+            'value': 2,
+            'validator': int},
         'mandatory_packager_groups': {
             'value': ['packager'],
             'validator': _generate_list_validator()},
