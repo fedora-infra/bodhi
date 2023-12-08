@@ -186,6 +186,8 @@ class TestCommentsService(base.BasePyTestCase):
         assert res.json_body['comment']['update']['karma'] == 1
 
     def test_commenting_twice_with_positive_then_negative_karma(self):
+        up = self.db.query(Build).filter_by(nvr=up2).one().update
+        up.autokarma = up.autotime = 0
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
             res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
 
@@ -208,6 +210,8 @@ class TestCommentsService(base.BasePyTestCase):
         assert res.json_body['caveats'][0]['description'] == 'Your karma standing was reversed.'
 
     def test_commenting_with_negative_karma(self):
+        up = self.db.query(Build).filter_by(nvr=up2).one().update
+        up.autokarma = up.autotime = 0
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
             res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
 
