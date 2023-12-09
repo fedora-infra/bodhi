@@ -4,6 +4,121 @@ Release notes
 
 .. towncrier release notes start
 
+v8.0.0
+======
+
+
+
+Released on 2023-12-09.
+This is a major release that introduces several breaking changes. Please read
+the details below and make sure to update any customized value in your config
+file.
+
+
+Backwards incompatible changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The 'required testcases' feature is removed, as it mostly just duplicated
+  what we do with Greenwave, only worse. The SaveUpdate schema is modified
+  (:pr:`5548`).
+* The custom `skopeo-light` script has been dropped. Please adjust your config
+  file to use the real skopeo command (:issue:`5505`).
+* Build NVRs are added to the Bugzilla comment. Please adjust `initial_bug_msg`
+  in Bodhi config during upgrade (:issue:`5513`).
+* Settings for repodata and updateinfo can now be set by an external config
+  file and no more hardcoded. Custom settings can be applied per Release, see
+  the `devel/ci/integration/bodhi/createrepo_c.ini` file for reference
+  (:issue:`5521`).
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* libcomps >= 0.20 is required to correctly validate repodata created with
+  createrepo_c >= 1.0. Bodhi can now support all compression method available
+  in createrepo_c (:pr:`5455`).
+* Authentication and Authorization have been ported to Pyramid 2.0 Security
+  Policies and session serializer has been switched from PickleSerializer to
+  JSONSerializer. Bodhi will now require Pyramid > 2.0. (:issue:`5091`).
+* Bodhi now can run with sqlalchemy 2. At the same time the minimum required
+  sqlalchemy version is raised to 1.4 (:issue:`5105`).
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Summary of the migrations:
+
+* The Release model has gained a `released_on` column which reports the date of
+  first release.
+* The `requirements` column has been removed from both Package and Update
+  models.
+* The `email` column of the User model has been modified to UnicodeText.
+
+
+Features
+^^^^^^^^
+
+* Support for storing critical path data in PDC is removed, as it is no longer
+  needed (:pr:`5431`).
+* Server: added a `get_critpath_components` json endpoint to list critical path
+  components configured for a Release (:pr:`5484`).
+* The release timeline graph now uses logarithmic scale for better display
+  (:pr:`5492`).
+* The webUI now allows unpushing Rawhide updates which fail gating tests
+  (:pr:`5542`).
+* Releases can now inherit buildroot override tags from other releases by
+  settings in Bodhi config file (:issue:`4737`).
+* Update notes are now converted to plaintext when printed in email or messages
+  (:issue:`5049`).
+* Members of QA groups defined in configuration are now able to waive or
+  trigger tests for any update, despite they're packagers/provenpackagers or
+  not (:issue:`5448`).
+* Make the update.comment message schema more informative (:issue:`5469`).
+* Release data now give information about the status of `pre_beta` and
+  `post_beta` and of the first date of release (:issue:`5481`).
+* Builds associated to unpushed updates can now be moved to other existing
+  updates (:issue:`5485`).
+* JSON APIs now support quering Releases by multiple states, for example
+  `?state=pending&state=frozen` (:issue:`5518`).
+* The UpdateReadyForTesting message format is simplified, and the message is
+  now published on update creation and edit with changed builds instead of push
+  to testing (:issue:`5538`).
+
+Bug fixes
+^^^^^^^^^
+
+* Exclude locked updates being composed from being modified by cron tasks
+  (:pr:`5524`).
+* WebUI will not show the "push to testing" option meanwhile the update is
+  waiting for builds to be signed (:pr:`5550`).
+* Updates ejected from the composes would remain stuck in pending state due to
+  wrong tags applied to thei builds (:issue:`5396`).
+* Usernames containing a `-` are now correctly matched when mentioning
+  (:issue:`5453`).
+* Sidetags in the dropdown of the new update form are now sorted alphabetically
+  (:issue:`5470`).
+* Fixed "cannot access local variable 'tags'" error when editing flatpak
+  updates (:issue:`5503`).
+* The new update page now displays a meaningful page title (:issue:`5540`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Aurélien Bompard
+* Adam Williamson
+* Jonathan Lebon
+* Lenka Segura
+* Mattia Verga
+* Owen W. Taylor
+* Ryan Lerch
+
+
 v7.2.2
 ======
 
