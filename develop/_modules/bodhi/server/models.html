@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bodhi.server.models &#8212; bodhi 7.2.2 documentation</title>
+    <title>bodhi.server.models &#8212; bodhi 8.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=71a681cb" />
-    <script src="../../../_static/documentation_options.js?v=9fcf24ae"></script>
+    <script src="../../../_static/documentation_options.js?v=f663eb4a"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -110,7 +110,6 @@
     <span class="n">get_rpm_header</span><span class="p">,</span>
     <span class="n">header</span><span class="p">,</span>
     <span class="n">pagure_api_get</span><span class="p">,</span>
-    <span class="n">tokenize</span><span class="p">,</span>
     <span class="n">build_names_by_type</span><span class="p">,</span>
     <span class="n">markdown_to_text</span><span class="p">,</span>
     <span class="n">wrap_text</span><span class="p">,</span>
@@ -1242,7 +1241,32 @@
         <span class="n">side_tag_postfix</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_prefix</span><span class="si">}</span><span class="s1">.koji-signing-pending-side-tag&#39;</span><span class="p">,</span> <span class="s2">&quot;-signing-pending&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">from_tag</span> <span class="o">+</span> <span class="n">side_tag_postfix</span></div>
-</div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">inherited_override_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the override tags inherited from other Releases.</span>
+
+<span class="sd">        The override tags inheritance is configured by defining the list of</span>
+<span class="sd">        Releases we should extend from in the config file the same way of setting_prefix.</span>
+<span class="sd">        For example, if the release is epel9-n using epel-9.override-extend=EPEL-9N,EPEL-8</span>
+<span class="sd">        will make this method to return the override tag set for EPEL-9N and EPEL-8.</span>
+
+<span class="sd">        Note: pay attention, &#39;epel-9.override-extend&#39; uses the release name in lowercase,</span>
+<span class="sd">        while the list of releases should match the release names case sensitive.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of override tags inherited from other releases.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">inheritance</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_prefix</span><span class="si">}</span><span class="s1">.override-extend&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inheritance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rel_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">Release</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">inheritance</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">rel</span> <span class="ow">in</span> <span class="n">rel_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">rel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">tags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rel</span><span class="o">.</span><span class="n">override_tag</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">tags</span><span class="p">))</span></div>
 
 
 
@@ -1282,8 +1306,6 @@
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        name (str): A text string that uniquely identifies the package.</span>
-<span class="sd">        requirements (str): A text string that lists space-separated taskotron test</span>
-<span class="sd">            results that must pass for this package</span>
 <span class="sd">        type (int): The polymorphic identity column. This is used to identify what Python</span>
 <span class="sd">            class to create when loading rows from the database.</span>
 <span class="sd">        builds (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Build` objects.</span>
@@ -1294,7 +1316,6 @@
     <span class="n">__exclude_columns__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;builds&#39;</span><span class="p">,)</span>
 
     <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">requirements</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">)</span>
     <span class="nb">type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ContentType</span><span class="o">.</span><span class="n">db_type</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="c1"># One-to-many relationships</span>
@@ -2108,8 +2129,6 @@
 <span class="sd">            needs to spend in testing before being automatically marked as stable.</span>
 <span class="sd">        unstable_karma (int): A positive integer that indicates the amount of &quot;bad&quot;</span>
 <span class="sd">            karma the update must receive before being automatically marked as unstable.</span>
-<span class="sd">        requirements (str): A list of taskotron tests that must pass for this</span>
-<span class="sd">            update to be considered stable.</span>
 <span class="sd">        require_bugs (bool): Indicates whether or not positive feedback needs to be</span>
 <span class="sd">            provided for the associated bugs before the update can be considered</span>
 <span class="sd">            stable.</span>
@@ -2184,7 +2203,6 @@
     <span class="n">stable_karma</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">stable_days</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">unstable_karma</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">requirements</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">)</span>
     <span class="n">require_bugs</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">require_testcases</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
@@ -2267,13 +2285,14 @@
         <span class="n">alias</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alias</span> <span class="o">=</span> <span class="n">alias</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">release_id</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;release&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">id</span>
+        <span class="c1"># we need this to be set for message publishing to work</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span><span class="p">)</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">Update</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Set alias for </span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_title</span><span class="p">(),</span> <span class="n">alias</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ready_for_testing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ready_for_testing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version_hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2765,15 +2784,6 @@
                 <span class="n">bugs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bug</span><span class="p">)</span>
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;bugs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bugs</span>
 
-        <span class="c1"># If no requirements are provided, then gather some defaults from the</span>
-        <span class="c1"># packages of the associated builds.</span>
-        <span class="c1"># See https://github.com/fedora-infra/bodhi/issues/101</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;requirements&#39;</span><span class="p">]:</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;requirements&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span>
-                <span class="nb">list</span><span class="p">(</span><span class="n">tokenize</span><span class="p">(</span><span class="n">pkg</span><span class="o">.</span><span class="n">requirements</span><span class="p">))</span> <span class="k">for</span> <span class="n">pkg</span> <span class="ow">in</span> <span class="p">[</span>
-                    <span class="n">build</span><span class="o">.</span><span class="n">package</span> <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;builds&#39;</span><span class="p">]</span>
-                <span class="p">]</span> <span class="k">if</span> <span class="n">pkg</span><span class="o">.</span><span class="n">requirements</span><span class="p">],</span> <span class="p">[]))))</span>
-
         <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;edited&#39;</span><span class="p">]</span>
 
         <span class="n">req</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;request&quot;</span><span class="p">,</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span><span class="p">)</span>
@@ -3000,6 +3010,11 @@
                 <span class="s1">&#39;removed_builds&#39;</span><span class="p">:</span> <span class="n">removed_builds</span>
             <span class="p">}</span>
         <span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">new_builds</span> <span class="ow">or</span> <span class="n">removed_builds</span><span class="p">)</span> <span class="ow">and</span> <span class="n">up</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">rpm</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="n">update_schemas</span><span class="o">.</span><span class="n">UpdateReadyForTestingV3</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="n">message</span><span class="o">=</span><span class="n">up</span><span class="o">.</span><span class="n">_build_group_test_message</span><span class="p">(</span><span class="n">agent</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">identity</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
         <span class="c1"># If editing a Pending update, all of whose builds are signed, for a release</span>
         <span class="c1"># which isn&#39;t composed by Bodhi (i.e. Rawhide), move it directly to Testing.</span>
@@ -3470,8 +3485,8 @@
                         <span class="k">else</span><span class="p">:</span>
                             <span class="n">action</span> <span class="o">=</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span>
 
-        <span class="c1"># Add the appropriate &#39;pending&#39; koji tag to this update, so tools like</span>
-        <span class="c1"># AutoQA can compose repositories of them for testing.</span>
+        <span class="c1"># Add the appropriate &#39;pending&#39; koji tag to this update, so tools</span>
+        <span class="c1"># could compose repositories of them for testing.</span>
         <span class="c1"># If it&#39;s a new side-tag update, koji tags are managed by the celery task</span>
         <span class="k">if</span> <span class="n">action</span> <span class="ow">is</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_tag</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">)</span>
@@ -4048,8 +4063,7 @@
                 <span class="s2">&quot;Can only revoke a pending, testing, unpushed, or obsolete &quot;</span>
                 <span class="s2">&quot;update, not one that is </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">description</span><span class="p">)</span>
 
-        <span class="c1"># Remove the &#39;pending&#39; koji tags from this update so taskotron stops</span>
-        <span class="c1"># evaluating them.</span>
+        <span class="c1"># Remove the &#39;pending&#39; koji tags from this update</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="ow">is</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">remove_tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">remove_tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">pending_testing_tag</span><span class="p">)</span>
@@ -4072,12 +4086,13 @@
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Untagging </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
         <span class="n">koji</span> <span class="o">=</span> <span class="n">buildsys</span><span class="o">.</span><span class="n">get_session</span><span class="p">()</span>
         <span class="n">tag_types</span><span class="p">,</span> <span class="n">tag_rels</span> <span class="o">=</span> <span class="n">Release</span><span class="o">.</span><span class="n">get_tags</span><span class="p">()</span>
+        <span class="n">override_tags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">inherited_override_tags</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">override_tag</span><span class="p">]</span>
         <span class="n">koji</span><span class="o">.</span><span class="n">multicall</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">builds</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">build</span><span class="o">.</span><span class="n">get_tags</span><span class="p">():</span>
                 <span class="c1"># Only remove tags that we know about</span>
                 <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tag_rels</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">preserve_override</span> <span class="ow">and</span> <span class="n">tag</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">override_tag</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">preserve_override</span> <span class="ow">and</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">override_tags</span><span class="p">:</span>
                         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skipping override tag&quot;</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">koji</span><span class="o">.</span><span class="n">untagBuild</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -4151,79 +4166,18 @@
 <span class="sd">            tuple: A tuple containing (result, reason) where result is a bool</span>
 <span class="sd">                and reason is a str.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test_gating.required&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_passed</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Required tests did not pass on this update&quot;</span><span class="p">)</span>
-
-        <span class="n">requirements</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">requirements</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">requirements</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">requirements</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">requirements</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;No checks required.&quot;</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># https://github.com/fedora-infra/bodhi/issues/362</span>
-            <span class="n">since</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_modified</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Failed to determine last_modified from </span><span class="si">%r</span><span class="s2"> : </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span>
-                          <span class="bp">self</span><span class="o">.</span><span class="n">last_modified</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Failed to determine last_modified: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># query results for this update</span>
-            <span class="n">query</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;bodhi_update&#39;</span><span class="p">,</span> <span class="n">item</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="n">since</span><span class="p">,</span>
-                         <span class="n">testcases</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">requirements</span><span class="p">))</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">taskotron_results</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="o">**</span><span class="n">query</span><span class="p">))</span>
-
-            <span class="c1"># query results for each build</span>
-            <span class="c1"># retrieve timestamp for each build so that queries can be optimized</span>
-            <span class="n">koji</span> <span class="o">=</span> <span class="n">buildsys</span><span class="o">.</span><span class="n">get_session</span><span class="p">()</span>
-            <span class="n">koji</span><span class="o">.</span><span class="n">multicall</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">builds</span><span class="p">:</span>
-                <span class="n">koji</span><span class="o">.</span><span class="n">getBuild</span><span class="p">(</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">)</span>
-            <span class="n">buildinfos</span> <span class="o">=</span> <span class="n">koji</span><span class="o">.</span><span class="n">multiCall</span><span class="p">()</span>
-
-            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">build</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">builds</span><span class="p">):</span>
-                <span class="n">multicall_response</span> <span class="o">=</span> <span class="n">buildinfos</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">multicall_response</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> \
-                        <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">multicall_response</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
-                    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Error retrieving data from Koji for </span><span class="si">%r</span><span class="s2">: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span>
-                           <span class="p">(</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">,</span> <span class="n">multicall_response</span><span class="p">))</span>
-                    <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-
-                <span class="n">buildinfo</span> <span class="o">=</span> <span class="n">multicall_response</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">ts</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcfromtimestamp</span><span class="p">(</span><span class="n">buildinfo</span><span class="p">[</span><span class="s1">&#39;completion_ts&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
-
-                <span class="n">query</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;koji_build&#39;</span><span class="p">,</span> <span class="n">item</span><span class="o">=</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="n">ts</span><span class="p">,</span>
-                             <span class="n">testcases</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">requirements</span><span class="p">))</span>
-                <span class="n">build_results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">taskotron_results</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="o">**</span><span class="n">query</span><span class="p">))</span>
-                <span class="n">results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">build_results</span><span class="p">)</span>
-
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Failed retrieving requirements results: </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Failed retrieving requirements results: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">testcase</span> <span class="ow">in</span> <span class="n">requirements</span><span class="p">:</span>
-            <span class="n">relevant</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span>
-                        <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;testcase&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">testcase</span><span class="p">]</span>
-
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">relevant</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;No result found for required testcase </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">testcase</span>
-
-            <span class="n">by_arch</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">relevant</span><span class="p">:</span>
-                <span class="n">arch</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;arch&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;noarch&#39;</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">by_arch</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-
-            <span class="k">for</span> <span class="n">arch</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">by_arch</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">latest</span> <span class="o">=</span> <span class="n">relevant</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># resultsdb results are ordered chronologically</span>
-                <span class="k">if</span> <span class="n">latest</span><span class="p">[</span><span class="s1">&#39;outcome&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;PASSED&#39;</span><span class="p">,</span> <span class="s1">&#39;INFO&#39;</span><span class="p">]:</span>
-                    <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Required task </span><span class="si">%s</span><span class="s2"> returned </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                        <span class="n">latest</span><span class="p">[</span><span class="s1">&#39;testcase&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="n">latest</span><span class="p">[</span><span class="s1">&#39;outcome&#39;</span><span class="p">])</span>
-
         <span class="c1"># TODO - check require_bugs and require_testcases also?</span>
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test_gating.required&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_status</span> <span class="o">==</span> <span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">passed</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;All required tests passed or were waived.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_status</span> <span class="ow">in</span> <span class="p">(</span><span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">ignored</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;No checks required.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_status</span> <span class="o">==</span> <span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">waiting</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Required tests for this update are still running.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Required tests did not pass on this update.&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;All checks pass.&quot;</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;No checks required.&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Update.check_karma_thresholds">
@@ -4299,23 +4253,11 @@
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">([</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span> <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">builds</span><span class="p">])</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">requirements_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a JSON representation of this update&#39;s requirements.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            str: A JSON representation of this update&#39;s requirements.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">tokenize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">requirements</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">)))</span>
-
-    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">last_modified</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the last time this update was edited or created.</span>
 
-<span class="sd">        This gets used specifically by taskotron/resultsdb queries so we only</span>
-<span class="sd">        query for test runs that occur *after* the last time this update</span>
-<span class="sd">        (in its current form) was in play.</span>
+<span class="sd">        This gets used for setting gating status - see _get_test_gating_status.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            datetime.datetime: The most recent time of modification or creation.</span>
@@ -4587,10 +4529,10 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build the dictionary sent when an update is ready to be tested.</span>
 
-<span class="sd">        This is used in bodhi.server.models.Update._ready_for_testing and in</span>
-<span class="sd">        bodhi.server.services.updates.trigger_tests which are the two places</span>
-<span class="sd">        where we send notifications about an update being ready to be tested</span>
-<span class="sd">        by any CI system.</span>
+<span class="sd">        This is used when we send notifications about an update being</span>
+<span class="sd">        ready to be tested by any CI system - on update creation, any</span>
+<span class="sd">        time the update is edited and its builds change, and if someone</span>
+<span class="sd">        sends a Re-Trigger Tests request via the web UI or API.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            agent (str): For the case where the message is sent as a test</span>
@@ -4601,59 +4543,40 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            dict: A dictionary corresponding to the message sent</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">contact</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Bodhi&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;admin@fp.o&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;team&quot;</span><span class="p">:</span> <span class="s2">&quot;Fedora CI&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;docs&quot;</span><span class="p">:</span> <span class="s2">&quot;https://docs.fedoraproject.org/en-US/ci/&quot;</span><span class="p">,</span>
-        <span class="p">}</span>
         <span class="n">builds</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">builds</span><span class="p">:</span>
             <span class="n">builds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;koji-build&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">build</span><span class="o">.</span><span class="n">get_build_id</span><span class="p">(),</span>
                 <span class="s2">&quot;task_id&quot;</span><span class="p">:</span> <span class="n">build</span><span class="o">.</span><span class="n">get_task_id</span><span class="p">(),</span>
-                <span class="s2">&quot;issuer&quot;</span><span class="p">:</span> <span class="n">build</span><span class="o">.</span><span class="n">get_owner_name</span><span class="p">(),</span>
-                <span class="s2">&quot;component&quot;</span><span class="p">:</span> <span class="n">build</span><span class="o">.</span><span class="n">nvr_name</span><span class="p">,</span>
                 <span class="s2">&quot;nvr&quot;</span><span class="p">:</span> <span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">,</span>
-                <span class="s2">&quot;scratch&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
             <span class="p">})</span>
 
         <span class="n">artifact</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;koji-build-group&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">version_hash</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;repository&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">abs_url</span><span class="p">(),</span>
             <span class="s2">&quot;builds&quot;</span><span class="p">:</span> <span class="n">builds</span><span class="p">,</span>
-            <span class="s2">&quot;release&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">dist_tag</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;contact&quot;</span><span class="p">:</span> <span class="n">contact</span><span class="p">,</span>
             <span class="s2">&quot;artifact&quot;</span><span class="p">:</span> <span class="n">artifact</span><span class="p">,</span>
             <span class="s2">&quot;update&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span>
-            <span class="s2">&quot;generated_at&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span>
-            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.2.2&quot;</span><span class="p">,</span>
             <span class="s1">&#39;agent&#39;</span><span class="p">:</span> <span class="n">agent</span><span class="p">,</span>
             <span class="s1">&#39;re-trigger&#39;</span><span class="p">:</span> <span class="n">retrigger</span><span class="p">,</span>
         <span class="p">}</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_ready_for_testing</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">initiator</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_ready_for_testing</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">old</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Signal that the update has been moved to testing.</span>
+<span class="sd">        Signal that the update is ready for testing.</span>
 
-<span class="sd">        This happens in the following cases:</span>
-<span class="sd">        - for stable releases: the update lands in the testing repository</span>
-<span class="sd">        - for rawhide: all packages in an update have been built by koji</span>
+<span class="sd">        This happens when the update is created. The same message is</span>
+<span class="sd">        also published when the update is edited and its builds change</span>
+<span class="sd">        and when a &quot;re-trigger tests&quot; request is sent, but not by this</span>
+<span class="sd">        method.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            target (Update): The update that has had a change to its status attribute.</span>
-<span class="sd">            value (EnumSymbol): The new value of Update.status.</span>
-<span class="sd">            old (EnumSymbol): The old value of the Update.status</span>
-<span class="sd">            initiator (sqlalchemy.orm.attributes.Event): The event object that is initiating this</span>
-<span class="sd">                transition.</span>
+<span class="sd">            target (Update): The update that has been created.</span>
+<span class="sd">            old (EnumSymbol): The old value of the Update.status.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">==</span> <span class="n">old</span><span class="p">:</span>
-            <span class="k">return</span>
         <span class="k">if</span> <span class="n">old</span> <span class="o">==</span> <span class="n">NEVER_SET</span><span class="p">:</span>
             <span class="c1"># This is the object initialization phase. This instance is not ready, don&#39;t create</span>
             <span class="c1"># the message now. This method will be called again at the end of __init__</span>
@@ -4661,7 +4584,7 @@
         <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">content_type</span> <span class="o">!=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">rpm</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="n">message</span> <span class="o">=</span> <span class="n">update_schemas</span><span class="o">.</span><span class="n">UpdateReadyForTestingV2</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">update_schemas</span><span class="o">.</span><span class="n">UpdateReadyForTestingV3</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
             <span class="n">message</span><span class="o">=</span><span class="n">target</span><span class="o">.</span><span class="n">_build_group_test_message</span><span class="p">()</span>
         <span class="p">)</span>
         <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
@@ -4674,14 +4597,6 @@
     <span class="n">Update</span><span class="o">.</span><span class="n">comment_on_test_gating_status_change</span><span class="p">,</span>
     <span class="n">active_history</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="p">)</span>
-
-
-<span class="n">event</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span>
-    <span class="n">Update</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
-    <span class="s1">&#39;set&#39;</span><span class="p">,</span>
-    <span class="n">Update</span><span class="o">.</span><span class="n">_ready_for_testing</span><span class="p">,</span>
-    <span class="n">active_history</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -5196,7 +5111,7 @@
                     <span class="s1">&#39;update_alias&#39;</span><span class="p">:</span> <span class="n">update</span><span class="o">.</span><span class="n">alias</span><span class="p">,</span>
                     <span class="s1">&#39;repo&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">update</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">long_name</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">update</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;install_instructions&#39;</span><span class="p">:</span> <span class="n">install_msg</span><span class="p">,</span>
-                    <span class="s1">&#39;update_url&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;base_address&quot;</span><span class="p">)</span><span class="si">}{</span><span class="n">update</span><span class="o">.</span><span class="n">get_url</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">}</span>
+                    <span class="s1">&#39;update_url&#39;</span><span class="p">:</span> <span class="n">update</span><span class="o">.</span><span class="n">abs_url</span><span class="p">()}</span>
 
         <span class="k">if</span> <span class="n">update</span><span class="o">.</span><span class="n">status</span> <span class="ow">is</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">stable</span><span class="p">:</span>
             <span class="n">message</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;stable_bug_msg&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">msg_data</span><span class="p">)</span>
@@ -5536,7 +5451,8 @@
     <span class="k">def</span> <span class="nf">enable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Mark the BuildrootOverride as enabled.&quot;&quot;&quot;</span>
         <span class="n">koji_session</span> <span class="o">=</span> <span class="n">buildsys</span><span class="o">.</span><span class="n">get_session</span><span class="p">()</span>
-        <span class="n">koji_session</span><span class="o">.</span><span class="n">tagBuild</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">override_tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">inherited_override_tags</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">override_tag</span><span class="p">]:</span>
+            <span class="n">koji_session</span><span class="o">.</span><span class="n">tagBuild</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">)</span>
 
         <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">override_schemas</span><span class="o">.</span><span class="n">BuildrootOverrideTagV1</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
             <span class="nb">dict</span><span class="p">(</span><span class="n">override</span><span class="o">=</span><span class="bp">self</span><span class="p">)))</span>
@@ -5552,11 +5468,11 @@
             <span class="k">return</span>
 
         <span class="n">koji_session</span> <span class="o">=</span> <span class="n">buildsys</span><span class="o">.</span><span class="n">get_session</span><span class="p">()</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">koji_session</span><span class="o">.</span><span class="n">untagBuild</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">override_tag</span><span class="p">,</span>
-                                    <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Unable to untag override </span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">inherited_override_tags</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">override_tag</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">koji_session</span><span class="o">.</span><span class="n">untagBuild</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to untag override </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">: &#39;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expired_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
 
         <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">override_schemas</span><span class="o">.</span><span class="n">BuildrootOverrideUntagV1</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>

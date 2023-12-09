@@ -5,10 +5,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Administration &#8212; bodhi 7.2.2 documentation</title>
+    <title>Administration &#8212; bodhi 8.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=71a681cb" />
-    <script src="_static/documentation_options.js?v=9fcf24ae"></script>
+    <script src="_static/documentation_options.js?v=f663eb4a"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -107,9 +107,6 @@ use = egg:bodhi-server
 # query_wiki_test_cases = False
 # wiki_url = https://fedoraproject.org/w/api.php
 # test_case_base_url = https://fedoraproject.org/wiki/
-
-# URL of the resultsdb for integrating checks and stuff
-# resultsdb_api_url = https://taskotron.fedoraproject.org/resultsdb_api/
 
 # Set this to True to enable gating based on policies enforced by Greenwave. If you set this to
 # True, be sure to add a cron job to run the bodhi-check-policies CLI periodically.
@@ -296,19 +293,13 @@ use = egg:bodhi-server
 # admin_groups = proventesters security_respons bodhiadmin sysadmin-main
 
 # Users that we don&#39;t want to show up in the &quot;leaderboard(s)&quot;
-# stats_blacklist = bodhi anonymous autoqa taskotron
+# stats_blacklist = bodhi anonymous
 
 # A list of non-person users
-# system_users = bodhi autoqa taskotron
+# system_users = bodhi
 
 # The number of days used for calculating the &#39;top testers&#39; metric
 # top_testers_timeframe = 7
-
-# These are the default requirements that we apply to packages and updates.
-# Users have free-reign to override them for each kind of entity.  At
-# the end of the day, we only consider the requirements defined by single
-# updates themselves when gating in the backend composer process.
-# site_requirements = dist.rpmdeplint
 
 # Cache settings
 # dogpile.cache.backend = dogpile.cache.dbm
@@ -320,7 +311,7 @@ use = egg:bodhi-server
 # warm_cache_on_start = True
 
 # Exclude sending emails to these users
-# exclude_mail = autoqa taskotron
+# exclude_mail = bodhi
 
 ##
 ## Buildsystem settings
@@ -375,15 +366,22 @@ use = egg:bodhi-server
 # bugtracker =
 
 # A template that Bodhi will use when commenting on Bugzilla tickets when Updates that reference
-# them are created. Positional substitution is used, and the three %%s&#39;s will be filled in with the
-# update title, the release&#39;s long name, and the URL to the update, respectively.
-# initial_bug_msg = %%s has been submitted as an update to %%s. %%s
+# them are created. These placeholders are available:
+# - {update_alias}
+# - {update_beauty_title}
+# - {update_release}
+# - {update_url}
+# initial_bug_msg = {update_alias} ({update_beauty_title}) has been submitted as an update to {update_release}.\n{update_url}
 
 # A template that Bodhi will use when commenting on Bugzilla tickets when Updates that reference
-# them are marked stable. Positional substitution is used, and the first %%s will be filled in with
-# the update title and the second will be filled in with the release&#39;s long name and the update
-# status.
-# stable_bug_msg = %%s has been pushed to the %%s repository. If problems still persist, please make note of it in this bug report.
+# them are marked stable. These placeholders are available:
+# - {update_title}
+# - {update_beauty_title}
+# - {update_alias}
+# - {repo}
+# - {install_instructions}
+# - {update_url}
+# stable_bug_msg = {update_alias} ({update_beauty_title}) has been pushed to the {repo} repository.\n. If problems still persists, please make note of it in this bug report.
 
 # The following two templates are used to comment on Bugzilla tickets. %%s will be substituted with
 # the update&#39;s URL. The first is used for all updates, unless the epel setting in defined, which
@@ -489,6 +487,14 @@ fedora_epel.mandatory_days_in_testing = 14
 
 # Maximum number of days a buildroot override may expire in, from creation time.
 # buildroot_limit = 31
+
+# You can have releases to extend its buildroot override tags from other releases.
+# When submitting a Buildroot Override for that Release, the build will be tagged
+# with the override_tag of its Release AND the override tags of the inherited releases.
+# Left Release.name goes lowercase, right Release.names must be specified exactly.
+# Below is an example, all EPEL-9 builds submitted as buildroot overrides will also
+# be tagged as EPEL-9N and EPEL-8 overrides.
+# epel-9.override-extend = EPEL-9N,EPEL-8
 
 
 ##

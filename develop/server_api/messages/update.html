@@ -5,10 +5,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Update &#8212; bodhi 7.2.2 documentation</title>
+    <title>Update &#8212; bodhi 8.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=71a681cb" />
-    <script src="../../_static/documentation_options.js?v=9fcf24ae"></script>
+    <script src="../../_static/documentation_options.js?v=f663eb4a"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -559,6 +559,65 @@ of an email.</p>
 </dd>
 </dl>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV3">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.update.</span></span><span class="sig-name descname"><span class="pre">UpdateReadyForTestingV3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateReadyForTestingV3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV3" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bodhi.messages.schemas.update.UpdateMessage" title="bodhi.messages.schemas.update.UpdateMessage"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateMessage</span></code></a></p>
+<p>Sent when an update is ready to be tested. Simplified version.</p>
+<p>Specifically, this message is sent:</p>
+<ul class="simple">
+<li><p>When an update is created</p></li>
+<li><p>When an update is edited and its builds change</p></li>
+<li><p>When a “re-trigger tests” request is made via the web UI or API</p></li>
+</ul>
+<p>These are the points where we expect that automated systems will
+test the update.</p>
+<p>Inherits from UpdateMessage and only contains as much extra
+information (in the ‘artifact’ dict) as the Fedora CI schedulers
+actually need.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV3.__annotations__">
+<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV3.__annotations__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV3.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/update.html#UpdateReadyForTestingV3.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV3.__str__" title="Link to this definition">¶</a></dt>
+<dd><p>Return a human-readable representation of this message.</p>
+<p>This should provide a detailed representation of the message, much like the body
+of an email.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A human readable representation of this message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV3.severity">
+<span class="sig-name descname"><span class="pre">severity</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV3.severity" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV3.summary">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">summary</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV3.summary" title="Link to this definition">¶</a></dt>
+<dd><p>Return a short, human-readable representation of this message.</p>
+<p>This should provide a short summary of the message, much like the subject line
+of an email.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A summary for this message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bodhi.messages.schemas.update.UpdateReadyForTestingV3.topic">
+<span class="sig-name descname"><span class="pre">topic</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bodhi.update.status.testing.koji-build-group.build.complete'</span></em><a class="headerlink" href="#bodhi.messages.schemas.update.UpdateReadyForTestingV3.topic" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -1996,6 +2055,179 @@ of an email.</p>
     <span class="s2">&quot;re-trigger&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;bool&quot;</span><span class="p">,</span>
         <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;This flag is True if the message is sent to re-trigger tests&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="id3">
+<h3>bodhi.update.status.testing.koji-build-group.build.complete<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.status.testing#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Schema for message sent when an update is ready for testing&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;agent&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Re-trigger request: name of requester, trigger on push: </span><span class="se">\&quot;</span><span class="s2">bodhi</span><span class="se">\&quot;</span><span class="s2">.&quot;</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;artifact&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Details about the builds to test.&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Artifact type, in this case </span><span class="se">\&quot;</span><span class="s2">koji-build-group</span><span class="se">\&quot;</span><span class="s2">.&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;builds&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A list of builds included in this group&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/definitions/artifactbuild&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;builds&quot;</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;re-trigger&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;This flag is True if the message is sent to re-trigger tests&quot;</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;update&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;An update&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;alias&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The alias of the update&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;builds&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A list of builds included in this update&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/definitions/build&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;release&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A release&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The name of the release e.g. F32&quot;</span>
+                        <span class="p">}</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s2">&quot;name&quot;</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s2">&quot;null&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;string&quot;</span>
+                    <span class="p">],</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The request of the update, if any&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;enum&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="n">null</span><span class="p">,</span>
+                        <span class="s2">&quot;testing&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;obsolete&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;unpush&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;revoke&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;stable&quot;</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The current status of the update&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;enum&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="n">null</span><span class="p">,</span>
+                        <span class="s2">&quot;pending&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;testing&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;stable&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;unpushed&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;obsolete&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;side_tag_active&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;side_tag_expired&quot;</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The user that submitted the override&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The user&#39;s account name&quot;</span>
+                        <span class="p">}</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s2">&quot;name&quot;</span>
+                    <span class="p">]</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;alias&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;builds&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;release&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;request&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;status&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;user&quot;</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;agent&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;artifact&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;update&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;definitions&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;artifactbuild&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Details about a build that are not in the update builds dict&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Artifact type, in this case </span><span class="se">\&quot;</span><span class="s2">koji-build</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Build ID of the koji build.&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;integer&quot;</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;task_id&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Task ID of the koji build.&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s2">&quot;null&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;integer&quot;</span>
+                    <span class="p">]</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;nvr&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Name-version-release of the artifact.&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;type&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;id&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;task_id&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;nvr&quot;</span>
+            <span class="p">]</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;build&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A build&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;nvr&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The nvr the identifies the build in koji&quot;</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;nvr&quot;</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>

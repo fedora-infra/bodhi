@@ -1268,6 +1268,179 @@ bodhi.update.status.testing.koji-build-group.build.complete
         }
     }
 
+bodhi.update.status.testing.koji-build-group.build.complete
+-----------------------------------------------------------
+::
+
+    {
+        "id": "https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.update.status.testing#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is ready for testing",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "Re-trigger request: name of requester, trigger on push: \"bodhi\"."
+            },
+            "artifact": {
+                "description": "Details about the builds to test.",
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "description": "Artifact type, in this case \"koji-build-group\".",
+                        "type": "string"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this group",
+                        "items": {
+                            "$ref": "#/definitions/artifactbuild"
+                        }
+                    }
+                },
+                "required": [
+                    "type",
+                    "builds"
+                ]
+            },
+            "re-trigger": {
+                "type": "boolean",
+                "description": "This flag is True if the message is sent to re-trigger tests"
+            },
+            "update": {
+                "type": "object",
+                "description": "An update",
+                "properties": {
+                    "alias": {
+                        "type": "string",
+                        "description": "The alias of the update"
+                    },
+                    "builds": {
+                        "type": "array",
+                        "description": "A list of builds included in this update",
+                        "items": {
+                            "$ref": "#/definitions/build"
+                        }
+                    },
+                    "release": {
+                        "type": "object",
+                        "description": "A release",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the release e.g. F32"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "request": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "The request of the update, if any",
+                        "enum": [
+                            null,
+                            "testing",
+                            "obsolete",
+                            "unpush",
+                            "revoke",
+                            "stable"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status of the update",
+                        "enum": [
+                            null,
+                            "pending",
+                            "testing",
+                            "stable",
+                            "unpushed",
+                            "obsolete",
+                            "side_tag_active",
+                            "side_tag_expired"
+                        ]
+                    },
+                    "user": {
+                        "type": "object",
+                        "description": "The user that submitted the override",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The user's account name"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "required": [
+                    "alias",
+                    "builds",
+                    "release",
+                    "request",
+                    "status",
+                    "user"
+                ]
+            }
+        },
+        "required": [
+            "agent",
+            "artifact",
+            "update"
+        ],
+        "definitions": {
+            "artifactbuild": {
+                "description": "Details about a build that are not in the update builds dict",
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "description": "Artifact type, in this case \"koji-build\"",
+                        "type": "string"
+                    },
+                    "id": {
+                        "description": "Build ID of the koji build.",
+                        "type": "integer"
+                    },
+                    "task_id": {
+                        "description": "Task ID of the koji build.",
+                        "type": [
+                            "null",
+                            "integer"
+                        ]
+                    },
+                    "nvr": {
+                        "description": "Name-version-release of the artifact.",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "type",
+                    "id",
+                    "task_id",
+                    "nvr"
+                ]
+            },
+            "build": {
+                "type": "object",
+                "description": "A build",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The nvr the identifies the build in koji"
+                    }
+                },
+                "required": [
+                    "nvr"
+                ]
+            }
+        }
+    }
+
 bodhi.update.request.obsolete
 -----------------------------
 ::
