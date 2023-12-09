@@ -1,1 +1,0 @@
-Fixed "cannot access local variable 'tags'" error when editing flatpak updates

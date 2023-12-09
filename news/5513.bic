@@ -1,1 +1,0 @@
-Build NVRs are added to the Bugzilla comment. Please adjust `initial_bug_msg` in Bodhi config during upgrade

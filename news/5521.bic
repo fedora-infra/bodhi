@@ -1,1 +1,0 @@
-Settings for repodata and updateinfo can now be set by an external config file and no more hardcoded. Custom settings can be applied per Release, see the `devel/ci/integration/bodhi/createrepo_c.ini` file for reference

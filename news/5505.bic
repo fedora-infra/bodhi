@@ -1,1 +1,0 @@
-The custom `skopeo-light` script has been dropped. Please adjust your config file to use the real skopeo command
