@@ -4890,9 +4890,6 @@ class TestUpdatesService(BasePyTestCase):
         up.status = status
         msgs = self._reach_autopush_threshold(up)
 
-        # we always set date_approved if release is composed by bodhi
-        assert bool(up.date_approved) is cbb
-
         if (cbb and autokarma):
             # we should have autopushed
             assert up.request is UpdateRequest.stable
@@ -4912,6 +4909,7 @@ class TestUpdatesService(BasePyTestCase):
                     {'comment': up['comments'][-2], 'agent': 'bowlofeggs'}
                 )
             ]
+            assert up.date_approved is not None
         else:
             # we should not
             assert up.request is None
@@ -4922,6 +4920,7 @@ class TestUpdatesService(BasePyTestCase):
                     {'comment': up['comments'][-1], 'agent': 'bowlofeggs'}
                 )
             ]
+            assert up.date_approved is None
 
     def test_autopush_reached_obsolete(self):
         """Autopush should not happen if it otherwise would, but the update is obsolete."""

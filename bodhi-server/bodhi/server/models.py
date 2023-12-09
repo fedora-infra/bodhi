@@ -3830,22 +3830,16 @@ class Update(Base):
             text = config.get('disable_automatic_push_to_stable')
             self.comment(db, text, author='bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma \
-                and self.release.composed_by_bodhi:
+                and self.release.composed_by_bodhi and self.autokarma:
             if config.get('test_gating.required') and not self.test_gating_passed:
                 log.info("%s reached stable karma threshold, but does not meet gating "
                          "requirements", self.alias)
                 return
             self.date_approved = datetime.utcnow()
-            if self.autokarma:
-                log.info("Automatically marking %s as stable", self.alias)
-                self.set_request(db, UpdateRequest.stable, agent)
-                notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
-                    dict(update=self, status='stable')))
-            else:
-                # Add the stable approval message now
-                log.info((
-                    "%s update has reached the stable karma threshold and can be pushed to "
-                    "stable now if the maintainer wishes"), self.alias)
+            log.info("Automatically marking %s as stable", self.alias)
+            self.set_request(db, UpdateRequest.stable, agent)
+            notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
+                dict(update=self, status='stable')))
         elif self.unstable_karma and self.karma <= self.unstable_karma:
             log.info("Automatically obsoleting %s (reached unstable karma threshold)", self.alias)
             self.obsolete(db)
