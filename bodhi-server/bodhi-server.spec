@@ -1,6 +1,6 @@
 %global pypi_name bodhi-server
 %global src_name bodhi_server
-%global pypi_version 7.2.2
+%global pypi_version 8.0.0
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
@@ -156,6 +156,9 @@ install -p -D -m 0644 %{name}.sysusers %{buildroot}%{_sysusersdir}/%{name}.sysus
 %pycached %{python3_sitelib}/bodhi/server/metadata.py
 
 %changelog
+* Sat Dec 09 2023 Mattia Verga <mattia.verga@fedoraproject.org> - 8.0.0-1
+- Update to 8.0.0
+
 * Sun Jul 30 2023 Mattia Verga <mattia.verga@fedoraproject.org> - 7.2.1-1
 - Update to 7.2.1
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhi-server"
-version = "7.2.2"
+version = "8.0.0"
 description = "Bodhi server"
 readme = "README.rst"
 authors = ["Fedora Infrastructure Team"]
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: System :: Software Distribution",
     "Framework :: Pyramid",
     "Programming Language :: JavaScript",
@@ -86,7 +87,7 @@ authlib = ">=0.15.4"
 backoff = ">=1.10.0"
 beautifulsoup4 = "^4.12.0"
 bleach = ">=3.2.3"
-bodhi-messages = "^7.0"
+bodhi-messages = "^8.0"
 celery = ">=5.2.1"
 click = ">=7.1.2"
 colander = ">=1.8.3"

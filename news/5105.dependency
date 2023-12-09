@@ -1,1 +1,0 @@
-Bodhi now can run with sqlalchemy 2. At the same time the minimum required sqlalchemy version is raised to 1.4
