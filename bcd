@@ -1,0 +1,125 @@
+#!/usr/bin/python
+
+import argparse
+import os
+import subprocess
+import sys
+
+CONTAINERS = (
+    "database",
+    "waiverdb",
+    "greenwave",
+    "rabbitmq",
+    "ipsilon",
+    "bodhi",
+)
+
+
+def ansible(args):
+    """Run an ansible playbook command based on the parser name."""
+    # this is the subcommand that was run - 'run', 'stop' etc.
+    here = os.path.abspath(os.path.dirname(__file__))
+    ret = subprocess.run(
+        (
+            "ansible-playbook",
+            f"{here}/devel/ansible-podman/playbook.yml",
+            f"-e bodhi_dev_{args.subcommand}=true"
+        )
+    )
+    sys.exit(ret.returncode)
+
+
+def logs(args):
+    fullc = f"bodhi-dev-{args.container}"
+    ret = subprocess.run(("podman", "logs", fullc))
+    sys.exit(ret.returncode)
+
+
+def shell(args):
+    fullc = f"bodhi-dev-{args.container}"
+    ret = subprocess.run(("podman", "exec", "-it", fullc, "/bin/bash"))
+    sys.exit(ret.returncode)
+
+
+def parse_args():
+    """Parse arguments with argparse."""
+    parser = argparse.ArgumentParser(
+        description=(
+            "Bodhi Container Development environment. Controls a complete Bodhi development "
+            "environment in Podman containers orchestrated by Ansible."
+        )
+    )
+    subparsers = parser.add_subparsers(dest="subcommand")
+    subparsers.required = True
+    parser_run = subparsers.add_parser(
+        "run",
+        description="Prepare and run the environment",
+        aliases=["up"]
+    )
+    parser_run.set_defaults(func=ansible)
+    parser_stop = subparsers.add_parser(
+        "stop",
+        description="Stop the environment (does not remove containers)",
+        aliases=["halt"]
+    )
+    parser_stop.set_defaults(func=ansible)
+    parser_remove = subparsers.add_parser(
+        "remove",
+        description="Stop and remove all containers",
+        aliases=["destroy"]
+    )
+    parser_remove.set_defaults(func=ansible)
+    parser_cis = subparsers.add_parser(
+        "cis",
+        description="Clear Ipsilon sessions (to allow you to log in as a different user)"
+    )
+    parser_cis.set_defaults(func=ansible)
+    parser_shell = subparsers.add_parser(
+        "shell",
+        description="Open a shell in a container. Container must be running"
+    )
+    parser_shell.add_argument(
+        "container",
+        help="The container to open a shell in (default: bodhi)",
+        default="bodhi",
+        nargs='?',
+        choices=CONTAINERS
+    )
+    parser_shell.set_defaults(func=shell)
+    parser_logs = subparsers.add_parser(
+        "logs",
+        description="Show logs of the specified container (does not work on bodhi, use journalctl)"
+    )
+    parser_logs.add_argument(
+        "container",
+        help="The container to show logs for",
+        choices=[cont for cont in CONTAINERS if cont != "bodhi"],
+    )
+    parser_logs.set_defaults(func=logs)
+    parser_prep = subparsers.add_parser(
+        "prep",
+        description="Run preparation steps only"
+    )
+    parser_prep.set_defaults(func=ansible)
+    parser_start = subparsers.add_parser(
+        "start",
+        description="Start containers only (do not run prep, will fail if prep has not already run)"
+    )
+    parser_start.set_defaults(func=ansible)
+    return parser.parse_args()
+
+
+def main():
+    """Main loop."""
+    try:
+        args = parse_args()
+        args.func(args)
+    except KeyboardInterrupt:
+        sys.stderr.write("Interrupted, exiting...\n")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
+
+# vim: set textwidth=100 ts=8 et sw=4:

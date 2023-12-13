@@ -1,0 +1,44 @@
+amqp_url = "amqp://"
+callback = "fedora_messaging.example:printer"
+
+[[bindings]]
+queue = "bodhi_printer_queue"
+exchange = "amq.topic"
+routing_keys = [
+    # this means 'take any bodhi message', so we print them all
+    "org.fedoraproject.*.bodhi.#",
+]
+
+[client_properties]
+app = "Bodhi dev printer"
+
+[queues.bodhi_printer_queue]
+durable = true
+auto_delete = false
+exclusive = false
+arguments = {}
+
+[qos]
+prefetch_size = 0
+prefetch_count = 25
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+[log_config.formatters.simple]
+format = "[%(name)s %(levelname)s] %(message)s"
+
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.root]
+level = "WARNING"
+handlers = ["console"]

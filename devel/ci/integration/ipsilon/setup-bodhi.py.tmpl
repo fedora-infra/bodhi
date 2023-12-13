@@ -17,7 +17,9 @@ SCOPES = [
 CLIENTS = [
     {
         "client_id": "bodhi-client",
+        "client_name": "Bodhi CI / dev client",
         "client_secret": "",
+        "client_uri": "",
         "redirect_uris": ["urn:ietf:wg:oauth:2.0:oob"],
         "application_type": "native",
         "response_types": ["code"],
@@ -26,11 +28,15 @@ CLIENTS = [
         "ipsilon_internal": {"trusted": True, "client_id": "bodhi-client", "type": "static"},
         "client_secret_expires_at": 0,
         "token_endpoint_auth_method": "none",
+        "subject_type": "public",
+        "sector_identifier_uri": "",
     },
     {
         "client_id": "integration-tests",
+        "client_name": "Bodhi CI / dev",
+        "client_uri": "##CLIENTURI##",
         "client_secret": "integration-tests",
-        "redirect_uris": ["http://bodhi.ci:8080/oidc/authorize"],
+        "redirect_uris": "##REDIRECT##".split(","),
         "application_type": "web",
         "response_types": ["code"],
         "grant_types": ["authorization_code"],
@@ -38,6 +44,8 @@ CLIENTS = [
         "ipsilon_internal": {"trusted": True, "client_id": "integration-tests", "type": "static"},
         "client_secret_expires_at": 0,
         "token_endpoint_auth_method": "client_secret_post",
+        "subject_type": "public",
+        "sector_identifier_uri": "",
     },
 ]
 
@@ -65,7 +73,6 @@ USERINFO = {
         "sub": "guest",
     }
 }
-
 
 conn = sqlite3.connect(CLIENT_STATIC_DB)
 with conn:

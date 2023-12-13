@@ -1,0 +1,14 @@
+- include_tasks: prep.yml
+  when: "bodhi_dev_prep is defined or bodhi_dev_run is defined"
+
+- include_tasks: start.yml
+  when: "bodhi_dev_start is defined or bodhi_dev_run is defined"
+
+- include_tasks: stop.yml
+  when: "bodhi_dev_stop is defined"
+
+- include_tasks: remove.yml
+  when: "bodhi_dev_remove is defined"
+
+- include_tasks: clear_ipsilon_sessions.yml
+  when: "bodhi_dev_cis is defined"

@@ -1,0 +1,4 @@
+- name: Clear all sessions in Ipsilon container
+  containers.podman.podman_container_exec:
+    name: bodhi-dev-ipsilon
+    command: "sh -c 'rm -f /var/lib/ipsilon/root/sessions/*'"

@@ -1,0 +1,65 @@
+- name: Create temp dir
+  ansible.builtin.file:
+    path: /tmp/bodhi-dev
+    state: directory
+    mode: '0755'
+
+- name: Get Bodhi database dump header
+  ansible.builtin.uri:
+    url: "https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz"
+    method: HEAD
+  register: "urlstat"
+  changed_when: false
+
+- name: Check stat of local Bodhi database dump file
+  ansible.builtin.stat:
+    path: "/tmp/bodhi-dev/bodhi2.dump.xz"
+  register: "filestat"
+  changed_when: false
+
+- name: Retrieve Bodhi database dump
+  ansible.builtin.get_url:
+    url: "https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz"
+    dest: "/tmp/bodhi-dev/bodhi2.dump.xz"
+    force: yes
+  # thanks, github @Constantin07
+  # https://github.com/ansible/ansible/issues/30003#issuecomment-328855553
+  when: "not filestat.stat.exists or urlstat.content_length|int != filestat.stat.size|int"
+
+- name: Retrieve waiverdb dump and greenwave policy
+  ansible.builtin.get_url:
+    url: "{{ item }}"
+    dest: "/tmp/bodhi-dev/{{ item | basename }}"
+    force: yes
+  loop:
+    - https://infrastructure.fedoraproject.org/infra/db-dumps/waiverdb.dump.xz
+    - https://pagure.io/fedora-infra/ansible/raw/main/f/roles/openshift-apps/greenwave/templates/fedora.yaml
+
+- name: Copy various required files into place
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/tmp/bodhi-dev/{{ item }}"
+  with_items:
+    - waiverdb-settings.py
+    - greenwave-settings.py
+
+- name: Adjust waiverdb hostname in greenwave settings for this environment
+  ansible.builtin.replace:
+    path: /tmp/bodhi-dev/greenwave-settings.py
+    regexp: 'waiverdb:6544'
+    replace: 'bodhi-dev-waiverdb:6544'
+
+- name: Adjust database hostname in waiverdb settings for this environment
+  ansible.builtin.replace:
+    path: /tmp/bodhi-dev/waiverdb-settings.py
+    regexp: 'wdb:5432'
+    replace: 'bodhi-dev-database:5432'
+
+- name: Copy various required executable files into place
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/tmp/bodhi-dev/{{ item }}"
+    mode: 0755
+  with_items:
+    - init-db.sh
+    - run_waiverdb.sh

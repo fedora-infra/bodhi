@@ -1,0 +1,16 @@
+- name: "Remove all containers"
+  containers.podman.podman_container:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - bodhi-dev-bodhi
+    - bodhi-dev-ipsilon
+    - bodhi-dev-rabbitmq
+    - bodhi-dev-greenwave
+    - bodhi-dev-waiverdb
+    - bodhi-dev-database
+
+- name: "Remove the pod"
+  containers.podman.podman_pod:
+    name: bodhi-dev
+    state: absent

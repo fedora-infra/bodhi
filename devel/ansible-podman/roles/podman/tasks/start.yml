@@ -1,0 +1,96 @@
+- name: Create the pod
+  containers.podman.podman_pod:
+    name: bodhi-dev
+    state: started
+    publish:
+      - "6543:6543"
+      - "6544:6544"
+      - "6545:6545"
+      - "6546:6546"
+      - "15672:15672"
+
+- name: Run the database container
+  containers.podman.podman_container:
+    name: bodhi-dev-database
+    image: "docker.io/library/postgres:latest"
+    env:
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    state: started
+    expose:
+      - 5432
+    pod: bodhi-dev
+    volume:
+      - /tmp/bodhi-dev/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:Z
+      - /tmp/bodhi-dev/waiverdb.dump.xz:/docker-entrypoint-initdb.d/waiverdb.dump.xz:Z
+      - /tmp/bodhi-dev/bodhi2.dump.xz:/docker-entrypoint-initdb.d/bodhi2.dump.xz:Z
+    healthcheck: "test -f /tmp/.init-done && pg_isready -h localhost -U waiverdb -d waiverdb"
+
+- name: Run the waiverdb container
+  containers.podman.podman_container:
+    name: bodhi-dev-waiverdb
+    image: "quay.io/factory2/waiverdb:latest"
+    state: started
+    pod: bodhi-dev
+    volume:
+      - /tmp/bodhi-dev/waiverdb-settings.py:/etc/waiverdb/settings.py:Z
+      - /tmp/bodhi-dev/run_waiverdb.sh:/usr/local/bin/run_waiverdb.sh:Z
+    healthcheck: "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:6544/healthcheck')\""
+    entrypoint: "/usr/local/bin/run_waiverdb.sh"
+
+- name: Run the greenwave container
+  containers.podman.podman_container:
+    name: bodhi-dev-greenwave
+    image: "quay.io/factory2/greenwave:latest"
+    state: started
+    pod: bodhi-dev
+    volume:
+      - /tmp/bodhi-dev/greenwave-settings.py:/etc/greenwave/settings.py:Z
+      - /tmp/bodhi-dev/fedora.yaml:/etc/greenwave/policies/fedora.yaml:Z
+    healthcheck: "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:6545/api/v1.0/about')\""
+    command: ["gunicorn", "--bind", "0.0.0.0:6545", "--access-logfile", "-", "--error-logfile", "-", "--enable-stdio-inheritance", "greenwave.wsgi:app"]
+
+- name: Run the RabbitMQ container
+  containers.podman.podman_container:
+    name: bodhi-dev-rabbitmq
+    image: "docker.io/library/rabbitmq:3-management"
+    state: started
+    pod: bodhi-dev
+
+- name: Build the Ipsilon container
+  containers.podman.podman_image:
+    name: bodhi-dev-ipsilon
+    # dockerfile expects build context to be top-level dir
+    path: "{{ playbook_dir }}/../.."
+    build:
+      file: "{{ playbook_dir }}/../ci/integration/ipsilon/Dockerfile"
+      # I've seen the redirect URI come out both ways, not sure why,
+      # so let's just allow both
+      extra_args: "--build-arg redirect=http://localhost.localdomain:6543/oidc/authorize,http://localhost:6543/oidc/authorize --build-arg hostname=localhost.localdomain:6546 --build-arg clienturi=http://localhost.localdomain:6543/ --build-arg listen=6546"
+
+- name: Run the Ipsilon container
+  containers.podman.podman_container:
+    name: bodhi-dev-ipsilon
+    image: bodhi-dev-ipsilon
+    state: started
+    pod: bodhi-dev
+
+- name: Build the Bodhi container
+  containers.podman.podman_image:
+    name: bodhi-dev-bodhi
+    # we use devel/ as the build context so we're above development.ini.example
+    path: "{{ playbook_dir }}/.."
+    build:
+      file: "{{ playbook_dir }}/containers/bodhi/Containerfile"
+
+- name: Run the Bodhi container
+  containers.podman.podman_container:
+    name: bodhi-dev-bodhi
+    image: bodhi-dev-bodhi
+    state: started
+    pod: bodhi-dev
+    cap_add:
+      - AUDIT_WRITE
+    security_opt:
+      - label:disable
+    volume:
+      - "{{ playbook_dir }}/../..:/bodhi"
