@@ -1,0 +1,16 @@
+- name: Stop all containers
+  containers.podman.podman_container:
+    name: "{{ item }}"
+    state: stopped
+  with_items:
+    - bodhi-dev-bodhi
+    - bodhi-dev-ipsilon
+    - bodhi-dev-rabbitmq
+    - bodhi-dev-greenwave
+    - bodhi-dev-waiverdb
+    - bodhi-dev-database
+
+- name: Stop the pod
+  containers.podman.podman_pod:
+    name: bodhi-dev
+    state: stopped

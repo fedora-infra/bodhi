@@ -1,0 +1,20 @@
+[Unit]
+Description=bodhi
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Environment=PYTHONWARNINGS=once
+WorkingDirectory=/bodhi/bodhi-server
+ExecStartPre=/usr/bin/poetry -C /bodhi/bodhi-messages install --only-root
+ExecStartPre=/usr/bin/poetry -C /bodhi/bodhi-client install --only-root
+ExecStartPre=/usr/bin/poetry -C /bodhi/bodhi-server install --only-root
+ExecStartPre=/usr/local/bin/bodhi-wait.py
+# we don't run alembic and pserve directly from /usr/bin as some
+# options in their shebangs break finding our bodhi modules
+ExecStartPre=python3 -m alembic -c alembic.ini upgrade head
+ExecStart=python3 -m pyramid.scripts.pserve /etc/bodhi/production.ini --reload
+TimeoutStartSec=600
+
+[Install]
+WantedBy=multi-user.target

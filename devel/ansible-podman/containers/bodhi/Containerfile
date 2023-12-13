@@ -1,0 +1,95 @@
+FROM quay.io/fedora/fedora:latest
+LABEL \
+    summary="Bodhi development environment" \
+    description="Distribution software update management system" \
+    maintainer="Red Hat, Inc." \
+    license="GPLv2+" \
+    url="https://github.com/fedora-infra/bodhi" \
+    vcs-type="git" \
+    io.k8s.display-name="Bodhi DE"
+MAINTAINER adamwill
+RUN set -exo pipefail \
+    # to get bodhi's runtime deps installed, install the official
+    # packages then remove them (in a single step so we don't get a
+    # layer with them included)
+    && dnf install -y --setopt install_weak_deps=false --nodocs bodhi-server bodhi-client python3-bodhi-messages \
+    && dnf remove -y --noautoremove bodhi-server bodhi-client python3-bodhi-messages \
+    # install test and dev env deps (and any new deps not yet in the
+    # package)
+    && dnf install -y --setopt install_weak_deps=false --nodocs \
+        # missing runtime deps
+        # there are errors in the logs if this isn't installed
+        procps-ng \
+        # dev env creation and control deps
+        poetry \
+        postgresql \
+        python3-pip \
+        sed \
+        systemd \
+        # dev env QOL and debug deps
+        bash-completion \
+        htop \
+        httpie \
+        nano \
+        nmap-ncat \
+        pcp-system-tools \
+        python3-ipdb \
+        python3-pydocstyle \
+        screen \
+        tmux \
+        tree \
+        vim-enhanced \
+        # doc build deps
+        graphviz \
+        make \
+        python3-sqlalchemy_schemadisplay \
+        python3-sphinx \
+        # test deps
+        createrepo_c \
+        pre-commit \
+        python3-createrepo_c \
+        python3-diff-cover \
+        python3-pytest \
+        python3-pytest-cov \
+        python3-pytest-mock \
+        python3-responses \
+        python3-webtest \
+        # pre-commit uses flake8, mypy, pydocstyle and ruff-pre-commit,
+        # but it always pulls them from repos, never uses packages
+    && dnf clean all \
+    && rm -rf /var/cache/* /var/log/dnf*
+
+# note we use the devel/ directory as the build context so we can access
+# development.ini.example here
+COPY ./ansible-podman/containers/bodhi/celery.service /etc/systemd/system/celery.service
+COPY ./ansible-podman/containers/bodhi/bodhi.service /etc/systemd/system/bodhi.service
+COPY ./ansible-podman/containers/bodhi/motd /etc/motd
+COPY ./ansible-podman/containers/bodhi/bashrc /root/.bashrc
+COPY ./ansible-podman/containers/bodhi/vimrc /root/.vimrc
+COPY ./ansible-podman/containers/bodhi/config.toml /etc/fedora-messaging/config.toml
+COPY ./ansible-podman/containers/bodhi/printer.toml /etc/fedora-messaging/printer.toml
+COPY ./ansible-podman/containers/bodhi/remote.toml /etc/fedora-messaging/remote.toml
+COPY ./ansible-podman/containers/bodhi/bodhi-wait.py /usr/local/bin/bodhi-wait.py
+COPY ./development.ini.example /etc/bodhi/production.ini
+
+RUN set -ex \
+    && sed -i -e "s,celery_config.*,celery_config = /bodhi/bodhi-server/celeryconfig.py,g" /etc/bodhi/production.ini \
+    && sed -i -e "s,pungi.basepath.*,pungi.basepath = /bodhi/devel/ci/integration/bodhi/,g" /etc/bodhi/production.ini \
+    && sed -i -e "s,base_address.*,base_address = http://localhost.localdomain:6543/,g" /etc/bodhi/production.ini \
+    && sed -i -e "s,cors_origins_rw.*,cors_origins_rw = *,g" /etc/bodhi/production.ini \
+    && sed -i -e "s,cors_connect_src.*,cors_connect_src = *,g" /etc/bodhi/production.ini \
+    && sed -i -e "s,openid.provider.*,openid.provider = http://localhost.localdomain:6546/openid/,g" /etc/bodhi/production.ini \
+    && sed -i -e "s,openid.url.*,openid.url = http://localhost.localdomain:6546/,g" /etc/bodhi/production.ini \
+    && sed -i -e "s,openid_template.*,openid_template = {username}.localdomain,g" /etc/bodhi/production.ini \
+    && sed -i -e "s,oidc.fedora.client_id.*,oidc.fedora.client_id = integration-tests,g" /etc/bodhi/production.ini \
+    && sed -i -e "s,oidc.fedora.client_secret.*,oidc.fedora.client_secret = integration-tests,g" /etc/bodhi/production.ini \
+    && sed -i -e "s,oidc.fedora.server_metadata_url.*,oidc.fedora.server_metadata_url = http://localhost.localdomain:6546/openidc/.well-known/openid-configuration,g" /etc/bodhi/production.ini
+
+RUN pip install pyramid_debugtoolbar
+RUN ln -s /usr/bin/true /usr/bin/pungi-koji
+RUN mkdir -p /srv/{composes/final,composes/stage}
+RUN systemctl enable fm-consumer@config.service fm-consumer@printer.service celery.service bodhi.service
+RUN systemctl disable pmcd.service pmie.service pmlogger.service pmlogger_farm.service
+RUN poetry config virtualenvs.create false
+EXPOSE 6543
+CMD [ "/usr/sbin/init" ]

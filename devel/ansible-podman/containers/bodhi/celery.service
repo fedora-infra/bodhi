@@ -1,0 +1,12 @@
+[Unit]
+Description=celery
+After=bodhi.service
+Wants=bodhi.service
+
+[Service]
+Environment=BODHI_CONFIG=/etc/bodhi/development.ini
+WorkingDirectory=/bodhi/bodhi-server
+ExecStart=/usr/bin/poetry run celery -A bodhi.server.tasks.app worker -l info -Q celery,has_koji_mount -B
+
+[Install]
+WantedBy=multi-user.target

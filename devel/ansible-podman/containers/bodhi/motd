@@ -1,0 +1,24 @@
+
+Welcome to the Bodhi development environment! Here are some helpful commands:
+
+bdocs:       Build Bodhi's documentation.
+blint:       Run a series of linter checks.
+btest:       Run Bodhi's test suite (includes blint and bdocs).
+bmessages:   Display the log of Bodhi's messages on the bus.
+blog:        View Bodhi's log. (Support all the systemctl options, such as -lf).
+bresetdb:    Drop and reimport the database.
+brestart:    Restart the Bodhi service.
+bodhi-shell: Get a handy python shell initialized with Bodhi models.
+bstart:      Start the Bodhi service.
+bstop:       Stop the Bodhi service.
+
+The BODHI_URL and BODHI_OPENID_PROVIDER variables are set so the
+the bodhi client will use the local development server and all
+requests should work correctly.
+
+You can run `systemctl start fm-consumer@remote.service` to run a
+callback consumer that listens to real messages on the production
+bus from Koji and ResultsDB, though this dev env may not be able
+to correctly process all messages.
+
+Happy hacking!

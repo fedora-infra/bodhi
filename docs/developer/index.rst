@@ -167,18 +167,13 @@ that runs ``sudo devel/ci/bodhi-ci`` for you.
 Create a Bodhi development environment
 ======================================
 
-There are two ways to bootstrap a Bodhi development environment. You can use Vagrant, or you can use
-virtualenv on an existing host. `Vagrant`_ allows contributors to get quickly up and running with a
-Bodhi development environment by automatically configuring a virtual machine. `Virtualenv`_ is
-a more manual option for building a development environment on an existing system. If you aren't
-sure which development environment you would like to use, Vagrant is recommended as it get you a
-working system more quickly and with less effort. If you would like to use Vagrant, see the
-:doc:`Bodhi Vagrant Guide <vagrant>`. If you would like to use Virtualenv, see the
-:doc:`Bodhi Virtualenv Guide <virtualenv>`. 
+You can use Bodhi's "BCD" container-based development environment, or use Vagrant to create a VM-
+based development environment. Using a local Python virtualenv is no longer supported. See the
+:doc:`BCD Guide <bcd>` for instructions on using BCD, or the :doc:`Bodhi Vagrant Guide <vagrant>`
+for instructions on using Vagrant.
 
-If you use Vagrant, you can configure Visual Studio Code to run unit-tests inside with :doc:`Bodhi Vagrant - VS Code Guide <vagrant_vscode>`.
+You can configure Visual Studio Code to run unit-tests inside with :doc:`Bodhi Vagrant - VS Code Guide <vagrant_vscode>`.
 
 .. _docs/user/release_notes.rst: https://github.com/fedora-infra/bodhi/blob/develop/docs/user/release_notes.rst#release-notes
 .. _type hints: https://docs.python.org/3/library/typing.html
 .. _Vagrant: https://www.vagrantup.com
-.. _Virtualenv: https://virtualenv.pypa.io/en/stable/

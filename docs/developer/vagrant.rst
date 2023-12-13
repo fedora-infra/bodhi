@@ -52,6 +52,7 @@ edit the ``fas_username`` variable in the Vagrantfile and re-provision the VM. B
 not be a copy of your real fas account, it will just have the same username with the default password
 ``password`` and fake complementary data.
 
+.. _vagrant-tips:
 
 Quick tips about the Bodhi Vagrant environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -114,3 +115,4 @@ the host::
 
 If you wish to use a custom ``Vagrantfile``, you can set the environment variable
 ``VAGRANT_VAGRANTFILE`` as a path to a script.
+
