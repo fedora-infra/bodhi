@@ -41,9 +41,6 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 
 
 BUGZILLA_RE = r'([a-zA-Z]+)(#[0-9]{5,})'
-UPDATE_RE = (r'(?:(?<!\S)|('
-             + escape(config['base_address'])
-             + r'updates/))([A-Z\-]+-\d{4}-[^\W_]{10})(?:(?=[\.,;:])|(?!\S))')
 
 
 def user_url(name: str) -> str:
@@ -204,7 +201,15 @@ class BodhiExtension(Extension):
         Args:
             md: An instance of the Markdown class.
         """
+        # it is intentional that update_re is defined here, not in
+        # global scope at the top of this file. When testing, defining
+        # it early results in config['base_address'] being read before
+        # the test setup method has changed the config to use the
+        # values from testing.ini and the value may not be as expected
+        update_re = (r'(?:(?<!\S)|('
+                     + escape(config['base_address'])
+                     + r'updates/))([A-Z\-]+-\d{4}-[^\W_]{10})(?:(?=[\.,;:])|(?!\S))')
         md.inlinePatterns.register(MentionProcessor(MENTION_RE, md), 'mention', 175)
         md.inlinePatterns.register(BugzillaProcessor(BUGZILLA_RE, md), 'bugzilla', 175)
-        md.inlinePatterns.register(UpdateProcessor(UPDATE_RE, md), 'update', 175)
+        md.inlinePatterns.register(UpdateProcessor(update_re, md), 'update', 175)
         md.postprocessors.register(SurroundPostprocessor(md), 'surround', 175)

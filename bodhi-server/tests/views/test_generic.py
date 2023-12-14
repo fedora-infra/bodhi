@@ -227,8 +227,10 @@ class TestGenericViews(base.BasePyTestCase):
     def test_markdown_with_update_link(self):
         """Update link should be converted to alias."""
         res = self.app.get('/markdown', {
-            'text': 'See https://bodhi-dev.example.com/updates/FEDORA-2019-1a2b3c4d5e.',
+            'text': f'See {config["base_address"]}updates/FEDORA-2019-1a2b3c4d5e.',
         }, status=200)
+        # the server name changing to 'localhost' is just an effect
+        # of using webtest, don't panic
         assert res.json_body['html'] == \
             ('<div class="markdown"><p>See '
              '<a href="http://localhost/updates/FEDORA-2019-1a2b3c4d5e">'
