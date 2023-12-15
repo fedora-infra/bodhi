@@ -46,6 +46,7 @@ from bodhi.server import (
 original_config = config.config.copy()
 engine = None
 _app = None
+_settings = None
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 
 
@@ -225,7 +226,12 @@ class BaseTestCaseMixin:
     def _setup_method(self):
         """Set up Bodhi for testing."""
         self.config = testing.setUp()
-        self.app_settings = get_appsettings(os.environ["BODHI_CONFIG"])
+        # reading the settings is expensive and we run a lot of tests,
+        # so do it only once
+        global _settings
+        if _settings is None:
+            _settings = get_appsettings(os.environ["BODHI_CONFIG"])
+        self.app_settings = _settings
         config.config.clear()
         config.config.load_config(self.app_settings)
 
