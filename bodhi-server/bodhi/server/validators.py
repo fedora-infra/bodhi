@@ -609,6 +609,14 @@ def validate_acls(request, **kwargs):
             committers = ['ralph', 'bowlofeggs', 'guest']
             if config['acl_dummy_committer']:
                 committers.append(config['acl_dummy_committer'])
+            # let's also assume the update's owner can edit it
+            update = request.validated.get('update')
+            if not update:
+                alias = request.validated.get('edited')
+                if alias:
+                    update = Update.get(alias)
+            if update:
+                committers.append(update.user.name)
             if user.name in committers:
                 has_access = True
             people = committers
