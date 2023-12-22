@@ -36,7 +36,8 @@ class BodhiSecurityPolicy:  # pragma: no cover
 
     def __init__(self, secret, secure, hashalg, timeout, max_age, samesite):
         """Initialize the security policy."""
-        self.helper = AuthTktCookieHelper(secret)
+        self.helper = AuthTktCookieHelper(secret, secure=secure, hashalg=hashalg,
+                                          timeout=timeout, max_age=max_age, samesite=samesite)
         self.identity_cache = RequestLocalCache(self.load_identity)
         self.acl = ACLHelper()
 
