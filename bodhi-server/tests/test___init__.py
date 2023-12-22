@@ -19,11 +19,12 @@
 from unittest import mock
 import collections
 
-from pyramid import testing
+from pyramid import authentication, testing
 
 from bodhi import server
 from bodhi.server import models
 from bodhi.server.config import config
+from bodhi.server.security import BodhiSecurityPolicy
 from bodhi.server.views import generic
 
 from . import base
@@ -107,6 +108,41 @@ class TestMain(base.BasePyTestCase):
     """
     Assert correct behavior from the main() function.
     """
+    @mock.patch('bodhi.server.Configurator.set_security_policy')
+    def test_authtkt_timeout_defined(self, set_security_policy):
+        """Ensure that main() uses the setting when authtkt.timeout is defined in settings."""
+        with mock.patch.dict(
+                self.app_settings,
+                {'authtkt.timeout': '10', 'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
+            server.main({}, session=self.db, **self.app_settings)
+
+        policy = set_security_policy.mock_calls[0][1][0]
+        assert isinstance(policy, BodhiSecurityPolicy)
+        assert isinstance(policy.helper, authentication.AuthTktCookieHelper)
+        assert policy.helper.hashalg == 'sha512'
+        assert policy.helper.max_age == 10
+        assert policy.helper.secure is True
+        assert policy.helper.secret == 'hunter2'
+        assert policy.helper.timeout == 10
+        set_security_policy.assert_called_once_with(policy)
+
+    @mock.patch('bodhi.server.Configurator.set_security_policy')
+    def test_authtkt_timeout_undefined(self, set_security_policy):
+        """Ensure that main() uses a default if authtkt.timeout is undefined in settings."""
+        with mock.patch.dict(
+                self.app_settings, {'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
+            server.main({}, session=self.db, **self.app_settings)
+
+        policy = set_security_policy.mock_calls[0][1][0]
+        assert isinstance(policy, BodhiSecurityPolicy)
+        assert isinstance(policy.helper, authentication.AuthTktCookieHelper)
+        assert policy.helper.hashalg == 'sha512'
+        assert policy.helper.max_age == 86400
+        assert policy.helper.secure is True
+        assert policy.helper.secret == 'hunter2'
+        assert policy.helper.timeout == 86400
+        set_security_policy.assert_called_once_with(policy)
+
     def test_calls_session_remove(self):
         """Let's assert that main() calls Session.remove()."""
         with mock.patch('bodhi.server.Session.remove') as remove:
