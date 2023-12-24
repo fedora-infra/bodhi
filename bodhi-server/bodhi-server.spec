@@ -1,6 +1,8 @@
 %global pypi_name bodhi-server
 %global src_name bodhi_server
-%global pypi_version 8.0.0
+%global pypi_version 8.0.1
+%global client_min_version 8.0.0
+%global messages_min_version 8.0.0
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
@@ -32,8 +34,8 @@ BuildRequires:  createrepo_c
 BuildRequires:  skopeo
 BuildRequires:  dnf
 
-Requires: bodhi-client = %{version}
-Requires: python3-bodhi-messages = %{version}
+Requires: bodhi-client >= %{client_min_version}
+Requires: python3-bodhi-messages >= %{messages_min_version}
 Requires: fedora-messaging
 Requires: git
 Requires: httpd
@@ -156,6 +158,9 @@ install -p -D -m 0644 %{name}.sysusers %{buildroot}%{_sysusersdir}/%{name}.sysus
 %pycached %{python3_sitelib}/bodhi/server/metadata.py
 
 %changelog
+* Sun Dec 24 2023 Mattia Verga <mattia.verga@fedoraproject.org> - 8.0.1-1
+- Update to 8.0.1
+
 * Sat Dec 09 2023 Mattia Verga <mattia.verga@fedoraproject.org> - 8.0.0-1
 - Update to 8.0.0
 

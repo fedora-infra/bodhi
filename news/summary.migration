@@ -1,3 +1,0 @@
-The Release model has gained a `released_on` column which reports the date of first release
-The `requirements` column has been removed from both Package and Update models
-The `email` column of the User model has been modified to UnicodeText
