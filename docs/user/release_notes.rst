@@ -4,6 +4,30 @@ Release notes
 
 .. towncrier release notes start
 
+v8.0.1
+======
+
+
+Released on 2023-12-24.
+This is a bugfix release that fixes an urgent issue about bodhi-server not
+honouring cookie authentication settings.
+
+
+Bug fixes
+^^^^^^^^^
+
+* The Bodhi authentication policy wasn't honoring settings from config
+  (:pr:`5572`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Mattia Verga
+
+
 v8.0.0
 ======
 
