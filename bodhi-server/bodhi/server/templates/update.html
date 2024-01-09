@@ -1065,7 +1065,17 @@ ${parent.javascript()}
         // show missing tests and remote rule yaml problems first
         if (buildname in missing_tests) {
           $.each(missing_tests[buildname], function(i, result) {
+            // note the data structure is a bit different for
+            // test-result-missing than the other cases we handle at
+            // the end, so getting scenario and subject is a bit
+            // different. why? ask greenwave
+            var scenario = 'no_scenario';
+            if (result.scenario) {
+                scenario = result.scenario;
+            }
             table.append(make_row(
+              result.item[0],
+              scenario,
               'ABSENT',
               result.testcase,
               '',
@@ -1076,6 +1086,8 @@ ${parent.javascript()}
         }
         $.each(invalid_gating_repos, function (i, repo) {
           table.append(make_row(
+            'Remote policy errors',
+            'no_scenario',
             'FAILED',
             repo,
             'remote policy gating.yaml parsing failed',
@@ -1085,6 +1097,8 @@ ${parent.javascript()}
         });
         $.each(missing_gating_repos, function (i, repo) {
           table.append(make_row(
+            'Remote policy errors',
+            'no_scenario',
             'FAILED',
             repo,
             'remote policy gating.yaml missing',
@@ -1094,6 +1108,8 @@ ${parent.javascript()}
         });
         $.each(failed_fetch_gating_repos, function (i, repo) {
           table.append(make_row(
+            'Remote policy errors',
+            'no_scenario',
             'FAILED',
             repo,
             'remote policy gating.yaml retrieval failed',
