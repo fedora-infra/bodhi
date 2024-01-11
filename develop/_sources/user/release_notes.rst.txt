@@ -4,6 +4,28 @@ Release notes
 
 .. towncrier release notes start
 
+v8.0.2
+======
+
+
+Released on 2024-01-11.
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed Automated Tests table in the web UI not showing missing results or
+  remote rule errors correctly (:pr:`5581`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Williamson
+
+
 v8.0.1
 ======
 
