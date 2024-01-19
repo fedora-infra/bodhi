@@ -186,15 +186,11 @@ that runs <code class="docutils literal notranslate"><span class="pre">sudo</spa
 </section>
 <section id="create-a-bodhi-development-environment">
 <h2>Create a Bodhi development environment<a class="headerlink" href="#create-a-bodhi-development-environment" title="Link to this heading">¶</a></h2>
-<p>There are two ways to bootstrap a Bodhi development environment. You can use Vagrant, or you can use
-virtualenv on an existing host. <a class="reference external" href="https://www.vagrantup.com">Vagrant</a> allows contributors to get quickly up and running with a
-Bodhi development environment by automatically configuring a virtual machine. <a class="reference external" href="https://virtualenv.pypa.io/en/stable/">Virtualenv</a> is
-a more manual option for building a development environment on an existing system. If you aren’t
-sure which development environment you would like to use, Vagrant is recommended as it get you a
-working system more quickly and with less effort. If you would like to use Vagrant, see the
-<a class="reference internal" href="vagrant.html"><span class="doc">Bodhi Vagrant Guide</span></a>. If you would like to use Virtualenv, see the
-<a class="reference internal" href="virtualenv.html"><span class="doc">Bodhi Virtualenv Guide</span></a>.</p>
-<p>If you use Vagrant, you can configure Visual Studio Code to run unit-tests inside with <a class="reference internal" href="vagrant_vscode.html"><span class="doc">Bodhi Vagrant - VS Code Guide</span></a>.</p>
+<p>You can use Bodhi’s “BCD” container-based development environment, or use Vagrant to create a VM-
+based development environment. Using a local Python virtualenv is no longer supported. See the
+<a class="reference internal" href="bcd.html"><span class="doc">BCD Guide</span></a> for instructions on using BCD, or the <a class="reference internal" href="vagrant.html"><span class="doc">Bodhi Vagrant Guide</span></a>
+for instructions on using Vagrant.</p>
+<p>You can configure Visual Studio Code to run unit-tests inside with <a class="reference internal" href="vagrant_vscode.html"><span class="doc">Bodhi Vagrant - VS Code Guide</span></a>.</p>
 </section>
 </section>
 
@@ -252,9 +248,9 @@ working system more quickly and with less effort. If you would like to use Vagra
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bcd.html">BCD - the Bodhi Container Development environment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="vagrant.html">Vagrant</a></li>
 <li class="toctree-l1"><a class="reference internal" href="vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
-<li class="toctree-l1"><a class="reference internal" href="virtualenv.html">Virtualenv</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Database models</a></li>
 </ul>
 <ul>
