@@ -59,6 +59,9 @@ releases = Service(name='releases', path='/releases/',
                    # Note, this 'rw' is not a typo. The @releases service has
                    # a ``post`` section at the bottom.
                    cors_origins=bodhi.server.security.cors_origins_rw)
+list_releases = Service(name='list_releases', path='/list_releases/',
+                        description='Fedora Releases',
+                        cors_origins=bodhi.server.security.cors_origins_ro)
 
 
 @release.get(accept="text/html", renderer="release.html",
@@ -281,6 +284,10 @@ def query_releases_html(request):
             "active": active}
 
 
+@list_releases.get(accept=('application/json', 'text/json'),
+                   schema=bodhi.server.schemas.ListReleaseSchema(), renderer='json',
+                   error_handler=bodhi.server.services.errors.json_handler,
+                   validators=releases_get_validators)
 @releases.get(accept=('application/json', 'text/json'),
               schema=bodhi.server.schemas.ListReleaseSchema(), renderer='json',
               error_handler=bodhi.server.services.errors.json_handler,
