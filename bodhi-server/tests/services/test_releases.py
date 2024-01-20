@@ -110,6 +110,9 @@ class TestReleasesService(base.BasePyTestCase):
         assert body['releases'][0]['name'] == 'F17'
         assert body['releases'][1]['name'] == 'F22'
 
+        res_list = self.app.get('/list_releases/')
+        assert res_list.json_body == body
+
     def test_list_releases_with_pagination(self):
         res = self.app.get('/releases/')
         body = res.json_body
