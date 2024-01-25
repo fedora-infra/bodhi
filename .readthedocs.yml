@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: Contributors to the Fedora Project
+#
+# SPDX-License-Identifier: MIT
+
+# .readthedocs.yml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
+version: 2
+
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+  configuration: docs/conf.py
+
+# Set the version of Python and other tools you might need
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.10"
+  apt_packages:
+    - libkrb5-dev
+    - python3-rpm
+    - python3-librepo
+  jobs:
+    post_install:
+      - pip install rpm
+      - dpkg -L python3-librepo
+      - ln -s /usr/lib/python3/dist-packages/librepo $READTHEDOCS_VIRTUALENV_PATH/lib/python3.10/site-packages/librepo
+      - cp devel/development.ini.example bodhi-server/development.ini
+      - python -c "import bodhi.server.models"
+  # commands:
+  #   - ./devel/ci/bodhi-ci docs -r pip
+  #   - mv test_results/pip-docs/html/ $READTHEDOCS_OUTPUT/
+
+python:
+  install:
+    - method: pip
+      path: ./bodhi-client
+    - method: pip
+      path: ./bodhi-messages
+    - method: pip
+      path: ./bodhi-server
+
+# Optionally build your docs in additional formats such as PDF and ePub
+formats:
+  - htmlzip
