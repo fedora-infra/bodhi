@@ -27,7 +27,7 @@ from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from pyramid.session import JSONSerializer, SignedCookieSessionFactory
 from pyramid.tweens import EXCVIEW
-from sqlalchemy import engine_from_config, event
+from sqlalchemy import engine_from_config, event, pool
 from sqlalchemy.orm import scoped_session, sessionmaker
 import pkg_resources
 
@@ -165,7 +165,9 @@ def initialize_db(config):
     # The SQLAlchemy database engine. This is constructed using the value of
     # ``DB_URL`` in :data:`config``. Note: A copy is provided since ``engine_from_config``
     # uses ``pop``.
-    engine = engine_from_config(config.copy(), 'sqlalchemy.')
+    engine = engine_from_config(config.copy(),
+                                'sqlalchemy.',
+                                poolclass=pool.NullPool)
     # When using SQLite we need to make sure foreign keys are enabled:
     # http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html#foreign-key-support
     if config['sqlalchemy.url'].startswith('sqlite:'):
