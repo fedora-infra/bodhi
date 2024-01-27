@@ -562,6 +562,9 @@ class BodhiConfig(dict):
         'sqlalchemy.url': {
             'value': 'postgresql://localhost/bodhi',
             'validator': str},
+        'sqlalchemy_extra.statement_timeout': {
+            'value': 30000,
+            'validator': int},
         'stable_bug_msg': {
             'value': ('{update_alias} ({update_beauty_title}) has been pushed to '
                       'the {repo} repository.\n'
