@@ -199,6 +199,8 @@ def validate_build_nvrs(request, **kwargs):
         request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
+    trusted_sources = config.get('trusted_build_sources', [])
+
     for build in request.validated.get('builds') or []:  # cope with builds being None
         try:
             cache_nvrs(request, build)
@@ -212,6 +214,13 @@ def validate_build_nvrs(request, **kwargs):
                         'body', 'builds',
                         f"Can't create update from tag for release"
                         f" '{release.name}' composed by Bodhi.")
+
+            if trusted_sources:
+                build_source = request.buildinfo[build]['info']['source']
+                if not any(build_source.startswith(source) for source in trusted_sources):
+                    request.validated['builds'] = []
+                    request.errors.add('body', 'builds',
+                                       f'{build} was not built from an allowed source')
         except ValueError:
             request.validated['builds'] = []
             request.errors.add('body', 'builds', 'Build does not exist: %s' % build)
