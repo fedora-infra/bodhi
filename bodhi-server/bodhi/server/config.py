@@ -604,6 +604,9 @@ class BodhiConfig(dict):
         'test_gating.url': {
             'value': '',
             'validator': str},
+        'trusted_build_sources': {
+            'value': [],
+            'validator': _generate_list_validator()},
         'update_notes_maxlength': {
             'value': 10000,
             'validator': int},

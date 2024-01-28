@@ -95,6 +95,7 @@ class DevBuildsys:
                    'owner_id': 388,
                    'owner_name': 'lmacken',
                    'package_id': 8,
+                   'source': 'git+https://src.fedoraproject.org/rpms/foo.git#abc',
                    'state': 1,
                    'tag_id': 19,
                    'task_id': 127621}
@@ -210,7 +211,8 @@ class DevBuildsys:
                     'tag_name': 'f17-build-side-7777',
                     'version': '3.0',
                     'id': 16061,
-                    'task_id': 15051}
+                    'task_id': 15051,
+                    'source': 'git+https://src.fedoraproject.org/rpms/gnome-backgrounds.git#abc'}
 
         theid = 16058
         if other and not testing:
@@ -225,6 +227,7 @@ class DevBuildsys:
 
         name, version, release = build.rsplit("-", 2)
         release_tokens = release.split(".")
+        data['source'] = f'git+https://src.fedoraproject.org/rpms/{name}.git#abc'
 
         for token in release_tokens:
             # Starting to hardcode some dev buildsys bits for docker.
@@ -247,9 +250,11 @@ class DevBuildsys:
 
                 if token.endswith("flatpak"):
                     format_data['repository'] = name
+                    data['source'] = f'git+https://src.fedoraproject.org/flatpaks/{name}.git#abc'
                 else:
                     tag = "f%s-updates-testing" % token.replace("fc", "").replace("container", "")
                     format_data['repository'] = "{}/{}".format(fedora_release, name)
+                    data['source'] = f'https://src.fedoraproject.org/container/{name}.git#abc'
 
                 data['extra'] = {
                     'typeinfo': {
@@ -275,6 +280,7 @@ class DevBuildsys:
                 data['extra'] = {
                     'typeinfo': {'module': {'more': 'mbs stuff goes here'}}
                 }
+                data['source'] = f'https://src.fedoraproject.org/modules/{name}.git?#abc'
                 break
 
             if token.startswith("fc"):

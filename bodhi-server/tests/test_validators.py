@@ -975,6 +975,7 @@ class TestValidateBuildNvrs(BasePyTestCase):
                                   'builds': ['foo-1-1.f17']}
         self.request.buildinfo = {'foo-1-1.f17': {
             'nvr': ('foo', '1-1', 'f17'),
+            'info': {'source': 'git+https://src.fedoraproject.org/rpms/foo.git#aabbccdd'}
         }}
         self.release.composed_by_bodhi = True
         validators.validate_build_nvrs(self.request)
@@ -984,6 +985,40 @@ class TestValidateBuildNvrs(BasePyTestCase):
              'description':
                  f"Can't create update from tag for release"
                  f" '{self.release.name}' composed by Bodhi."}
+        ]
+
+    @mock.patch.dict(
+        'bodhi.server.validators.config',
+        {'trusted_build_sources': ['git+https://src.fedoraproject.org/']})
+    @mock.patch('bodhi.server.validators.cache_nvrs')
+    def test_build_from_distgit(self, mock_cache_nvrs):
+        """Assert that a build from distgit is allowed."""
+        self.request.validated = {'builds': ['foo-1-1.f17']}
+        self.request.buildinfo = {'foo-1-1.f17': {
+            'nvr': ('foo', '1-1', 'f17'),
+            'info': {'source': 'git+https://src.fedoraproject.org/rpms/foo.git#aabbccdd'}
+        }}
+        validators.validate_build_nvrs(self.request)
+
+        assert self.request.errors == []
+
+    @mock.patch.dict(
+        'bodhi.server.validators.config',
+        {'trusted_build_sources': ['git+https://src.fedoraproject.org/']})
+    @mock.patch('bodhi.server.validators.cache_nvrs')
+    def test_build_from_srpm(self, mock_cache_nvrs):
+        """Assert that a build from srpm is not allowed."""
+        self.request.validated = {'builds': ['foo-1-1.f17']}
+        self.request.buildinfo = {'foo-1-1.f17': {
+            'nvr': ('foo', '1-1', 'f17'),
+            'info': {'source': 'foo-1-1.f17.src.rpm'}
+        }}
+        validators.validate_build_nvrs(self.request)
+
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'builds',
+             'description':
+                 "foo-1-1.f17 was not built from an allowed source"}
         ]
 
 
