@@ -86,7 +86,6 @@ class TestMain(BaseTaskTestCase):
         """Run all checks to ensure we did not push the update."""
         assert self.update.status == models.UpdateStatus.testing
         assert self.update.request is None
-        assert self.update.date_approved is None
         assert self.update.date_pushed is None
         assert not self.update.pushed
 
@@ -104,24 +103,6 @@ class TestMain(BaseTaskTestCase):
             if comment.text == config.get('testing_approval_msg')
         ]
         assert len(approvalcomments) == times
-
-    # for robustness, mock this as True so we *would* do something without the early return
-    @patch('bodhi.server.models.Update.meets_testing_requirements', True)
-    @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
-    def test_no_mandatory_days_or_autotime(self):
-        """Ensure that if the update has no mandatory days in testing
-        and autotime is False, we do nothing.
-        """
-        self.update.autotime = False
-        # this should publish no messages
-        with fml_testing.mock_sends():
-            approve_testing_main()
-        # we should not have pushed
-        self._assert_not_pushed()
-        # we should not have posted approval comment
-        self._assert_commented(0)
-        # we should not have set date_approved
-        assert self.update.date_approved is None
 
     @patch('bodhi.server.models.Update.meets_testing_requirements', False)
     def test_update_not_approved(self):
@@ -166,9 +147,8 @@ class TestMain(BaseTaskTestCase):
         self._assert_not_pushed()
         # we should have posted approval comment once
         self._assert_commented(1)
-        # we should not have set date_approved (currently we only do that
-        # when pushing, not approving)
-        assert self.update.date_approved is None
+        # we should have set date_approved
+        assert self.update.date_approved is not None
         # re-run, this time no additional message should be published
         with fml_testing.mock_sends():
             approve_testing_main()
@@ -284,12 +264,15 @@ class TestMain(BaseTaskTestCase):
 
         # message publishing happens before the conflicting build check, so
         # even when there's a conflicting build, we publish this message
-        # (and set date_approved)
         with fml_testing.mock_sends(update_schemas.UpdateRequirementsMetStableV1):
             approve_testing_main()
 
         assert self.update.status == update_status
-        assert self.update.date_approved is None
+        # date_approved is also set before the conflicting build check, so
+        # we do set it in this case. this isn't really wrong, because that
+        # date really indicates the first date an update met all the requirements
+        # to be manually submitted stable, which is still the case here
+        assert self.update.date_approved is not None
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=self.update.id, user_id=bodhi.id)
