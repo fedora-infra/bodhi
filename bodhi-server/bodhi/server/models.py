@@ -3798,7 +3798,14 @@ class Update(Base):
 
     def check_karma_thresholds(self, db, agent):
         """
-        Check if we have reached either karma threshold, and adjust state as necessary.
+        Check if we have reached some karma thresholds, and adjust state as necessary.
+
+        If we receive negative karma, disable autopush (both time and karma). If we
+        reach the karma autopush threshold (and the release is composed by Bodhi), set
+        the request to stable. If we reach the auto-unpush threshold, obsolete the
+        update. This method does **NOT** handle commenting and setting date_approved
+        when the update reaches the manual push karma threshold. That is done by the
+        approve_testing.py script.
 
         This method will call :meth:`set_request` if necessary. If the update is locked, it will
         ignore karma thresholds and raise an Exception.
@@ -3831,11 +3838,14 @@ class Update(Base):
             self.comment(db, text, author='bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma \
                 and self.release.composed_by_bodhi and self.autokarma:
+            # Updates for releases not "composed by Bodhi" (Rawhide,
+            # ELN...) are pushed stable only by approve_testing.py
             if config.get('test_gating.required') and not self.test_gating_passed:
                 log.info("%s reached stable karma threshold, but does not meet gating "
                          "requirements", self.alias)
                 return
-            self.date_approved = datetime.utcnow()
+            if not self.date_approved:
+                self.date_approved = datetime.utcnow()
             log.info("Automatically marking %s as stable", self.alias)
             self.set_request(db, UpdateRequest.stable, agent)
             notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
