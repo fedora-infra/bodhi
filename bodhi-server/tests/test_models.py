@@ -2653,203 +2653,180 @@ class TestUpdateValidateBuilds(BasePyTestCase):
 @mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
 @mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
 class TestUpdateMeetsTestingRequirements(BasePyTestCase):
-    """Test the Update.meets_testing_requirements() method."""
+    """
+    Test the Update.meets_testing_requirements() method.
 
-    def test_autokarma_update_reaching_stable_karma(self):
+    It is significant and not obvious that the update used by these tests
+    starts out with karma of +1/-0. These tests also rely on manual and automatic
+    karma and time thresholds that are either Bodhi's defaults, or specified in
+    the tests/testing.ini configuration file.
+    """
+
+    @pytest.mark.parametrize('critpath', (True, False))
+    @pytest.mark.parametrize("autokarma", (True, False))
+    def test_update_reaching_stable_karma_not_critpath_min_karma(self, autokarma, critpath):
         """
-        Assert that meets_testing_requirements() correctly returns True for autokarma updates
-        that haven't reached the days in testing but have reached the stable_karma threshold.
+        Assert that meets_testing_requirements() returns the correct result for updates
+        that haven't reached the days in testing or critpath_min_karma, but have reached
+        stable_karma.
         """
         update = model.Update.query.first()
-        update.autokarma = True
+        update.autokarma = autokarma
+        update.critpath = critpath
         update.status = UpdateStatus.testing
         update.stable_karma = 1
-        # Now let's add some karma to get it to the required threshold
-        with mock_sends(Message):
-            update.comment(self.db, 'testing', author='hunter2', karma=1)
 
-        # meets_testing_requirement() should return True since the karma threshold has been reached
-        assert update.meets_testing_requirements
+        # check, and make it clear, what we're assuming the karma value is now
+        # and the critpath_min_karma value we're testing against
+        assert update.karma == 1
+        assert update.release.critpath_min_karma == 2
+        # this means 'False for critpath, True for non-critpath'. critpath
+        # should be required to meet critpath_min_karma, but non-critpath
+        # should not
+        assert update.meets_testing_requirements is not critpath
 
-    def test_critpath_14_days_negative_karma(self):
-        """critpath packages in testing for 14 days shouldn't go stable with negative karma."""
+    @pytest.mark.parametrize('critpath', (True, False))
+    @pytest.mark.parametrize('autokarma', (True, False))
+    def test_update_below_stable_karma(self, autokarma, critpath):
+        """It should return False for all updates below stable karma, critpath_min_karma
+        and time."""
         update = model.Update.query.first()
-        update.critpath = True
-        update.status = model.UpdateStatus.testing
-        update.request = None
-        update.date_testing = datetime.utcnow() - timedelta(days=15)
-        update.stable_karma = 1
-        update.comment(self.db, 'testing', author='enemy', karma=-1)
-        # This gets the update to positive karma, but not to the required 2 karma needed for
-        # critpath.
-        update.comment(self.db, 'testing', author='bro', karma=1)
-
-        assert not update.meets_testing_requirements
-
-    def test_critpath_14_days_no_negative_karma(self):
-        """critpath packages in testing for 14 days can go stable without negative karma."""
-        update = model.Update.query.first()
-        update.critpath = True
-        update.status = model.UpdateStatus.testing
-        update.request = None
-        update.date_testing = datetime.utcnow() - timedelta(days=15)
-        update.stable_karma = 1
-
-        assert update.meets_testing_requirements
-
-    def test_critpath_karma_2_met(self):
-        """critpath packages should be allowed to go stable when meeting required karma."""
-        update = model.Update.query.first()
-        update.critpath = True
-        update.stable_karma = 1
-        with mock_sends(Message, Message, Message, Message, Message):
-            update.comment(self.db, 'testing', author='enemy', karma=-1)
-            update.comment(self.db, 'testing', author='bro', karma=1)
-            # Despite meeting the stable_karma, the function should still not
-            # mark this as meeting testing requirements because critpath packages
-            # have a higher requirement for minimum karma. So let's get it a second one.
-            update.comment(self.db, 'testing', author='ham', karma=1)
-
-        assert update.meets_testing_requirements
-
-    def test_critpath_karma_2_required(self):
-        """critpath packages should require a minimum karma."""
-        update = model.Update.query.first()
-        update.critpath = True
-        update.stable_karma = 1
-
-        # Despite meeting the stable_karma, the function should still not mark this as meeting
-        # testing requirements because critpath packages have a higher requirement for minimum
-        # karma.
-        assert not update.meets_testing_requirements
-
-    def test_critpath_negative_karma(self):
-        """
-        Assert that meets_testing_requirements() correctly returns False for critpath updates
-        with negative karma.
-        """
-        update = model.Update.query.first()
-        update.critpath = True
-        update.comment(self.db, 'testing', author='enemy', karma=-1)
-        assert not update.meets_testing_requirements
-
-    def test_karma_2_met(self):
-        """Regular packages should be allowed to go stable when meeting required karma."""
-        update = model.Update.query.first()
-        update.stable_karma = 3
-        update.comment(self.db, 'testing', author='enemy', karma=-1)
-        update.comment(self.db, 'testing', author='bro', karma=1)
-        # Despite meeting the stable_karma, the function should still not mark this as meeting
-        # testing requirements because critpath packages have a higher requirement for minimum
-        # karma. So let's get it a second one.
-        update.comment(self.db, 'testing', author='ham', karma=1)
-
-        assert update.meets_testing_requirements
-
-    def test_non_autokarma_update_below_stable_karma(self):
-        """It should return False for non-autokarma updates below stable karma and time."""
-        update = model.Update.query.first()
-        update.autokarma = False
+        update.autokarma = autokarma
+        update.critpath = critpath
+        # clear existing karma
         update.comments = []
         update.status = UpdateStatus.testing
         update.stable_karma = 1
 
-        # meets_testing_requirement() should return False since the karma threshold has not been
+        # meets_testing_requirement() should return False since no karma threshold has been
         # reached (note that this Update does not have any karma).
+        assert update.karma == 0
         assert not update.meets_testing_requirements
 
-    def test_non_autokarma_update_reaching_stable_karma(self):
-        """
-        Assert that meets_testing_requirements() correctly returns True for non-autokarma updates
-        that haven't reached the days in testing but have reached the stable_karma threshold.
-        """
+    @pytest.mark.parametrize('critpath', (True, False))
+    def test_update_reaching_time_in_testing(self, critpath):
+        """It should return True for updates that meet time in testing - including
+        critpath updates that meet the critpath time-in-testing, if there is no
+        negative karma."""
         update = model.Update.query.first()
-        update.autokarma = False
-        update.status = UpdateStatus.testing
-        update.stable_karma = 1
+        update.status = model.UpdateStatus.testing
+        update.critpath = critpath
+        update.request = None
+        if critpath:
+            # the default critpath.stable_after_days_without_negative_karma
+            # value is 14
+            update.date_testing = datetime.utcnow() - timedelta(days=15)
+        else:
+            # testing.ini specifies fedora.mandatory_days_in_testing = 7
+            update.date_testing = datetime.utcnow() - timedelta(days=8)
+        # to ensure we don't meet karma requirements
+        update.stable_karma = 10
 
-        # meets_testing_requirement() should return True since the karma threshold has been reached
         assert update.meets_testing_requirements
 
-    def test_test_gating_faild_no_testing_requirements(self):
-        """
-        The Update.meets_testing_requirements() should return False, if the test gating
-        status of an update is failed.
-        """
-        config["test_gating.required"] = True
+    @pytest.mark.parametrize('critpath', (True, False))
+    def test_update_below_time_in_testing(self, critpath):
+        """It should return False for updates that don't yet meet time in testing."""
         update = model.Update.query.first()
-        update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = TestGatingStatus.failed
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
-        # Assert that our preconditions from the docblock are correct.
+        update.status = model.UpdateStatus.testing
+        update.critpath = critpath
+        update.request = None
+        if critpath:
+            # the default critpath.stable_after_days_without_negative_karma
+            # value is 14
+            update.date_testing = datetime.utcnow() - timedelta(days=13)
+        else:
+            # testing.ini specifies fedora.mandatory_days_in_testing = 7
+            update.date_testing = datetime.utcnow() - timedelta(days=6)
+        # to ensure we don't meet karma requirements
+        update.stable_karma = 10
+
         assert not update.meets_testing_requirements
 
-    def test_test_gating_queued_no_testing_requirements(self):
-        """
-        The Update.meets_testing_requirements() should return False, if the test gating
-        status of an update is queued.
-        """
-        config["test_gating.required"] = True
+    @pytest.mark.parametrize('critpath', (True, False))
+    def test_update_reaching_time_in_testing_negative_karma(self, critpath):
+        """If an update meets the mandatory_days_in_testing and stable_karma thresholds
+        but not the critpath_min_karma threshold, it should return False for critical path
+        updates but True for non-critical-path updates."""
         update = model.Update.query.first()
-        update.autokarma = False
+        update.critpath = critpath
+        update.status = model.UpdateStatus.testing
+        update.request = None
+        if critpath:
+            # the default critpath.stable_after_days_without_negative_karma
+            # value is 14
+            update.date_testing = datetime.utcnow() - timedelta(days=15)
+        else:
+            # testing.ini specifies fedora.mandatory_days_in_testing = 7
+            update.date_testing = datetime.utcnow() - timedelta(days=8)
         update.stable_karma = 1
-        update.test_gating_status = TestGatingStatus.queued
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
-        # Assert that our preconditions from the docblock are correct.
-        assert not update.meets_testing_requirements
+        update.comment(self.db, 'testing', author='enemy', karma=-1)
+        # This gets the update back to positive karma, but not to the required
+        # +2 karma needed to clear the critpath_min_karma requirement
+        update.comment(self.db, 'testing', author='bro', karma=1)
 
-    def test_test_gating_running_no_testing_requirements(self):
-        """
-        The Update.meets_testing_requirements() should return False, if the test gating
-        status of an update is running.
-        """
-        config["test_gating.required"] = True
-        update = model.Update.query.first()
-        update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = TestGatingStatus.running
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
-        # Assert that our preconditions from the docblock are correct.
-        assert not update.meets_testing_requirements
+        assert update.karma == 1
+        assert update.release.critpath_min_karma == 2
+        # this means 'False for critpath, True for non-critpath'
+        assert update.meets_testing_requirements is not critpath
 
-    def test_test_gating_missing_testing_requirements(self):
-        """
-        The Update.meets_testing_requirements() should return True, if the test gating
-        status of an update is missing.
-        """
-        config["test_gating.required"] = True
+    @pytest.mark.parametrize('critpath', (True, False))
+    def test_update_reaching_critpath_min_karma(self, critpath):
+        """Both critpath and non-critpath packages should be allowed to go stable when
+        meeting the policy minimum karma requirement for critpath packages, even if there
+        is negative karma."""
         update = model.Update.query.first()
-        update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = None
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
-        # Assert that our preconditions from the docblock are correct.
+        update.critpath = critpath
+        update.stable_karma = 3
+        update.comment(self.db, 'testing', author='enemy', karma=-1)
+        update.comment(self.db, 'testing', author='bro', karma=1)
+        # Despite meeting the stable_karma, the function should still not
+        # mark this as meeting testing requirements because critpath packages
+        # have a higher requirement for minimum karma - at this point we
+        # are in the same state as test_critpath_14_days_negative_karma.
+        # So add a third +1 so total is +2, which meets critpath_min_karma
+        update.comment(self.db, 'testing', author='ham', karma=1)
+
+        assert update.karma == 2
+        assert update.release.critpath_min_karma == 2
         assert update.meets_testing_requirements
 
-    def test_test_gating_waiting_testing_requirements(self):
+    @pytest.mark.parametrize('critpath', (True, False))
+    @pytest.mark.parametrize(
+        "status,expected", (
+            (TestGatingStatus.waiting, False),
+            (TestGatingStatus.queued, False),
+            (TestGatingStatus.ignored, True),
+            (TestGatingStatus.running, False),
+            (TestGatingStatus.passed, True),
+            (TestGatingStatus.failed, False),
+            (None, True),
+            (TestGatingStatus.greenwave_failed, False)
+        )
+    )
+    def test_test_gating_status(self, status, expected, critpath):
         """
-        The Update.meets_testing_requirements() should return False, if the test gating
-        status of an update is waiting.
+        Test meets_testing_requirements() with various test gating statuses,
+        with gating required and the update otherwise expected to pass checks.
+        The 'expected' indicates whether we expect the check to pass or fail for
+        this status. Results should be same for critpath and non-critpath.
         """
         config["test_gating.required"] = True
         update = model.Update.query.first()
         update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = TestGatingStatus.waiting
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
+        update.critpath = critpath
+        update.test_gating_status = status
+        update.comment(self.db, 'testing', author='bro', karma=1)
         # Assert that our preconditions from the docblock are correct.
-        assert not update.meets_testing_requirements
+        assert update.karma == 2
+        assert update.release.critpath_min_karma == 2
+        assert update.meets_testing_requirements is expected
 
-    def test_test_gating_off(self):
+    def test_test_gating_not_required(self):
         """
         The Update.meets_testing_requirements() should return True if the
-        testing gating is not required, regardless of its test gating status.
+        testing gating is not required, even with a gating status which would
+        usually cause it to return False.
         """
         config["test_gating.required"] = False
         update = model.Update.query.first()
@@ -2859,27 +2836,8 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.comment(self.db, 'I found $100 after applying this update.', karma=1,
                        author='bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
+        assert update.karma == 2
         assert update.meets_testing_requirements
-
-    def test_time_in_testing_met(self):
-        """It should return True for non-critpath updates that meet time in testing."""
-        update = model.Update.query.first()
-        update.status = model.UpdateStatus.testing
-        update.request = None
-        update.date_testing = datetime.utcnow() - timedelta(days=8)
-        update.stable_karma = 10
-
-        assert update.meets_testing_requirements
-
-    def test_time_in_testing_unmet(self):
-        """It should return False for non-critpath updates that don't yet meet time in testing."""
-        update = model.Update.query.first()
-        update.status = model.UpdateStatus.testing
-        update.request = None
-        update.date_testing = datetime.utcnow() - timedelta(days=6)
-        update.stable_karma = 10
-
-        assert not update.meets_testing_requirements
 
 
 @mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
