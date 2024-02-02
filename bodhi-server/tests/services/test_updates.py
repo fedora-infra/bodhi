@@ -1612,6 +1612,9 @@ class TestUpdatesService(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
+        # FIXME: this test is crazy nonsense. this bit especially. why are we
+        # triggering an autopush here?
+        # https://github.com/fedora-infra/bodhi/issues/5597
         assert update.karma == 0
         update.comment(self.db, "foo", 1, 'foo')
         update = Build.query.filter_by(nvr=nvr).one().update
@@ -3707,123 +3710,6 @@ class TestUpdatesService(BasePyTestCase):
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         assert up.builds == [build]
 
-    def test_pending_update_on_stable_karma_reached_autopush_enabled(self, *args):
-        """Ensure that a pending update stays in testing if it hits stable karma while pending."""
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = True
-        args['stable_karma'] = 2
-        args['unstable_karma'] = -2
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            self.app.post_json('/updates/', args)
-
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        up.status = UpdateStatus.pending
-        self.db.commit()
-
-        up.comment(self.db, 'WFM', author='dustymabe', karma=1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-
-        with fml_testing.mock_sends(api.Message, api.Message):
-            up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-
-        assert up.karma == 2
-        assert up.request == UpdateRequest.stable
-        assert up.status == UpdateStatus.pending
-
-    def test_pending_urgent_update_on_stable_karma_reached_autopush_enabled(self, *args):
-        """
-        Ensure that a pending urgent update directly requests for stable if
-        it hits stable karma before reaching testing state.
-        """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = True
-        args['stable_karma'] = 2
-        args['unstable_karma'] = -2
-        args['severity'] = 'urgent'
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            self.app.post_json('/updates/', args)
-
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        up.status = UpdateStatus.pending
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        up.comment(self.db, 'WFM', author='dustymabe', karma=1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-
-        with fml_testing.mock_sends(api.Message, api.Message):
-            up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-
-        assert up.karma == 2
-        assert up.request == UpdateRequest.stable
-        assert up.status == UpdateStatus.pending
-
-    def test_pending_update_on_stable_karma_not_reached(self, *args):
-        """ Ensure that pending update does not directly request for stable
-        if it does not hit stable karma before reaching testing state """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = True
-        args['stable_karma'] = 2
-        args['unstable_karma'] = -2
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            self.app.post_json('/updates/', args)
-
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        up.status = UpdateStatus.pending
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        up.comment(self.db, 'WFM', author='dustymabe', karma=1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-
-        assert up.karma == 1
-        assert up.request == UpdateRequest.testing
-        assert up.status == UpdateStatus.pending
-
-    def test_pending_update_on_stable_karma_reached_autopush_disabled(self, *args):
-        """ Ensure that pending update has option to request for stable directly
-        if it hits stable karma before reaching testing state """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = False
-        args['stable_karma'] = 2
-        args['unstable_karma'] = -2
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            self.app.post_json('/updates/', args)
-
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        up.status = UpdateStatus.pending
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        up.comment(self.db, 'WFM', author='dustymabe', karma=1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-
-        up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-
-        assert up.karma == 2
-        assert up.status == UpdateStatus.pending
-        assert up.request == UpdateRequest.testing
-
-        text = str(config.get('testing_approval_msg'))
-        up.comment(self.db, text, author='bodhi')
-        assert up.comments[-1]['text'] == (
-            'This update can be pushed to stable now if the maintainer wishes'
-        )
-
     def test_obsoletion_locked_with_open_request(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -4075,128 +3961,6 @@ class TestUpdatesService(BasePyTestCase):
 
         assert resp.json['update']['request'] is None
         assert resp.json['update']['status'] == 'unpushed'
-
-    def test_obsolete_if_unstable_with_autopush_enabled_when_pending(self, *args):
-        """
-        Send update to obsolete state if it reaches unstable karma on
-        pending state where request is testing when Autopush is enabled. Make sure that it
-        does not go to update-testing state.
-        """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = True
-        args['stable_karma'] = 1
-        args['unstable_karma'] = -1
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            response = self.app.post_json('/updates/', args)
-
-        up = Update.get(response.json['alias'])
-        up.status = UpdateStatus.pending
-        up.request = UpdateRequest.testing
-        up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        assert up.karma == -1
-        assert up.status == UpdateStatus.obsolete
-        assert up.request is None
-
-    def test_obsolete_if_unstable_with_autopush_disabled_when_pending(self, *args):
-        """
-        Don't automatically send update to obsolete state if it reaches unstable karma on
-        pending state when Autopush is disabled.
-        """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = False
-        args['stable_karma'] = 1
-        args['unstable_karma'] = -1
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            response = self.app.post_json('/updates/', args)
-
-        up = Update.get(response.json['alias'])
-        up.status = UpdateStatus.pending
-        up.request = UpdateRequest.testing
-        up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        assert up.karma == -1
-        assert up.status == UpdateStatus.pending
-        assert up.request == UpdateRequest.testing
-
-    def test_obsolete_if_unstable_karma_not_reached_with_autopush_enabled_when_pending(
-            self, *args):
-        """
-        Don't send update to obsolete state if it does not reach unstable karma threshold
-        on pending state when Autopush is enabled.
-        """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = True
-        args['stable_karma'] = 2
-        args['unstable_karma'] = -2
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            response = self.app.post_json('/updates/', args)
-
-        up = Update.get(response.json['alias'])
-        up.status = UpdateStatus.pending
-        up.request = UpdateRequest.testing
-        up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        assert up.karma == -1
-        assert up.status == UpdateStatus.pending
-        assert up.request == UpdateRequest.testing
-
-    def test_obsolete_if_unstable_with_autopush_enabled_when_testing(self, *args):
-        """
-        Send update to obsolete state if it reaches unstable karma threshold on
-        testing state where request is stable when Autopush is enabled. Make sure that the
-        autopush remains enabled and the update does not go to stable state.
-        """
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = True
-        args['stable_karma'] = 2
-        args['unstable_karma'] = -2
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            response = self.app.post_json('/updates/', args)
-
-        up = Update.get(response.json['alias'])
-        up.status = UpdateStatus.testing
-        up.request = UpdateRequest.stable
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-
-        up.comment(self.db, 'WFM', author='puiterwijk', karma=1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-
-        up.comment(self.db, 'It has bug', author='bowlofeggs', karma=-1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-
-        up.comment(self.db, 'Still not working', author='bob', karma=-1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-
-        assert up.karma == -2
-        assert up.autokarma is True
-        assert up.status == UpdateStatus.obsolete
-        assert up.request is None
 
     def test_request_after_unpush(self, *args):
         """Test request of this update after unpushing"""
@@ -5001,288 +4765,303 @@ class TestUpdatesService(BasePyTestCase):
         assert up['stable_karma'] == 4
         assert up['unstable_karma'] == -4
 
-    def test_disable_autopush_for_critical_updates(self, *args):
-        """Make sure that autopush is disabled if a critical update receives any negative karma"""
-        user = User(name='bob')
-        self.db.add(user)
-        self.db.commit()
-
-        nvr = 'kernel-3.11.5-300.fc17'
+    @pytest.mark.parametrize("status", (UpdateStatus.testing, UpdateStatus.pending))
+    @pytest.mark.parametrize("req", (UpdateRequest.stable, None))
+    @pytest.mark.parametrize("composed_by_bodhi", (True, False))
+    @pytest.mark.parametrize("autokarma", (True, False))
+    def test_obsolete_if_unstable(self, autokarma, composed_by_bodhi, req, status):
+        """Pending or testing updates should be obsoleted on reaching the auto-unpush threshold,
+        except if the status is pending and autokarma is disabled. Whether the update is
+        composed_by_bodhi should not matter. "Obsoleted" should mean the update status is
+        set to obsolete and its request to None. Obsoletion should not happen with just one
+        negative karma (if the threshold is -2)."""
+        nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        args['autokarma'] = True
+        args['autokarma'] = autokarma
+        args['autotime'] = False
+        args['stable_karma'] = 1
+        args['unstable_karma'] = -2
 
         with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
                                     update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
+            response = self.app.post_json('/updates/', args)
 
-        assert resp.json['critpath']
-        assert resp.json['request'] == 'testing'
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        up.status = UpdateStatus.testing
+        up = Update.get(response.json['alias'])
+        up.status = status
+        up.request = req
+        up.release.composed_by_bodhi = composed_by_bodhi
+        up.comment(self.db, "foo", -1, 'biz')
+        # check we did not obsolete with just one negative karma
+        assert up.karma == -1
+        assert up.status is status
+        assert up.request is req
+        # throw away messages queued for publishing so far
+        self.db.info['messages'] = []
+        # now hit the threshold. we call comment() outside of the mock_sends
+        # context manager, because we need the changes to the update state
+        # caused by the obsoletion to have taken effect when we construct the
+        # expected message
+        up.comment(self.db, "foo", -1, 'bowlofeggs')
+        if status is UpdateStatus.pending and not autokarma:
+            with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+                # doing a db commit causes the message to be published
+                self.db.commit()
+            assert up.status is status
+            assert up.request is req
+        else:
+            with fml_testing.mock_sends(
+                update_schemas.UpdateKarmaThresholdV1.from_dict(
+                    {'update': up, 'status': 'unstable'}
+                ),
+                update_schemas.UpdateCommentV1
+            ):
+                # doing a db commit causes the message to be published
+                self.db.commit()
+            assert up.status is UpdateStatus.obsolete
+            assert up.request is None
+        # the obsolete path should not disable autokarma, but we can't assert
+        # this unconditionally because we might have hit the earlier disable-
+        # autokarma path
+        if (
+            status is not UpdateStatus.testing
+            or req is UpdateRequest.stable
+            or not composed_by_bodhi
+        ):
+            assert up.autokarma is autokarma
+        assert up.karma == -2
+
+    def _prepare_autopush_update(self):
+        """Shared preparation step for several subsequent tests which need an update that
+        would qualify for autopush. Combining all these tests into one giant parametrized
+        test gives too many combinations and takes too long to run, and the assertion logic
+        gets awkward, so instead we split the tests out but reuse some prep code."""
+        nvr = 'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['autotime'] = False
+        args['stable_karma'] = 2
+        with fml_testing.mock_sends(
+            update_schemas.UpdateReadyForTestingV3,
+            update_schemas.UpdateRequestTestingV1,
+        ):
+            response = self.app.post_json('/updates/', args)
+        up = Update.get(response.json['alias'])
+        # just to be clear where we stand, these are not tests but expected
+        # attributes for autopush to kick in
+        assert up.status in (UpdateStatus.pending, UpdateStatus.testing)
+        assert up.release.composed_by_bodhi
+        assert up.release.state is ReleaseState.current
         up.request = None
-        # Clear pending messages
-        self.db.info['messages'] = []
-        self.db.commit()
+        up.date_approved = None
+        return up
 
-        # A user gives negative karma first
-        up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        # Another user gives positive karma
-        up.comment(self.db, 'wfm', author='bowlofeggs', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        assert up.karma == 0
-        assert up.status == UpdateStatus.testing
-        assert up.request is None
-
-        # Autopush gets disabled since there is a negative karma from ralph
-        assert up.autokarma is False
-
-    def test_autopush_critical_update_with_no_negative_karma(self, *args):
-        """Autopush critical update when it has no negative karma"""
-        user = User(name='bob')
-        self.db.add(user)
-        self.db.commit()
-
-        nvr = 'kernel-3.11.5-300.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = True
-        args['stable_karma'] = 2
-        args['unstable_karma'] = -2
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        assert resp.json['critpath']
-        assert resp.json['request'] == 'testing'
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        up.status = UpdateStatus.testing
-        # Clear pending messages
-        self.db.info['messages'] = []
-        self.db.commit()
-
-        up.comment(self.db, 'LGTM', author='ralph', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        with fml_testing.mock_sends(api.Message, api.Message):
-            up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
+    @mock.patch('bodhi.server.models.notifications.publish', autospec=True)
+    def _reach_autopush_threshold(self, up, publish):
+        """Another shared preparation step, like _prepare_autopush_update. Returns the
+        messages published when the feedback that meets the autopush threshold is posted.
+        """
+        status = up.status
+        request = up.request
+        # just for clarity that stable_karma is not lower and both are reached
+        assert up.release.critpath_min_karma == 2
+        up.comment(self.db, "foo", 1, 'biz')
+        # nothing should have changed yet, on any path. we don't need to test the
+        # messages published so far here, either
+        publish.reset_mock()
+        assert up.karma == 1
+        assert up.status is status
+        assert up.request is request
+        assert up.date_approved is None
+        # now we reach the threshold
+        up.comment(self.db, "foo", 1, 'bowlofeggs')
         assert up.karma == 2
+        # we never actually change the status on any tested path, only set the
+        # request if we're pushing
+        assert up.status is status
+        return [call[0][0] for call in publish.call_args_list]
 
-        # No negative karma: Update gets automatically marked as stable
-        assert up.autokarma is True
+    @pytest.mark.parametrize("status", (UpdateStatus.testing, UpdateStatus.pending))
+    @pytest.mark.parametrize('critpath', (True, False))
+    @pytest.mark.parametrize('cbb', (True, False))
+    @pytest.mark.parametrize('autokarma', (True, False))
+    def test_autopush_reached_main(self, autokarma, cbb, critpath, status):
+        """The update should be autopushed (request set to stable) if update reaches
+        stable_karma, autokarma is on and release is composed by Bodhi, whether or not the update
+        is critical path (so long as stable_karma is not lower than critpath_min_karma), and
+        whether its status is testing or pending. This test covers the main cases for autopush.
+        Subsequent tests cover some other cases where updates that otherwise would be autopushed
+        are not; these aren't covered in this test for reasons explained in the docstring of
+        _prepare_autopush_update."""
+        up = self._prepare_autopush_update()
+        up.autokarma = autokarma
+        up.release.composed_by_bodhi = cbb
+        up.critpath = critpath
+        up.status = status
+        msgs = self._reach_autopush_threshold(up)
 
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        assert up.request == UpdateRequest.stable
+        # we always set date_approved if release is composed by bodhi
+        assert bool(up.date_approved) is cbb
 
-    def test_manually_push_critical_update_with_negative_karma(self, *args):
+        if (cbb and autokarma):
+            # we should have autopushed
+            assert up.request is UpdateRequest.stable
+            assert msgs == [
+                update_schemas.UpdateRequestStableV1.from_dict(
+                    {'update': up, 'agent': 'bodhi'}
+                ),
+                update_schemas.UpdateKarmaThresholdV1.from_dict(
+                    {'update': up, 'status': 'stable'}
+                ),
+                # the most recent comment is the "has been pushed to stable"
+                # comment, which is from bodhi, who is a system user, so no
+                # message is published. the second-to-last comment is the
+                # one from _reach_autopush_threshold() and we should see a
+                # message for that.
+                update_schemas.UpdateCommentV1.from_dict(
+                    {'comment': up['comments'][-2], 'agent': 'bowlofeggs'}
+                )
+            ]
+        else:
+            # we should not
+            assert up.request is None
+            assert msgs == [
+                # in this case, the comment from _reach_autopush_threshold() is the
+                # most recent one
+                update_schemas.UpdateCommentV1.from_dict(
+                    {'comment': up['comments'][-1], 'agent': 'bowlofeggs'}
+                )
+            ]
+
+    def test_autopush_reached_obsolete(self):
+        """Autopush should not happen if it otherwise would, but the update is obsolete."""
+        up = self._prepare_autopush_update()
+        up.status = UpdateStatus.obsolete
+        self._reach_autopush_threshold(up)
+        assert up.request is None
+        assert up.date_approved is None
+
+    @pytest.mark.parametrize("status", (UpdateStatus.testing, UpdateStatus.pending))
+    def test_autopush_reached_frozen(self, status):
+        """Autopush should not happen if it otherwise would, but the update's release is frozen
+        and the release status is not testing (pending)."""
+        up = self._prepare_autopush_update()
+        up.release.state = ReleaseState.frozen
+        up.status = status
+        self._reach_autopush_threshold(up)
+        if status is UpdateStatus.pending:
+            assert up.request is None
+            assert up.date_approved is None
+        else:
+            assert up.request is UpdateRequest.stable
+            assert up.date_approved is not None
+
+    def test_autopush_reached_gating_failed(self):
+        """Autopush should not happen if it otherwise would, but the update failed gating."""
+        up = self._prepare_autopush_update()
+        up.test_gating_status = TestGatingStatus.failed
+        with mock.patch('bodhi.server.models.Update.update_test_gating_status'):
+            with mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True}):
+                self._reach_autopush_threshold(up)
+        assert up.request is None
+        assert up.date_approved is None
+
+    @pytest.mark.parametrize('status', (UpdateStatus.testing, UpdateStatus.pending))
+    @pytest.mark.parametrize('critpath', (True, False))
+    def test_autopush_reached_critpath_not(self, critpath, status):
+        """If the stable_karma threshold is reached but it is lower than the release's
+        critpath_min_karma threshold and that is not reached, autopush should happen for
+        a non-critpath update but not for a critpath update. For a critpath update, if
+        status is testing, the request should not be changed; if it's pending, the
+        request should be changed to testing.
         """
-        Manually push critical update when it has negative karma
-        Autopush gets disabled after it receives negative karma
-        A user gives negative karma, but another 3 users give positive karma
-        The critical update should be manually pushed because of the negative karma
+        up = self._prepare_autopush_update()
+        up.critpath = critpath
+        up.status = status
+        up.stable_karma = 1
+        assert up.release.critpath_min_karma == 2
+        # we don't use _reach_autopush_threshold here because this is a bit different
+        with mock.patch('bodhi.server.models.notifications.publish', autospec=True) as publish:
+            _, caveats = up.comment(self.db, "foo", 1, 'biz')
+            msgs = [type(call[0][0]) for call in publish.call_args_list]
+        assert up.karma == 1
+        if critpath and status is UpdateStatus.testing:
+            assert up.request is None
+            # we should not set this, really, but currently we do
+            assert up.date_approved is not None
+            assert msgs == [update_schemas.UpdateCommentV1]
+            assert caveats == (
+                [{'name': 'karma',
+                  'description': ('This critical path update has not yet been approved for pushing '
+                                  'to the stable repository.  It must first reach a karma of 2, '
+                                  'consisting of 0 positive karma from proventesters, along with 2 '
+                                  'additional karma from the community. Or, it must spend 14 days '
+                                  'in testing without any negative feedback')}])
+        else:
+            if critpath:
+                assert up.request is UpdateRequest.testing
+                reqmsg = update_schemas.UpdateRequestTestingV1
+            else:
+                assert up.request is UpdateRequest.stable
+                reqmsg = update_schemas.UpdateRequestStableV1
+            assert up.date_approved is not None
+            assert msgs == [
+                reqmsg,
+                update_schemas.UpdateKarmaThresholdV1,
+                update_schemas.UpdateCommentV1
+            ]
+
+    def test_autopush_reached_disabled_keep_request(self):
+        """Test that, when we reach stable_karma on an update with autokarma disabled, we
+        do not reset the update's request. This is a regression test for
+        https://github.com/fedora-infra/bodhi/issues/989
         """
-        user = User(name='bob')
-        self.db.add(user)
-        self.db.commit()
+        up = self._prepare_autopush_update()
+        up.autokarma = False
+        up.request = UpdateRequest.testing
+        self._reach_autopush_threshold(up)
+        assert up.request is UpdateRequest.testing
 
-        nvr = 'kernel-3.11.5-300.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = True
-        args['stable_karma'] = 3
-        args['unstable_karma'] = -3
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        assert resp.json['critpath']
-        assert resp.json['request'] == 'testing'
-
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        up.status = UpdateStatus.testing
-        # Clear pending messages
-        self.db.info['messages'] = []
-        self.db.commit()
-
-        up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        up.comment(self.db, 'wfm', author='luke', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        up.comment(self.db, 'LGTM', author='puiterwijk', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        up.comment(self.db, 'LGTM', author='trishnag', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        assert up.karma == 3
-        assert up.autokarma is False
-        # The request should still be at testing. This assertion tests for
-        # https://github.com/fedora-infra/bodhi/issues/989 where karma comments were resetting the
-        # request to None.
-        assert up.request == UpdateRequest.testing
-        assert up.status == UpdateStatus.testing
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        resp = self.app.get(f'/updates/{up.alias}',
-                            headers={'Accept': 'text/html'})
-        assert 'text/html' in resp.headers['Content-Type']
-        assert 'kernel-3.11.5-300.fc17' in resp
-
-    def test_manually_push_critical_update_with_autopush_turned_off(self, *args):
-        """
-        Manually push critical update when it has Autopush turned off
-        and make sure the update doesn't get Autopushed
-        """
-        user = User(name='bob')
-        self.db.add(user)
-        self.db.commit()
-
-        nvr = 'kernel-3.11.5-300.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = False
-        args['stable_karma'] = 3
-        args['unstable_karma'] = -3
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        assert resp.json['critpath']
-        assert resp.json['request'] == 'testing'
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        up.status = UpdateStatus.testing
-        # Clear pending messages
-        self.db.info['messages'] = []
-        self.db.commit()
-
-        up.comment(self.db, 'LGTM Now', author='ralph', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        up.comment(self.db, 'wfm', author='luke', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        up.comment(self.db, 'LGTM', author='puiterwijk', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        assert up.karma == 3
-        assert up.autokarma is False
-        # The request should still be at testing. This assertion tests for
-        # https://github.com/fedora-infra/bodhi/issues/989 where karma comments were resetting the
-        # request to None.
-        assert up.request == UpdateRequest.testing
-        assert up.status == UpdateStatus.testing
-        # Let's clear any messages that might get sent
-        self.db.info['messages'] = []
-
-        resp = self.app.get(f'/updates/{up.alias}',
-                            headers={'Accept': 'text/html'})
-        assert 'text/html' in resp.headers['Content-Type']
-        assert 'kernel-3.11.5-300.fc17' in resp
-
-    @pytest.mark.parametrize('rawhide_workflow', (True, False))
-    def test_disable_autopush_non_critical_update_with_negative_karma(self, rawhide_workflow):
-        """Disable autokarma on non-critical updates upon negative comment."""
-        user = User(name='bob')
-        self.db.add(user)
-        self.db.commit()
-
+    @pytest.mark.parametrize('status', (UpdateStatus.testing, UpdateStatus.pending))
+    @pytest.mark.parametrize("cbb", (True, False))
+    @pytest.mark.parametrize("critpath", (True, False))
+    @pytest.mark.parametrize("autotime", (True, False))
+    @pytest.mark.parametrize("autokarma", (True, False))
+    @pytest.mark.parametrize("negk", (True, False))
+    def test_autopush_disabled_on_negative_karma(
+            self, negk, autokarma, autotime, critpath, cbb, status):
+        """check_karma_thresholds() should disable all autopush settings if negative
+        karma is received, on updates in testing status for releases composed by Bodhi,
+        whether or not the update is critical path."""
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        args['autokarma'] = True
-        args['stable_karma'] = 3
-        args['unstable_karma'] = -3
-
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        assert resp.json['request'] == 'testing'
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        up.status = UpdateStatus.testing
-        if rawhide_workflow:
-            up.release.composed_by_bodhi = False
-        # Clear pending messages
-        self.db.info['messages'] = []
-        self.db.commit()
-
-        up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        if not rawhide_workflow:
-            expected_comment = config.get('disable_automatic_push_to_stable')
-            assert len(up.comments) == 4
-            assert up.comments[-1].text == expected_comment
-        else:
-            assert len(up.comments) == 3
-
-        up.comment(self.db, 'LGTM Now', author='ralph', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        up.comment(self.db, 'wfm', author='luke', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        up.comment(self.db, 'LGTM', author='puiterwijk', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        assert up.karma == 3
-        if not rawhide_workflow:
-            assert up.autokarma is False
-        else:
-            assert up.autokarma is True
-
-        # Request and Status remains testing since the autopush is disabled
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        assert up.request == UpdateRequest.testing
-        assert up.status == UpdateStatus.testing
-
-    def test_autopush_non_critical_update_with_no_negative_karma(self, *args):
-        """
-        Make sure autopush doesn't get disabled for Non Critical update if it
-        does not receive any negative karma. Test update gets automatically
-        marked as stable.
-        """
-        user = User(name='bob')
-        self.db.add(user)
-        self.db.commit()
-
-        nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = True
+        args['autokarma'] = autokarma
+        args['autotime'] = autotime
         args['stable_karma'] = 2
-        args['unstable_karma'] = -2
+        with fml_testing.mock_sends(
+            update_schemas.UpdateReadyForTestingV3,
+            update_schemas.UpdateRequestTestingV1,
+        ):
+            response = self.app.post_json('/updates/', args)
+        up = Update.get(response.json['alias'])
+        up.status = status
+        up.request = None
+        up.release.composed_by_bodhi = cbb
+        up.critpath = critpath
+        if negk:
+            up.comment(self.db, "foo", -1, 'biz')
+        else:
+            up.comment(self.db, "foo", 0, 'biz')
+        if negk and cbb and status is UpdateStatus.testing:
+            assert up.autokarma is False
+            assert up.autotime is False
+            if autokarma or autotime:
+                assert up.comments[-1].text == config.get('disable_automatic_push_to_stable')
+        else:
+            assert up.autokarma is autokarma
+            assert up.autotime is autotime
 
-        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
-                                    update_schemas.UpdateRequestTestingV1):
-            resp = self.app.post_json('/updates/', args)
-
-        assert resp.json['request'] == 'testing'
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        up.status = UpdateStatus.testing
-        # Clear pending messages
-        self.db.info['messages'] = []
-        self.db.commit()
-
-        up.comment(self.db, 'LGTM Now', author='ralph', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        with fml_testing.mock_sends(api.Message, api.Message):
-            up.comment(self.db, 'WFM', author='puiterwijk', karma=1)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-
-        # No negative karma: Update gets automatically marked as stable
-        assert up.autokarma is True
-
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        assert up.request == UpdateRequest.stable
+        assert up.request is None
+        assert up.status == status
 
     def test_edit_button_not_present_when_stable(self, *args):
         """
@@ -5814,6 +5593,7 @@ class TestUpdatesService(BasePyTestCase):
                         stable_karma=3, unstable_karma=-3)
         update.comment(self.db, "foo1", 1, 'foo1')
         update.comment(self.db, "foo2", 1, 'foo2')
+        # this is triggering a karma-autopush to get the newer update pushed stable
         with fml_testing.mock_sends(api.Message, api.Message, api.Message, api.Message):
             update.comment(self.db, "foo3", 1, 'foo3')
         self.db.add(update)

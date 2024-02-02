@@ -3598,51 +3598,6 @@ class TestUpdate(ModelTest):
 
         assert self.obj._composite_karma == (2, -1)
 
-    def test_check_karma_thresholds_obsolete(self):
-        """check_karma_thresholds() should no-op on an obsolete update."""
-        self.obj.status = UpdateStatus.obsolete
-        self.obj.request = None
-        self.obj.comment(self.db, "foo", 1, 'biz')
-        self.obj.stable_karma = 1
-
-        self.obj.check_karma_thresholds(self.db, 'bowlofeggs')
-
-        assert self.obj.request is None
-        assert self.obj.status == UpdateStatus.obsolete
-
-    def test_check_karma_thresholds_gating_fail(self):
-        """check_karma_thresholds should no-op on an update that meets
-        the threshold but does not meet gating requirements.
-        """
-        config["test_gating.required"] = True
-        self.obj.status = UpdateStatus.testing
-        self.obj.request = None
-        self.obj.autokarma = True
-        self.obj.comment(self.db, "foo", 1, 'biz')
-        self.obj.stable_karma = 1
-        self.obj.test_gating_status = TestGatingStatus.failed
-
-        self.obj.check_karma_thresholds(self.db, 'bowlofeggs')
-
-        assert self.obj.request is None
-        assert self.obj.status == UpdateStatus.testing
-
-    def test_check_karma_thresholds_frozen_release(self):
-        """check_karma_thresholds should no-op on an update those
-        release is in frozen state.
-        """
-        self.obj.status = UpdateStatus.pending
-        self.obj.request = UpdateRequest.testing
-        self.obj.autokarma = True
-        self.obj.comment(self.db, "foo", 1, 'biz')
-        self.obj.stable_karma = 1
-        self.obj.release.state = ReleaseState.frozen
-
-        self.obj.check_karma_thresholds(self.db, 'bowlofeggs')
-
-        assert self.obj.request is UpdateRequest.testing
-        assert self.obj.status == UpdateStatus.pending
-
     def test_critpath_approved_no_release_requirements(self):
         """critpath_approved() should use the broad requirements if the release doesn't have any."""
         self.obj.critpath = True
@@ -3678,43 +3633,6 @@ class TestUpdate(ModelTest):
             self.obj.last_modified
         assert 'Update has no timestamps set:' in str(exc.value)
 
-    def test_stable_karma(self):
-        update = self.obj
-        update.request = None
-        update.status = UpdateStatus.testing
-        assert update.karma == 0
-        assert update.request is None
-        update.comment(self.db, "foo", 1, 'foo')
-        assert update.karma == 1
-        assert update.request is None
-        update.comment(self.db, "foo", 1, 'bar')
-        assert update.karma == 2
-        assert update.request is None
-        # Let's flush out any messages that have been sent.
-        self.db.info['messages'] = []
-        expected_message_0 = update_schemas.UpdateCommentV1.from_dict(
-            {'comment': self.obj['comments'][0], 'agent': 'biz'})
-        expected_message_1 = update_schemas.UpdateKarmaThresholdV1.from_dict(
-            {'update': self.obj, 'status': 'stable'})
-        expected_message_2 = update_schemas.UpdateRequestStableV1.from_dict(
-            {'update': self.obj, 'agent': 'bodhi'})
-
-        with mock_sends(expected_message_2, expected_message_1, expected_message_0):
-            update.comment(self.db, "foo", 1, 'biz')
-            # comment alters the update a bit, so we need to adjust the expected messages to
-            # reflect those changes so the mock_sends() check will pass.
-            expected_message_0.body['comment'] = self.obj['comments'][-2].__json__()
-            # Since we cheated and copied comment 0, we need to change the headers to show biz
-            # as the user instead of foo.
-            expected_message_0._headers['fedora_messaging_user_biz'] = True
-            del expected_message_0._headers['fedora_messaging_user_foo']
-            expected_message_1.body['update'] = self.obj.__json__()
-            expected_message_2.body['update'] = self.obj.__json__()
-            self.db.commit()
-
-        assert update.karma == 3
-        assert update.request == UpdateRequest.stable
-
     def test_obsolete_if_unstable_unstable(self):
         """Test obsolete_if_unstable() when all conditions are met for instability."""
         self.obj.autokarma = True
@@ -3740,39 +3658,6 @@ class TestUpdate(ModelTest):
         with pytest.raises(BodhiException) as exc:
             self.obj.revoke()
         assert str(exc.value) == 'Can only revoke an update with an existing request'
-
-    def test_unstable_karma(self):
-        update = self.obj
-        update.status = UpdateStatus.testing
-        assert update.karma == 0
-        assert update.status == UpdateStatus.testing
-        update.comment(self.db, "foo", -1, 'foo')
-        assert update.status == UpdateStatus.testing
-        assert update.karma == -1
-        update.comment(self.db, "bar", -1, 'bar')
-        assert update.status == UpdateStatus.testing
-        assert update.karma == -2
-        # Let's flush out any messages that have been sent.
-        self.db.info['messages'] = []
-        expected_message_0 = update_schemas.UpdateCommentV1.from_dict(
-            {'comment': self.obj['comments'][0], 'agent': 'biz'})
-        expected_message_1 = update_schemas.UpdateKarmaThresholdV1.from_dict(
-            {'update': self.obj, 'status': 'unstable'})
-
-        with mock_sends(expected_message_1, expected_message_0):
-            update.comment(self.db, "biz", -1, 'biz')
-            # comment alters the update a bit, so we need to adjust the expected messages to
-            # reflect those changes so the mock_sends() check will pass.
-            expected_message_0.body['comment'] = self.obj['comments'][-2].__json__()
-            # Since we cheated and copied comment 0, we need to change the headers to show biz
-            # as the user instead of foo.
-            expected_message_0._headers['fedora_messaging_user_biz'] = True
-            del expected_message_0._headers['fedora_messaging_user_foo']
-            expected_message_1.body['update'] = self.obj.__json__()
-            self.db.commit()
-
-        assert update.karma == -3
-        assert update.status == UpdateStatus.obsolete
 
     def test_update_bugs(self):
         update = self.obj
@@ -3897,10 +3782,18 @@ class TestUpdate(ModelTest):
         req.koji = buildsys.get_session()
         assert self.obj.status == UpdateStatus.pending
         self.obj.stable_karma = 1
-        with mock_sends(Message):
-            self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+        # disable autokarma, so sending the comment doesn't do the request
+        self.obj.autokarma = False
+        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+        # make sure we are actually doing something here
+        assert self.obj.request is not UpdateRequest.stable
 
-        self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+        expected_messages = (
+            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateRequestStableV1,
+        )
+        with mock_sends(*expected_messages):
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
 
         assert self.obj.request == UpdateRequest.stable
         assert self.obj.status == UpdateStatus.pending
@@ -4173,11 +4066,19 @@ class TestUpdate(ModelTest):
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
         assert self.obj.status == UpdateStatus.pending
+        # disable autokarma, so sending the comment doesn't do the request
+        self.obj.autokarma = False
         self.obj.stable_karma = 1
-        with mock_sends(Message):
-            self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+        # make sure we are actually doing something here
+        assert self.obj.request is not UpdateRequest.stable
 
-        self.obj.set_request(self.db, 'stable', req.user.name)
+        expected_messages = (
+            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateRequestStableV1,
+        )
+        with mock_sends(*expected_messages):
+            self.obj.set_request(self.db, 'stable', req.user.name)
 
         assert self.obj.request == UpdateRequest.stable
         assert self.obj.status == UpdateStatus.pending
@@ -4299,25 +4200,6 @@ class TestUpdate(ModelTest):
         self.obj.status_comment(self.db)
 
         assert [c.text for c in self.obj.comments] == ['This update has been obsoleted.']
-
-    @mock.patch.dict(config, {'critpath.num_admin_approvals': 2})
-    def test_comment_critpath_unapproved(self):
-        """Test a comment reaching karma threshold when update is not critpath approved."""
-        self.obj.autokarma = True
-        self.obj.critpath = True
-        self.obj.stable_karma = 1
-        self.obj.status = UpdateStatus.testing
-
-        # This should cause a caveat.
-        comments, caveats = self.obj.comment(self.db, 'testing 3', author='me3', karma=1)
-
-        assert caveats == (
-            [{'name': 'karma',
-              'description': ('This critical path update has not yet been approved for pushing to '
-                              'the stable repository.  It must first reach a karma of 2, '
-                              'consisting of 2 positive karma from proventesters, along with 0 '
-                              'additional karma from the community. Or, it must spend 14 days in '
-                              'testing without any negative feedback')}])
 
     def test_comment_emails_other_commenters(self):
         """comment() should send e-mails to the other maintainers."""
