@@ -3847,13 +3847,10 @@ class Update(Base):
                     "%s update has reached the stable karma threshold and can be pushed to "
                     "stable now if the maintainer wishes"), self.alias)
         elif self.unstable_karma and self.karma <= self.unstable_karma:
-            if self.status is UpdateStatus.pending and not self.autokarma:
-                pass
-            else:
-                log.info("Automatically unpushing %s", self.alias)
-                self.obsolete(db)
-                notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
-                    dict(update=self, status='unstable')))
+            log.info("Automatically obsoleting %s (reached unstable karma threshold)", self.alias)
+            self.obsolete(db)
+            notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
+                dict(update=self, status='unstable')))
 
     @property
     def builds_json(self):
