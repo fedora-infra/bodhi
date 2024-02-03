@@ -7,8 +7,7 @@ ARG clienturi=http://bodhi.ci:8080/oidc/
 # to listen on a non-standard port, specify this too, it's dumb but you can't do
 # conditionals or string parsing in dockerfiles...only used for EXPOSE anyway
 ARG listen=80
-RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/main/f/files/common/fedora-infra-tags.repo \
-    && curl -o /etc/yum.repos.d/ipsilon-bodhi.repo https://adamwill.fedorapeople.org/ipsilon-bodhi-repo/ipsilon-bodhi.repo
+RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/main/f/files/common/fedora-infra-tags.repo
 
 RUN dnf install -y ipsilon ipsilon-openid ipsilon-openidc patch git sed systemd procps-ng elinks
 RUN git clone https://pagure.io/fedora-infra/ipsilon-fedora.git /opt/ipsilon-fedora \
