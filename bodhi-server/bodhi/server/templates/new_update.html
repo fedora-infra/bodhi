@@ -318,7 +318,7 @@ value="${update.display_name | h}"
           <div class="card-body pt-0">
               <div class="row ms-3">
                   <div class="col-6">
-                      <h6 class="fw-bold" title="This is the threshold of positive karma required to automatically push an update from testing to stable.">Stable Karma</h6>
+                      <h6 class="fw-bold" title="This is the threshold of positive karma required to automatically push an update from testing to stable. This happens only if 'Auto-request stable based on karma?' is checked.">Stable Karma</h6>
                       <input type="number" class="form-control" name="stable_karma" min="1" required
                       % if update:
                       value="${update.stable_karma}"
@@ -328,7 +328,7 @@ value="${update.display_name | h}"
                     />
                   </div>
                   <div class="col-6">
-                      <h6 class="fw-bold" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough time was spent in testing.">Unstable Karma</h6>
+                      <h6 class="fw-bold" title="This is the threshold of negative karma required to automatically unpush an update. This will happen whether or not 'Auto-request stable based on karma?' is checked.">Unstable Karma</h6>
                       <input type="number" class="form-control" name="unstable_karma" max="-1" required
                       % if update:
                       value="${update.unstable_karma}"
