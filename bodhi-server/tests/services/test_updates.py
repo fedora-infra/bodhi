@@ -4770,11 +4770,10 @@ class TestUpdatesService(BasePyTestCase):
     @pytest.mark.parametrize("composed_by_bodhi", (True, False))
     @pytest.mark.parametrize("autokarma", (True, False))
     def test_obsolete_if_unstable(self, autokarma, composed_by_bodhi, req, status):
-        """Pending or testing updates should be obsoleted on reaching the auto-unpush threshold,
-        except if the status is pending and autokarma is disabled. Whether the update is
-        composed_by_bodhi should not matter. "Obsoleted" should mean the update status is
-        set to obsolete and its request to None. Obsoletion should not happen with just one
-        negative karma (if the threshold is -2)."""
+        """Pending or testing updates should be obsoleted on reaching the auto-unpush threshold.
+        Whether the update is composed_by_bodhi should not matter. "Obsoleted" should mean the
+        update status is set to obsolete and its request to None. Obsoletion should not happen
+        with just one negative karma (if the threshold is -2)."""
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['autokarma'] = autokarma
@@ -4802,23 +4801,16 @@ class TestUpdatesService(BasePyTestCase):
         # caused by the obsoletion to have taken effect when we construct the
         # expected message
         up.comment(self.db, "foo", -1, 'bowlofeggs')
-        if status is UpdateStatus.pending and not autokarma:
-            with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
-                # doing a db commit causes the message to be published
-                self.db.commit()
-            assert up.status is status
-            assert up.request is req
-        else:
-            with fml_testing.mock_sends(
-                update_schemas.UpdateKarmaThresholdV1.from_dict(
-                    {'update': up, 'status': 'unstable'}
-                ),
-                update_schemas.UpdateCommentV1
-            ):
-                # doing a db commit causes the message to be published
-                self.db.commit()
-            assert up.status is UpdateStatus.obsolete
-            assert up.request is None
+        with fml_testing.mock_sends(
+            update_schemas.UpdateKarmaThresholdV1.from_dict(
+                {'update': up, 'status': 'unstable'}
+            ),
+            update_schemas.UpdateCommentV1
+        ):
+            # doing a db commit causes the message to be published
+            self.db.commit()
+        assert up.status is UpdateStatus.obsolete
+        assert up.request is None
         # the obsolete path should not disable autokarma, but we can't assert
         # this unconditionally because we might have hit the earlier disable-
         # autokarma path
