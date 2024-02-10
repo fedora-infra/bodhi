@@ -13,7 +13,7 @@
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Vagrant" href="vagrant.html" />
+    <link rel="next" title="Debugging with Visual Studio Code" href="bcd_vscode.html" />
     <link rel="prev" title="Release process" href="releases.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -112,8 +112,58 @@ $ ./bcd shell
 </div>
 <p>Note the container must be running, or this will fail. Once you are inside the development
 environment, there are a helpful set of commands in your <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code> that will be printed to the
-screen via the <code class="docutils literal notranslate"><span class="pre">/etc/motd</span></code> file. These work exactly as documented in <a class="reference internal" href="vagrant.html#vagrant-tips"><span class="std std-ref">the Vagrant doc</span></a>,
-except that <code class="docutils literal notranslate"><span class="pre">bci</span></code> is not available in this environment (as we can’t nest containers like that).</p>
+screen via the <code class="docutils literal notranslate"><span class="pre">/etc/motd</span></code> file. Be sure to familiarize yourself with these:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+Welcome to the Bodhi development environment! Here are some helpful commands:
+
+bdocs:       Build Bodhi&#39;s documentation.
+blint:       Run a series of linter checks.
+btest:       Run Bodhi&#39;s test suite (includes blint and bdocs).
+bmessages:   Display the log of Bodhi&#39;s messages on the bus.
+blog:        View Bodhi&#39;s log. (Support all the systemctl options, such as -lf).
+bresetdb:    Drop and reimport the database.
+brestart:    Restart the Bodhi service.
+bodhi-shell: Get a handy python shell initialized with Bodhi models.
+bstart:      Start the Bodhi service.
+bstop:       Stop the Bodhi service.
+
+The BODHI_URL and BODHI_OPENID_PROVIDER variables are set so the
+the bodhi client will use the local development server and all
+requests should work correctly.
+
+You can run `systemctl start fm-consumer@remote.service` to run a
+callback consumer that listens to real messages on the production
+bus from Koji and ResultsDB, though this dev env may not be able
+to correctly process all messages.
+
+Happy hacking!
+</pre></div>
+</div>
+<p>The code from your development host will be mounted in <code class="docutils literal notranslate"><span class="pre">/bodhi</span></code> in the Bodhi container.
+You can edit this code on the host, and the changes will automatically be reflected in the container.</p>
+<p>The development server is run inside the container by the <code class="docutils literal notranslate"><span class="pre">bodhi.service</span></code> systemd unit.
+You can use <code class="docutils literal notranslate"><span class="pre">bodhi-shell</span></code> to get a Python shell quickly set up with a nice environment for you to hack
+in. Here’s an example where we use <code class="docutils literal notranslate"><span class="pre">bodhi-shell</span></code> to set an update’s request to stable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [root@bodhi-dev bodhi]# bodhi-shell
+Python 3.12.0 (main, Oct  2 2023, 00:00:00) [GCC 13.2.1 20230918 (Red Hat 13.2.1-3)] on linux
+Type &quot;help&quot; for more information.
+
+Environment:
+  app          The WSGI application.
+  registry     Active Pyramid registry.
+  request      Active request object.
+  root         Root of the default resource tree.
+  root_factory Default root factory used to create `root`.
+
+Custom Variables:
+  m            bodhi.server.models
+  s            bodhi.server.Session
+
+&gt;&gt;&gt; u = m.Update.query.filter_by(alias=&#39;FEDORA-2016-840ff89708&#39;).one()
+&gt;&gt;&gt; u.request = m.UpdateRequest.stable
+&gt;&gt;&gt; s().commit()
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -172,8 +222,7 @@ except that <code class="docutils literal notranslate"><span class="pre">bci</sp
 <li class="toctree-l2"><a class="reference internal" href="#quick-tips-about-the-bcd-environment">Quick tips about the BCD environment</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="vagrant.html">Vagrant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bcd_vscode.html">Debugging with Visual Studio Code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Database models</a></li>
 </ul>
 <ul>
@@ -185,7 +234,7 @@ except that <code class="docutils literal notranslate"><span class="pre">bci</sp
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
       <li>Previous: <a href="releases.html" title="previous chapter">Release process</a></li>
-      <li>Next: <a href="vagrant.html" title="next chapter">Vagrant</a></li>
+      <li>Next: <a href="bcd_vscode.html" title="next chapter">Debugging with Visual Studio Code</a></li>
   </ul></li>
 </ul>
 </div>

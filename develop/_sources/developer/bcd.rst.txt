@@ -94,5 +94,33 @@ You can shell into the running Bodhi container like this::
 
 Note the container must be running, or this will fail. Once you are inside the development
 environment, there are a helpful set of commands in your ``.bashrc`` that will be printed to the
-screen via the ``/etc/motd`` file. These work exactly as documented in :ref:`the Vagrant doc <vagrant-tips>`,
-except that ``bci`` is not available in this environment (as we can't nest containers like that).
+screen via the ``/etc/motd`` file. Be sure to familiarize yourself with these:
+
+.. include:: ../../devel/ansible-podman/containers/bodhi/motd
+   :literal:
+
+The code from your development host will be mounted in ``/bodhi`` in the Bodhi container.
+You can edit this code on the host, and the changes will automatically be reflected in the container.
+
+The development server is run inside the container by the ``bodhi.service`` systemd unit.
+You can use ``bodhi-shell`` to get a Python shell quickly set up with a nice environment for you to hack
+in. Here's an example where we use ``bodhi-shell`` to set an update's request to stable::
+
+	[root@bodhi-dev bodhi]# bodhi-shell
+    Python 3.12.0 (main, Oct  2 2023, 00:00:00) [GCC 13.2.1 20230918 (Red Hat 13.2.1-3)] on linux
+    Type "help" for more information.
+
+    Environment:
+      app          The WSGI application.
+      registry     Active Pyramid registry.
+      request      Active request object.
+      root         Root of the default resource tree.
+      root_factory Default root factory used to create `root`.
+
+    Custom Variables:
+      m            bodhi.server.models
+      s            bodhi.server.Session
+
+    >>> u = m.Update.query.filter_by(alias='FEDORA-2016-840ff89708').one()
+    >>> u.request = m.UpdateRequest.stable
+    >>> s().commit()

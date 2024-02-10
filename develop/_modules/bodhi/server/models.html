@@ -52,9 +52,9 @@
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span> <span class="nn">textwrap</span> <span class="kn">import</span> <span class="n">wrap</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urljoin</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">typing</span>
@@ -3751,9 +3751,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            str: A URL.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;updates&#39;</span><span class="p">]</span>
-        <span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;updates/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s1">&#39;</span></div>
 
 
 <div class="viewcode-block" id="Update.abs_url">
@@ -3766,7 +3764,7 @@
 <span class="sd">            request (pyramid.request.Request or None): The current web request. Unused.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">base</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_address&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_url</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="n">urljoin</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_url</span><span class="p">())</span></div>
 
 
     <span class="n">url</span> <span class="o">=</span> <span class="n">abs_url</span>
@@ -5530,8 +5528,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../developer/index.html">Developer documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../developer/releases.html">Release process</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../developer/bcd.html">BCD - the Bodhi Container Development environment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../developer/vagrant.html">Vagrant</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../developer/vagrant_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer/bcd_vscode.html">Debugging with Visual Studio Code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../developer/models.html">Database models</a></li>
 </ul>
 <ul>
