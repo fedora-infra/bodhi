@@ -135,18 +135,16 @@ If you are looking for some easy tasks to get started with Bodhi development, ha
 CI Tests
 ========
 
-All Bodhi pull requests are tested in a `Jenkins instance <https://ci.centos.org/>`_
-that is graciously hosted for us by the CentOS Project. Sometimes tests fail, and when they do you
-can visit the test job that failed and view its console output by visiting the
-`bodhi-pipeline job <https://ci.centos.org/job/bodhi-pipeline/>`_. Links to individual pull request
+All Bodhi pull requests are tested in `Github Actions <https://github.com/features/actions>`_.
+Sometimes tests fail, and when they do you can visit the test job that failed by clicking the
+Details link next to it in the report that appears on the pull request page. Links to individual pull request
 builds can be found on your pull request on GitHub by clicking the "Details" link next to
 ``continuous-integration/jenkins/pr-merge``. From there you can inspect the full console output, or
 you can click into the "Pipeline Steps" on the left to see the output of each individual job.
 
-Bodhi's CI pipeline workflow is described in `Groovyscript <http://www.groovy-lang.org/>`_ in
-``devel/ci/cico.pipeline``. This file is fairly well self-documented, and described to Jenkins how
-it should run Bodhi's tests. It defines the various GitHub contexts that our ``.mergify.yml``
-configuration is set to block merges on, and it runs the individual build and test jobs in parallel.
+Bodhi's CI pipeline workflow is described in the Github Actions workflow files in
+``.github/workflows``. These files describe to Github how it should run Bodhi's tests. If you are
+not familiar with Github Actions, please refer to the extensive upstream documentation.
 
 It is possible for you to run these same tests locally. There is a ``devel/ci/bodhi-ci`` script
 that is used by the pipeline to do the heavy lifting. This script is intended to be
