@@ -13,18 +13,16 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
 * All tests must pass.
 * New code must have 100% test coverage. This one is particularly important, as we don't want to
   deploy any broken code into production. At the end of ``btest`` run, you can see your code coverage.
-  If you are not using Vagrant environment you can check the code coverage by running
+  If you are not using BCD environment you can check the code coverage by running
   ``diff-cover coverage.xml --compare-branch=origin/develop --fail-under=100``.
 * New functions, methods, and classes must have docblocks that explain what the code block is, and
   describing any parameters it accepts and what it returns (if anything). You can use the
-  ``pydocstyle`` utility to automatically check your code for this. You can also run ``pydocstyle bodhi``
-  in Vagrant.
-* Parameter and return value types should be declared using `type hints`_. You can test this by running
-  ``bci mypy`` in Vagrant.
+  ``pydocstyle`` utility to automatically check your code for this. You can also run ``pydocstyle /bodhi``
+  in BCD.
+* Parameter and return value types should be declared using `type hints`_.
 * New code must follow `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`_. You can use the
-  ``flake8`` utility to automatically check your code. Alternatively you can run ``flake8-3``
-  in Vagrant.
-* If you want to run the three above at once you can use ``blint`` alias in Vagrant.
+  ``flake8`` utility to automatically check your code.
+* If you want to run the three above at once you can use ``blint`` alias in BCD.
 * Make sure your commits are atomic. With only rare exceptions, each improvement or bug fix should
   have exactly one commit. This makes it much easier to peruse the git history to find out which
   changes relate to a feature or bugfix implementation, and is particularly valuable when commits
@@ -160,20 +158,14 @@ failure, I can execute the script like this::
 
     $ sudo devel/ci/bodhi-ci all -r f28 -r f29 -x
 
-Note that if you are using the Vagrant development environment, there is a handy ``bci`` shell alias
-that runs ``sudo devel/ci/bodhi-ci`` for you.
-
 
 Create a Bodhi development environment
 ======================================
 
-You can use Bodhi's "BCD" container-based development environment, or use Vagrant to create a VM-
-based development environment. Using a local Python virtualenv is no longer supported. See the
-:doc:`BCD Guide <bcd>` for instructions on using BCD, or the :doc:`Bodhi Vagrant Guide <vagrant>`
-for instructions on using Vagrant.
+You can use Bodhi's "BCD" container-based development environment. Using Vagrant or a local Python
+virtualenv are no longer supported. See the :doc:`BCD Guide <bcd>` for instructions on using BCD.
 
-You can configure Visual Studio Code to run unit-tests inside with :doc:`Bodhi Vagrant - VS Code Guide <vagrant_vscode>`.
+You can configure Visual Studio Code to run unit-tests inside with :doc:`Bodhi BCD - VS Code Guide <bcd_vscode>`.
 
 .. _docs/user/release_notes.rst: https://github.com/fedora-infra/bodhi/blob/develop/docs/user/release_notes.rst#release-notes
 .. _type hints: https://docs.python.org/3/library/typing.html
-.. _Vagrant: https://www.vagrantup.com
