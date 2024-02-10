@@ -76,7 +76,7 @@ pungi.conf.rpm = pungi.rpm.conf.j2
 pungi.conf.module = pungi.module.conf.j2
 
 test_gating.required = True
-# WaiverDB and Greenwave in vagrant are provided via docker local services
+# WaiverDB and Greenwave in development environment are provided by containers
 waiverdb_api_url = http://bodhi_user:pass@localhost:6544/api/v1.0
 greenwave_api_url = http://localhost:6545/api/v1.0
 

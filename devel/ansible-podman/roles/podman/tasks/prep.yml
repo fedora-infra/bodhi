@@ -43,18 +43,6 @@
     - waiverdb-settings.py
     - greenwave-settings.py
 
-- name: Adjust waiverdb hostname in greenwave settings for this environment
-  ansible.builtin.replace:
-    path: /tmp/bodhi-dev/greenwave-settings.py
-    regexp: 'waiverdb:6544'
-    replace: 'bodhi-dev-waiverdb:6544'
-
-- name: Adjust database hostname in waiverdb settings for this environment
-  ansible.builtin.replace:
-    path: /tmp/bodhi-dev/waiverdb-settings.py
-    regexp: 'wdb:5432'
-    replace: 'bodhi-dev-database:5432'
-
 - name: Copy various required executable files into place
   ansible.builtin.copy:
     src: "{{ item }}"
