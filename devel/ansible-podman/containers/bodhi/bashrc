@@ -16,6 +16,7 @@ alias bstart="systemctl start bodhi.service celery.service fm-consumer@config.se
 alias bstop="systemctl stop bodhi.service celery.service fm-consumer@config.service fm-consumer@printer.service"
 alias blint="pre-commit run -a"
 alias bmessages="journalctl -u fm-consumer@printer -f"
+alias bodhi-shell="python3 /usr/bin/pshell /etc/bodhi/production.ini"
 
 
 function bresetdb {
