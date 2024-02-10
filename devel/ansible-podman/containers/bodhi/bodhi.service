@@ -9,6 +9,9 @@ WorkingDirectory=/bodhi/bodhi-server
 ExecStartPre=/usr/bin/poetry -C /bodhi/bodhi-messages install --only-root
 ExecStartPre=/usr/bin/poetry -C /bodhi/bodhi-client install --only-root
 ExecStartPre=/usr/bin/poetry -C /bodhi/bodhi-server install --only-root
+# the shebang on pshell breaks this in the container environment,
+# so we just replace it with an alias in bashrc
+ExecStartPre=rm -f /usr/local/bin/bodhi-shell
 ExecStartPre=/usr/local/bin/bodhi-wait.py
 # we don't run alembic and pserve directly from /usr/bin as some
 # options in their shebangs break finding our bodhi modules
