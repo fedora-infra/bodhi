@@ -73,7 +73,7 @@ jobs:
       fail-fast: false
       matrix:
         # integration tests are broken on pip atm, so not included in this list.
-        release: [f38,f39,rawhide]
+        release: [f38,f39,f40,rawhide]
 
   unit_tests:
     name: Unit Tests
@@ -114,7 +114,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f38,f39,pip,rawhide]
+        release: [f38,f39,f40,pip,rawhide]
 
   rpms:
     name: Build the RPMS
@@ -139,4 +139,4 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f38,f39,rawhide]
+        release: [f38,f39,f40,rawhide]
