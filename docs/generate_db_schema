@@ -3,16 +3,20 @@
 Generate an image of the database schema
 """
 from packaging import version
-from sqlalchemy import __version__ as sqlaver
+from sqlalchemy import create_engine
 from sqlalchemy_schemadisplay import create_schema_graph
+try:
+    from sqlalchemy_schemadisplay import __version__ as sqlschemaver
+except ImportError:
+    sqlschemaver = '1.0'
 
-from bodhi.server import models, Session
+from bodhi.server import models
 
 
 def write_graph(filename):
-    if version.parse(sqlaver) >= version.parse('2.0.0'):
+    if version.parse(sqlschemaver) >= version.parse('2.0'):
         graph = create_schema_graph(
-            session=Session,
+            engine=create_engine('sqlite:///:memory:'),
             metadata=models.metadata,
             show_datatypes=False,
             show_indexes=False,
