@@ -17,12 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines service endpoints for our message schemas."""
 
+from importlib import metadata
 import typing
 
 from cornice.resource import resource, view
 from pyramid import httpexceptions
 from pyramid.authorization import Allow, Everyone
-import pkg_resources
 
 from bodhi.server import security
 from bodhi.server.services import errors
@@ -78,8 +78,8 @@ class MessageSchemasV1:
         Returns:
             A list of message topics that Bodhi supports.
         """
-        return [m.load().topic for m in pkg_resources.iter_entry_points('fedora.messages')
-                if m.module_name.startswith('bodhi.')]
+        return [m.load().topic for m in metadata.entry_points(group='fedora.messages')
+                if m.value.startswith('bodhi.')]
 
     @view(accept=('application/json', 'text/json'), renderer='json',
           cors_origins=security.cors_origins_ro, error_handler=errors.json_handler,
@@ -94,9 +94,9 @@ class MessageSchemasV1:
             The requested message schema.
         """
         try:
-            return pkg_resources.load_entry_point(
-                'bodhi-messages', 'fedora.messages',
-                f"{self.request.matchdict['topic']}.v1").body_schema
-        except ImportError:
+            (ep,) = metadata.entry_points(group='fedora.messages',
+                                          name=f"{self.request.matchdict['topic']}.v1")
+            return ep.load().body_schema
+        except ValueError:
             # The user has requested a topic that does not exist
             raise httpexceptions.HTTPNotFound()
