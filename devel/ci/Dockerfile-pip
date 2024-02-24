@@ -30,9 +30,6 @@ RUN pip-3 install \
     pymediawiki \
     celery
 
-# proposed fix for sqlalchemy 2.0 compatibility
-RUN pip-3 install git+https://github.com/fschulze/sqlalchemy_schemadisplay.git@refs/pull/34/head
-
 VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
