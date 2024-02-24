@@ -28,7 +28,6 @@ from webob.multidict import MultiDict
 import bleach
 import createrepo_c
 import packaging
-import pkg_resources
 import pytest
 
 from bodhi.server import models, util
@@ -142,8 +141,7 @@ class TestBugLink:
         # bleach v3 fixed a bug that closed out tags when sanitizing. so we check for
         # either possible results here.
         # https://github.com/mozilla/bleach/issues/392
-        bleach_v = pkg_resources.parse_version(bleach.__version__)
-        if bleach_v >= pkg_resources.parse_version('3.0.0'):
+        if packaging.version.parse(bleach.__version__) >= packaging.version.parse('3.0.0'):
             assert link == \
                 ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091' "
                  "class='notblue'>BZ#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should "
@@ -436,7 +434,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         util.sanity_check_repodata(self.tempdir, repo_type='yum')
 
     @pytest.mark.skipif(
-        pkg_resources.parse_version(createrepo_c.VERSION) < pkg_resources.parse_version('1.0.0'),
+        packaging.version.parse(createrepo_c.VERSION) < packaging.version.parse('1.0.0'),
         reason='ZSTD compression requires createrepo_c 1.0.0 or higher'
     )
     def test_correct_yum_repo_with_zstd_compress(self):
@@ -1020,8 +1018,7 @@ class TestUtils(base.BasePyTestCase):
             "div", "blockquote", "code", "hr", "pre", "ul", "ol", "li", "dd", "dt", "img", "a"]
         expected_attributes = {
             "img": ["src", "alt", "title"], "a": ["href", "alt", "title"], "div": ["class"]}
-        bleach_v = pkg_resources.get_distribution('bleach').version
-        if packaging.version.parse(bleach_v) >= packaging.version.parse("6.0.0"):
+        if packaging.version.parse(bleach.__version__) >= packaging.version.parse("6.0.0"):
             expected_tags = set(expected_tags)
         # The bleach 2 API should get these attrs passed.
         clean.assert_called_once_with(expected_text, tags=expected_tags,

@@ -19,9 +19,9 @@
 from unittest import mock
 import copy
 
+from bleach import __version__ as bleachver
 from pyramid.testing import DummyRequest
 import packaging
-import pkg_resources
 import pytest
 import webtest
 
@@ -274,15 +274,14 @@ class TestGenericViews(base.BasePyTestCase):
         }, status=200)
         # markdown tries to obfuscate email addresses, bleach versions prior to
         # 6.0.0 restored the email in plain text
-        bleach_v = pkg_resources.get_distribution('bleach').version
-        if packaging.version.parse(bleach_v) >= packaging.version.parse("6.1.0"):
+        if packaging.version.parse(bleachver) >= packaging.version.parse("6.1.0"):
             assert res.json_body['html'] == \
                 ('<div class="markdown">'
                  '<p>email me at <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#100;&#117;'
                  '&#100;&#101;&#64;&#109;&#99;&#112;&#97;&#110;&#116;&#115;&#46;&#111;&#114;'
                  '&#103;">&#100;&#117;&#100;&#101;&#64;&#109;&#99;&#112;&#97;&#110;&#116;&#115;'
                  '&#46;&#111;&#114;&#103;</a></p></div>')
-        elif packaging.version.parse(bleach_v) < packaging.version.parse("6.0.0"):
+        elif packaging.version.parse(bleachver) < packaging.version.parse("6.0.0"):
             assert res.json_body['html'] == \
                 ('<div class="markdown">'
                  '<p>email me at <a href="mailto:dude@mcpants.org">dude@mcpants.org</a></p>'

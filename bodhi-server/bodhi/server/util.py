@@ -51,12 +51,11 @@ import libravatar
 import librepo
 import markdown
 import packaging
-import pkg_resources
 import requests
 import rpm
 import zstandard
 
-from bodhi.server import ffmarkdown, log, buildsys, Session
+from bodhi.server import __version__, ffmarkdown, log, buildsys, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
 
@@ -510,7 +509,7 @@ def version(context=None):
     Returns:
         str: The Bodhi server's version.
     """
-    return pkg_resources.get_distribution('bodhi-server').version
+    return __version__
 
 
 def hostname(context=None):
@@ -550,8 +549,7 @@ def markup(context, text, bodhi=True):
         "img",
         "a",
     ]
-    bleach_v = pkg_resources.get_distribution('bleach').version
-    if packaging.version.parse(bleach_v) >= packaging.version.parse("6.0.0"):
+    if packaging.version.parse(bleach.__version__) >= packaging.version.parse("6.0.0"):
         markdown_tags = set(markdown_tags)
 
     extensions = ['markdown.extensions.fenced_code', ]
