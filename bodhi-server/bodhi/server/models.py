@@ -20,9 +20,9 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta
 from functools import lru_cache
 from textwrap import wrap
+from urllib.parse import urljoin
 import hashlib
 import json
-import os
 import re
 import time
 import typing
@@ -3421,9 +3421,7 @@ class Update(Base):
         Returns:
             str: A URL.
         """
-        path = ['updates']
-        path.append(self.alias)
-        return os.path.join(*path)
+        return f'updates/{self.alias}'
 
     def abs_url(self, request=None):
         """
@@ -3433,7 +3431,7 @@ class Update(Base):
             request (pyramid.request.Request or None): The current web request. Unused.
         """
         base = config['base_address']
-        return os.path.join(base, self.get_url())
+        return urljoin(base, self.get_url())
 
     url = abs_url
 

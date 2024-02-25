@@ -1,0 +1,1 @@
+The Vagrant development environment is entirely removed in favor of BCD, and bodhi-shell is fixed in BCD.

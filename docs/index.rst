@@ -62,8 +62,7 @@ Contributor Guide
    developer/index
    developer/releases
    developer/bcd
-   developer/vagrant
-   developer/vagrant_vscode
+   developer/bcd_vscode
    developer/models
 
 
