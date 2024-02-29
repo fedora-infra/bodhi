@@ -110,6 +110,9 @@ createrepo_extra_args = [
     '--compress-type=[[ cr_config.repodata_comp ]]',
 [% endif %]
 [% endif %]
+[% if cr_config.compatibility %]
+    '--compatibility',
+[% endif %]
 ]
 
 # CHECKSUMS

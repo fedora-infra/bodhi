@@ -1368,7 +1368,8 @@ def get_createrepo_config(rel):
                          'general_comp': False,
                          'zchunk': True,
                          'drpms_enabled': True,
-                         'sqlite_enabled': True})
+                         'sqlite_enabled': True,
+                         'compatibility': False})
     if f'release.{rel.name}' in configfile.sections():
         log.info(f'Using custom createrepo_c config for {rel.name}.')
         return munchify(
@@ -1378,7 +1379,8 @@ def get_createrepo_config(rel):
              'general_comp': configfile[f'release.{rel.name}'].getboolean('general-compress'),
              'zchunk': configfile[f'release.{rel.name}'].getboolean('zchunk'),
              'drpms_enabled': configfile[f'release.{rel.name}'].getboolean('drpms_enabled'),
-             'sqlite_enabled': configfile[f'release.{rel.name}'].getboolean('sqlite_enabled')
+             'sqlite_enabled': configfile[f'release.{rel.name}'].getboolean('sqlite_enabled'),
+             'compatibility': configfile[f'release.{rel.name}'].getboolean('compatibility')
              }
         )
     elif f'prefix.{rel.id_prefix}' in configfile.sections():
@@ -1390,7 +1392,8 @@ def get_createrepo_config(rel):
              'general_comp': configfile[f'prefix.{rel.id_prefix}'].getboolean('general-compress'),
              'zchunk': configfile[f'prefix.{rel.id_prefix}'].getboolean('zchunk'),
              'drpms_enabled': configfile[f'prefix.{rel.id_prefix}'].getboolean('drpms_enabled'),
-             'sqlite_enabled': configfile[f'prefix.{rel.id_prefix}'].getboolean('sqlite_enabled')
+             'sqlite_enabled': configfile[f'prefix.{rel.id_prefix}'].getboolean('sqlite_enabled'),
+             'compatibility': configfile[f'prefix.{rel.id_prefix}'].getboolean('compatibility')
              }
         )
     else:
@@ -1401,6 +1404,7 @@ def get_createrepo_config(rel):
              'general_comp': configfile['DEFAULT'].getboolean('general-compress'),
              'zchunk': configfile['DEFAULT'].getboolean('zchunk'),
              'drpms_enabled': configfile['DEFAULT'].getboolean('drpms_enabled'),
-             'sqlite_enabled': configfile['DEFAULT'].getboolean('sqlite_enabled')
+             'sqlite_enabled': configfile['DEFAULT'].getboolean('sqlite_enabled'),
+             'compatibility': configfile['DEFAULT'].getboolean('compatibility')
              }
         )
