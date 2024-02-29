@@ -92,7 +92,13 @@ createrepo_deltas = [
     ('^Everything$', {'*': False})
 ]
 [% endif %]
+
+[% if cr_config.sqlite_enabled %]
 createrepo_database = True
+[% else %]
+createrepo_database = False
+[% endif %]
+
 createrepo_extra_args = [
 [% if cr_config.zchunk %]
     '--zck', '--zck-dict-dir=/usr/share/fedora-repo-zdicts/f[[ release.version_int ]]',
