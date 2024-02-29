@@ -408,7 +408,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
 
         This is using default XZ compression.
         """
-        base.mkmetadatadir(self.tempdir)
+        base.mkmetadatadir(self.tempdir, compress_type='xz')
 
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
