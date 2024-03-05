@@ -408,10 +408,10 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
 
         This is using default XZ compression.
         """
-        base.mkmetadatadir(self.tempdir)
+        base.mkmetadatadir(self.tempdir, compress_type='xz')
 
         # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir, repo_type='yum')
+        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
 
     def test_correct_yum_repo_with_gz_compress(self):
         """No Exception should be raised if the repo is normal.
@@ -421,7 +421,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, compress_type='gz')
 
         # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir, repo_type='yum')
+        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
 
     def test_correct_yum_repo_with_bz2_compress(self):
         """No Exception should be raised if the repo is normal.
@@ -431,7 +431,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, compress_type='bz2')
 
         # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir, repo_type='yum')
+        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
 
     @pytest.mark.skipif(
         packaging.version.parse(createrepo_c.VERSION) < packaging.version.parse('1.0.0'),
@@ -445,12 +445,12 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, compress_type='zstd')
 
         # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir, repo_type='yum')
+        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
 
     def test_invalid_repo_type(self):
         """A ValueError should be raised with invalid repo type."""
         with pytest.raises(ValueError) as excinfo:
-            util.sanity_check_repodata("so", "wrong")
+            util.sanity_check_repodata("so", "wrong", drpms=True)
         assert str(excinfo.value) == 'repo_type must be one of module, source, or yum.'
 
     @mock.patch('bodhi.server.util.librepo')
@@ -462,7 +462,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         librepo.Handle.return_value.perform.side_effect = MockException(-1, 'msg', 'general_msg')
 
         with pytest.raises(RepodataException) as excinfo:
-            util.sanity_check_repodata('/tmp/', 'yum')
+            util.sanity_check_repodata('/tmp/', 'yum', drpms=True)
         assert str(excinfo.value) == 'msg'
 
     def _mkmetadatadir_w_modules(self):
@@ -488,7 +488,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         """No Exception should be raised if the repo is a normal module repo."""
         self._mkmetadatadir_w_modules()
         # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir, repo_type='module')
+        util.sanity_check_repodata(self.tempdir, repo_type='module', drpms=True)
 
     @mock.patch('subprocess.check_output', return_value='')
     def test_module_repo_no_dnf_output(self, *args):
@@ -496,7 +496,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         self._mkmetadatadir_w_modules()
 
         with pytest.raises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='module')
+            util.sanity_check_repodata(self.tempdir, repo_type='module', drpms=True)
         assert str(exc.value) == \
             ("DNF did not return expected output when running test!"
              " Test: ['module', 'list'], expected: .*, output: ")
@@ -509,7 +509,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, updateinfo=updateinfo)
 
         with pytest.raises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='yum')
+            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
         assert str(exc.value) == 'updateinfo.xml.gz contains empty ID tags'
 
     def test_comps_invalid_notxml(self):
@@ -520,7 +520,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, comps=comps)
 
         with pytest.raises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='yum')
+            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
         assert str(exc.value) == 'Comps file unable to be parsed'
 
     def test_comps_invalid_nonsense(self):
@@ -531,7 +531,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, comps=comps)
 
         with pytest.raises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='yum')
+            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
         assert str(exc.value) == 'Comps file empty'
 
     def test_repomd_missing_updateinfo(self):
@@ -548,8 +548,39 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         repomd.write(repomd_path, encoding='UTF-8', xml_declaration=True)
 
         with pytest.raises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='yum')
+            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
         assert str(exc.value) == 'Required parts not in repomd.xml: updateinfo'
+
+    def test_repomd_missing_prestodelta(self):
+        """If the prestodelta data tag is missing in repomd.xml, an Exception should be raised."""
+        base.mkmetadatadir(self.tempdir)
+        repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
+        repomd = ElementTree.parse(repomd_path)
+        ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
+        root = repomd.getroot()
+        for data in root.findall('{http://linux.duke.edu/metadata/repo}data'):
+            if data.attrib['type'] == 'prestodelta':
+                root.remove(data)
+        repomd.write(repomd_path, encoding='UTF-8', xml_declaration=True)
+
+        with pytest.raises(util.RepodataException) as exc:
+            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
+        assert str(exc.value) == 'Required parts not in repomd.xml: prestodelta'
+
+    def test_repomd_drpms_disabled(self):
+        """If the prestodelta data tag is missing in a repo without DRPMs is fine."""
+        base.mkmetadatadir(self.tempdir)
+        repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
+        repomd = ElementTree.parse(repomd_path)
+        ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
+        root = repomd.getroot()
+        for data in root.findall('{http://linux.duke.edu/metadata/repo}data'):
+            if data.attrib['type'] == 'prestodelta':
+                root.remove(data)
+        repomd.write(repomd_path, encoding='UTF-8', xml_declaration=True)
+
+        # No exception should be raised.
+        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=False)
 
     def test_source_true(self):
         """It should not fail source repos for missing prestodelta or comps."""
@@ -565,7 +596,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         repomd.write(repomd_path, encoding='UTF-8', xml_declaration=True)
 
         # No exception should be raised.
-        util.sanity_check_repodata(self.tempdir, repo_type='source')
+        util.sanity_check_repodata(self.tempdir, repo_type='source', drpms=True)
 
 
 class TestTestcaseLink(base.BasePyTestCase):
