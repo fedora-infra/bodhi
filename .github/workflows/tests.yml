@@ -97,7 +97,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f38,f39,pip,rawhide]
+        release: [f38,f39,f40,pip,rawhide]
         module: [bodhi-client, bodhi-messages, bodhi-server]
 
   docs:
