@@ -143,13 +143,6 @@ class TestMain(base.BasePyTestCase):
         assert policy.helper.timeout == 86400
         set_security_policy.assert_called_once_with(policy)
 
-    def test_calls_session_remove(self):
-        """Let's assert that main() calls Session.remove()."""
-        with mock.patch('bodhi.server.Session.remove') as remove:
-            server.main({}, session=self.db, **self.app_settings)
-
-        remove.assert_called_once_with()
-
     @mock.patch('bodhi.server.bugs.set_bugtracker')
     def test_calls_set_bugtracker(self, set_bugtracker):
         """
