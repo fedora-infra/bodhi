@@ -344,9 +344,6 @@ def main(global_config, testing=None, session=None, **settings):
         # the return value.
         generic._generate_home_page_stats()
 
-    # Let's close out the db session we used to warm the caches.
-    Session.remove()
-
     log.info('Bodhi ready and at your service!')
     app = config.make_wsgi_app()
     return app
