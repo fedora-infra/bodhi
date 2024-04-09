@@ -5,10 +5,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Administration &#8212; bodhi 8.0.2 documentation</title>
+    <title>Administration &#8212; bodhi 8.1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=9f6847e8" />
-    <script src="_static/documentation_options.js?v=65e3e539"></script>
+    <script src="_static/documentation_options.js?v=87b6a113"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -323,6 +323,8 @@ use = egg:bodhi-server
 # want to use &#39;koji&#39;.
 # buildsystem = dev
 
+# trusted_build_sources = git+https://src.fedoraproject.org/,https://src.fedoraproject.org/
+
 # The base URL to Koji, used to construct HTML links to Koji builds in the web UI
 # koji_web_url = https://koji.fedoraproject.org/koji/
 
@@ -573,6 +575,7 @@ debugtoolbar.hosts = 127.0.0.1 ::1
 # This must be a PostgreSQL database. You can encode a username and password in the URL. For
 # example, postgresql://username:password@hostname/database_name
 # sqlalchemy.url = postgresql://localhost/bodhi
+# sqlalchemy_extra.statement_timeout = 30000
 
 ##
 ## Templates
