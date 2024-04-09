@@ -50,36 +50,6 @@ pull_request_rules:
   - status-success=Build Documentation (f39)
   - status-success=Build Documentation (pip)
 
-- name: backport 7.0
-  actions:
-    backport:
-      branches:
-      - '7.0'
-  conditions:
-  - label!=WIP
-  - -draft
-  - label=7.0-backports
-
-- name: backport 7.1
-  actions:
-    backport:
-      branches:
-      - '7.1'
-  conditions:
-  - label!=WIP
-  - -draft
-  - label=7.1-backports
-
-- name: backport 7.2
-  actions:
-    backport:
-      branches:
-      - '7.2'
-  conditions:
-  - label!=WIP
-  - -draft
-  - label=7.2-backports
-
 - name: backport 8.0
   actions:
     backport:
@@ -89,3 +59,13 @@ pull_request_rules:
   - label!=WIP
   - -draft
   - label=8.0-backports
+
+- name: backport 8.1
+  actions:
+    backport:
+      branches:
+      - '8.1'
+  conditions:
+  - label!=WIP
+  - -draft
+  - label=8.1-backports
