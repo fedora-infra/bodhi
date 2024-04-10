@@ -4,6 +4,50 @@ Release notes
 
 .. towncrier release notes start
 
+v8.1.0
+======
+
+
+
+Released on 2024-04-09.
+This is a feature release that adds options for running createrepo_c.
+
+
+Features
+^^^^^^^^
+
+* Bodhi can now set a timeout on postgresql database queries (default to 30
+  sec) (:pr:`5593`).
+* The createrepo_c config file now can accept enabling/disabling sqlite
+  metadata generation and using --compatibility flag (:pr:`5617`).
+* Builds submission can now be restricted to only specified sources
+  (:issue:`5556`).
+* A new `/list_releases/` GET endpoint is available to allow retrieving JSON
+  data through ajax calls. (:issue:`5587`).
+
+Bug fixes
+^^^^^^^^^
+
+* Use urljoin for update URLs construction (:issue:`5566`).
+* DRPMs can now be disabled per Release in createrepo_c config file
+  (:issue:`5616`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The Vagrant development environment is entirely removed in favor of BCD, and
+  bodhi-shell is fixed in BCD. (:issue:`5600`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Aurélien Bompard
+* Adam Williamson
+* Mattia Verga
+
+
 v8.0.2
 ======
 
