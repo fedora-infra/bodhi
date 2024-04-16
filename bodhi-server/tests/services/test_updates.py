@@ -4737,23 +4737,32 @@ class TestUpdatesService(BasePyTestCase):
         # caused by the obsoletion to have taken effect when we construct the
         # expected message
         up.comment(self.db, "foo", -1, 'bowlofeggs')
-        with fml_testing.mock_sends(
-            update_schemas.UpdateKarmaThresholdV1.from_dict(
+        if req:
+            # it's difficult to construct the expected messsage in this
+            # case because posting this comment obsoletes the update,
+            # publishes the UKT message, *then also* disables autopush,
+            # so we never quite have access to the state of the update
+            # right at the time the UKT message is published
+            expukt = update_schemas.UpdateKarmaThresholdV1
+        else:
+            # in this case we *only* obsolete the update, we don't also
+            # disable autopush, so we can construct the expected message -
+            # the current update state is the same as the state when the
+            # message was published
+            expukt = update_schemas.UpdateKarmaThresholdV1.from_dict(
                 {'update': up, 'status': 'unstable'}
-            ),
-            update_schemas.UpdateCommentV1
-        ):
+            )
+        with fml_testing.mock_sends(expukt, update_schemas.UpdateCommentV1):
             # doing a db commit causes the message to be published
             self.db.commit()
         assert up.status is UpdateStatus.obsolete
         assert up.request is None
-        # the obsolete path should not disable autokarma, but we can't assert
-        # this unconditionally because we might have hit the earlier disable-
-        # autokarma path
-        if (
-            req is UpdateRequest.stable
-            or not composed_by_bodhi
-        ):
+        # the obsolete path itself should not disable autokarma, but if
+        # the release is composed by bodhi, we *should* also have hit
+        # the 'disable autokarma for any negative karma' path
+        if composed_by_bodhi:
+            assert not up.autokarma
+        else:
             assert up.autokarma is autokarma
         assert up.karma == -2
 
