@@ -3810,6 +3810,12 @@ class Update(Base):
         # Also return if the status of the update is not in testing and the release is frozen
         if self.status != UpdateStatus.testing and self.release.state == ReleaseState.frozen:
             return
+        # Obsolete if unstable karma threshold reached
+        if self.unstable_karma and self.karma <= self.unstable_karma:
+            log.info("Automatically obsoleting %s (reached unstable karma threshold)", self.alias)
+            self.obsolete(db)
+            notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
+                dict(update=self, status='unstable')))
         # If an update receives negative karma disable autopush
         # exclude rawhide updates see #4566
         if (self.autokarma or self.autotime) and self._composite_karma[1] != 0 and \
@@ -3820,7 +3826,8 @@ class Update(Base):
             self.autotime = False
             text = config.get('disable_automatic_push_to_stable')
             self.comment(db, text, author='bodhi')
-        elif self.stable_karma and self.karma >= self.stable_karma \
+        # If update with autopush reaches threshold, set request stable
+        if self.stable_karma and self.karma >= self.stable_karma \
                 and self.release.composed_by_bodhi and self.autokarma:
             # Updates for releases not "composed by Bodhi" (Rawhide,
             # ELN...) are pushed stable only by approve_testing.py
@@ -3834,11 +3841,6 @@ class Update(Base):
             self.set_request(db, UpdateRequest.stable, agent)
             notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
                 dict(update=self, status='stable')))
-        elif self.unstable_karma and self.karma <= self.unstable_karma:
-            log.info("Automatically obsoleting %s (reached unstable karma threshold)", self.alias)
-            self.obsolete(db)
-            notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
-                dict(update=self, status='unstable')))
 
     @property
     def builds_json(self):
