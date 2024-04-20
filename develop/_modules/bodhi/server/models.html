@@ -8,7 +8,7 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=9f6847e8" />
     <script src="../../../_static/documentation_options.js?v=87b6a113"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -59,6 +59,7 @@
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">mediawiki</span> <span class="kn">import</span> <span class="n">MediaWiki</span>
 <span class="kn">from</span> <span class="nn">packaging.version</span> <span class="kn">import</span> <span class="n">parse</span> <span class="k">as</span> <span class="n">parse_version</span>
@@ -1041,22 +1042,22 @@
     <span class="n">composes</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Compose&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;release&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">critpath_min_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">min_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the min_karma for critpath updates for this release.</span>
+<span class="sd">        Return the min_karma for updates for this release.</span>
 
-<span class="sd">        If the release doesn&#39;t specify a min_karma, the default critpath.min_karma setting is used</span>
+<span class="sd">        If the release doesn&#39;t specify a min_karma, the default min_karma setting is used</span>
 <span class="sd">        instead.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            The minimum karma required for critical path updates for this release.</span>
+<span class="sd">            The minimum karma required for updates for this release.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setting_status</span><span class="p">:</span>
             <span class="n">min_karma</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_prefix</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_status</span><span class="si">}</span><span class="s1">.critpath.min_karma&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_prefix</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_status</span><span class="si">}</span><span class="s1">.min_karma&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">min_karma</span><span class="p">:</span>
                 <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_karma</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.min_karma&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_karma&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version_int</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1102,11 +1103,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setting_status</span><span class="p">:</span>
             <span class="n">days</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_prefix</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_status</span><span class="si">}</span><span class="s1">&#39;</span>
-                              <span class="sa">f</span><span class="s1">&#39;.critpath.stable_after_days_without_negative_karma&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                              <span class="sa">f</span><span class="s1">&#39;.critpath.mandatory_days_in_testing&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">days</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">days</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.stable_after_days_without_negative_karma&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.mandatory_days_in_testing&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">collection_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2812,6 +2813,16 @@
                                <span class="sa">f</span><span class="s2">&quot;release value of </span><span class="si">{</span><span class="n">up</span><span class="o">.</span><span class="n">mandatory_days_in_testing</span><span class="si">}</span><span class="s2"> days&quot;</span>
             <span class="p">})</span>
 
+        <span class="c1"># We also need to make sure stable_karma is not set below</span>
+        <span class="c1"># the policy minimum for this release</span>
+        <span class="k">if</span> <span class="n">release</span><span class="o">.</span><span class="n">min_karma</span> <span class="o">&gt;</span> <span class="n">up</span><span class="o">.</span><span class="n">stable_karma</span><span class="p">:</span>
+            <span class="n">up</span><span class="o">.</span><span class="n">stable_karma</span> <span class="o">=</span> <span class="n">release</span><span class="o">.</span><span class="n">min_karma</span>
+            <span class="n">caveats</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;stable karma&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s2">&quot;The stable karma required was set to the mandatory &quot;</span>
+                               <span class="sa">f</span><span class="s2">&quot;release value of </span><span class="si">{</span><span class="n">release</span><span class="o">.</span><span class="n">min_karma</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">})</span>
+
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding new update to the db </span><span class="si">{</span><span class="n">up</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
         <span class="n">db</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">up</span><span class="p">)</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Triggering db commit for new update </span><span class="si">{</span><span class="n">up</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
@@ -2882,6 +2893,16 @@
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;stable days&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s2">&quot;The number of stable days required was raised to the mandatory &quot;</span>
                                <span class="sa">f</span><span class="s2">&quot;release value of </span><span class="si">{</span><span class="n">up</span><span class="o">.</span><span class="n">mandatory_days_in_testing</span><span class="si">}</span><span class="s2"> days&quot;</span>
+            <span class="p">})</span>
+
+        <span class="c1"># We also need to make sure stable_karma is not set below</span>
+        <span class="c1"># the policy minimum for this release</span>
+        <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">min_karma</span> <span class="o">&gt;</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stable_karma&#39;</span><span class="p">,</span> <span class="n">up</span><span class="o">.</span><span class="n">stable_karma</span><span class="p">):</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;stable_karma&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">min_karma</span>
+            <span class="n">caveats</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;stable karma&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s2">&quot;The stable karma required was raised to the mandatory &quot;</span>
+                               <span class="sa">f</span><span class="s2">&quot;release value of </span><span class="si">{</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">min_karma</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">})</span>
 
         <span class="c1"># Determine which builds have been added</span>
@@ -3434,57 +3455,25 @@
                 <span class="s1">&#39;The release of this update is frozen and the update has not yet been &#39;</span>
                 <span class="s1">&#39;pushed to testing. It is currently not possible to push it to stable.&#39;</span><span class="p">)</span>
 
-        <span class="c1"># Disable pushing critical path updates for pending releases directly to stable</span>
-        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.num_admin_approvals&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath_approved</span><span class="p">:</span>
-                    <span class="n">stern_note</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="s1">&#39;This critical path update has not yet been approved for pushing to the &#39;</span>
-                        <span class="s1">&#39;stable repository.  It must first reach a karma of </span><span class="si">%s</span><span class="s1">, consisting of </span><span class="si">%s</span><span class="s1"> &#39;</span>
-                        <span class="s1">&#39;positive karma from proventesters, along with </span><span class="si">%d</span><span class="s1"> additional karma from &#39;</span>
-                        <span class="s1">&#39;the community. Or, it must spend </span><span class="si">%s</span><span class="s1"> days in testing without any negative &#39;</span>
-                        <span class="s1">&#39;feedback&#39;</span><span class="p">)</span>
-                    <span class="n">additional_karma</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.min_karma&#39;</span><span class="p">)</span> \
-                        <span class="o">-</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.num_admin_approvals&#39;</span><span class="p">)</span>
-                    <span class="n">stern_note</span> <span class="o">=</span> <span class="n">stern_note</span> <span class="o">%</span> <span class="p">(</span>
-                        <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.min_karma&#39;</span><span class="p">),</span>
-                        <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.num_admin_approvals&#39;</span><span class="p">),</span>
-                        <span class="n">additional_karma</span><span class="p">,</span>
-                        <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.stable_after_days_without_negative_karma&#39;</span><span class="p">))</span>
-                    <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test_gating.required&#39;</span><span class="p">):</span>
-                        <span class="n">stern_note</span> <span class="o">+=</span> <span class="s1">&#39; Additionally, it must pass automated tests.&#39;</span>
-                    <span class="n">notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stern_note</span><span class="p">)</span>
+        <span class="c1"># Don&#39;t allow push to stable unless testing requirements are met</span>
+        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span><span class="p">:</span>
+            <span class="n">met</span><span class="p">,</span> <span class="n">reason</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meets_requirements_why</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">met</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">id_prefix</span> <span class="o">==</span> <span class="s2">&quot;FEDORA-EPEL&quot;</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;not_yet_tested_epel_msg&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;not_yet_tested_msg&#39;</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="n">notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">is</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="kc">None</span>
-                        <span class="k">raise</span> <span class="n">BodhiException</span><span class="p">(</span><span class="s1">&#39;. &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notes</span><span class="p">))</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Forcing critical path update into testing&#39;</span><span class="p">)</span>
-                        <span class="n">action</span> <span class="o">=</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span>
-
-        <span class="c1"># Ensure this update meets the minimum testing requirements</span>
-        <span class="n">flash_notes</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath</span><span class="p">:</span>
-            <span class="c1"># Check if we&#39;ve met the karma requirements</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stable_karma</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath_approved</span><span class="p">:</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> meets stable karma requirements&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># If we haven&#39;t met the stable karma requirements, check if it</span>
-                <span class="c1"># has met the mandatory time-in-testing requirements</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mandatory_days_in_testing</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_stable_comment</span> <span class="ow">and</span> \
-                       <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">meets_testing_requirements</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">id_prefix</span> <span class="o">==</span> <span class="s2">&quot;FEDORA-EPEL&quot;</span><span class="p">:</span>
-                            <span class="n">flash_notes</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;not_yet_tested_epel_msg&#39;</span><span class="p">)</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">flash_notes</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;not_yet_tested_msg&#39;</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">is</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span><span class="p">:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="kc">None</span>
-                            <span class="k">raise</span> <span class="n">BodhiException</span><span class="p">(</span><span class="n">flash_notes</span><span class="p">)</span>
-                        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="ow">is</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span><span class="p">:</span>
-                            <span class="k">raise</span> <span class="n">BodhiException</span><span class="p">(</span><span class="n">flash_notes</span><span class="p">)</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">action</span> <span class="o">=</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">is</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">raise</span> <span class="n">BodhiException</span><span class="p">(</span><span class="s1">&#39;. &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notes</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="ow">is</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">BodhiException</span><span class="p">(</span><span class="s1">&#39;. &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notes</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Forcing update into testing&#39;</span><span class="p">)</span>
+                    <span class="n">action</span> <span class="o">=</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span>
 
         <span class="c1"># Add the appropriate &#39;pending&#39; koji tag to this update, so tools</span>
         <span class="c1"># could compose repositories of them for testing.</span>
@@ -3506,10 +3495,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">action</span>
 
         <span class="n">notes</span> <span class="o">=</span> <span class="n">notes</span> <span class="ow">and</span> <span class="s1">&#39;. &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notes</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span>
-        <span class="n">flash_notes</span> <span class="o">=</span> <span class="n">flash_notes</span> <span class="ow">and</span> <span class="s1">&#39;. </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">flash_notes</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> has been submitted for </span><span class="si">%s</span><span class="s2">. </span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="n">notes</span><span class="p">,</span> <span class="n">flash_notes</span><span class="p">))</span>
+            <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> has been submitted for </span><span class="si">%s</span><span class="s2">. </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="n">notes</span><span class="p">))</span>
 
         <span class="n">comment_text</span> <span class="o">=</span> <span class="s1">&#39;This update has been submitted for </span><span class="si">%s</span><span class="s1"> by </span><span class="si">%s</span><span class="s1">. </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="n">action</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">notes</span><span class="p">)</span>
@@ -3870,33 +3858,14 @@
         <span class="k">return</span> <span class="n">new</span></div>
 
 
-<div class="viewcode-block" id="Update.obsolete_if_unstable">
-<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.obsolete_if_unstable">[docs]</a>
-    <span class="k">def</span> <span class="nf">obsolete_if_unstable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Obsolete the update if it reached the negative karma threshold while pending.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            db (sqlalchemy.orm.session.Session): A database session.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autokarma</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">is</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span> \
-                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="ow">is</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">testing</span>\
-                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unstable_karma</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> has reached unstable karma thresholds&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">obsolete</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> has been obsoleted.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
-        <span class="k">return</span></div>
-
-
 <div class="viewcode-block" id="Update.comment">
 <a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.comment">[docs]</a>
     <span class="k">def</span> <span class="nf">comment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">karma</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">karma_critpath</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                <span class="n">bug_feedback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">testcase_feedback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">check_karma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">email_notification</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="n">bug_feedback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">testcase_feedback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">email_notification</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a comment to this update.</span>
 
 <span class="sd">        If the karma reaches the &#39;stable_karma&#39; value, then request that this update be marked</span>
-<span class="sd">        as stable. If it reaches the &#39;unstable_karma&#39;, it is unpushed.</span>
+<span class="sd">        as stable. If it reaches the &#39;unstable_karma&#39; value, then unpush it (obsolete it).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">author</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;You must provide a comment author&#39;</span><span class="p">)</span>
@@ -3951,22 +3920,19 @@
 
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Updated </span><span class="si">%s</span><span class="s2"> karma to </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">check_karma</span> <span class="ow">and</span> <span class="n">author</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;system_users&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">author</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;system_users&#39;</span><span class="p">):</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">check_karma_thresholds</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="s1">&#39;bodhi&#39;</span><span class="p">)</span>
                 <span class="k">except</span> <span class="n">LockedUpdateException</span><span class="p">:</span>
                     <span class="k">pass</span>
                 <span class="k">except</span> <span class="n">BodhiException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="c1"># This gets thrown if the karma is pushed over the</span>
-                    <span class="c1"># threshold, but it is a critpath update that is not</span>
-                    <span class="c1"># critpath_approved. ... among other cases.</span>
+                    <span class="c1"># threshold, but it does not meet testing requirements</span>
+                    <span class="c1"># for some reason (failed gating test...)</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;Problem checking the karma threshold.&#39;</span><span class="p">)</span>
                     <span class="n">caveats</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
                         <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;karma&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
                     <span class="p">})</span>
-
-            <span class="c1"># Obsolete pending update if it reaches unstable karma threshold</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">obsolete_if_unstable</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
 
         <span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
@@ -4156,34 +4122,37 @@
 <a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.check_requirements">[docs]</a>
     <span class="k">def</span> <span class="nf">check_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check that an update meets its self-prescribed policy to be pushed.</span>
+<span class="sd">        Check that an update meets all requirements to be pushed stable.</span>
+
+<span class="sd">        See https://docs.fedoraproject.org/en-US/fesco/Updates_Policy .</span>
+<span class="sd">        Deprecated in favor of meets_requirements_why property.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            session (sqlalchemy.orm.session.Session): A database session. Unused.</span>
-<span class="sd">            settings (bodhi.server.config.BodhiConfig): Bodhi&#39;s settings.</span>
+<span class="sd">            settings (bodhi.server.config.BodhiConfig): Bodhi&#39;s settings. Unused.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple: A tuple containing (result, reason) where result is a bool</span>
 <span class="sd">                and reason is a str.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># TODO - check require_bugs and require_testcases also?</span>
-        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test_gating.required&#39;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_status</span> <span class="o">==</span> <span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">passed</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;All required tests passed or were waived.&quot;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_status</span> <span class="ow">in</span> <span class="p">(</span><span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">ignored</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;No checks required.&quot;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_status</span> <span class="o">==</span> <span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">waiting</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Required tests for this update are still running.&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Required tests did not pass on this update.&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;No checks required.&quot;</span><span class="p">)</span></div>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;check_requirements is deprecated, use meets_requirements_why instead&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">meets_requirements_why</span></div>
 
 
 <div class="viewcode-block" id="Update.check_karma_thresholds">
 <a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.check_karma_thresholds">[docs]</a>
     <span class="k">def</span> <span class="nf">check_karma_thresholds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check if we have reached either karma threshold, and adjust state as necessary.</span>
+<span class="sd">        Check if we have reached some karma thresholds, and adjust state as necessary.</span>
+
+<span class="sd">        If we receive negative karma, disable autopush (both time and karma). If we</span>
+<span class="sd">        reach the karma autopush threshold (and the release is composed by Bodhi), set</span>
+<span class="sd">        the request to stable. If we reach the auto-unpush threshold, obsolete the</span>
+<span class="sd">        update. This method does **NOT** handle commenting and setting date_approved</span>
+<span class="sd">        when the update reaches the manual push karma threshold. That is done by the</span>
+<span class="sd">        approve_testing.py script.</span>
 
 <span class="sd">        This method will call :meth:`set_request` if necessary. If the update is locked, it will</span>
 <span class="sd">        ignore karma thresholds and raise an Exception.</span>
@@ -4204,41 +4173,37 @@
         <span class="c1"># Also return if the status of the update is not in testing and the release is frozen</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">ReleaseState</span><span class="o">.</span><span class="n">frozen</span><span class="p">:</span>
             <span class="k">return</span>
+        <span class="c1"># Obsolete if unstable karma threshold reached</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unstable_karma</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unstable_karma</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Automatically obsoleting </span><span class="si">%s</span><span class="s2"> (reached unstable karma threshold)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">obsolete</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+            <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">update_schemas</span><span class="o">.</span><span class="n">UpdateKarmaThresholdV1</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="nb">dict</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="s1">&#39;unstable&#39;</span><span class="p">)))</span>
         <span class="c1"># If an update receives negative karma disable autopush</span>
         <span class="c1"># exclude rawhide updates see #4566</span>
-        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">autokarma</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">autotime</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_composite_karma</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">is</span> \
-                <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">testing</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span> <span class="ow">and</span> \
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">autokarma</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">autotime</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_composite_karma</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span> <span class="ow">and</span> \
                 <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Disabling Auto Push since the update has received negative karma&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">autokarma</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">autotime</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">text</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disable_automatic_push_to_stable&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">comment</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">author</span><span class="o">=</span><span class="s1">&#39;bodhi&#39;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">stable_karma</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stable_karma</span> \
-                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span><span class="p">:</span>
+        <span class="c1"># If update with autopush reaches threshold, set request stable</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stable_karma</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stable_karma</span> \
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">autokarma</span><span class="p">:</span>
+            <span class="c1"># Updates for releases not &quot;composed by Bodhi&quot; (Rawhide,</span>
+            <span class="c1"># ELN...) are pushed stable only by approve_testing.py</span>
             <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test_gating.required&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_passed</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> reached stable karma threshold, but does not meet gating &quot;</span>
                          <span class="s2">&quot;requirements&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
                 <span class="k">return</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">date_approved</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autokarma</span><span class="p">:</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Automatically marking </span><span class="si">%s</span><span class="s2"> as stable&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">set_request</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span><span class="p">,</span> <span class="n">agent</span><span class="p">)</span>
-                <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">update_schemas</span><span class="o">.</span><span class="n">UpdateKarmaThresholdV1</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
-                    <span class="nb">dict</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="s1">&#39;stable&#39;</span><span class="p">)))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># Add the stable approval message now</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">((</span>
-                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> update has reached the stable karma threshold and can be pushed to &quot;</span>
-                    <span class="s2">&quot;stable now if the maintainer wishes&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">unstable_karma</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unstable_karma</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">is</span> <span class="n">UpdateStatus</span><span class="o">.</span><span class="n">pending</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">autokarma</span><span class="p">:</span>
-                <span class="k">pass</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Automatically unpushing </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">obsolete</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
-                <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">update_schemas</span><span class="o">.</span><span class="n">UpdateKarmaThresholdV1</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
-                    <span class="nb">dict</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="s1">&#39;unstable&#39;</span><span class="p">)))</span></div>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_approved</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">date_approved</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Automatically marking </span><span class="si">%s</span><span class="s2"> as stable&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_request</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span><span class="p">,</span> <span class="n">agent</span><span class="p">)</span>
+            <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">update_schemas</span><span class="o">.</span><span class="n">UpdateKarmaThresholdV1</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+                <span class="nb">dict</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="s1">&#39;stable&#39;</span><span class="p">)))</span></div>
 
 
     <span class="nd">@property</span>
@@ -4281,55 +4246,73 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            bool: True if this update meets critpath testing requirements, False otherwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># https://fedorahosted.org/bodhi/ticket/642</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">meets_testing_requirements</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
-        <span class="n">min_karma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">critpath_min_karma</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">setting_status</span><span class="p">:</span>
-            <span class="n">num_admin_approvals</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">setting_prefix</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">setting_status</span><span class="si">}</span><span class="s1">&#39;</span>
-                <span class="s1">&#39;.critpath.num_admin_approvals&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">num_admin_approvals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">min_karma</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_admin_approvals</span> <span class="o">&gt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_admin_approvals</span><span class="p">)</span> <span class="ow">and</span> \
-                    <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;=</span> <span class="n">min_karma</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_admin_approvals</span> <span class="o">&gt;=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.num_admin_approvals&#39;</span><span class="p">)</span> <span class="ow">and</span> \
-            <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;=</span> <span class="n">min_karma</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;critpath_approved is deprecated, use meets_testing_requirements instead&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">meets_testing_requirements</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">meets_requirements_why</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return whether or not this update meets its release&#39;s testing requirements and why.</span>
+
+<span class="sd">        Checks gating requirements and then minimum karma and wait requirements, see</span>
+<span class="sd">        https://docs.fedoraproject.org/en-US/fesco/Updates_Policy . Note this is</span>
+<span class="sd">        checking the minimum policy requirements for a manual push (as specified in</span>
+<span class="sd">        the release configuration), not the per-update thresholds for an automatic push.</span>
+<span class="sd">        Before updates-testing enablement the minimum wait will be 0, so unless the gating</span>
+<span class="sd">        check fails, this will always return True.</span>
+
+<span class="sd">        FIXME: we should probably wire up the test case and bug feedback requirements</span>
+<span class="sd">        that are shown in the UI but not currently enforced.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: A tuple containing (result, reason) where result is a bool</span>
+<span class="sd">                and reason is a str.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">req_days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mandatory_days_in_testing</span>
+        <span class="n">req_karma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">min_karma</span>
+
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test_gating.required&#39;</span><span class="p">):</span>
+            <span class="n">tgs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_status</span>
+            <span class="k">if</span> <span class="n">tgs</span> <span class="ow">in</span> <span class="p">(</span><span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">waiting</span><span class="p">,</span> <span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">queued</span><span class="p">,</span> <span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">running</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Required tests for this update are queued or running.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">tgs</span> <span class="o">==</span> <span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">greenwave_failed</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Greenwave failed to respond.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">tgs</span> <span class="o">==</span> <span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">passed</span><span class="p">:</span>
+                <span class="n">basemsg</span> <span class="o">=</span> <span class="s2">&quot;All required tests passed or were waived&quot;</span>
+            <span class="k">elif</span> <span class="n">tgs</span> <span class="o">==</span> <span class="n">TestGatingStatus</span><span class="o">.</span><span class="n">ignored</span><span class="p">:</span>
+                <span class="n">basemsg</span> <span class="o">=</span> <span class="s2">&quot;No checks required&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Required tests did not pass on this update.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">basemsg</span> <span class="o">=</span> <span class="s2">&quot;Test gating is disabled,&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;=</span> <span class="n">req_karma</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">basemsg</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; and the update has at least </span><span class="si">{</span><span class="n">req_karma</span><span class="si">}</span><span class="s2"> karma.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">req_days</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">basemsg</span> <span class="o">+</span> <span class="s2">&quot; and there is no minimum wait set.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Any update that reaches req_days has met the testing requirements.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">days_in_testing</span> <span class="o">&gt;=</span> <span class="n">req_days</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">basemsg</span> <span class="o">+</span> <span class="s2">&quot; and update meets the wait time requirement.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">basemsg</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; but update has less than </span><span class="si">{</span><span class="n">req_karma</span><span class="si">}</span><span class="s2"> karma and has been in testing &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;less than </span><span class="si">{</span><span class="n">req_days</span><span class="si">}</span><span class="s2"> days.&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">meets_testing_requirements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return whether or not this update meets its release&#39;s testing requirements.</span>
 
-<span class="sd">        If this update&#39;s release does not have a mandatory testing requirement, then</span>
-<span class="sd">        simply return True.</span>
+<span class="sd">        Same as meets_requirements_why, but without the reason.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            bool: True if the update meets testing requirements, False otherwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">num_days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mandatory_days_in_testing</span>
-
-        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test_gating.required&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_passed</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">critpath_min_karma</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath</span><span class="p">:</span>
-            <span class="c1"># Ensure there is no negative karma. We&#39;re looking at the sum of</span>
-            <span class="c1"># each users karma for this update, which takes into account</span>
-            <span class="c1"># changed votes.</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_composite_karma</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">days_in_testing</span> <span class="o">&gt;=</span> <span class="n">num_days</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">num_days</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stable_karma</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
-
-        <span class="c1"># Any update that reaches num_days has met the testing requirements.</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">days_in_testing</span> <span class="o">&gt;=</span> <span class="n">num_days</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">meets_requirements_why</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">has_stable_comment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -4381,25 +4364,6 @@
             <span class="k">return</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_testing</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">num_admin_approvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the number of Releng/QA approvals of this update.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            int: The number of admin approvals found in the comments of this update.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">approvals</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comments_since_karma_reset</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">comment</span><span class="o">.</span><span class="n">karma</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">admin_groups</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;admin_groups&#39;</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">comment</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">group</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">admin_groups</span><span class="p">:</span>
-                    <span class="n">approvals</span> <span class="o">+=</span> <span class="mi">1</span>
-                    <span class="k">break</span>
-        <span class="k">return</span> <span class="n">approvals</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">test_cases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -5544,7 +5508,7 @@
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
@@ -5552,7 +5516,7 @@
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -5570,7 +5534,7 @@
       &#169;2007-2024, Red Hat, Inc..
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
     </div>

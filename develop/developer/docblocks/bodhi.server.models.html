@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9f6847e8" />
     <script src="../../_static/documentation_options.js?v=87b6a113"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -2818,19 +2818,6 @@ returned.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="bodhi.server.models.Release.critpath_min_karma">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">critpath_min_karma</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#bodhi.server.models.Release.critpath_min_karma" title="Link to this definition">¶</a></dt>
-<dd><p>Return the min_karma for critpath updates for this release.</p>
-<p>If the release doesn’t specify a min_karma, the default critpath.min_karma setting is used
-instead.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The minimum karma required for critical path updates for this release.</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="bodhi.server.models.Release.from_tags">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Release.from_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Release.from_tags" title="Link to this definition">¶</a></dt>
@@ -2934,6 +2921,19 @@ returned.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="bodhi.server.models.Release.min_karma">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">min_karma</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#bodhi.server.models.Release.min_karma" title="Link to this definition">¶</a></dt>
+<dd><p>Return the min_karma for updates for this release.</p>
+<p>If the release doesn’t specify a min_karma, the default min_karma setting is used
+instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The minimum karma required for updates for this release.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3838,7 +3838,13 @@ or None. Passed on to <a class="reference internal" href="#bodhi.server.models.B
 <dl class="py method">
 <dt class="sig sig-object py" id="bodhi.server.models.Update.check_karma_thresholds">
 <span class="sig-name descname"><span class="pre">check_karma_thresholds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agent</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.check_karma_thresholds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.check_karma_thresholds" title="Link to this definition">¶</a></dt>
-<dd><p>Check if we have reached either karma threshold, and adjust state as necessary.</p>
+<dd><p>Check if we have reached some karma thresholds, and adjust state as necessary.</p>
+<p>If we receive negative karma, disable autopush (both time and karma). If we
+reach the karma autopush threshold (and the release is composed by Bodhi), set
+the request to stable. If we reach the auto-unpush threshold, obsolete the
+update. This method does <strong>NOT</strong> handle commenting and setting date_approved
+when the update reaches the manual push karma threshold. That is done by the
+approve_testing.py script.</p>
 <p>This method will call <a class="reference internal" href="#bodhi.server.models.Update.set_request" title="bodhi.server.models.Update.set_request"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_request()</span></code></a> if necessary. If the update is locked, it will
 ignore karma thresholds and raise an Exception.</p>
 <dl class="field-list simple">
@@ -3857,12 +3863,14 @@ ignore karma thresholds and raise an Exception.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="bodhi.server.models.Update.check_requirements">
 <span class="sig-name descname"><span class="pre">check_requirements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.check_requirements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.check_requirements" title="Link to this definition">¶</a></dt>
-<dd><p>Check that an update meets its self-prescribed policy to be pushed.</p>
+<dd><p>Check that an update meets all requirements to be pushed stable.</p>
+<p>See <a class="reference external" href="https://docs.fedoraproject.org/en-US/fesco/Updates_Policy">https://docs.fedoraproject.org/en-US/fesco/Updates_Policy</a> .
+Deprecated in favor of meets_requirements_why property.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>session</strong> (<em>sqlalchemy.orm.session.Session</em>) – A database session. Unused.</p></li>
-<li><p><strong>settings</strong> (<em>bodhi.server.config.BodhiConfig</em>) – Bodhi’s settings.</p></li>
+<li><p><strong>settings</strong> (<em>bodhi.server.config.BodhiConfig</em>) – Bodhi’s settings. Unused.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -3880,10 +3888,10 @@ ignore karma thresholds and raise an Exception.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="bodhi.server.models.Update.comment">
-<span class="sig-name descname"><span class="pre">comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">karma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">karma_critpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bug_feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">testcase_feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_karma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">email_notification</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.comment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.comment" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">karma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">karma_critpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bug_feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">testcase_feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">email_notification</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.comment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.comment" title="Link to this definition">¶</a></dt>
 <dd><p>Add a comment to this update.</p>
 <p>If the karma reaches the ‘stable_karma’ value, then request that this update be marked
-as stable. If it reaches the ‘unstable_karma’, it is unpushed.</p>
+as stable. If it reaches the ‘unstable_karma’ value, then unpush it (obsolete it).</p>
 </dd></dl>
 
 <dl class="py method">
@@ -4409,11 +4417,36 @@ to add the comment once.</p>
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="bodhi.server.models.Update.meets_requirements_why">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">meets_requirements_why</span></span><a class="headerlink" href="#bodhi.server.models.Update.meets_requirements_why" title="Link to this definition">¶</a></dt>
+<dd><p>Return whether or not this update meets its release’s testing requirements and why.</p>
+<p>Checks gating requirements and then minimum karma and wait requirements, see
+<a class="reference external" href="https://docs.fedoraproject.org/en-US/fesco/Updates_Policy">https://docs.fedoraproject.org/en-US/fesco/Updates_Policy</a> . Note this is
+checking the minimum policy requirements for a manual push (as specified in
+the release configuration), not the per-update thresholds for an automatic push.
+Before updates-testing enablement the minimum wait will be 0, so unless the gating
+check fails, this will always return True.</p>
+<p>FIXME: we should probably wire up the test case and bug feedback requirements
+that are shown in the UI but not currently enforced.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>A tuple containing (result, reason) where result is a bool</dt><dd><p>and reason is a str.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="bodhi.server.models.Update.meets_testing_requirements">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">meets_testing_requirements</span></span><a class="headerlink" href="#bodhi.server.models.Update.meets_testing_requirements" title="Link to this definition">¶</a></dt>
 <dd><p>Return whether or not this update meets its release’s testing requirements.</p>
-<p>If this update’s release does not have a mandatory testing requirement, then
-simply return True.</p>
+<p>Same as meets_requirements_why, but without the reason.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>True if the update meets testing requirements, False otherwise.</p>
@@ -4451,20 +4484,6 @@ simply return True.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="bodhi.server.models.Update.num_admin_approvals">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_admin_approvals</span></span><a class="headerlink" href="#bodhi.server.models.Update.num_admin_approvals" title="Link to this definition">¶</a></dt>
-<dd><p>Return the number of Releng/QA approvals of this update.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The number of admin approvals found in the comments of this update.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="bodhi.server.models.Update.obsolete">
 <span class="sig-name descname"><span class="pre">obsolete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.obsolete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.obsolete" title="Link to this definition">¶</a></dt>
@@ -4478,17 +4497,6 @@ propagate until the next compose takes place.</p>
 <li><p><strong>newer</strong> (<a class="reference internal" href="#bodhi.server.models.Update" title="bodhi.server.models.Update"><em>Update</em></a><em> or </em><em>None</em>) – If given, the update that has obsoleted this one. Defaults to
 <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 </ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bodhi.server.models.Update.obsolete_if_unstable">
-<span class="sig-name descname"><span class="pre">obsolete_if_unstable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.obsolete_if_unstable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.obsolete_if_unstable" title="Link to this definition">¶</a></dt>
-<dd><p>Obsolete the update if it reached the negative karma threshold while pending.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>db</strong> (<em>sqlalchemy.orm.session.Session</em>) – A database session.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -5285,7 +5293,7 @@ for example, any mapped columns or relationships.</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
@@ -5293,7 +5301,7 @@ for example, any mapped columns or relationships.</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -5311,7 +5319,7 @@ for example, any mapped columns or relationships.</p>
       &#169;2007-2024, Red Hat, Inc..
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |

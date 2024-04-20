@@ -38,24 +38,28 @@ Stable push
 An update can be pushed to stable repository either manually or automatically, through Bodhi's
 `autotime` or `autokarma` features.
 
-For becoming pushable to stable an update must fullfill some criteria set by the associated
-release. Tipically, each release has a `mandatory_days_in_testing` and a `critpath_min_karma`
-values that define the threshold after that the associated updates can be pushed to stable.
-The `mandatory_days_in_testing` define the minimum amount of days each update must spend in
-testing repository. The `critpath_min_karma` is the minimum karma that each update must reach.
-An update can be manually pushed to stable by its submitter whatever threshold is reached first.
-For example, if a release has a `critpath_min_karma` of +2, an update which reaches a +2 karma
-**can be pushed to stable even if it hasn't reached the `mandatory_days_in_testing`**.
+For becoming pushable to stable an update must fulfill some criteria set by the associated
+release. Typically, each release has `critpath.mandatory_days_in_testing`,
+`mandatory_days_in_testing` and `min_karma` values that define thresholds for associated updates
+to be pushed to stable. The `mandatory_days_in_testing` settings define an amount of days of
+waiting in the updates repository for critical path and non-critical-path updates respectively.
+The `min_karma` setting specifies a karma total threshold. An update can be manually pushed to
+stable by its submitter or anyone else with edit privileges on the update when **either**
+threshold is reached. For example, if a release has a `min_karma` of 2, an update which reaches
++2 karma **can be pushed to stable even if it hasn't reached the `mandatory_days_in_testing`**.
 
 When submitting an update, the user can enable the `autotime` and the `autokarma` features and
 set the related values `stable_days` and `stable_karma` for that specific update.
-The `stable_days` value define the minimum amount of days each update must spend in
-testing repository before the autopush is performed. It must be equal or greater than the release
-`mandatory_days_in_testing`. The `stable_karma` is the minimum karma that each update must reach
-before the autopush is performed. It must be equal or greater than the release `critpath_min_karma`.
-For example, if a release has a `mandatory_days_in_testing` of 7, an update which has `autotime`
-enabled and `stable_days` set to 10 will be pushable after 7 days **by manual action**, but the
-autopush will be performed **after 3 more days**.
-
+The `stable_days` value defines an amount of days the update must spend in testing repository
+before the autopush is done. It must be equal to or greater than the `mandatory_days_in_testing`
+value that applies to the update. The `stable_karma` value defines a karma total the update must
+reach before the autopush is done. It must be equal to or greater than the release `min_karma`.
+Autopush will happen as soon as **either** threshold is reached. For example, if a release has a
+`mandatory_days_in_testing` of 7, an update which has `autotime` enabled and `stable_days` set to
+10 will be pushable after 7 days **by manual action**, but the autopush will be performed
+**after 3 more days**. If an update has both `autotime` and `autokarma` enabled, with thresholds
+of 7 days and 3 karma respectively, it will be pushed stable as soon as it reaches +3 karma, even
+if 7 days have not yet passed; or it will be pushed stable after 7 days have passed, even if it
+has not yet reached +3 karma.
 
 .. _Greenwave: https://pagure.io/greenwave

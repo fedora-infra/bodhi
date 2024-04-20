@@ -8,7 +8,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=9f6847e8" />
     <script src="_static/documentation_options.js?v=87b6a113"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
@@ -508,10 +508,10 @@
 </li>
       <li><a href="python_bindings.html#bodhi.client.bindings.BodhiClient.compose_str">compose_str() (bodhi.client.bindings.BodhiClient static method)</a>
 </li>
-      <li><a href="server_api/messages/compose.html#bodhi.messages.schemas.compose.ComposeCompleteV1">ComposeCompleteV1 (class in bodhi.messages.schemas.compose)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="server_api/messages/compose.html#bodhi.messages.schemas.compose.ComposeCompleteV1">ComposeCompleteV1 (class in bodhi.messages.schemas.compose)</a>
+</li>
       <li><a href="server_api/messages/compose.html#bodhi.messages.schemas.compose.ComposeComposingV1">ComposeComposingV1 (class in bodhi.messages.schemas.compose)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release.composed_by_bodhi">composed_by_bodhi (bodhi.server.models.Release attribute)</a>
@@ -555,8 +555,6 @@
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.critpath_groups">critpath_groups (bodhi.server.models.Update attribute)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release.critpath_mandatory_days_in_testing">critpath_mandatory_days_in_testing (bodhi.server.models.Release property)</a>
-</li>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release.critpath_min_karma">critpath_min_karma (bodhi.server.models.Release property)</a>
 </li>
       <li><a href="python_bindings.html#bodhi.client.bindings.BodhiClient.csrf">csrf() (bodhi.client.bindings.BodhiClient method)</a>
 </li>
@@ -928,12 +926,18 @@
       </ul></li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.UpdateSeverity.medium">medium (bodhi.server.models.UpdateSeverity attribute)</a>
 </li>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.meets_requirements_why">meets_requirements_why (bodhi.server.models.Update property)</a>
+</li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.meets_testing_requirements">meets_testing_requirements (bodhi.server.models.Update property)</a>
+</li>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release.min_karma">min_karma (bodhi.server.models.Release property)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug.modified">modified() (bodhi.server.models.Bug method)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.modify_bugs">modify_bugs() (bodhi.server.models.Update method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     module
 
@@ -951,8 +955,6 @@
         <li><a href="developer/docblocks/bodhi.server.models.html#module-bodhi.server.models">bodhi.server.models</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.ContentType.module">module (bodhi.server.models.ContentType attribute)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.ModuleBuild">ModuleBuild (class in bodhi.server.models)</a>
@@ -997,8 +999,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.ComposeState.notifying">notifying (bodhi.server.models.ComposeState attribute)</a>
 </li>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.num_admin_approvals">num_admin_approvals (bodhi.server.models.Update property)</a>
-</li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.nvr">nvr (bodhi.server.models.Build attribute)</a>
 
       <ul>
@@ -1040,8 +1040,6 @@
 </li>
       </ul></li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.obsolete">obsolete() (bodhi.server.models.Update method)</a>
-</li>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.obsolete_if_unstable">obsolete_if_unstable() (bodhi.server.models.Update method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -1722,7 +1720,7 @@
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -1730,7 +1728,7 @@
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -1748,7 +1746,7 @@
       &#169;2007-2024, Red Hat, Inc..
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.2.6</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
     </div>
