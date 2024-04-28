@@ -423,6 +423,11 @@ class DevBuildsys:
         if build in DevBuildsys.__tagged__:
             for tag in DevBuildsys.__tagged__[build]:
                 result += [{'name': tag}]
+        if build.startswith('gnome-backgrounds-3.0-'):
+            result += [{'maven_support': False, 'locked': False, 'name': 'f17-build-side-7777',
+                        'extra': {'sidetag_user': 'guest', 'sidetag': True},
+                        'perm': None, 'perm_id': None, 'arches': None, 'maven_include_all': False,
+                        'id': 7777}]
         return result
 
     @multicall_enabled
