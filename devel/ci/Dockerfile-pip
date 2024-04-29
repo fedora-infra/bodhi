@@ -12,6 +12,7 @@ RUN dnf install -y \
     gcc \
     gcc-c++ \
     graphviz \
+    libpq-devel \
     make \
     poetry \
     postgresql-devel \
