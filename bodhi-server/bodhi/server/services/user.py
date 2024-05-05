@@ -21,10 +21,10 @@ import math
 from cornice import Service
 from cornice.validators import colander_querystring_validator
 from pyramid.exceptions import HTTPNotFound
-from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
 from sqlalchemy.sql import or_
 
 from bodhi.server.models import Group, Update, User
+from bodhi.server.services.utils import count_query
 from bodhi.server.validators import (validate_updates, validate_groups)
 import bodhi.server.schemas
 import bodhi.server.security
@@ -154,12 +154,7 @@ def query_users(request):
         args = [Update.alias == update.alias for update in updates]
         query = query.filter(or_(*args))
 
-    # We can't use ``query.count()`` here because it is naive with respect to
-    # all the joins that we're doing above.
-    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
-        .with_only_columns(func.count(distinct(User.id)))\
-        .order_by(None)
-    total = request.db.execute(count_query).scalar()
+    total = count_query(query.order_by(None))
 
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')

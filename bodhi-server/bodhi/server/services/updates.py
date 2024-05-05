@@ -24,7 +24,6 @@ from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
 from requests import RequestException
 from requests import Timeout as RequestsTimeout
-from sqlalchemy import distinct, func, LABEL_STYLE_TABLENAME_PLUS_COL
 from sqlalchemy.sql import or_
 
 from bodhi.messages.schemas import update as update_schemas
@@ -40,6 +39,7 @@ from bodhi.server.models import (
     UpdateRequest,
     UpdateStatus,
 )
+from bodhi.server.services.utils import count_query
 from bodhi.server.tasks import handle_side_and_related_tags_task
 from bodhi.server.validators import (
     validate_acls,
@@ -339,7 +339,7 @@ def query_updates(request):
 
     releases = data.get('releases')
     if releases is not None:
-        query = query.filter(or_(*[Update.release == r for r in releases]))
+        query = query.filter(Update.release_id.in_([r.id for r in releases]))
 
     # This singular version of the plural "releases" is purely for bodhi1
     # backwards compat (mostly for RSS feeds) - threebean
@@ -405,12 +405,7 @@ def query_updates(request):
 
     query = query.order_by(Update.date_submitted.desc())
 
-    # We can't use ``query.count()`` here because it is naive with respect to
-    # all the joins that we're doing above.
-    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
-        .with_only_columns(func.count(distinct(Update.id)))\
-        .order_by(None)
-    total = db.execute(count_query).scalar()
+    total = count_query(query)
 
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')

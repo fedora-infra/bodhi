@@ -22,7 +22,6 @@ import math
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
 from pyramid.exceptions import HTTPNotFound
-from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
 from sqlalchemy.sql import or_
 
 from bodhi.server import log, security
@@ -38,6 +37,7 @@ from bodhi.server.models import (
     ReleaseState,
     TestGatingStatus,
 )
+from bodhi.server.services.utils import count_query
 from bodhi.server.validators import (
     validate_tags,
     validate_enums,
@@ -103,58 +103,51 @@ def get_release_html(request):
     base_count_query = request.db.query(Update)\
         .filter(Update.release == release)
 
-    num_updates_pending = base_count_query\
-        .filter(Update.status == UpdateStatus.pending).count()
-    num_updates_testing = base_count_query\
-        .filter(Update.status == UpdateStatus.testing).count()
-    num_updates_stable = base_count_query\
-        .filter(Update.status == UpdateStatus.stable).count()
-    num_updates_unpushed = base_count_query\
-        .filter(Update.status == UpdateStatus.unpushed).count()
-    num_updates_obsolete = base_count_query\
-        .filter(Update.status == UpdateStatus.obsolete).count()
+    num_updates_pending = count_query(base_count_query.filter(Update.status == UpdateStatus.pending))
+    num_updates_testing = count_query(base_count_query.filter(Update.status == UpdateStatus.testing))
+    num_updates_stable = count_query(base_count_query.filter(Update.status == UpdateStatus.stable))
+    num_updates_unpushed = count_query(base_count_query.filter(Update.status == UpdateStatus.unpushed))
+    num_updates_obsolete = count_query(base_count_query.filter(Update.status == UpdateStatus.obsolete))
 
-    num_updates_security = base_count_query\
-        .filter(Update.type == UpdateType.security).count()
-    num_updates_bugfix = base_count_query\
-        .filter(Update.type == UpdateType.bugfix).count()
-    num_updates_enhancement = base_count_query\
-        .filter(Update.type == UpdateType.enhancement).count()
-    num_updates_newpackage = base_count_query\
-        .filter(Update.type == UpdateType.newpackage).count()
+    num_updates_security = count_query(base_count_query.filter(Update.type == UpdateType.security))
+    num_updates_bugfix = count_query(base_count_query.filter(Update.type == UpdateType.bugfix))
+    num_updates_enhancement = count_query(base_count_query.filter(Update.type == UpdateType.enhancement))
+    num_updates_newpackage = count_query(base_count_query.filter(Update.type == UpdateType.newpackage))
 
-    num_active_overrides = request.db.query(
-        BuildrootOverride
-    ).filter(
-        BuildrootOverride.expired_date.is_(None)
-    ).join(
-        BuildrootOverride.build
-    ).join(
-        Build.release
-    ).filter(
-        Build.release == release
-    ).count()
+    num_active_overrides = count_query(
+        request.db.query(
+            BuildrootOverride
+        ).filter(
+            BuildrootOverride.expired_date.is_(None)
+        ).join(
+            BuildrootOverride.build
+        ).join(
+            Build.release
+        ).filter(
+            Build.release == release
+        )
+    )
 
-    num_expired_overrides = request.db.query(
-        BuildrootOverride
-    ).filter(
-        BuildrootOverride.expired_date.isnot(None)
-    ).join(
-        BuildrootOverride.build
-    ).join(
-        Build.release
-    ).filter(
-        Build.release == release
-    ).count()
+    num_expired_overrides = count_query(
+        request.db.query(
+            BuildrootOverride
+        ).filter(
+            BuildrootOverride.expired_date.isnot(None)
+        ).join(
+            BuildrootOverride.build
+        ).join(
+            Build.release
+        ).filter(
+            Build.release == release
+        )
+    )
 
-    num_gating_passed = base_count_query.filter(
-        Update.test_gating_status == TestGatingStatus.passed).count()
-    num_gating_ignored = base_count_query.filter(
-        Update.test_gating_status == TestGatingStatus.ignored).count()
+    num_gating_passed = count_query(base_count_query.filter(Update.test_gating_status == TestGatingStatus.passed))
+    num_gating_ignored = count_query(base_count_query.filter(Update.test_gating_status == TestGatingStatus.ignored))
 
     return dict(release=release,
                 latest_updates=updates.limit(25).all(),
-                count=updates.count(),
+                count=count_query(updates),
                 date_commits=date_commits,
                 dates=sorted(dates),
 
@@ -237,7 +230,7 @@ def query_releases_html(request):
         """
         basequery = basequery.filter(Update.status == status)
         return {
-            '{}_updates_total'.format(status.description): basequery.count(),
+            '{}_updates_total'.format(status.description): count_query(basequery),
         }
 
     def get_update_counts(releaseid, stable_only: bool = False):
@@ -339,12 +332,7 @@ def query_releases_json(request):
 
     query = query.order_by(Release.name.asc())
 
-    # We can't use ``query.count()`` here because it is naive with respect to
-    # all the joins that we're doing above.
-    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
-        .with_only_columns(func.count(distinct(Release.id)))\
-        .order_by(None)
-    total = db.execute(count_query).scalar()
+    total = count_query(query)
 
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')

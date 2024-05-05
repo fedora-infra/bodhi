@@ -20,10 +20,10 @@ import math
 
 from cornice import Service
 from cornice.validators import colander_querystring_validator
-from sqlalchemy import distinct, func, LABEL_STYLE_TABLENAME_PLUS_COL
 from sqlalchemy.sql.expression import case
 
 from bodhi.server.models import Package
+from bodhi.server.services.utils import count_query
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
@@ -76,12 +76,7 @@ def query_packages(request):
         query = query.filter(Package.name.ilike('%%%s%%' % search))
         query = query.order_by(case((Package.name == search, Package.name)))
 
-    # We can't use ``query.count()`` here because it is naive with respect to
-    # all the joins that we're doing above.
-    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
-        .with_only_columns(func.count(distinct(Package.name)))\
-        .order_by(None)
-    total = db.execute(count_query).scalar()
+    total = count_query(query.order_by(None))
 
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')

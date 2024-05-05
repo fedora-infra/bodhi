@@ -23,11 +23,11 @@ import math
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
 from pyramid.exceptions import HTTPNotFound
-from sqlalchemy import distinct, func, LABEL_STYLE_TABLENAME_PLUS_COL
 from sqlalchemy.sql import or_
 
 from bodhi.server import log, security
 from bodhi.server.models import Build, BuildrootOverride, Package, Release, User
+from bodhi.server.services.utils import count_query
 from bodhi.server.validators import (
     validate_expiration_date,
     validate_override_builds,
@@ -185,12 +185,7 @@ def query_overrides(request):
 
     query = query.order_by(BuildrootOverride.submission_date.desc())
 
-    # We can't use ``query.count()`` here because it is naive with respect to
-    # all the joins that we're doing above.
-    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
-        .with_only_columns(func.count(distinct(BuildrootOverride.id)))\
-        .order_by(None)
-    total = db.execute(count_query).scalar()
+    total = count_query(query.order_by(None))
 
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')
