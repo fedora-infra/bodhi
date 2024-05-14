@@ -82,7 +82,7 @@ greenwave_api_url = http://localhost:6545/api/v1.0
 
 [server:main]
 use = egg:waitress#main
-host = 0.0.0.0
+host = localhost
 port = 6543
 trusted_proxy = 127.0.0.1
 trusted_proxy_count = 1
