@@ -2956,6 +2956,26 @@ class TestUpdatesService(BasePyTestCase):
         assert up['alias'] == f'FEDORA-{YEAR}-a3bbe1a8f2'
         assert up['karma'] == 1
 
+    def test_list_updates_by_gating_status_multiple(self):
+        # set the bodhi update's gating status to passed, add two
+        # updates with different gating statuses, query for those
+        # two statuses and expect to find those updates but not the
+        # bodhi update
+        bodhi = self.db.query(Build).filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        bodhi.test_gating_status = TestGatingStatus.passed
+        firefox = self.create_update(['firefox-61.0.2-3.fc17'])
+        firefox.test_gating_status = TestGatingStatus.failed
+        python_nose = self.create_update(['python-nose-1.3.7-11.fc17'])
+        python_nose.test_gating_status = TestGatingStatus.waiting
+        self.db.commit()
+
+        res = self.app.get('/updates/', {"gating": ["failed", "waiting"]})
+        body = res.json_body
+        assert len(body['updates']) == 2
+        expected = ['firefox-61.0.2-3.fc17', 'python-nose-1.3.7-11.fc17']
+        actual = sorted(update['title'] for update in body['updates'])
+        assert expected == actual
+
     def test_list_updates_by_from_side_tag(self):
         up = self.db.query(Build).filter_by(nvr='bodhi-2.0-1.fc17').one().update
         up.from_tag = 'f33-side-tag'
