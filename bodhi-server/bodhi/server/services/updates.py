@@ -382,7 +382,7 @@ def query_updates(request):
 
     gating_status = data.get('gating')
     if gating_status is not None:
-        query = query.filter(Update.test_gating_status == gating_status)
+        query = query.filter(or_(*[Update.test_gating_status == s for s in gating_status]))
 
     user = data.get('user')
     if user is not None:
