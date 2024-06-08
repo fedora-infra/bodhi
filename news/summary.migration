@@ -1,1 +1,3 @@
 The `karma` property of the `comment_bug_assoc` table has been renamed to `feedback`.
+
+The `karma` property of the `comment_testcase_assoc` table has been renamed to `feedback`.
