@@ -234,19 +234,36 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
         validator=colander.Length(min=2, max=config.get('update_notes_maxlength')),
         missing_msg='A description is required for the update.'
     )
-    autokarma = colander.SchemaNode(
+    autorating = colander.SchemaNode(
         colander.Boolean(),
         missing=True,
     )
-    stable_karma = colander.SchemaNode(
+    # DEPRECATED this is only for temporary backwards compatibility
+    autokarma = colander.SchemaNode(
+        colander.Boolean(),
+        missing=None,
+    )
+    stable_rating = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(min=1),
         missing=3,
     )
-    unstable_karma = colander.SchemaNode(
+    # DEPRECATED this is only for temporary backwards compatibility
+    stable_karma = colander.SchemaNode(
+        colander.Integer(),
+        validator=colander.Range(min=1),
+        missing=None,
+    )
+    unstable_rating = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(max=-1),
         missing=-3,
+    )
+    # DEPRECATED this is only for temporary backwards compatibility
+    unstable_karma = colander.SchemaNode(
+        colander.Integer(),
+        validator=colander.Range(max=-1),
+        missing=None,
     )
     suggest = colander.SchemaNode(
         colander.String(),
