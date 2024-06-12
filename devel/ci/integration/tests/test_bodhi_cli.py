@@ -377,7 +377,7 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
     assert "Severity: {}".format(update.severity) in result.output
     assert "Karma: {}".format(update.karma) in result.output
     expected_autokarma = (
-        "Autokarma: {u.autokarma}  [{u.unstable_karma}, {u.stable_karma}]"
+        "Autokarma: {u.autorating}  [{u.unstable_rating}, {u.stable_rating}]"
     ).format(u=update)
     assert expected_autokarma in result.output
     # If the update doesn't have a request, the CLI does not render the Request: line.
@@ -500,7 +500,7 @@ def test_updates_request(bodhi_container, ipsilon_container, db_container):
                 update_alias = result[0]
                 # Now let's make sure the update is pushable to stable
                 curs.execute(
-                    "UPDATE updates SET stable_karma = 0, stable_days = 0 "
+                    "UPDATE updates SET stable_rating = 0, stable_days = 0 "
                     "WHERE alias = %s",
                     (update_alias,)
                 )

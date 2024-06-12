@@ -142,10 +142,10 @@ class TestNewUpdate(BasePyTestCase):
         assert 'Multiple bodhi builds specified' in res
 
     def test_invalid_autokarma(self, *args):
-        res = self.app.post_json('/updates/', self.get_update(stable_karma=-1),
+        res = self.app.post_json('/updates/', self.get_update(stable_rating=-1),
                                  status=400)
         assert '-1 is less than minimum value 1' in res
-        res = self.app.post_json('/updates/', self.get_update(unstable_karma=1),
+        res = self.app.post_json('/updates/', self.get_update(unstable_rating=1),
                                  status=400)
         assert '1 is greater than maximum value -1' in res
 
@@ -722,15 +722,25 @@ class TestNewUpdate(BasePyTestCase):
             'The number of stable days required was set to the mandatory release value of 7 days'
         )
 
+    @pytest.mark.parametrize('compat', (True, False))
     @mock.patch('bodhi.server.notifications.publish')
-    def test_new_update_too_low_stable_karma(self, publish, *args):
+    def test_new_update_too_low_stable_rating(self, publish, compat, *args):
         args = self.get_update(u'bodhi-2.0.0-2.fc17')
         args['stable_days'] = '50'
-        args['stable_karma'] = '1'
+        if compat:
+            args['stable_karma'] = '1'
+        else:
+            args.pop('autokarma', None)
+            args.pop('stable_karma', None)
+            args.pop('unstable_karma', None)
+            args['stable_rating'] = '1'
         r = self.app.post_json('/updates/', args)
-        assert r.json['stable_karma'] == 2
+        if compat:
+            assert r.json['stable_karma'] == 2
+        else:
+            assert r.json['stable_rating'] == 2
         assert r.json['caveats'][0]['description'] == (
-            'The stable karma required was set to the mandatory release value of 2'
+            'The stable rating required was set to the mandatory release value of 2'
         )
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
@@ -3036,8 +3046,8 @@ class TestUpdatesService(BasePyTestCase):
             type=UpdateType.enhancement,
             notes='Just another update.',
             date_submitted=datetime(1981, 10, 11),
-            stable_karma=3,
-            unstable_karma=-3,
+            stable_rating=3,
+            unstable_rating=-3,
             release=Release.query.one()
         )
         self.db.add(update)
@@ -3632,12 +3642,14 @@ class TestUpdatesService(BasePyTestCase):
             'The number of stable days required was raised to the mandatory release value of 7 days'
         )
 
-    def test_edit_update_too_low_stable_karma(self, *args):
+    @pytest.mark.parametrize('compat', (True, False))
+    def test_edit_update_too_low_stable_karma(self, compat, *args):
         """Check stable karma below the minimum is increased on edit"""
         nvr = 'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
+        args = self.get_update(nvr, stable_rating=50)
         args['stable_days'] = 50
-        args['stable_karma'] = 50
+        if compat:
+            args['stable_karma'] = 50
 
         with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
                                     update_schemas.UpdateRequestTestingV1):
@@ -3651,14 +3663,17 @@ class TestUpdatesService(BasePyTestCase):
         self.db.info['messages'] = []
 
         args['edited'] = up.alias
-        args['stable_karma'] = 1
+        if compat:
+            args['stable_karma'] = 1
+        else:
+            args['stable_rating'] = 1
 
         with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             up = self.app.post_json('/updates/', args, status=200).json_body
 
         assert up['stable_karma'] == 2
         assert up['caveats'][0]['description'] == (
-            'The stable karma required was raised to the mandatory release value of 2'
+            'The stable rating required was raised to the mandatory release value of 2'
         )
 
     def test_obsoletion_locked_with_open_request(self, *args):
@@ -4678,22 +4693,28 @@ class TestUpdatesService(BasePyTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         assert up._composite_karma == (0, 0)
 
-    def test_karma_threshold_with_disabled_autopush(self, *args):
+    @pytest.mark.parametrize('compat', (True, False))
+    def test_karma_threshold_with_disabled_autopush(self, compat, *args):
         """Ensure Karma threshold field is not None when Autopush is disabled."""
         build = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(build)
-        args['autokarma'] = False
-        args['stable_karma'] = 3
-        args['unstable_karma'] = -3
+        if compat:
+            args['autokarma'] = False
+            args['stable_karma'] = 3
+            args['unstable_karma'] = -3
+        else:
+            args['autorating'] = False
+            args['stable_rating'] = 3
+            args['unstable_rating'] = -3
 
         with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
                                     update_schemas.UpdateRequestTestingV1):
             r = self.app.post_json('/updates/', args)
 
         up = r.json_body
-        assert up['autokarma'] is False
-        assert up['stable_karma'] == 3
-        assert up['unstable_karma'] == -3
+        assert up['autorating'] is False
+        assert up['stable_rating'] == 3
+        assert up['unstable_rating'] == -3
 
         # Pretend it was pushed to testing
         update = Build.query.filter_by(nvr=build).one().update
@@ -4708,8 +4729,13 @@ class TestUpdatesService(BasePyTestCase):
         args['edited'] = update.alias
 
         # Change Karma Thresholds
-        args['stable_karma'] = 4
-        args['unstable_karma'] = -4
+        if compat:
+            args['autorating'] = False
+            args['stable_karma'] = 4
+            args['unstable_karma'] = -4
+        else:
+            args['stable_rating'] = 4
+            args['unstable_rating'] = -4
 
         with fml_testing.mock_sends(update_schemas.UpdateEditV2):
             r = self.app.post_json('/updates/', args)
@@ -4717,9 +4743,9 @@ class TestUpdatesService(BasePyTestCase):
         up = r.json_body
         assert up['status'] == 'testing'
         assert up['request'] is None
-        assert up['autokarma'] is False
-        assert up['stable_karma'] == 4
-        assert up['unstable_karma'] == -4
+        assert up['autorating'] is False
+        assert up['stable_rating'] == 4
+        assert up['unstable_rating'] == -4
 
     @pytest.mark.parametrize("status", (UpdateStatus.testing, UpdateStatus.pending))
     @pytest.mark.parametrize("req", (UpdateRequest.stable, None))
@@ -5264,7 +5290,7 @@ class TestUpdatesService(BasePyTestCase):
         update = Update(builds=[build], type=UpdateType.bugfix,
                         request=UpdateRequest.testing, notes='second update',
                         user=update.user, release=update.release,
-                        stable_karma=3, unstable_karma=-3)
+                        stable_rating=3, unstable_rating=-3)
         update.comment(self.db, "foo1", 1, 'foo1')
         update.comment(self.db, "foo2", 1, 'foo2')
         # this is triggering a karma-autopush to get the newer update pushed stable

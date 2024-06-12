@@ -334,9 +334,9 @@ def test_get_update_view(bodhi_container, db_container):
         "  updates.status as status, "
         "  updates.type as type, "
         "  updates.severity as severity, "
-        "  updates.stable_karma as stable_karma, "
-        "  updates.unstable_karma as unstable_karma, "
-        "  updates.autokarma as autokarma, "
+        "  updates.stable_rating as stable_rating, "
+        "  updates.unstable_rating as unstable_rating, "
+        "  updates.autorating as autorating, "
         "  updates.request as request, "
         "  updates.locked as locked, "
         "  updates.suggest as suggest, "
@@ -384,14 +384,14 @@ def test_get_update_view(bodhi_container, db_container):
         assert update_info['username'] in http_response.text
         assert content_type_mapping[update_info['content_type']] in http_response.text
         assert (f"The update will be marked as unstable"
-                f" when karma reaches {update_info['unstable_karma']}") in http_response.text
+                f" when karma reaches {update_info['unstable_rating']}") in http_response.text
         if update_info['request']:
             assert update_info['request'] in http_response.text
-        if update_info['autokarma']:
+        if update_info['autorating']:
             assert "The update will be automatically pushed to stable when karma reaches"\
                 in http_response.text
             assert (f"The update will be automatically pushed to stable"
-                    f" when karma reaches {update_info['stable_karma']}") in http_response.text
+                    f" when karma reaches {update_info['stable_rating']}") in http_response.text
         else:
             assert "The update will not be automatically pushed to stable by karma"\
                 in http_response.text

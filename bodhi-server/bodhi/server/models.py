@@ -1862,16 +1862,16 @@ class Update(Base):
     through their Build objects using field ``builds`` below.
 
     Attributes:
-        autokarma (bool): A boolean that indicates whether or not the update will
-            be automatically pushed when the stable_karma threshold is reached.
+        autorating (bool): A boolean that indicates whether or not the update will
+            be automatically pushed when the stable_rating threshold is reached.
         autotime (bool): A boolean that indicates whether or not the update will
             be automatically pushed when the time threshold is reached.
-        stable_karma (int): A positive integer that indicates the amount of "good"
-            karma the update must receive before being automatically marked as stable.
+        stable_rating (int): A positive integer that indicates the amount of positive
+            feedbacks the update must receive before being automatically marked as stable.
         stable_days (int): A positive integer that indicates the number of days an update
             needs to spend in testing before being automatically marked as stable.
-        unstable_karma (int): A positive integer that indicates the amount of "bad"
-            karma the update must receive before being automatically marked as unstable.
+        unstable_rating (int): A positive integer that indicates the amount of negative
+            feedbacks the update must receive before being automatically marked as unstable.
         require_bugs (bool): Indicates whether or not positive feedback needs to be
             provided for the associated bugs before the update can be considered
             stable.
@@ -1941,11 +1941,24 @@ class Update(Base):
                           'version_hash')
     __get_by__ = ('alias',)
 
-    autokarma = Column(Boolean, default=True, nullable=False)
+    def __getattribute__(self, item):
+        """Update properties deprecation warnings."""
+        if item in ['autokarma', 'stable_karma', 'unstable_karma']:
+            warnings.warn(f"Update's {item} class variable is deprecated; date=2024-06-12",
+                          DeprecationWarning, stacklevel=2)
+        return super().__getattribute__(item)
+
+    autorating = Column(Boolean, default=True, nullable=False)
+    # DEPRECATED this is only for temporary backwards compatibility; date=2024-06-12
+    autokarma = synonym('autorating')
     autotime = Column(Boolean, default=True, nullable=False)
-    stable_karma = Column(Integer, nullable=False)
+    stable_rating = Column(Integer, nullable=False)
+    # DEPRECATED this is only for temporary backwards compatibility; date=2024-06-12
+    stable_karma = synonym('stable_rating')
     stable_days = Column(Integer, nullable=False, default=0)
-    unstable_karma = Column(Integer, nullable=False)
+    unstable_rating = Column(Integer, nullable=False)
+    # DEPRECATED this is only for temporary backwards compatibility; date=2024-06-12
+    unstable_karma = synonym('unstable_rating')
     require_bugs = Column(Boolean, default=False)
     require_testcases = Column(Boolean, default=False)
 
@@ -2486,6 +2499,32 @@ class Update(Base):
             data['critpath'] = cls.contains_critpath_component(
                 data['builds'], data['release'].branch)
 
+        # DEPRECATED this is only for temporary backwards compatibility; date=2024-06-12
+        if 'autokarma' in data:
+            if data['autokarma'] is not None:
+                warnings.warn("Defining `autokarma` in Update initialization is deprecated, "
+                              "use `autorating` instead; date=2024-06-12",
+                              DeprecationWarning, stacklevel=2)
+                data['autorating'] = data.pop('autokarma')
+            else:
+                data.pop('autokarma', None)
+        if 'stable_karma' in data:
+            if data['stable_karma'] is not None:
+                warnings.warn("Defining `stable_karma` in Update initialization is deprecated, "
+                              "use `stable_rating` instead; date=2024-06-12",
+                              DeprecationWarning, stacklevel=2)
+                data['stable_rating'] = data.pop('stable_karma')
+            else:
+                data.pop('stable_karma', None)
+        if 'unstable_karma' in data:
+            if data['unstable_karma'] is not None:
+                warnings.warn("Defining `unstable_karma` in Update initialization is deprecated, "
+                              "use `unstable_rating` instead; date=2024-06-12",
+                              DeprecationWarning, stacklevel=2)
+                data['unstable_rating'] = data.pop('unstable_karma')
+            else:
+                data.pop('unstable_karma', None)
+
         # Be sure to not add an empty string as alternative title
         # and strip whitespaces from it
         if 'display_name' in data:
@@ -2531,13 +2570,13 @@ class Update(Base):
                                f"release value of {up.mandatory_days_in_testing} days"
             })
 
-        # We also need to make sure stable_karma is not set below
+        # We also need to make sure stable_rating is not set below
         # the policy minimum for this release
-        if release.min_karma > up.stable_karma:
-            up.stable_karma = release.min_karma
+        if release.min_karma > up.stable_rating:
+            up.stable_rating = release.min_karma
             caveats.append({
-                'name': 'stable karma',
-                'description': "The stable karma required was set to the mandatory "
+                'name': 'stable rating',
+                'description': "The stable rating required was set to the mandatory "
                                f"release value of {release.min_karma}"
             })
 
@@ -2595,6 +2634,43 @@ class Update(Base):
         caveats = []
         edited_builds = [build.nvr for build in up.builds]
 
+        # DEPRECATED this is only for temporary backwards compatibility; date=2024-06-12
+        if 'autokarma' in data:
+            if data['autorating'] != up.autorating:
+                # user modifying through autorating
+                data.pop('autokarma', None)
+            elif data['autokarma'] is not None and data['autokarma'] != up.autorating:
+                # user modifying through deprecated autokarma
+                warnings.warn("Defining `autokarma` in Update editing is deprecated, "
+                              "use `autorating` instead; date=2024-06-12",
+                              DeprecationWarning, stacklevel=2)
+                data['autorating'] = data.pop('autokarma')
+            else:
+                data.pop('autokarma', None)
+        if 'stable_karma' in data:
+            if data['stable_rating'] != up.stable_rating:
+                # user modifying through stable_rating
+                data.pop('stable_karma', None)
+            elif data['stable_karma'] is not None and data['stable_karma'] != up.stable_rating:
+                warnings.warn("Defining `stable_karma` in Update editing is deprecated, "
+                              "use `stable_rating` instead; date=2024-06-12",
+                              DeprecationWarning, stacklevel=2)
+                data['stable_rating'] = data.pop('stable_karma')
+            else:
+                data.pop('stable_karma', None)
+        if 'unstable_karma' in data:
+            if data['unstable_rating'] != up.unstable_rating:
+                # user modifying through unstable_rating
+                data.pop('unstable_karma', None)
+            elif data['unstable_karma'] is not None and \
+                    data['unstable_karma'] != up.unstable_karma:
+                warnings.warn("Defining `unstable_karma` in Update editing is deprecated, "
+                              "use `unstable_rating` instead; date=2024-06-12",
+                              DeprecationWarning, stacklevel=2)
+                data['unstable_rating'] = data.pop('unstable_karma')
+            else:
+                data.pop('unstable_karma', None)
+
         # Be sure to not add an empty string as alternative title
         # and strip whitespaces from it
         if 'display_name' in data:
@@ -2610,13 +2686,13 @@ class Update(Base):
                                f"release value of {up.mandatory_days_in_testing} days"
             })
 
-        # We also need to make sure stable_karma is not set below
+        # We also need to make sure stable_rating is not set below
         # the policy minimum for this release
-        if up.release.min_karma > data.get('stable_karma', up.stable_karma):
-            data['stable_karma'] = up.release.min_karma
+        if up.release.min_karma > data.get('stable_rating', up.stable_rating):
+            data['stable_rating'] = up.release.min_karma
             caveats.append({
-                'name': 'stable karma',
-                'description': "The stable karma required was raised to the mandatory "
+                'name': 'stable_rating',
+                'description': "The stable rating required was raised to the mandatory "
                                f"release value of {up.release.min_karma}"
             })
 
@@ -3522,8 +3598,8 @@ class Update(Base):
                 bug_feedback=None, testcase_feedback=None, email_notification=True):
         """Add a comment to this update.
 
-        If the karma reaches the 'stable_karma' value, then request that this update be marked
-        as stable. If it reaches the 'unstable_karma' value, then unpush it (obsolete it).
+        If the karma reaches the 'stable_rating' value, then request that this update be marked
+        as stable. If it reaches the 'unstable_rating' value, then unpush it (obsolete it).
         """
         if not author:
             raise ValueError('You must provide a comment author')
@@ -3811,28 +3887,28 @@ class Update(Base):
         if self.status != UpdateStatus.testing and self.release.state == ReleaseState.frozen:
             return
         # Obsolete if unstable karma threshold reached
-        if self.unstable_karma and self.karma <= self.unstable_karma:
-            log.info("Automatically obsoleting %s (reached unstable karma threshold)", self.alias)
+        if self.unstable_rating and self.karma <= self.unstable_rating:
+            log.info("Automatically obsoleting %s (reached unstable rating threshold)", self.alias)
             self.obsolete(db)
             notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
                 dict(update=self, status='unstable')))
         # If an update receives negative karma disable autopush
         # exclude rawhide updates see #4566
-        if (self.autokarma or self.autotime) and self._composite_karma[1] != 0 and \
+        if (self.autorating or self.autotime) and self._composite_karma[1] != 0 and \
                 self.request is not UpdateRequest.stable and \
                 self.release.composed_by_bodhi:
             log.info("Disabling Auto Push since the update has received negative karma")
-            self.autokarma = False
+            self.autorating = False
             self.autotime = False
             text = config.get('disable_automatic_push_to_stable')
             self.comment(db, text, author='bodhi')
         # If update with autopush reaches threshold, set request stable
-        if self.stable_karma and self.karma >= self.stable_karma \
-                and self.release.composed_by_bodhi and self.autokarma:
+        if self.stable_rating and self.karma >= self.stable_rating \
+                and self.release.composed_by_bodhi and self.autorating:
             # Updates for releases not "composed by Bodhi" (Rawhide,
             # ELN...) are pushed stable only by approve_testing.py
             if config.get('test_gating.required') and not self.test_gating_passed:
-                log.info("%s reached stable karma threshold, but does not meet gating "
+                log.info("%s reached stable rating threshold, but does not meet gating "
                          "requirements", self.alias)
                 return
             if not self.date_approved:
