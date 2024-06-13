@@ -3531,7 +3531,7 @@ class Update(Base):
         session.flush()
         return new
 
-    def comment(self, session, text, karma=0, author=None, karma_critpath=0,
+    def comment(self, session, text, karma=0, author=None, karma_critpath=None,
                 bug_feedback=None, testcase_feedback=None, email_notification=True):
         """Add a comment to this update.
 
@@ -3540,6 +3540,12 @@ class Update(Base):
         """
         if not author:
             raise ValueError('You must provide a comment author')
+
+        if karma_critpath:
+            warnings.warn(
+                "karma_critpath is not used anymore and should not be passed in comment() call; "
+                "date=2024-06-13", DeprecationWarning, stacklevel=2
+            )
 
         # Listify these
         bug_feedback = bug_feedback or []
@@ -3551,7 +3557,7 @@ class Update(Base):
                 got_feedback = True
                 break
 
-        if (not text and not karma and not karma_critpath and not got_feedback):
+        if (not text and not karma and not got_feedback):
             raise ValueError('You must provide either some text or feedback')
 
         caveats = []
@@ -3568,8 +3574,7 @@ class Update(Base):
             user = User(name=author)
             session.add(user)
 
-        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath,
-                          update=self, user=user)
+        comment = Comment(text=text, karma=karma, update=self, user=user)
         session.add(comment)
 
         if karma != 0:
@@ -4522,7 +4527,7 @@ class Comment(Base):
     Attributes:
         karma (int): The karma associated with this comment. Defaults to 0.
         karma_critpath (int): The critpath karma associated with this comment. Defaults to 0.
-            **DEPRECATED** no longer used in the UI
+            **DEPRECATED** no longer used in the UI, maintained in db only for historic reason
         text (str): The text of the comment.
         timestamp (datetime.datetime): The time the comment was created. Defaults to
             the return value of datetime.utcnow().
