@@ -93,7 +93,10 @@ class TestCommentsService(base.BasePyTestCase):
                                  status=400)
         assert '2 is greater than maximum value 1' in res
 
-    def test_commenting_with_critpath_feedback(self):
+
+    @mock.patch('bodhi.server.services.comments.warnings.warn')
+    def test_commenting_with_critpath_feedback(self, warn):
+        """karma_critpath is not used anymore and should be ignored with a warning."""
         comment = self.make_comment()
         comment['karma_critpath'] = -1  # roll out the trucks
 
@@ -104,7 +107,12 @@ class TestCommentsService(base.BasePyTestCase):
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
         assert res.json_body['comment']['user_id'] == 1
-        assert res.json_body['comment']['karma_critpath'] == -1
+        assert res.json_body['comment']['karma_critpath'] == 0
+        warn.assert_called_once_with(
+            ("karma_critpath is not used anymore and should not be passed new comments; "
+             "date=2024-06-13"),
+            DeprecationWarning, stacklevel=2
+        )
 
     @pytest.mark.parametrize('compat', (True, False))
     def test_commenting_with_bug_feedback(self, compat):
