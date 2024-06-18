@@ -20,6 +20,7 @@ BuildRequires:  python3-pytest
 BuildRequires:  python3-pytest-cov
 BuildRequires:  python3-pytest-mock
 BuildRequires:  python3-sphinx
+BuildRequires:  python3dist(poetry-core) >= 1
 
 Requires: koji
 

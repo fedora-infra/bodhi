@@ -19,6 +19,7 @@ BuildRequires:  python3-pytest
 BuildRequires:  python3-pytest-cov
 BuildRequires:  python3dist(fedora-messaging)
 BuildRequires:  python3dist(setuptools)
+BuildRequires:  python3dist(poetry-core) >= 1
 
 %description
 Bodhi Messages This package contains the schema for messages published by
