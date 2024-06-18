@@ -107,6 +107,7 @@ make %{?_smp_mflags} -C docs man
 
 install -m 644 apache/bodhi.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/bodhi.conf
 sed -i -s 's/BODHI_VERSION/%{version}/g' %{buildroot}%{_sysconfdir}/httpd/conf.d/bodhi.conf
+sed -i -s 's/python3.7/python%{python3_version}/g' %{buildroot}%{_sysconfdir}/httpd/conf.d/bodhi.conf
 install -m 640 production.ini %{buildroot}%{_sysconfdir}/bodhi/production.ini
 install -m 640 alembic.ini %{buildroot}%{_sysconfdir}/bodhi/alembic.ini
 install apache/bodhi.wsgi %{buildroot}%{_datadir}/bodhi/bodhi.wsgi
