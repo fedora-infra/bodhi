@@ -243,7 +243,7 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_request_method(get_cacheregion, 'cache', reify=True)
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
     config.add_request_method(get_from_tag_inherited, 'from_tag_inherited', reify=True)
-    config.add_request_method(get_releases, 'releases', reify=True)
+    config.add_request_method(get_releases, 'releases', property=True)
 
     # Templating
     config.add_mako_renderer('.html', settings_prefix='mako.')
