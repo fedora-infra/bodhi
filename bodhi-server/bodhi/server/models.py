@@ -1937,7 +1937,7 @@ class Update(Base):
 
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id', 'compose')
-    __include_extras__ = ('date_pushed', 'meets_testing_requirements', 'url', 'title',
+    __include_extras__ = ('date_pushed', 'karma', 'meets_testing_requirements', 'url', 'title',
                           'version_hash')
     __get_by__ = ('alias',)
 
@@ -2153,13 +2153,13 @@ class Update(Base):
         negative_karma = 0
         users_counted = set()
         for comment in self.comments_since_karma_reset:
-            if comment.karma and comment.user.name not in users_counted:
+            if comment.feedback and comment.user.name not in users_counted:
                 # Make sure we only count the last comment this user made
                 users_counted.add(comment.user.name)
-                if comment.karma > 0:
-                    positive_karma += comment.karma
+                if comment.feedback > 0:
+                    positive_karma += comment.feedback
                 else:
-                    negative_karma += comment.karma
+                    negative_karma += comment.feedback
 
         return positive_karma, negative_karma
 
@@ -2684,7 +2684,7 @@ class Update(Base):
                 comment += "\n- %s" % removed_build
         if new_builds or removed_builds:
             comment += '\n\nKarma has been reset.'
-        up.comment(db, comment, karma=0, author='bodhi')
+        up.comment(db, comment, feedback=0, author='bodhi')
         caveats.append({'name': 'builds', 'description': comment})
 
         # Updates with new or removed builds always go back to testing
@@ -3479,7 +3479,7 @@ class Update(Base):
             comments_list = []
             for comment in reversed(self.comments_since_karma_reset):
                 comments_list.append(f"{comment.user.name} - {comment.timestamp} "
-                                     f"(karma {comment.karma})")
+                                     f"(feedback {comment.feedback})")
                 if comment.text:
                     comments_list.append(comment.text)
             comments = wrap_text(
@@ -3531,8 +3531,8 @@ class Update(Base):
         session.flush()
         return new
 
-    def comment(self, session, text, karma=0, author=None, karma_critpath=None,
-                bug_feedback=None, testcase_feedback=None, email_notification=True):
+    def comment(self, session, text, feedback=0, author=None, karma_critpath=None,
+                bug_feedback=None, testcase_feedback=None, email_notification=True, karma=None):
         """Add a comment to this update.
 
         If the karma reaches the 'stable_karma' value, then request that this update be marked
@@ -3540,6 +3540,13 @@ class Update(Base):
         """
         if not author:
             raise ValueError('You must provide a comment author')
+
+        if karma:
+            warnings.warn(
+                "karma usage in comment() call is deprecated, use feedback; "
+                "date=2024-06-13", DeprecationWarning, stacklevel=2
+            )
+            feedback = karma
 
         if karma_critpath:
             warnings.warn(
@@ -3557,16 +3564,16 @@ class Update(Base):
                 got_feedback = True
                 break
 
-        if (not text and not karma and not got_feedback):
+        if (not text and not feedback and not got_feedback):
             raise ValueError('You must provide either some text or feedback')
 
         caveats = []
 
         if self.user.name == author:
-            if karma != 0:
-                karma = 0
-                notice = 'You may not give karma to your own updates.'
-                caveats.append({'name': 'karma', 'description': notice})
+            if feedback != 0:
+                feedback = 0
+                notice = 'You may not give feedback to your own updates.'
+                caveats.append({'name': 'feedback', 'description': notice})
 
         try:
             user = session.query(User).filter_by(name=author).one()
@@ -3574,27 +3581,27 @@ class Update(Base):
             user = User(name=author)
             session.add(user)
 
-        comment = Comment(text=text, karma=karma, update=self, user=user)
+        comment = Comment(text=text, feedback=feedback, update=self, user=user)
         session.add(comment)
 
-        if karma != 0:
-            # Determine whether this user has already left karma, and if so what the most recent
-            # karma value they left was. We should examine all but the most recent comment, since
-            # that is the comment we just added.
-            previous_karma = None
+        if feedback != 0:
+            # Determine whether this user has already left feedback, and if so what the most
+            # recent feedback value they left was. We should examine all but the most recent
+            # comment, since that is the comment we just added.
+            previous_feedback = None
             for c in reversed(self.comments[:-1]):
-                if c.user.name == author and c.karma:
-                    previous_karma = c.karma
+                if c.user.name == author and c.feedback:
+                    previous_karma = c.feedback
                     break
-            if previous_karma and karma != previous_karma:
+            if previous_feedback and feedback != previous_feedback:
                 caveats.append({
-                    'name': 'karma',
-                    'description': 'Your karma standing was reversed.',
+                    'name': 'feedback',
+                    'description': 'Your feedback standing was reversed.',
                 })
             else:
-                log.debug('Ignoring duplicate %d karma from %s on %s', karma, author, self.alias)
+                log.debug(f'Ignoring duplicate {feedback} feedback from {author} on {self.alias}')
 
-            log.info("Updated %s karma to %d", self.alias, self.karma)
+            log.info(f"Updated {self.alias} feedback to {self.karma}")
 
             if author not in config.get('system_users'):
                 try:
@@ -4090,8 +4097,6 @@ class Update(Base):
         result = super(Update, self).__json__(request=request)
         # Duplicate alias as updateid for backwards compat with bodhi1
         result['updateid'] = result['alias']
-        # Include the karma total in the results
-        result['karma'] = self.karma
         # Also, the Update content_type (derived from the builds content_types)
         result['content_type'] = self.content_type.value if self.content_type else None
 
@@ -4525,8 +4530,9 @@ class Comment(Base):
     An update comment.
 
     Attributes:
-        karma (int): The karma associated with this comment. Defaults to 0.
-        karma_critpath (int): The critpath karma associated with this comment. Defaults to 0.
+        feedback (int): The feedback associated with this comment. Defaults to 0.
+        feedback_critpath (int): The critpath feedback associated with this comment.
+            Defaults to 0.
             **DEPRECATED** no longer used in the UI, maintained in db only for historic reason
         text (str): The text of the comment.
         timestamp (datetime.datetime): The time the comment was created. Defaults to
@@ -4539,8 +4545,21 @@ class Comment(Base):
     __exclude_columns__ = tuple()
     __get_by__ = ('id',)
 
-    karma = Column(Integer, default=0)
-    karma_critpath = Column(Integer, default=0)
+    def __getattribute__(self, item):
+        """Deprecate Comment properties warnings."""
+        if item in ['karma', 'karma_critpath']:
+            warnings.warn(f"Comment's {item} class variable is deprecated, "
+                          "use feedback instead; date=2024-06-14",
+                          DeprecationWarning, stacklevel=2)
+        return super().__getattribute__(item)
+
+    feedback = Column(Integer, default=0)
+    # DEPRECATED this is only for temporary backwards compatibility
+    karma = synonym('feedback')
+    # DEPRECATED maintained only for historic records
+    feedback_critpath = Column(Integer, default=0)
+    karma_critpath = synonym('feedback_critpath')
+
     text = Column(UnicodeText, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
@@ -4618,11 +4637,6 @@ class Comment(Base):
         # Similarly, duplicate the update's alias as update_alias.
         result['update_alias'] = result['update']['alias']
 
-        # Updates used to have a karma column which would be included in result['update']. The
-        # column was replaced with a property, so we need to include it here for backwards
-        # compatibility.
-        result['update']['karma'] = self.update.karma
-
         return result
 
     def __str__(self) -> str:
@@ -4632,10 +4646,10 @@ class Comment(Base):
         Returns:
             A str representation of this comment.
         """
-        karma = '0'
-        if self.karma != 0:
-            karma = '%+d' % (self.karma,)
-        return "%s - %s (karma: %s)\n%s" % (self.user.name, self.timestamp, karma, self.text)
+        feedback = '0'
+        if self.feedback != 0:
+            feedback = '%+d' % (self.feedback,)
+        return "%s - %s (feedback: %s)\n%s" % (self.user.name, self.timestamp, feedback, self.text)
 
 
 class Bug(Base):
