@@ -187,7 +187,7 @@ class EnumMeta(type):
         """
         cls._reg = reg = cls._reg.copy()
         for k, v in dict_.items():
-            if isinstance(v, tuple):
+            if isinstance(v, tuple) and v:
                 sym = reg[v[0]] = EnumSymbol(cls, k, *v)
                 setattr(cls, k, sym)
         return type.__init__(cls, classname, bases, dict_)
