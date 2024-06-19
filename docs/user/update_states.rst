@@ -55,7 +55,7 @@ Testing
 =======
 
 The testing status means that the update has been pushed to its release's testing repository. While
-in the testing repository users may provide feedback via karma and comments. Once enough feedback is
+in the testing repository users may provide feedback and comments. Once enough feedback is
 generated, Bodhi's web interface can be used to release the update by clicking
 'Mark as Stable', or it can be removed by using 'Unpush'. The command line interface can
 also be used to perform these actions.

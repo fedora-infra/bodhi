@@ -493,20 +493,21 @@ class BodhiClient:
         return self.send_request(f'updates/{update}/get-test-results', verb='GET')
 
     @errorhandled
-    def comment(self, update: str, comment: str, karma: int = 0) -> 'munch.Munch':
+    def comment(self, update: str, comment: str, feedback: int = 0) -> 'munch.Munch':
         """
         Add a comment to an update.
 
         Args:
             update: The alias of the update comment on.
             comment: The text of the comment to add to the update.
-            karma: The amount of karma to leave. May be -1, 0, or 1. Defaults to 0.
+            feedback: The amount of feedback to leave. May be -1, 0, or 1. Defaults to 0.
         Returns:
             The response from the post to comments/.
         """
         return self.send_request(
             'comments/', verb='POST', auth=True,
-            data={'update': update, 'text': comment, 'karma': karma, 'csrf_token': self.csrf()})
+            data={'update': update, 'text': comment, 'feedback': feedback,
+                  'csrf_token': self.csrf()})
 
     @errorhandled
     def save_override(
@@ -941,7 +942,7 @@ class BodhiClient:
             for comment in update['comments']:
                 comments_lines.append(
                     f"{comment['user']['name']} - {comment['timestamp']} "
-                    f"(karma {comment['karma']})")
+                    f"(feedback {comment['feedback']})")
                 comments_lines += wrap_line(comment['text'])
 
             update_lines.append(line_formatter.format('Comments', comments_lines[0]))

@@ -63,13 +63,13 @@ class TestCommentsService(base.BasePyTestCase):
     def make_comment(self,
                      nvr='bodhi-2.0-1.fc17',
                      text='Test',
-                     karma=0,
+                     feedback=0,
                      **kwargs):
         update = Build.query.filter_by(nvr=nvr).one().update.alias
         comment = {
             'update': update,
             'text': text,
-            'karma': karma,
+            'feedback': feedback,
             'csrf_token': self.get_csrf_token(),
         }
         comment.update(kwargs)
@@ -83,16 +83,15 @@ class TestCommentsService(base.BasePyTestCase):
         assert res.json_body['errors'][0]['description'] == \
             "Invalid update specified: bodhi-1.0-2.fc17"
 
-    def test_invalid_karma(self):
+    def test_invalid_feedback(self):
         res = self.app.post_json('/comments/',
-                                 self.make_comment(karma=-2),
+                                 self.make_comment(feedback=-2),
                                  status=400)
         assert '-2 is less than minimum value -1' in res
         res = self.app.post_json('/comments/',
-                                 self.make_comment(karma=2),
+                                 self.make_comment(feedback=2),
                                  status=400)
         assert '2 is greater than maximum value 1' in res
-
 
     @mock.patch('bodhi.server.services.comments.warnings.warn')
     def test_commenting_with_critpath_feedback(self, warn):
@@ -100,7 +99,7 @@ class TestCommentsService(base.BasePyTestCase):
         comment = self.make_comment()
         comment['karma_critpath'] = -1  # roll out the trucks
 
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2):
             res = self.app.post_json('/comments/', comment)
 
         assert 'errors' not in res.json_body
@@ -108,7 +107,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert res.json_body['comment']['text'] == 'Test'
         assert res.json_body['comment']['user_id'] == 1
         assert res.json_body['comment']['karma_critpath'] == 0
-        warn.assert_called_once_with(
+        warn.assert_any_call(
             ("karma_critpath is not used anymore and should not be passed new comments; "
              "date=2024-06-13"),
             DeprecationWarning, stacklevel=2
@@ -123,7 +122,7 @@ class TestCommentsService(base.BasePyTestCase):
         else:
             comment['bug_feedback.0.feedback'] = 1
 
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2):
             res = self.app.post_json('/comments/', comment)
 
         assert 'errors' not in res.json_body
@@ -144,7 +143,7 @@ class TestCommentsService(base.BasePyTestCase):
         else:
             comment['testcase_feedback.0.feedback'] = -1
 
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2):
             res = self.app.post_json('/comments/', comment)
 
         assert 'errors' not in res.json_body
@@ -156,7 +155,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert len(feedback) == 1
 
     def test_commenting_with_login(self):
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2):
             res = self.app.post_json('/comments/', self.make_comment())
 
         assert 'errors' not in res.json_body
@@ -164,8 +163,8 @@ class TestCommentsService(base.BasePyTestCase):
         assert res.json_body['comment']['text'] == 'Test'
         assert res.json_body['comment']['user_id'] == 1
 
-    def test_commenting_twice_with_neutral_karma(self):
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+    def test_commenting_twice_with_neutral_feedback(self):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2):
             res = self.app.post_json('/comments/', self.make_comment())
 
         assert 'errors' not in res.json_body
@@ -173,7 +172,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert res.json_body['comment']['text'] == 'Test'
         assert res.json_body['comment']['user_id'] == 1
 
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2):
             res = self.app.post_json('/comments/', self.make_comment())
 
         assert 'errors' not in res.json_body
@@ -181,19 +180,20 @@ class TestCommentsService(base.BasePyTestCase):
         assert res.json_body['comment']['text'] == 'Test'
         assert res.json_body['comment']['user_id'] == 1
 
-    def test_commenting_twice_with_double_positive_karma(self):
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
-            res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
+    def test_commenting_twice_with_double_positive_feedback(self):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2):
+            res = self.app.post_json('/comments/', self.make_comment(up2, feedback=1))
 
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
         assert res.json_body['comment']['user_id'] == 1
         assert res.json_body['comment']['karma'] == 1
+        assert res.json_body['comment']['feedback'] == 1
         assert res.json_body['comment']['update']['karma'] == 1
 
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
-            res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2):
+            res = self.app.post_json('/comments/', self.make_comment(up2, feedback=1))
 
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
@@ -202,11 +202,11 @@ class TestCommentsService(base.BasePyTestCase):
         # Mainly, ensure that the karma didn't increase *again*
         assert res.json_body['comment']['update']['karma'] == 1
 
-    def test_commenting_twice_with_positive_then_negative_karma(self):
+    def test_commenting_twice_with_positive_then_negative_feedback(self):
         up = self.db.query(Build).filter_by(nvr=up2).one().update
         up.autokarma = up.autotime = 0
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
-            res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2):
+            res = self.app.post_json('/comments/', self.make_comment(up2, feedback=1))
 
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
@@ -214,23 +214,23 @@ class TestCommentsService(base.BasePyTestCase):
         assert res.json_body['comment']['user_id'] == 1
         assert res.json_body['comment']['update']['karma'] == 1
 
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
-            res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2):
+            res = self.app.post_json('/comments/', self.make_comment(up2, feedback=-1))
 
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
         assert res.json_body['comment']['user_id'] == 1
 
-        # Mainly, ensure that original karma is overwritten..
+        # Mainly, ensure that original feedback is overwritten..
         assert res.json_body['comment']['update']['karma'] == -1
-        assert res.json_body['caveats'][0]['description'] == 'Your karma standing was reversed.'
+        assert res.json_body['caveats'][0]['description'] == 'Your feedback standing was reversed.'
 
-    def test_commenting_with_negative_karma(self):
+    def test_commenting_with_negative_feedback(self):
         up = self.db.query(Build).filter_by(nvr=up2).one().update
         up.autokarma = up.autotime = 0
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
-            res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2):
+            res = self.app.post_json('/comments/', self.make_comment(up2, feedback=-1))
 
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
@@ -291,6 +291,7 @@ class TestCommentsService(base.BasePyTestCase):
         comment = body['comments'][0]
         assert comment['text'] == 'srsly.  pretty good.'
         assert comment['karma'] == 0
+        assert comment['feedback'] == 0
 
     def test_list_comments_jsonp(self):
         res = self.app.get('/comments/',
@@ -370,6 +371,7 @@ class TestCommentsService(base.BasePyTestCase):
         comment = body['comments'][0]
         assert comment['text'] == 'wow. amaze.'
         assert comment['karma'] == 1
+        assert comment['feedback'] == 1
         assert comment['user']['name'] == 'guest'
 
     def test_list_comments_by_invalid_since(self):
@@ -463,7 +465,7 @@ class TestCommentsService(base.BasePyTestCase):
         another_user = User(name='aUser')
         self.db.add(another_user)
 
-        comment = Comment(karma=1, text='Cool! 😃')
+        comment = Comment(feedback=1, text='Cool! 😃')
         comment.user = another_user
         self.db.add(comment)
         update.comments.append(comment)
@@ -505,7 +507,7 @@ class TestCommentsService(base.BasePyTestCase):
         )
         self.db.add(update)
 
-        comment = Comment(karma=1, text='Cool! 😃')
+        comment = Comment(feedback=1, text='Cool! 😃')
         comment.user = another_user
         self.db.add(comment)
         update.comments.append(comment)
@@ -559,7 +561,7 @@ class TestCommentsService(base.BasePyTestCase):
         )
         self.db.add(update)
 
-        comment = Comment(karma=1, text='Cool! 😃')
+        comment = Comment(feedback=1, text='Cool! 😃')
         comment.user = another_user
         self.db.add(comment)
         update.comments.append(comment)
@@ -599,10 +601,11 @@ class TestCommentsService(base.BasePyTestCase):
         assert comment['author'] == 'guest'
         assert comment['update']['title'] == 'bodhi-2.0-1.fc17'
         assert comment['karma'] == 0
+        assert comment['feedback'] == 0
 
     def test_no_self_karma(self):
-        " Make sure you can't give +1 karma to your own updates.. "
-        comment = self.make_comment('bodhi-2.0-1.fc17', karma=1)
+        " Make sure you can't give +1 feedback to your own updates.. "
+        comment = self.make_comment('bodhi-2.0-1.fc17', feedback=1)
         # The author of this comment is "guest"
 
         up = self.db.query(Build).filter_by(nvr='bodhi-2.0-1.fc17').one().update
@@ -615,9 +618,9 @@ class TestCommentsService(base.BasePyTestCase):
         assert comment['update']['title'] == 'bodhi-2.0-1.fc17'
         caveats = r.json_body['caveats']
         assert len(caveats) == 1
-        assert caveats[0]['name'] == 'karma'
-        assert caveats[0]['description'] == "You may not give karma to your own updates."
-        assert comment['karma'] == 0  # This is the real check
+        assert caveats[0]['name'] == 'feedback'
+        assert caveats[0]['description'] == "You may not give feedback to your own updates."
+        assert comment['feedback'] == 0  # This is the real check
 
     def test_comment_on_locked_update(self):
         """ Make sure you can comment on locked updates. """
@@ -632,7 +635,7 @@ class TestCommentsService(base.BasePyTestCase):
         self.db.info['messages'] = []
         self.db.flush()
 
-        comment = self.make_comment(up2, karma=1)
+        comment = self.make_comment(up2, feedback=1)
         with fml_testing.mock_sends(api.Message):
             self.app.post_json('/comments/', comment)
 
@@ -655,7 +658,7 @@ class TestCommentsService(base.BasePyTestCase):
         self.db.info['messages'] = []
         self.db.flush()
 
-        comment = self.make_comment(up2, karma=-1)
+        comment = self.make_comment(up2, feedback=-1)
         with fml_testing.mock_sends(api.Message):
             self.app.post_json('/comments/', comment)
 

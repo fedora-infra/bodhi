@@ -3981,7 +3981,7 @@ class TestUpdatesService(BasePyTestCase):
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
 
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1,
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV2,
                                     update_schemas.UpdateRequestUnpushV1):
             resp = self.app.post_json(
                 f'/updates/{up.alias}/request',
@@ -4826,7 +4826,7 @@ class TestUpdatesService(BasePyTestCase):
             expukt = update_schemas.UpdateKarmaThresholdV1.from_dict(
                 {'update': up, 'status': 'unstable'}
             )
-        with fml_testing.mock_sends(expukt, update_schemas.UpdateCommentV1):
+        with fml_testing.mock_sends(expukt, update_schemas.UpdateCommentV2):
             # doing a db commit causes the message to be published
             self.db.commit()
         assert up.status is UpdateStatus.obsolete
@@ -4924,7 +4924,7 @@ class TestUpdatesService(BasePyTestCase):
                 # message is published. the second-to-last comment is the
                 # one from _reach_autopush_threshold() and we should see a
                 # message for that.
-                update_schemas.UpdateCommentV1.from_dict(
+                update_schemas.UpdateCommentV2.from_dict(
                     {'comment': up['comments'][-2], 'agent': 'bowlofeggs'}
                 )
             ]
@@ -4935,7 +4935,7 @@ class TestUpdatesService(BasePyTestCase):
             assert msgs == [
                 # in this case, the comment from _reach_autopush_threshold() is the
                 # most recent one
-                update_schemas.UpdateCommentV1.from_dict(
+                update_schemas.UpdateCommentV2.from_dict(
                     {'comment': up['comments'][-1], 'agent': 'bowlofeggs'}
                 )
             ]
@@ -4999,7 +4999,7 @@ class TestUpdatesService(BasePyTestCase):
             assert up.request is None
             # we should not set this, really, but currently we do
             assert up.date_approved is not None
-            assert msgs == [update_schemas.UpdateCommentV1]
+            assert msgs == [update_schemas.UpdateCommentV2]
             days = 7
             if critpath:
                 days = 14
@@ -5017,7 +5017,7 @@ class TestUpdatesService(BasePyTestCase):
             assert msgs == [
                 reqmsg,
                 update_schemas.UpdateKarmaThresholdV1,
-                update_schemas.UpdateCommentV1
+                update_schemas.UpdateCommentV2
             ]
 
     def test_autopush_reached_disabled_keep_request(self):

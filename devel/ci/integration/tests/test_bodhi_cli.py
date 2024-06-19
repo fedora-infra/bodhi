@@ -332,12 +332,12 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
         "ORDER BY date_submitted DESC LIMIT 1"
     )
     query_comments = (
-        "SELECT u.name as username, c.timestamp, c.karma, c.text FROM comments c "
+        "SELECT u.name as username, c.timestamp, c.feedback, c.text FROM comments c "
         "JOIN users u ON c.user_id = u.id "
         "WHERE update_id = %s ORDER BY c.timestamp"
     )
-    query_karma = (
-        "SELECT SUM(comments.karma) as karma FROM comments "
+    query_feedback = (
+        "SELECT SUM(comments.feedback) as feedback FROM comments "
         "JOIN updates ON comments.update_id = updates.id "
         "WHERE update_id = %s"
     )
@@ -359,8 +359,8 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
             curs.execute(query_comments, (update.id, ))
             for record in curs:
                 update.comments.append(_db_record_to_munch(curs, record))
-            curs.execute(query_karma, (update.id, ))
-            update.karma = _db_record_to_munch(curs, curs.fetchone()).karma or 0
+            curs.execute(query_feedback, (update.id, ))
+            update.karma = _db_record_to_munch(curs, curs.fetchone()).feedback or 0
             curs.execute(query_ct, (update.id, ))
             update.content_type = _db_record_to_munch(curs, curs.fetchone()).type
             curs.execute(query_builds, (update.id, ))
@@ -399,10 +399,10 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
     )
     assert expected_submitted in result.output
     for comment in update.comments:
-        assert "{user} - {date} (karma {karma})".format(
+        assert "{user} - {date} (feedback {feedback})".format(
             user=comment.username,
             date=comment.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            karma=comment.karma,
+            feedback=comment.feedback,
         ) in result.output
         # Comments are formatted too
         for index, comment_line in enumerate(textwrap.wrap(comment.text, width=66)):

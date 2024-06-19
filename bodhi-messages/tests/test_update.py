@@ -19,6 +19,7 @@
 from bodhi.messages.schemas.base import BuildV1, ReleaseV1, UpdateV1, UserV1
 from bodhi.messages.schemas.update import (
     UpdateCommentV1,
+    UpdateCommentV2,
     UpdateCompleteStableV1,
     UpdateCompleteTestingV1,
     UpdateEditV1,
@@ -750,6 +751,60 @@ class TestUpdateMessage:
             body={
                 "comment": {
                     "karma": -1,
+                    "text": "Can you believe how much testing we're doing?"
+                            " /cc @codeblock.\n"
+                            "Nothing from this e-mail should match the regex: test@example.com",
+                    "timestamp": "2019-03-18 16:54:48",
+                    "update": {
+                        "alias": "FEDORA-EPEL-2019-f2d195dada",
+                        'builds': [{'nvr': 'abrt-addon-python3-2.1.11-50.el7'},
+                                   {'nvr': 'asciinema-1.4.0-2.el7'}],
+                        'status': 'pending',
+                        "release": {"name": "F29"},
+                        'request': 'testing',
+                        'user': {"name": "tdawson"}},
+                    'user': {'name': 'ralph'}
+                }
+            }
+        )
+        check_message(msg, expected)
+
+    def test_comment_v2(self):
+        expected = {
+            "topic": "bodhi.update.comment",
+            "summary": (
+                "ralph commented on update abrt-addon-python3-2.1.11-50.el7 "
+                "asciine… (feedback: -1)"
+            ),
+            "__str__": (
+                "ralph commented on tdawson's update FEDORA-EPEL-2019-f2d195dada with "
+                "feedback -1:\n\nCan you believe how much testing we're doing? "
+                "/cc @codeblock.\n"
+                "Nothing from this e-mail should match the regex: test@example.com\n\n"
+                "Builds:\nabrt-addon-python3-2.1.11-50.el7\nasciinema-1.4.0-2.el7"
+            ),
+            "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "app_name": "bodhi",
+            "url": "https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2019-f2d195dada",
+            "agent_avatar": (
+                "https://seccdn.libravatar.org/avatar/"
+                "9c9f7784935381befc302fe3c814f9136e7a33953d0318761669b8643f4df55c"
+                "?s=64&d=retro"
+            ),
+            "usernames": ["codeblock", "ralph", "tdawson"],
+            "packages": ['abrt-addon-python3', 'asciinema'],
+            'feedback': -1,
+            'user': UserV1('ralph'),
+            'update': UpdateV1(
+                'FEDORA-EPEL-2019-f2d195dada',
+                [BuildV1("abrt-addon-python3-2.1.11-50.el7"), BuildV1("asciinema-1.4.0-2.el7")],
+                UserV1('tdawson'), 'pending', 'testing', ReleaseV1('F29')),
+            'agent_name': 'ralph',
+        }
+        msg = UpdateCommentV2(
+            body={
+                "comment": {
+                    "feedback": -1,
                     "text": "Can you believe how much testing we're doing?"
                             " /cc @codeblock.\n"
                             "Nothing from this e-mail should match the regex: test@example.com",

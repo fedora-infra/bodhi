@@ -208,6 +208,90 @@ class UpdateCommentV1(UpdateMessage):
         return self.body['comment']['update']
 
 
+class UpdateCommentV2(UpdateCommentV1):
+    """
+    Sent when a comment is made on an update.
+
+    Add feedback property while preserving karma for backward compatibility.
+    """
+
+    body_schema = {
+        'id': f'{SCHEMA_URL}/v2/bodhi.update.comment#',
+        '$schema': 'http://json-schema.org/draft-04/schema#',
+        'description': 'Schema for message sent when a comment is added to an update',
+        'type': 'object',
+        'properties': {
+            'comment': {
+                'type': 'object',
+                'description': 'The comment added to an update',
+                'properties': {
+                    'feedback': {
+                        'type': 'integer',
+                        'description': 'The feedback associated with the comment',
+                    },
+                    'karma': {
+                        'type': 'integer',
+                        'description': 'The karma associated with the comment',
+                    },
+                    'text': {
+                        'type': 'string',
+                        'description': 'The text of the comment',
+                    },
+                    'timestamp': {
+                        'type': 'string',
+                        'description': 'The timestamp that the comment was left on.'
+                    },
+                    'update': UpdateV1.schema(),
+                    'user': UserV1.schema(),
+                },
+                'required': ['feedback', 'text', 'timestamp', 'update', 'user'],
+            },
+        },
+        'required': ['comment'],
+        'definitions': {
+            'build': BuildV1.schema(),
+        }
+    }
+
+    def __str__(self) -> str:
+        """
+        Return a human-readable representation of this message.
+
+        This should provide a detailed representation of the message, much like the body
+        of an email.
+
+        Returns:
+            A human readable representation of this message.
+        """
+        new_line = "\n"
+        return (
+            f"{self.user.name} commented on {self.update.user.name}'s "
+            f"update {self.update.alias} with feedback {self.feedback}:\n\n"
+            f"{self.body['comment']['text']}\n\n"
+            "Builds:\n"
+            f"{new_line.join([b.nvr for b in self.update.builds])}"
+        )
+
+    @property
+    def feedback(self) -> int:
+        """Return the feedback from this comment."""
+        return self.body['comment']['feedback']
+
+    @property
+    def summary(self) -> str:
+        """
+        Return a short, human-readable representation of this message.
+
+        This should provide a short summary of the message, much like the subject line
+        of an email.
+
+        Returns:
+            A summary for this message.
+        """
+        return (f"{self.user.name} commented on update {self._builds_summary} "
+                f"(feedback: {self.feedback})")
+
+
 class UpdateCompleteStableV1(UpdateMessage):
     """Sent when an update is available in the stable repository."""
 
@@ -396,6 +480,7 @@ class UpdateEditV2(UpdateEditV1):
     # collections of strings and doesn't like us doing unexpected
     # things to them, so the typing.Any shuts it up
     body_schema: typing.Any = copy.deepcopy(UpdateEditV1.body_schema)
+    body_schema['id'] = f'{SCHEMA_URL}/v2/bodhi.update.edit#'
     body_schema['properties']['new_builds'] = {
         'type': 'array',
         'description': 'An array of build NVRs that have been added to the update',
@@ -993,6 +1078,7 @@ class UpdateReadyForTestingV2(UpdateReadyForTestingV1):
     body_schema['definitions']['artifactbuild'] = copy.deepcopy(body_schema['definitions']['build'])
     renamed = {'$ref': '#/definitions/artifactbuild'}
     body_schema['properties']['artifact']['properties']['builds']['items'] = renamed
+    body_schema['id'] = f'{SCHEMA_URL}/v2/bodhi.update.status.testing#'
     body_schema['definitions']['build'] = BuildV1.schema()
     body_schema['properties']['update'] = UpdateV1.schema()
     body_schema['required'].append('update')
@@ -1049,7 +1135,7 @@ class UpdateReadyForTestingV3(UpdateMessage):
     """
 
     body_schema = {
-        'id': f'{SCHEMA_URL}/v1/bodhi.update.status.testing#',
+        'id': f'{SCHEMA_URL}/v3/bodhi.update.status.testing#',
         '$schema': 'http://json-schema.org/draft-04/schema#',
         'description': 'Schema for message sent when an update is ready for testing',
         'type': 'object',

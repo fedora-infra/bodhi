@@ -58,7 +58,7 @@ EXAMPLE_COMMENT_MUNCH = Munch({
                 'pending_testing_tag': 'f25-updates-testing-pending',
                 'stable_tag': 'f25-updates', 'candidate_tag': 'f25-updates-candidate',
                 'package_manager': 'unspecified', 'testing_repository': None, 'eol': None})}),
-        'update_id': 79733, 'karma': 0, 'text': 'i found $10000',
+        'update_id': 79733, 'feedback': 0, 'text': 'i found $10000',
         'update_title': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'id': 562626,
         'user': Munch({
             'openid': 'bowlofeggs.id.fedoraproject.org', 'name': 'bowlofeggs',
@@ -207,7 +207,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
         'comments': [
             {'bug_feedback': [],
              'id': 561418,
-             'karma': 0,
+             'feedback': 0,
              'karma_critpath': 0,
              'testcase_feedback': [],
              'text': 'This update has been submitted for testing by bowlofeggs. ',
@@ -222,7 +222,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
              'user_id': 91},
             {'bug_feedback': [],
              'id': 561619,
-             'karma': 0,
+             'feedback': 0,
              'karma_critpath': 0,
              'testcase_feedback': [],
              'text': 'This update has been pushed to testing.',
@@ -237,7 +237,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
              'user_id': 91},
             {'bug_feedback': [],
              'id': 562620,
-             'karma': 0,
+             'feedback': 0,
              'karma_critpath': 0,
              'testcase_feedback': [],
              'text': 'i found $100',
@@ -322,11 +322,11 @@ Content Type: rpm
        Notes: New package.
    Submitter: bowlofeggs
    Submitted: 2017-02-13 17:38:43
-    Comments: bodhi - 2017-02-13 17:38:43 (karma 0)
+    Comments: bodhi - 2017-02-13 17:38:43 (feedback 0)
               This update has been submitted for testing by bowlofeggs.
-              bodhi - 2017-02-14 00:55:18 (karma 0)
+              bodhi - 2017-02-14 00:55:18 (feedback 0)
               This update has been pushed to testing.
-              bowlofeggs - 2017-02-28 14:47:43 (karma 0)
+              bowlofeggs - 2017-02-28 14:47:43 (feedback 0)
               i found $100
 
   http://localhost:6543/updates/FEDORA-2017-c95b33872d
@@ -731,7 +731,7 @@ EXAMPLE_UPDATE_MUNCH = Munch({
     'comments': [
         Munch({
             'bug_feedback': [], 'user_id': 91, 'timestamp': '2016-10-05 18:10:22',
-            'testcase_feedback': [], 'karma_critpath': 0, 'update_id': 69704, 'karma': 0,
+            'testcase_feedback': [], 'karma_critpath': 0, 'update_id': 69704, 'feedback': 0,
             'text': 'This update has been submitted for testing by bowlofeggs. ', 'id': 501425,
             'user': Munch({
                 'openid': 'bodhi.id.fedoraproject.org', 'name': 'bodhi',
@@ -739,7 +739,7 @@ EXAMPLE_UPDATE_MUNCH = Munch({
                 'groups': [], 'email': None})}),
         Munch({
             'bug_feedback': [], 'user_id': 91, 'timestamp': '2016-10-05 18:10:27',
-            'testcase_feedback': [], 'karma_critpath': 0, 'update_id': 69704, 'karma': 0,
+            'testcase_feedback': [], 'karma_critpath': 0, 'update_id': 69704, 'feedback': 0,
             'text': ('This update has obsoleted [bodhi-2.2.3-1.el7]'
                      '(https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2016-a0eb4cc41f), and '
                      'has inherited its bugs and notes.'),
@@ -787,7 +787,7 @@ SINGLE_UPDATE_MUNCH = Munch({
         'comments': [
             Munch({
                 'bug_feedback': [], 'user_id': 91, 'timestamp': '2016-10-05 18:10:22',
-                'testcase_feedback': [], 'karma_critpath': 0, 'update_id': 69704, 'karma': 0,
+                'testcase_feedback': [], 'karma_critpath': 0, 'update_id': 69704, 'feedback': 0,
                 'text': 'This update has been submitted for testing by bowlofeggs. ',
                 'id': 501425,
                 'user': Munch({
@@ -796,7 +796,7 @@ SINGLE_UPDATE_MUNCH = Munch({
                     'groups': [], 'email': None})}),
             Munch({
                 'bug_feedback': [], 'user_id': 91, 'timestamp': '2016-10-05 18:10:27',
-                'testcase_feedback': [], 'karma_critpath': 0, 'update_id': 69704, 'karma': 0,
+                'testcase_feedback': [], 'karma_critpath': 0, 'update_id': 69704, 'feedback': 0,
                 'text': ('This update has obsoleted [bodhi-2.2.3-1.el7]'
                          '(https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2016-a0eb4cc41f), '
                          'and has inherited its bugs and notes.'),
@@ -869,9 +869,9 @@ Content Type: rpm
             : /fedora-infra/bodhi/releases/tag/2.2.4
    Submitter: bowlofeggs
    Submitted: 2016-10-05 18:10:22
-    Comments: bodhi - 2016-10-05 18:10:22 (karma 0)
+    Comments: bodhi - 2016-10-05 18:10:22 (feedback 0)
               This update has been submitted for testing by bowlofeggs.
-              bodhi - 2016-10-05 18:10:27 (karma 0)
+              bodhi - 2016-10-05 18:10:27 (feedback 0)
               This update has obsoleted
               [bodhi-2.2.3-1.el7](https://bodhi.fedoraproject.org/updates
               /FEDORA-EPEL-2016-a0eb4cc41f), and has inherited its bugs and

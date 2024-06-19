@@ -108,7 +108,7 @@ class TestComment:
             cli.comment,
             [
                 'nodejs-grunt-wrap-0.3.0-2.fc25', 'After installing this I found $100.',
-                '--url', 'http://localhost:6543', '--karma', '1'
+                '--url', 'http://localhost:6543', '--feedback', '1'
             ]
         )
 
@@ -117,7 +117,7 @@ class TestComment:
         mocked_client_class.send_request.assert_called_once_with(
             'comments/', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'text': 'After installing this I found $100.',
-                  'update': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'karma': 1})
+                  'update': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'feedback': 1})
 
 
 class TestDownload:

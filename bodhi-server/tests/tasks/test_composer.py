@@ -1306,7 +1306,7 @@ That was the actual one'''
                               'ralph', self.db_factory, compose_dir)
         t.keep_old_composes = 2
         expected_messages = (
-            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateCommentV2,
             compose_schemas.ComposeComposingV1,
             override_schemas.BuildrootOverrideUntagV1,
             update_schemas.UpdateCompleteStableV1,
@@ -1392,7 +1392,7 @@ That was the actual one'''
                               'ralph', self.db_factory, compose_dir)
         t.keep_old_composes = 2
         expected_messages = (
-            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateCommentV2,
             compose_schemas.ComposeComposingV1,
             override_schemas.BuildrootOverrideUntagV1,
             update_schemas.UpdateCompleteStableV1,
@@ -1585,7 +1585,7 @@ testmodule:master:20172:2
             self.semmock, task['composes'][0], 'ralph', self.db_factory,
             self.tempdir)
         expected_messages = (
-            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateCommentV2,
             compose_schemas.ComposeComposingV1.from_dict({
                 'repo': u'f17-updates',
                 'ctype': 'rpm',
@@ -1635,7 +1635,7 @@ testmodule:master:20172:2
             self.semmock, task['composes'][0], 'ralph', self.db_factory,
             self.tempdir)
         expected_messages = (
-            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateCommentV2,
             compose_schemas.ComposeComposingV1.from_dict(
                 {'repo': 'f17-updates', 'updates': [u.builds[0].nvr], 'agent': 'ralph',
                  'ctype': 'rpm'}),

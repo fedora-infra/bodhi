@@ -726,13 +726,14 @@ def request(update: str, state: str, url: str, id_provider: str, client_id: str,
 @updates.command()
 @click.argument('update')
 @click.argument('text')
-@click.option('--karma', default=0, type=click.INT, help='The karma for this comment (+1/0/-1)')
+@click.option('--feedback', default=0, type=click.INT,
+              help='The feedback for this comment (+1/0/-1)')
 @add_options(openid_options)
 @staging_option
 @url_option
 @debug_option
 @handle_errors
-def comment(update: str, text: str, karma: int, url: str, id_provider: str, client_id: str,
+def comment(update: str, text: str, feedback: int, url: str, id_provider: str, client_id: str,
             **kwargs):
     # User Docs that show in the --help
     """
@@ -749,7 +750,7 @@ def comment(update: str, text: str, karma: int, url: str, id_provider: str, clie
     Args:
         update: The update you wish to modify.
         text: The text of the comment you wish to leave on the update.
-        karma: The karma you wish to leave on the update. Must be +1, 0, or -1.
+        feedback: The feedback you wish to leave on the update. Must be +1, 0, or -1.
         staging: Whether to use the staging server or not.
         url: The URL of a Bodhi server to create the update on. Ignored if staging is True.
         client_id: The OIDC client_id.
@@ -760,7 +761,7 @@ def comment(update: str, text: str, karma: int, url: str, id_provider: str, clie
     client = bindings.BodhiClient(
         base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
     )
-    resp = client.comment(update, text, karma)
+    resp = client.comment(update, text, feedback)
     print_resp(resp, client)
 
 

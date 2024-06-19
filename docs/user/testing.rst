@@ -4,13 +4,13 @@ Testing updates
 
 Bodhi's primary use case is to gate proposed software updates based on testing feedback. Feedback
 can be provided automatically by CI systems, or can be provided by humans through comments and
-karma.
+`feedback` (a +1|0|-1 rating).
 
 
 Karma
 =====
 
-Authenticated users may post positive or negative karma onto an update, along with a comment to
+Authenticated users may post positive or negative feedback onto an update, along with a comment to
 describe their experience. Once the update reaches its karma threshold (set by the packager), it may
 be pushed out to the stable repositories. This will happen automatically if the update is configured
 to use Bodhi's autokarma system, or manually by the packager if it is not.

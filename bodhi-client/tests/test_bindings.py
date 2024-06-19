@@ -199,12 +199,12 @@ class TestComment(BodhiClientTestCase):
         client.csrf_token = 'a token'
         client.send_request = mocker.MagicMock(return_value='response')
 
-        response = client.comment('bodhi-2.4.0-1.fc25', 'It ate my cat!', karma=-1)
+        response = client.comment('bodhi-2.4.0-1.fc25', 'It ate my cat!', feedback=-1)
 
         assert response == 'response'
         client.send_request.assert_called_once_with(
             'comments/', verb='POST', auth=True,
-            data={'update': 'bodhi-2.4.0-1.fc25', 'text': 'It ate my cat!', 'karma': -1,
+            data={'update': 'bodhi-2.4.0-1.fc25', 'text': 'It ate my cat!', 'feedback': -1,
                   'csrf_token': 'a token'})
 
 

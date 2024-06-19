@@ -35,14 +35,15 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 READ_ACL = 'view_schemas'
 
 
-@resource(collection_path='/message-schemas/v1/', path='/message-schemas/v1/{topic}',
+@resource(collection_path='/message-schemas/v{version}/',
+          path='/message-schemas/v{version}/{topic}',
           description='Message schemas')
-class MessageSchemasV1:
+class MessageSchemas:
     """
     Defines resources for serving Bodhi's message schemas.
 
-    Operations acting on the collection are served at ``/message-schemas/v1/`` and operations acting
-    on a single schema are served at ``/message-schemas/v1/<topic>``.
+    Operations acting on the collection are served at ``/message-schemas/v<version>/``
+    and operations acting on a single schema are served at ``/message-schemas/v<version>/<topic>``.
     """
 
     def __init__(self, request: 'pyramid.request.Request', context: None = None):
@@ -88,14 +89,16 @@ class MessageSchemasV1:
         """
         Retrieve and render a single message schema.
 
-        This API responses to the ``/message_schemas/v1/<topic>`` endpoint.
+        This API responses to the ``/message_schemas/v<version>/<topic>`` endpoint.
 
         Returns:
             The requested message schema.
         """
         try:
-            (ep,) = metadata.entry_points(group='fedora.messages',
-                                          name=f"{self.request.matchdict['topic']}.v1")
+            (ep,) = metadata.entry_points(
+                group='fedora.messages',
+                name=f"{self.request.matchdict['topic']}.v{self.request.matchdict['version']}"
+            )
             return ep.load().body_schema
         except ValueError:
             # The user has requested a topic that does not exist

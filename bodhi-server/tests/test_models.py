@@ -3777,8 +3777,8 @@ class TestUpdate(ModelTest):
         assert self.obj.request is not UpdateRequest.stable
 
         expected_messages = (
-            update_schemas.UpdateCommentV1,
-            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateCommentV2,
+            update_schemas.UpdateCommentV2,
             update_schemas.UpdateRequestStableV1,
         )
         with mock_sends(*expected_messages):
@@ -4067,8 +4067,8 @@ class TestUpdate(ModelTest):
         assert self.obj.request is not UpdateRequest.stable
 
         expected_messages = (
-            update_schemas.UpdateCommentV1,
-            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateCommentV2,
+            update_schemas.UpdateCommentV2,
             update_schemas.UpdateRequestStableV1,
         )
         with mock_sends(*expected_messages):
