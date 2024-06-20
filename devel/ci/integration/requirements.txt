@@ -1,6 +1,7 @@
 pytest
 pytest-cov
 pytest-mock
+pytz
 conu
 psycopg2
 docker
