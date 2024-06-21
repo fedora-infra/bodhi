@@ -43,9 +43,15 @@ def always_fail_publish():
     fit), mock out notifications.publish or
     notifications._publish_with_retry.
     """
-    with mock.patch("fedora_messaging.api._twisted_publish",
-                    side_effect=ValueError("Non-mocked message publish attempted!")):
-        yield
+    try:
+        with mock.patch("fedora_messaging.api._twisted_publish",
+                        side_effect=ValueError("Non-mocked message publish attempted!")):
+            yield
+    except AttributeError:
+        # fedora-messaging >= 3.6.0 changed api method name
+        with mock.patch("fedora_messaging.api._twisted_publish_wrapper",
+                        side_effect=ValueError("Non-mocked message publish attempted!")):
+            yield
 
 
 @pytest.fixture(scope="session")
