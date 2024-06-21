@@ -33,6 +33,30 @@ def mock_settings_env_vars():
         yield
 
 
+<<<<<<< HEAD
+=======
+@pytest.fixture(autouse=True)
+def always_fail_publish():
+    """
+    Make sure any attempt to actually publish a message during a test
+    fails, by mocking out the 'real' message publishing function in
+    fedora_messaging. If you hit this exception, it means you need to
+    use mock_sends, or (if for some reason mock_sends isn't a good
+    fit), mock out notifications.publish or
+    notifications._publish_with_retry.
+    """
+    try:
+        with mock.patch("fedora_messaging.api._twisted_publish",
+                        side_effect=ValueError("Non-mocked message publish attempted!")):
+            yield
+    except AttributeError:
+        # fedora-messaging >= 3.6.0 changed api method name
+        with mock.patch("fedora_messaging.api._twisted_publish_wrapper",
+                        side_effect=ValueError("Non-mocked message publish attempted!")):
+            yield
+
+
+>>>>>>> 16710bf52 (Fix mocked method name for fedora-messaging 3.6.0)
 @pytest.fixture(scope="session")
 def critpath_json_config(request):
     """
