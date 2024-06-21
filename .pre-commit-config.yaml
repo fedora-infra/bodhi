@@ -3,7 +3,7 @@ default_language_version:
 
 repos:
   - repo: https://github.com/pycqa/flake8
-    rev: 7.0.0
+    rev: 7.1.0
     hooks:
       - id: flake8
         args: ['--config=setup.cfg']
@@ -29,6 +29,6 @@ repos:
         additional_dependencies: ["toml"]
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.4.8'
+    rev: 'v0.4.9'
     hooks:
       - id: ruff
