@@ -1,7 +1,7 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-messages
 %global src_name bodhi_messages
-%global pypi_version 8.1.0
+%global pypi_version 8.1.1
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
@@ -53,6 +53,9 @@ rm -rf %{pypi_name}.egg-info
 %doc README.rst
 
 %changelog
+* Sat Jun 22 2024 Mattia Verga <mattia.verga@fedoraproject.org> - 8.1.1-1
+- Update to 8.1.1
+
 * Tue Apr 09 2024 Mattia Verga <mattia.verga@fedoraproject.org> - 8.1.0-1
 - Update to 8.1.0
 
