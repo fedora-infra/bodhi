@@ -19,7 +19,7 @@
    
       BodhiBase
       Bug
-      BugKarma
+      BugFeedback
       Build
       BuildrootOverride
       Comment
@@ -44,7 +44,7 @@
       RpmBuild
       RpmPackage
       TestCase
-      TestCaseKarma
+      TestCaseFeedback
       TestGatingStatus
       Update
       UpdateRequest

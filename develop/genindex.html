@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; bodhi 8.1.0 documentation</title>
+    <title>Index &#8212; bodhi 8.1.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=9f6847e8" />
-    <script src="_static/documentation_options.js?v=87b6a113"></script>
+    <script src="_static/documentation_options.js?v=23ce250a"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="#" />
@@ -153,7 +153,7 @@
 </li>
         <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug.__init__">(bodhi.server.models.Bug method)</a>
 </li>
-        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugKarma.__init__">(bodhi.server.models.BugKarma method)</a>
+        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugFeedback.__init__">(bodhi.server.models.BugFeedback method)</a>
 </li>
         <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.__init__">(bodhi.server.models.Build method)</a>
 </li>
@@ -193,7 +193,7 @@
 </li>
         <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCase.__init__">(bodhi.server.models.TestCase method)</a>
 </li>
-        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseKarma.__init__">(bodhi.server.models.TestCaseKarma method)</a>
+        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseFeedback.__init__">(bodhi.server.models.TestCaseFeedback method)</a>
 </li>
         <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.__init__">(bodhi.server.models.Update method)</a>
 </li>
@@ -408,15 +408,15 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugKarma.bug">bug (bodhi.server.models.BugKarma attribute)</a>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugFeedback.bug">bug (bodhi.server.models.BugFeedback attribute)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug">Bug (class in bodhi.server.models)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug.bug_id">bug_id (bodhi.server.models.Bug attribute)</a>
 </li>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.UpdateType.bugfix">bugfix (bodhi.server.models.UpdateType attribute)</a>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugFeedback">BugFeedback (class in bodhi.server.models)</a>
 </li>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugKarma">BugKarma (class in bodhi.server.models)</a>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.UpdateType.bugfix">bugfix (bodhi.server.models.UpdateType attribute)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.bugs">bugs (bodhi.server.models.Update attribute)</a>
 </li>
@@ -478,10 +478,10 @@
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Release.collection_name">collection_name (bodhi.server.models.Release property)</a>
 </li>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugKarma.comment">comment (bodhi.server.models.BugKarma attribute)</a>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugFeedback.comment">comment (bodhi.server.models.BugFeedback attribute)</a>
 
       <ul>
-        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseKarma.comment">(bodhi.server.models.TestCaseKarma attribute)</a>
+        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseFeedback.comment">(bodhi.server.models.TestCaseFeedback attribute)</a>
 </li>
       </ul></li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Comment">Comment (class in bodhi.server.models)</a>
@@ -670,6 +670,12 @@
         <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestGatingStatus.failed">(bodhi.server.models.TestGatingStatus attribute)</a>
 </li>
       </ul></li>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugFeedback.feedback">feedback (bodhi.server.models.BugFeedback attribute)</a>
+
+      <ul>
+        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseFeedback.feedback">(bodhi.server.models.TestCaseFeedback attribute)</a>
+</li>
+      </ul></li>
       <li><a href="administration.html#bodhi.server.logging.RateLimiter.filter">filter() (bodhi.server.logging.RateLimiter method)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.find_conflicting_builds">find_conflicting_builds() (bodhi.server.models.Update method)</a>
@@ -678,10 +684,10 @@
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.ContentType.flatpak">flatpak (bodhi.server.models.ContentType attribute)</a>
 </li>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.FlatpakBuild">FlatpakBuild (class in bodhi.server.models)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.FlatpakBuild">FlatpakBuild (class in bodhi.server.models)</a>
+</li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.FlatpakPackage">FlatpakPackage (class in bodhi.server.models)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Compose.from_dict">from_dict() (bodhi.server.models.Compose class method)</a>
@@ -706,7 +712,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BodhiBase.get">get() (bodhi.server.models.BodhiBase class method)</a>
 </li>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_bug_karma">get_bug_karma() (bodhi.server.models.Update method)</a>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_bug_feedback">get_bug_feedback() (bodhi.server.models.Update method)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_bugstring">get_bugstring() (bodhi.server.models.Update method)</a>
 </li>
@@ -760,7 +766,7 @@
 </li>
       <li><a href="python_bindings.html#bodhi.client.bindings.BodhiClient.get_test_status">get_test_status() (bodhi.client.bindings.BodhiClient method)</a>
 </li>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_testcase_karma">get_testcase_karma() (bodhi.server.models.Update method)</a>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_testcase_feedback">get_testcase_feedback() (bodhi.server.models.Update method)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_title">get_title() (bodhi.server.models.Update method)</a>
 </li>
@@ -805,7 +811,7 @@
       <ul>
         <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Bug.id">(bodhi.server.models.Bug attribute)</a>
 </li>
-        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugKarma.id">(bodhi.server.models.BugKarma attribute)</a>
+        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugFeedback.id">(bodhi.server.models.BugFeedback attribute)</a>
 </li>
         <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.id">(bodhi.server.models.Build attribute)</a>
 </li>
@@ -839,7 +845,7 @@
 </li>
         <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCase.id">(bodhi.server.models.TestCase attribute)</a>
 </li>
-        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseKarma.id">(bodhi.server.models.TestCaseKarma attribute)</a>
+        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseFeedback.id">(bodhi.server.models.TestCaseFeedback attribute)</a>
 </li>
         <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.id">(bodhi.server.models.Update attribute)</a>
 </li>
@@ -871,11 +877,7 @@
       <li><a href="server_api/messages/update.html#bodhi.messages.schemas.update.UpdateCommentV1.karma">karma (bodhi.messages.schemas.update.UpdateCommentV1 property)</a>
 
       <ul>
-        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugKarma.karma">(bodhi.server.models.BugKarma attribute)</a>
-</li>
         <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Comment.karma">(bodhi.server.models.Comment attribute)</a>
-</li>
-        <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseKarma.karma">(bodhi.server.models.TestCaseKarma attribute)</a>
 </li>
         <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.karma">(bodhi.server.models.Update property)</a>
 </li>
@@ -1359,11 +1361,11 @@
 </li>
       <li><a href="python_bindings.html#bodhi.client.bindings.BodhiClient.testable">testable() (bodhi.client.bindings.BodhiClient method)</a>
 </li>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseKarma.testcase">testcase (bodhi.server.models.TestCaseKarma attribute)</a>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseFeedback.testcase">testcase (bodhi.server.models.TestCaseFeedback attribute)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCase">TestCase (class in bodhi.server.models)</a>
 </li>
-      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseKarma">TestCaseKarma (class in bodhi.server.models)</a>
+      <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseFeedback">TestCaseFeedback (class in bodhi.server.models)</a>
 </li>
       <li><a href="developer/docblocks/bodhi.server.models.html#bodhi.server.models.Build.testcases">testcases (bodhi.server.models.Build attribute)</a>
 </li>

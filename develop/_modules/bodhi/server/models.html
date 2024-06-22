@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bodhi.server.models &#8212; bodhi 8.1.0 documentation</title>
+    <title>bodhi.server.models &#8212; bodhi 8.1.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=9f6847e8" />
-    <script src="../../../_static/documentation_options.js?v=87b6a113"></script>
+    <script src="../../../_static/documentation_options.js?v=23ce250a"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -81,7 +81,7 @@
     <span class="n">UniqueConstraint</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.hybrid</span> <span class="kn">import</span> <span class="n">hybrid_property</span>
-<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">class_mapper</span><span class="p">,</span> <span class="n">declarative_base</span><span class="p">,</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">validates</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">class_mapper</span><span class="p">,</span> <span class="n">declarative_base</span><span class="p">,</span> <span class="n">relationship</span><span class="p">,</span> <span class="n">synonym</span><span class="p">,</span> <span class="n">validates</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm.base</span> <span class="kn">import</span> <span class="n">NEVER_SET</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm.exc</span> <span class="kn">import</span> <span class="n">NoResultFound</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm.properties</span> <span class="kn">import</span> <span class="n">RelationshipProperty</span>
@@ -247,7 +247,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_reg</span> <span class="o">=</span> <span class="n">reg</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_reg</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="n">v</span><span class="p">:</span>
                 <span class="n">sym</span> <span class="o">=</span> <span class="n">reg</span><span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">EnumSymbol</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">v</span><span class="p">)</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">sym</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">classname</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dict_</span><span class="p">)</span></div>
@@ -1290,7 +1290,7 @@
     <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># One-to-many relationships</span>
-    <span class="n">feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;TestCaseKarma&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;testcase&#39;</span><span class="p">)</span>
+    <span class="n">feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;TestCaseFeedback&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;testcase&#39;</span><span class="p">)</span>
 
     <span class="c1"># Many-to-many relationships</span>
     <span class="n">builds</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Build&#39;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">build_testcase_table</span><span class="p">,</span>
@@ -3312,17 +3312,17 @@
         <span class="k">return</span> <span class="n">val</span></div>
 
 
-<div class="viewcode-block" id="Update.get_bug_karma">
-<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_bug_karma">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_bug_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bug</span><span class="p">):</span>
+<div class="viewcode-block" id="Update.get_bug_feedback">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_bug_feedback">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_bug_feedback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bug</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the karma for this update for the given bug.</span>
+<span class="sd">        Return the feedback for this update for the given bug.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            bug (Bug): The bug we want the karma about.</span>
+<span class="sd">            bug (Bug): The bug we want the feedback about.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple: A 2-tuple of integers. The first represents negative karma, the second represents</span>
-<span class="sd">            positive karma.</span>
+<span class="sd">            tuple: A 2-tuple of integers. The first represents negative feedback, the second</span>
+<span class="sd">            represents positive feedback.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">good</span><span class="p">,</span> <span class="n">bad</span><span class="p">,</span> <span class="n">seen</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comments_since_karma_reset</span><span class="p">:</span>
@@ -3331,24 +3331,24 @@
             <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">comment</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">feedback</span> <span class="ow">in</span> <span class="n">comment</span><span class="o">.</span><span class="n">bug_feedback</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">bug</span> <span class="o">==</span> <span class="n">bug</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">feedback</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">good</span> <span class="o">+=</span> <span class="mi">1</span>
-                    <span class="k">elif</span> <span class="n">feedback</span><span class="o">.</span><span class="n">karma</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">elif</span> <span class="n">feedback</span><span class="o">.</span><span class="n">feedback</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">bad</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">bad</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">good</span></div>
 
 
-<div class="viewcode-block" id="Update.get_testcase_karma">
-<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_testcase_karma">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_testcase_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">testcase</span><span class="p">):</span>
+<div class="viewcode-block" id="Update.get_testcase_feedback">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_testcase_feedback">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_testcase_feedback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">testcase</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the karma for this update for the given TestCase.</span>
+<span class="sd">        Return the feedback for this update for the given TestCase.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            testcase (TestCase): The TestCase we want the karma about.</span>
+<span class="sd">            testcase (TestCase): The TestCase we want the feedback about.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple: A 2-tuple of integers. The first represents negative karma, the second represents</span>
-<span class="sd">            positive karma.</span>
+<span class="sd">            tuple: A 2-tuple of integers. The first represents negative feedback, the second</span>
+<span class="sd">            represents positive feedback.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">good</span><span class="p">,</span> <span class="n">bad</span><span class="p">,</span> <span class="n">seen</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">comments_since_karma_reset</span><span class="p">:</span>
@@ -3357,9 +3357,9 @@
             <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">comment</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">feedback</span> <span class="ow">in</span> <span class="n">comment</span><span class="o">.</span><span class="n">unique_testcase_feedback</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">testcase</span> <span class="o">==</span> <span class="n">testcase</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">karma</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">feedback</span><span class="o">.</span><span class="n">feedback</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">good</span> <span class="o">+=</span> <span class="mi">1</span>
-                    <span class="k">elif</span> <span class="n">feedback</span><span class="o">.</span><span class="n">karma</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">elif</span> <span class="n">feedback</span><span class="o">.</span><span class="n">feedback</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">bad</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">bad</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">good</span></div>
 
@@ -3835,8 +3835,8 @@
         <span class="k">for</span> <span class="n">bug</span> <span class="ow">in</span> <span class="n">to_remove</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">bugs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">bug</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bug</span><span class="o">.</span><span class="n">updates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="c1"># Don&#39;t delete the Bug instance if there is any associated BugKarma</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BugKarma</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">bug_id</span><span class="o">=</span><span class="n">bug</span><span class="o">.</span><span class="n">bug_id</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">():</span>
+                <span class="c1"># Don&#39;t delete the Bug instance if there is any associated BugFeedback</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">BugFeedback</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">bug_id</span><span class="o">=</span><span class="n">bug</span><span class="o">.</span><span class="n">bug_id</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">():</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Destroying stray Bugzilla #</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">bug</span><span class="o">.</span><span class="n">bug_id</span><span class="p">)</span>
                     <span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">bug</span><span class="p">)</span>
         <span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
@@ -3876,7 +3876,7 @@
 
         <span class="n">got_feedback</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">feedback_dict</span> <span class="ow">in</span> <span class="p">(</span><span class="n">bug_feedback</span> <span class="o">+</span> <span class="n">testcase_feedback</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">feedback_dict</span><span class="p">[</span><span class="s1">&#39;karma&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">feedback_dict</span><span class="p">[</span><span class="s1">&#39;feedback&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">got_feedback</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">break</span>
 
@@ -3937,12 +3937,12 @@
         <span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">feedback_dict</span> <span class="ow">in</span> <span class="n">bug_feedback</span><span class="p">:</span>
-            <span class="n">feedback</span> <span class="o">=</span> <span class="n">BugKarma</span><span class="p">(</span><span class="o">**</span><span class="n">feedback_dict</span><span class="p">)</span>
+            <span class="n">feedback</span> <span class="o">=</span> <span class="n">BugFeedback</span><span class="p">(</span><span class="o">**</span><span class="n">feedback_dict</span><span class="p">)</span>
             <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">feedback</span><span class="p">)</span>
             <span class="n">comment</span><span class="o">.</span><span class="n">bug_feedback</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feedback</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">feedback_dict</span> <span class="ow">in</span> <span class="n">testcase_feedback</span><span class="p">:</span>
-            <span class="n">feedback</span> <span class="o">=</span> <span class="n">TestCaseKarma</span><span class="p">(</span><span class="o">**</span><span class="n">feedback_dict</span><span class="p">)</span>
+            <span class="n">feedback</span> <span class="o">=</span> <span class="n">TestCaseFeedback</span><span class="p">(</span><span class="o">**</span><span class="n">feedback_dict</span><span class="p">)</span>
             <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">feedback</span><span class="p">)</span>
             <span class="n">comment</span><span class="o">.</span><span class="n">testcase_feedback</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feedback</span><span class="p">)</span>
 
@@ -4447,7 +4447,7 @@
         <span class="c1"># of the test cases in our output as well but take extra care to</span>
         <span class="c1"># short-circuit some of the insane recursion for</span>
         <span class="c1"># https://github.com/fedora-infra/bodhi/issues/343</span>
-        <span class="n">seen</span> <span class="o">=</span> <span class="p">[</span><span class="n">Package</span><span class="p">,</span> <span class="n">TestCaseKarma</span><span class="p">]</span>
+        <span class="n">seen</span> <span class="o">=</span> <span class="p">[</span><span class="n">Build</span><span class="p">,</span> <span class="n">TestCaseFeedback</span><span class="p">]</span>
         <span class="n">result</span><span class="p">[</span><span class="s1">&#39;test_cases&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">test</span><span class="o">.</span><span class="n">_to_json</span><span class="p">(</span>
                 <span class="n">obj</span><span class="o">=</span><span class="n">test</span><span class="p">,</span>
@@ -4814,22 +4814,24 @@
 <span class="n">event</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">Compose</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="s1">&#39;set&#39;</span><span class="p">,</span> <span class="n">Compose</span><span class="o">.</span><span class="n">update_state_date</span><span class="p">,</span> <span class="n">active_history</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
-<span class="c1"># Used for many-to-many relationships between karma and a bug</span>
-<div class="viewcode-block" id="BugKarma">
-<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugKarma">[docs]</a>
-<span class="k">class</span> <span class="nc">BugKarma</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+<span class="c1"># Used for one-to-one relationships between a comment and a bug</span>
+<div class="viewcode-block" id="BugFeedback">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugFeedback">[docs]</a>
+<span class="k">class</span> <span class="nc">BugFeedback</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Karma for a bug associated with a comment.</span>
+<span class="sd">    Feedback for a bug associated with a comment.</span>
 
 <span class="sd">    Attributes:</span>
-<span class="sd">        karma (int): The karma associated with this bug and comment.</span>
-<span class="sd">        comment (Comment): The comment this BugKarma is part of.</span>
-<span class="sd">        bug (Bug): The bug this BugKarma pertains to.</span>
+<span class="sd">        feedback (int): The feedback associated with this bug and comment.</span>
+<span class="sd">        comment (Comment): The comment this BugFeedback is part of.</span>
+<span class="sd">        bug (Bug): The bug this BugFeedback pertains to.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s1">&#39;comment_bug_assoc&#39;</span>
 
-    <span class="n">karma</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">feedback</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># DEPRECATED this is only for temporary backwards compatibility</span>
+    <span class="n">karma</span> <span class="o">=</span> <span class="n">synonym</span><span class="p">(</span><span class="s1">&#39;feedback&#39;</span><span class="p">)</span>
 
     <span class="c1"># Many-to-one relationships</span>
     <span class="n">comment_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;comments.id&#39;</span><span class="p">))</span>
@@ -4840,22 +4842,24 @@
 
 
 
-<span class="c1"># Used for many-to-many relationships between karma and a TestCase</span>
-<div class="viewcode-block" id="TestCaseKarma">
-<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseKarma">[docs]</a>
-<span class="k">class</span> <span class="nc">TestCaseKarma</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+<span class="c1"># Used for one-to-one relationships between a comment and a TestCase</span>
+<div class="viewcode-block" id="TestCaseFeedback">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseFeedback">[docs]</a>
+<span class="k">class</span> <span class="nc">TestCaseFeedback</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Karma for a TestCase associated with a comment.</span>
+<span class="sd">    Feedback for a TestCase associated with a comment.</span>
 
 <span class="sd">    Attributes:</span>
-<span class="sd">        karma (int): The karma associated with this TestCase comment.</span>
-<span class="sd">        comment (Comment): The comment this TestCaseKarma is associated with.</span>
-<span class="sd">        testcase (TestCase): The TestCase this TestCaseKarma pertains to.</span>
+<span class="sd">        feedback (int): The feedback associated with this TestCase comment.</span>
+<span class="sd">        comment (Comment): The comment this TestCaseFeedback is associated with.</span>
+<span class="sd">        testcase (TestCase): The TestCase this TestCaseFeedback pertains to.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s1">&#39;comment_testcase_assoc&#39;</span>
 
-    <span class="n">karma</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">feedback</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># DEPRECATED this is only for temporary backwards compatibility</span>
+    <span class="n">karma</span> <span class="o">=</span> <span class="n">synonym</span><span class="p">(</span><span class="s1">&#39;feedback&#39;</span><span class="p">)</span>
 
     <span class="c1"># Many-to-one relationships</span>
     <span class="n">comment_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;comments.id&#39;</span><span class="p">))</span>
@@ -4893,10 +4897,10 @@
     <span class="n">timestamp</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span>
 
     <span class="c1"># One-to-many relationships</span>
-    <span class="n">bug_feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;BugKarma&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;comment&#39;</span><span class="p">,</span>
+    <span class="n">bug_feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;BugFeedback&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;comment&#39;</span><span class="p">,</span>
                                 <span class="n">cascade</span><span class="o">=</span><span class="s2">&quot;all,delete,delete-orphan&quot;</span><span class="p">)</span>
 
-    <span class="n">testcase_feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;TestCaseKarma&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;comment&#39;</span><span class="p">,</span>
+    <span class="n">testcase_feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;TestCaseFeedback&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;comment&#39;</span><span class="p">,</span>
                                      <span class="n">cascade</span><span class="o">=</span><span class="s2">&quot;all,delete,delete-orphan&quot;</span><span class="p">)</span>
 
     <span class="c1"># Many-to-one relationships</span>
@@ -4920,15 +4924,15 @@
 
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">unique_testcase_feedback</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">TestCaseKarma</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">unique_testcase_feedback</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">TestCaseFeedback</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a list of unique :class:`TestCaseKarma` objects found in the testcase_feedback.</span>
+<span class="sd">        Return a list of unique :class:`TestCaseFeedback` objects found in the testcase_feedback.</span>
 
 <span class="sd">        This will filter out duplicates for :class:`TestCases &lt;TestCase&gt;`. It will return the</span>
 <span class="sd">        correct number of TestCases in testcase_feedback as a list.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            A list of unique :class:`TestCaseKarma` objects associated with this comment.</span>
+<span class="sd">            A list of unique :class:`TestCaseFeedback` objects associated with this comment.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">feedbacks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">testcase_feedback</span>
         <span class="n">unique_feedbacks</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -5028,7 +5032,7 @@
     <span class="c1"># Many-to-many relationships</span>
     <span class="n">updates</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Update&#39;</span><span class="p">,</span> <span class="n">secondary</span><span class="o">=</span><span class="n">update_bug_table</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;bugs&#39;</span><span class="p">)</span>
 
-    <span class="n">feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;BugKarma&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;bug&#39;</span><span class="p">)</span>
+    <span class="n">feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;BugFeedback&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;bug&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
