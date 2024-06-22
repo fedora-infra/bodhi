@@ -363,6 +363,11 @@ def validate_build_tags(request, **kwargs):
                 'body', 'builds',
                 'Invalid tag: {} not tagged with any of the following tags {}'.format(
                     build, valid_tags))
+        if from_tag:
+            # The build MUST be tagged in the side tag
+            if from_tag not in tags:
+                request.errors.add(
+                    'body', 'builds', f'Invalid build: {build} not tagged in {from_tag}')
 
 
 @postschema_validator

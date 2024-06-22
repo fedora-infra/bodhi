@@ -433,6 +433,23 @@ class TestNewUpdate(BasePyTestCase):
             "mattia does not own f17-build-side-7777 side-tag"
         )
 
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task')
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    @unused_mock_patch(**mock_uuid4_version1)
+    def test_new_rpm_update_from_tag_build_missing_tag(self, handle_side_and_related_tags_task):
+        """Ensure build passed to a side-tag update are tagged in the side-tag."""
+        # We don't want the new update to obsolete the existing one.
+        self.db.delete(Update.query.one())
+
+        update = self.get_update(builds='bodhi-2.0-1.fc17', from_tag='f17-build-side-7777')
+
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
+            with mock.patch('bodhi.server.models.Release.mandatory_days_in_testing', 0):
+                r = self.app.post_json('/updates/', update, status=400)
+        assert r.json_body['errors'][0]['description'] == (
+            "Invalid build: bodhi-2.0-1.fc17 not tagged in f17-build-side-7777"
+        )
+
     def test_koji_config_url(self, *args):
         """
         Test html rendering of default build link
@@ -3217,13 +3234,13 @@ class TestUpdatesService(BasePyTestCase):
         # We don't want an existing buildroot override to clutter the messages.
         self.db.delete(BuildrootOverride.query.one())
 
-        update = self.get_update(from_tag='f17-build-side-7777')
+        update = self.get_update(builds=None, from_tag='f17-build-side-7777')
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
             with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3):
                 r = self.app.post_json('/updates/', update)
 
         update['edited'] = r.json['alias']
-        update['builds'] = 'bodhi-2.0.0-3.fc17'
+        update['builds'] = 'gnome-backgrounds-3.0-2.fc17'
 
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
             with fml_testing.mock_sends(update_schemas.UpdateEditV2,
@@ -3231,7 +3248,7 @@ class TestUpdatesService(BasePyTestCase):
                 r = self.app.post_json('/updates/', update)
 
         up = r.json_body
-        assert up['title'] == 'bodhi-2.0.0-3.fc17'
+        assert up['title'] == 'gnome-backgrounds-3.0-2.fc17'
         assert up['status'] == 'pending'
         assert up['request'] is None
         assert up['user']['name'] == 'guest'
@@ -3253,18 +3270,18 @@ class TestUpdatesService(BasePyTestCase):
 
         New build(s):
 
-        - bodhi-2.0.0-3.fc17
+        - gnome-backgrounds-3.0-2.fc17
 
         Removed build(s):
 
-        - bodhi-2.0-1.fc17
+        - gnome-backgrounds-3.0-1.fc17
 
         Karma has been reset.
         """).strip()
         assert_multiline_equal(up['comments'][-1]['text'], comment)
         assert len(up['builds']) == 1
-        assert up['builds'][0]['nvr'] == 'bodhi-2.0.0-3.fc17'
-        assert self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first() is None
+        assert up['builds'][0]['nvr'] == 'gnome-backgrounds-3.0-2.fc17'
+        assert self.db.query(RpmBuild).filter_by(nvr='gnome-backgrounds-3.0-1.fc17').first() is None
 
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
     @mock.patch('bodhi.server.models.tag_update_builds_task')
