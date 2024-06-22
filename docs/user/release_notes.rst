@@ -4,6 +4,38 @@ Release notes
 
 .. towncrier release notes start
 
+v8.1.1
+======
+
+
+
+Released on 2024-06-22.
+This is a bugfix release, see below for the details.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Builds passed alongside a side-tag in update forms were not validated
+  correctly against the side-tag (:pr:`5647`).
+* build with spec false: build require python3dist(poetry-core) >= 1 but not in
+  spec BuildRequires (:pr:`5678`).
+* bodhi server web Incorrect static resource path for httpd, always "python3.7"
+  python3_version in /etc/httpd/conf.d/bodhi.conf, fix in bodhi-server.spec
+  (:pr:`5680`).
+* Fixed the release list web page which was not updated after a release changed
+  state (:pr:`5684`).
+* Fixed bodhi-server enums initialization in Python 3.13 (:issue:`5685`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* niuwanli
+* Mattia Verga
+
+
 v8.1.0
 ======
 
