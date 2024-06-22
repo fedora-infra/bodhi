@@ -1,1 +1,0 @@
-bodhi server web Incorrect static resource path for httpd, always "python3.7" python3_version in /etc/httpd/conf.d/bodhi.conf, fix in bodhi-server.spec
