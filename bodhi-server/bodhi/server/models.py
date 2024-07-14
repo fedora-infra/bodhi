@@ -17,8 +17,8 @@
 """Bodhi's database models."""
 
 from collections import defaultdict
-from datetime import date, datetime, timedelta
-from functools import lru_cache
+from datetime import date, datetime, timedelta, timezone
+from functools import lru_cache, partial
 from textwrap import wrap
 from urllib.parse import urljoin
 import hashlib
@@ -331,6 +331,33 @@ class DeclEnumType(SchemaType, TypeDecorator):
         t = self.dialect_impl(bind.dialect)
         if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
             t.impl.drop(bind=bind, checkfirst=checkfirst)
+
+
+class TZDateTime(TypeDecorator):
+    """
+    A database column type to mock timezone aware DateTime.
+
+    In Bodhi all times are considered UTC, so we store naive datetimes in db
+    and always return aware datetimes in UTC.
+    """
+
+    impl = DateTime
+    cache_ok = True
+    """See ``sqlalchemy.types.TypeDecorator.cache_ok``"""
+
+    def process_bind_param(self, value, dialect):
+        """Convert time to UTC and store as naive."""
+        if value is not None:
+            if not value.tzinfo or value.tzinfo.utcoffset(value) is None:  # pragma: no cover
+                raise TypeError("tzinfo is required")
+            value = value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value
+
+    def process_result_value(self, value, dialect):
+        """Return datetime with UTC timezone."""
+        if value is not None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value
 
 
 class BodhiBase(object):
@@ -1617,7 +1644,7 @@ class Build(Base):
         if not config.get('query_wiki_test_cases'):
             return
 
-        start = datetime.utcnow()
+        start = datetime.now(timezone.utc)
         log.debug(f'Querying the wiki for test cases of {self.nvr}')
         try:
             wiki = MediaWiki(config.get('wiki_url'),
@@ -1662,7 +1689,7 @@ class Build(Base):
                 log.debug(f'Added testcase "{case.name}" to {self.nvr}')
 
         db.flush()
-        log.debug(f'Finished querying for test cases in {datetime.utcnow() - start}')
+        log.debug(f'Finished querying for test cases in {datetime.now(timezone.utc) - start}')
 
 
 class ContainerBuild(Build):
@@ -1971,11 +1998,11 @@ class Update(Base):
     close_bugs = Column(Boolean, default=True)
 
     # Timestamps
-    date_submitted = Column(DateTime, default=datetime.utcnow, index=True)
-    date_modified = Column(DateTime)
-    date_approved = Column(DateTime)
-    date_testing = Column(DateTime)
-    date_stable = Column(DateTime)
+    date_submitted = Column(TZDateTime, default=partial(datetime.now, tz=timezone.utc), index=True)
+    date_modified = Column(TZDateTime)
+    date_approved = Column(TZDateTime)
+    date_testing = Column(TZDateTime)
+    date_stable = Column(TZDateTime)
 
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(64), unique=True, nullable=False)
@@ -2392,7 +2419,7 @@ class Update(Base):
         """
         gotsat = False
         gotunsat = False
-        recent = datetime.utcnow() - self.last_modified < timedelta(hours=2)
+        recent = datetime.now(timezone.utc) - self.last_modified < timedelta(hours=2)
         for (satisfied, unsatisfied) in self._greenwave_requirements_generator:
             if satisfied:
                 gotsat = True
@@ -2736,7 +2763,7 @@ class Update(Base):
         for key, value in data.items():
             setattr(up, key, value)
 
-        up.date_modified = datetime.utcnow()
+        up.date_modified = datetime.now(timezone.utc)
 
         notifications.publish(update_schemas.UpdateEditV2.from_dict(
             message={
@@ -3849,7 +3876,7 @@ class Update(Base):
                          "requirements", self.alias)
                 return
             if not self.date_approved:
-                self.date_approved = datetime.utcnow()
+                self.date_approved = datetime.now(timezone.utc)
             log.info("Automatically marking %s as stable", self.alias)
             self.set_request(db, UpdateRequest.stable, agent)
             notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
@@ -4010,7 +4037,7 @@ class Update(Base):
             int: The number of days since this update's date_testing if it is set, else 0.
         """
         if self.date_testing:
-            return (datetime.utcnow() - self.date_testing).days
+            return (datetime.now(timezone.utc) - self.date_testing).days
         else:
             return 0
 
@@ -4252,8 +4279,9 @@ class Compose(Base):
     # need the ability to query inside this so the JSONB type probably isn't useful.
     checkpoints = Column(UnicodeText, nullable=False, default='{}')
     error_message = Column(UnicodeText)
-    date_created = Column(DateTime, nullable=False, default=datetime.utcnow)
-    state_date = Column(DateTime, nullable=False, default=datetime.utcnow)
+    date_created = Column(TZDateTime, nullable=False,
+                          default=partial(datetime.now, tz=timezone.utc))
+    state_date = Column(TZDateTime, nullable=False, default=partial(datetime.now, tz=timezone.utc))
 
     release = relationship('Release', back_populates='composes')
     state = Column(ComposeState.db_type(), nullable=False, default=ComposeState.requested)
@@ -4369,7 +4397,7 @@ class Compose(Base):
                 transition.
         """
         if value != old:
-            target.state_date = datetime.utcnow()
+            target.state_date = datetime.now(timezone.utc)
 
     @property
     def update_summary(self):
@@ -4525,7 +4553,7 @@ class Comment(Base):
             **DEPRECATED** no longer used in the UI
         text (str): The text of the comment.
         timestamp (datetime.datetime): The time the comment was created. Defaults to
-            the return value of datetime.utcnow().
+            the return value of datetime.now(timezone.utc).
         update (Update): The update that this comment pertains to.
         user (User): The user who wrote this comment.
     """
@@ -4537,7 +4565,7 @@ class Comment(Base):
     karma = Column(Integer, default=0)
     karma_critpath = Column(Integer, default=0)
     text = Column(UnicodeText, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(TZDateTime, default=partial(datetime.now, tz=timezone.utc))
 
     # One-to-many relationships
     bug_feedback = relationship('BugFeedback', back_populates='comment',
@@ -4902,9 +4930,10 @@ class BuildrootOverride(Base):
 
     notes = Column(UnicodeText, nullable=False)
 
-    submission_date = Column(DateTime, default=datetime.utcnow, nullable=False)
-    expiration_date = Column(DateTime, nullable=False)
-    expired_date = Column(DateTime)
+    submission_date = Column(TZDateTime, default=partial(datetime.now, tz=timezone.utc),
+                             nullable=False)
+    expiration_date = Column(TZDateTime, nullable=False)
+    expired_date = Column(TZDateTime)
 
     # Many-to-one relationships
     build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
@@ -4990,7 +5019,7 @@ class BuildrootOverride(Base):
         if 'submission_date' in data:
             override.submission_date = data['submission_date']
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         if override.expired_date is not None and override.expiration_date > now:
             # Buildroot override had expired, we need to unexpire it
@@ -5027,7 +5056,7 @@ class BuildrootOverride(Base):
                 koji_session.untagBuild(tag, self.build.nvr, strict=True)
             except Exception as e:
                 log.error(f"Unable to untag override {self.build.nvr} from {tag}: '{e}'")
-        self.expired_date = datetime.utcnow()
+        self.expired_date = datetime.now(timezone.utc)
 
         notifications.publish(override_schemas.BuildrootOverrideUntagV1.from_dict(
             {'override': self}))

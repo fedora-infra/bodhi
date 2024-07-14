@@ -22,7 +22,6 @@ import re
 
 from feedgen.feed import FeedGenerator
 from pyramid.exceptions import HTTPBadRequest
-from pytz import utc
 
 from bodhi.server.util import markup
 
@@ -142,7 +141,7 @@ def rss(info):
                 'description': describe_update(operator.itemgetter('alias'),
                                                operator.itemgetter('notes'),
                                                operator.itemgetter('builds')),
-                'pubDate': lambda obj: utc.localize(obj['date_submitted']),
+                'pubDate': lambda obj: obj['date_submitted'],
             },
             'users': {
                 'title': operator.itemgetter('name'),
@@ -153,13 +152,13 @@ def rss(info):
                 'title': operator.itemgetter('rss_title'),
                 'link': linker('comment', 'id', 'id'),
                 'description': operator.itemgetter('text'),
-                'pubDate': lambda obj: utc.localize(obj['timestamp']),
+                'pubDate': lambda obj: obj['timestamp'],
             },
             'overrides': {
                 'title': operator.itemgetter('nvr'),
                 'link': linker('override', 'nvr', 'nvr'),
                 'description': operator.itemgetter('notes'),
-                'pubDate': lambda obj: utc.localize(obj['submission_date']),
+                'pubDate': lambda obj: obj['submission_date'],
             },
         }
 

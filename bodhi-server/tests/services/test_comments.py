@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest import mock
 import copy
 
@@ -50,7 +50,7 @@ class TestCommentsService(base.BasePyTestCase):
             type=UpdateType.enhancement,
             notes='Useful details!',
             release=release,
-            date_submitted=datetime(1984, 11, 2),
+            date_submitted=datetime(1984, 11, 2, tzinfo=timezone.utc),
             stable_karma=3,
             unstable_karma=-3,
         )
@@ -342,7 +342,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert comment1 != comment2
 
     def test_list_comments_by_since(self):
-        tomorrow = datetime.utcnow() + timedelta(days=1)
+        tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
         fmt = "%Y-%m-%d %H:%M:%S"
 
         # Try with no comments first
@@ -374,7 +374,7 @@ class TestCommentsService(base.BasePyTestCase):
 
     def test_list_comments_by_future_date(self):
         """test filtering by future date"""
-        tomorrow = datetime.utcnow() + timedelta(days=1)
+        tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
         tomorrow = tomorrow.strftime("%Y-%m-%d %H:%M:%S")
 
         res = self.app.get('/comments/', {"since": tomorrow})
@@ -397,7 +397,7 @@ class TestCommentsService(base.BasePyTestCase):
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
             notes='Useful details!',
-            date_submitted=datetime(1984, 11, 2),
+            date_submitted=datetime(1984, 11, 2, tzinfo=timezone.utc),
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
@@ -445,7 +445,7 @@ class TestCommentsService(base.BasePyTestCase):
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
             notes='Just another update.',
-            date_submitted=datetime(1981, 10, 11),
+            date_submitted=datetime(1981, 10, 11, tzinfo=timezone.utc),
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
@@ -490,7 +490,7 @@ class TestCommentsService(base.BasePyTestCase):
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
             notes='Just another update.',
-            date_submitted=datetime(1981, 10, 11),
+            date_submitted=datetime(1981, 10, 11, tzinfo=timezone.utc),
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
@@ -544,7 +544,7 @@ class TestCommentsService(base.BasePyTestCase):
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
             notes='Just another update.',
-            date_submitted=datetime(1981, 10, 11),
+            date_submitted=datetime(1981, 10, 11, tzinfo=timezone.utc),
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()

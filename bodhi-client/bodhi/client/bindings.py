@@ -25,7 +25,7 @@ This module provides Python bindings to the Bodhi REST API.
 
 from urllib.parse import urlparse
 import configparser
-import datetime
+from datetime import datetime, timedelta, timezone
 import functools
 import itertools
 import logging
@@ -157,7 +157,7 @@ def _days_since(data_str: str) -> int:
 
     This can be used to calculate how many days an update is in current state by passing
     directly the 'date_pushed' or 'date_submitted' from the Update object.
-    This is also useful to easily mock the output, since datetime.datetime.utcnow()
+    This is also useful to easily mock the output, since datetime.now(timezone.utc)
     cannot be mocked.
 
     Args:
@@ -166,8 +166,8 @@ def _days_since(data_str: str) -> int:
     Returns:
         Number of days since the date in input.
     """
-    update_time = datetime.datetime.strptime(data_str, '%Y-%m-%d %H:%M:%S')
-    return (datetime.datetime.utcnow() - update_time).days
+    update_time = datetime.strptime(data_str, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - update_time).days
 
 
 class BodhiClient:
@@ -513,7 +513,7 @@ class BodhiClient:
         self, nvr: str,
         notes: str,
         duration: typing.Optional[int] = None,
-        expiration_date: typing.Optional[datetime.datetime] = None,
+        expiration_date: typing.Optional[datetime] = None,
         edit: bool = False,
         expired: bool = False
     ) -> 'munch.Munch':
@@ -541,8 +541,7 @@ class BodhiClient:
                 "The duration and the expiration_date cannot be provided at the same time."
             )
         if duration:
-            expiration_date = datetime.datetime.utcnow() + \
-                datetime.timedelta(days=duration)
+            expiration_date = datetime.now(timezone.utc) + timedelta(days=duration)
         data = {'nvr': nvr,
                 'expiration_date': expiration_date,
                 'notes': notes,
@@ -894,7 +893,7 @@ class BodhiClient:
             if waivers:
                 waivers_lines = []
                 for waiver in waivers:
-                    dt = datetime.datetime.strptime(waiver['timestamp'], '%Y-%m-%dT%H:%M:%S.%f')
+                    dt = datetime.strptime(waiver['timestamp'], '%Y-%m-%dT%H:%M:%S.%f')
                     waivers_lines.append(
                         f"{waiver['username']} - {dt.strftime('%Y-%m-%d %H:%M:%S')}")
                     waivers_lines += wrap_line(waiver['comment'])

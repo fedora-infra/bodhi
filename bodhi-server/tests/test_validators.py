@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.validators."""
 from unittest import mock
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from cornice.errors import Errors
 from fedora_messaging import api, testing as fml_testing
@@ -531,7 +531,7 @@ class TestValidateExpirationDate(BasePyTestCase):
         request = mock.Mock()
         request.errors = Errors()
         request.validated = {
-            'expiration_date': datetime.utcnow() - timedelta(days=1)}
+            'expiration_date': datetime.now(timezone.utc) - timedelta(days=1)}
 
         validators.validate_expiration_date(request)
 
@@ -545,7 +545,7 @@ class TestValidateExpirationDate(BasePyTestCase):
         """An expiration_date equal to the limit should pass the test."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {'expiration_date': datetime.utcnow() + timedelta(days=31)}
+        request.validated = {'expiration_date': datetime.now(timezone.utc) + timedelta(days=31)}
 
         validators.validate_expiration_date(request)
 
@@ -556,7 +556,7 @@ class TestValidateExpirationDate(BasePyTestCase):
         request = mock.Mock()
         request.errors = Errors()
         request.validated = {
-            'expiration_date': datetime.utcnow() + timedelta(days=32)}
+            'expiration_date': datetime.now(timezone.utc) + timedelta(days=32)}
 
         validators.validate_expiration_date(request)
 

@@ -24,7 +24,7 @@ those stable updates with the testing tags for 1 day before untagging.
 https://github.com/fedora-infra/bodhi/issues/576
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import sys
 import logging
@@ -69,7 +69,7 @@ def main(argv=sys.argv):
     db = Session()
     koji = buildsys.get_session()
     one_day = timedelta(days=1)
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     try:
         for release in db.query(Release).filter_by(

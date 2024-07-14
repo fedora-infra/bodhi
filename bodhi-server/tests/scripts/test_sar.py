@@ -19,7 +19,7 @@
 This module contains tests for the bodhi.server.scripts.sar module.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest import mock
 import os
 
@@ -105,7 +105,7 @@ class TestSar(BasePyTestCase):
 
     def test_valid_user(self):
         """Ensure json with user data is printed when human readable is off."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         now_str = str(now.strftime("%Y-%m-%d %H:%M:%S"))
         comment = self.db.query(models.Comment).all()[0]
         comment.timestamp = now
@@ -122,7 +122,7 @@ class TestSar(BasePyTestCase):
     @mock.patch.dict(os.environ, {"SAR_USERNAME": "guest"})
     def test_valid_user_envvar(self):
         """Ensure json with user data is printed when human readable is off."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         now_str = str(now.strftime("%Y-%m-%d %H:%M:%S"))
         comment = self.db.query(models.Comment).all()[0]
         comment.timestamp = now
@@ -138,7 +138,7 @@ class TestSar(BasePyTestCase):
 
     def test_valid_user_human_readable(self):
         """Ensure user data are printed when human readable is on."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         now_str = str(now.strftime("%Y-%m-%d %H:%M:%S"))
         comment = self.db.query(models.Comment).all()[0]
         comment.timestamp = now

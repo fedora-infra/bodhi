@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from datetime import datetime
+from datetime import datetime, timezone
 from hashlib import sha256
 from os.path import basename, exists, join
 from unittest import mock
@@ -222,7 +222,7 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         md.shelf.close()
 
         assert len(md.uinfo.updates) == 1
-        assert md.uinfo.updates[0].issued_date == update.date_submitted
+        assert md.uinfo.updates[0].issued_date == update.date_submitted.replace(tzinfo=None)
 
     def test_rpm_with_arch(self):
         """Ensure that an RPM with a non 386 arch gets handled correctly."""
@@ -411,7 +411,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         # Pretend it's pushed to testing
         update.status = UpdateStatus.testing
         update.request = None
-        update.date_testing = datetime.utcnow()
+        update.date_testing = datetime.now(timezone.utc)
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
         # Generate the XML
