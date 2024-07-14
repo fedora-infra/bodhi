@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define API endpoints for managing and searching buildroot overrides."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 import math
 
 from cornice import Service
@@ -288,7 +288,7 @@ _@{existing_override.submitter.name} ({existing_override.submission_date.strftim
                         request,
                         edited=build,
                         submitter=submitter,
-                        submission_date=datetime.now(),
+                        submission_date=datetime.now(timezone.utc),
                         notes=new_notes,
                         expiration_date=data['expiration_date'],
                         expired=None,

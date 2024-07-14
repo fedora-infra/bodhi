@@ -46,7 +46,7 @@ def get_top_testers():
     """
     blacklist = config.get('stats_blacklist')
     days = config.get('top_testers_timeframe')
-    start_time = datetime.datetime.utcnow() - datetime.timedelta(days=days)
+    start_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
 
     query = models.Session().query(
         models.User,
@@ -77,7 +77,7 @@ def get_top_packagers():
     """
     blacklist = config.get('stats_blacklist')
     days = config.get('top_testers_timeframe')
-    start_time = datetime.datetime.utcnow() - datetime.timedelta(days=days)
+    start_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
 
     query = models.Session().query(
         models.User,

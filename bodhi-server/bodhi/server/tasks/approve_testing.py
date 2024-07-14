@@ -108,7 +108,7 @@ def autopush_update(update: Update, db: Session):
     update.status = UpdateStatus.stable
     update.request = None
     update.pushed = True
-    update.date_stable = datetime.datetime.utcnow()
+    update.date_stable = datetime.datetime.now(datetime.timezone.utc)
     update.comment(db, "This update has been submitted for stable by bodhi",
                    author=u'bodhi')
     update.modify_bugs()
@@ -200,7 +200,7 @@ def process_update(update: Update, db: Session):
     # always set date_approved, if it has never been set before: this
     # date indicates "first date update became eligible for manual push"
     if not update.date_approved:
-        update.date_approved = datetime.datetime.utcnow()
+        update.date_approved = datetime.datetime.now(datetime.timezone.utc)
     if update.autotime and update.days_in_testing >= update.stable_days:
         # if update *additionally* meets the time-based autopush threshold,
         # push it

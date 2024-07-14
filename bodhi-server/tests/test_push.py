@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests on the bodhi.server.push module."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest import mock
 
 from click.testing import CliRunner
@@ -63,7 +63,7 @@ class TestFilterReleases(base.BasePyTestCase):
             self.archived_release_update = models.Update(
                 builds=[build], user=self.user, request=models.UpdateRequest.stable,
                 notes='Useful details!', release=archived_release,
-                date_submitted=datetime(2016, 10, 28), stable_karma=3,
+                date_submitted=datetime(2016, 10, 28, tzinfo=timezone.utc), stable_karma=3,
                 unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(self.archived_release_update)
         self.db.commit()
@@ -124,13 +124,13 @@ class TestFilterReleases(base.BasePyTestCase):
             disabled_release_update = models.Update(
                 builds=[disabled_build], user=self.user, request=models.UpdateRequest.stable,
                 notes='Useful details!', release=disabled_release,
-                date_submitted=datetime(2016, 10, 28), stable_karma=3,
+                date_submitted=datetime(2016, 10, 28, tzinfo=timezone.utc), stable_karma=3,
                 unstable_karma=-3, type=models.UpdateType.bugfix)
         with mock.patch('bodhi.server.models.notifications'):
             pending_release_update = models.Update(
                 builds=[pending_build], user=self.user, request=models.UpdateRequest.stable,
                 notes='Useful details!', release=pending_release,
-                date_submitted=datetime(2016, 10, 28), stable_karma=3,
+                date_submitted=datetime(2016, 10, 28, tzinfo=timezone.utc), stable_karma=3,
                 unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(disabled_release_update)
         self.db.add(pending_release_update)
@@ -169,7 +169,7 @@ class TestFilterReleases(base.BasePyTestCase):
             current_release_update = models.Update(
                 builds=[current_build], user=self.user, request=models.UpdateRequest.stable,
                 notes='Useful details!', release=current_release,
-                date_submitted=datetime(2016, 10, 28), stable_karma=3,
+                date_submitted=datetime(2016, 10, 28, tzinfo=timezone.utc), stable_karma=3,
                 unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(current_release_update)
         self.db.commit()
@@ -516,7 +516,7 @@ class TestPush(base.BasePyTestCase):
         for nvr in ['ejabberd-16.09-4.fc17', 'python-nose-1.3.7-11.fc17']:
             u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
             assert u.locked
-            assert u.date_locked <= datetime.utcnow()
+            assert u.date_locked <= datetime.now(timezone.utc)
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         assert not python_paste_deploy.locked
@@ -575,7 +575,7 @@ class TestPush(base.BasePyTestCase):
         assert f37_python_nose.compose is None
 
         assert f37_python_paste_deploy.locked
-        assert f37_python_paste_deploy.date_locked <= datetime.utcnow()
+        assert f37_python_paste_deploy.date_locked <= datetime.now(timezone.utc)
         assert f37_python_paste_deploy.compose.release.id == f37.id
         assert f37_python_paste_deploy.compose.request == models.UpdateRequest.stable
 
@@ -613,7 +613,7 @@ class TestPush(base.BasePyTestCase):
         for nvr in ['ejabberd-16.09-4.fc17', 'python-nose-1.3.7-11.fc17']:
             u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
             assert u.locked
-            assert u.date_locked <= datetime.utcnow()
+            assert u.date_locked <= datetime.now(timezone.utc)
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         assert not python_paste_deploy.locked
@@ -673,7 +673,7 @@ class TestPush(base.BasePyTestCase):
         assert f37_python_nose.compose is None
 
         assert f37_python_paste_deploy.locked
-        assert f37_python_paste_deploy.date_locked <= datetime.utcnow()
+        assert f37_python_paste_deploy.date_locked <= datetime.now(timezone.utc)
         assert f37_python_paste_deploy.compose.release.id == f37.id
         assert f37_python_paste_deploy.compose.request == models.UpdateRequest.stable
 
@@ -735,7 +735,7 @@ class TestPush(base.BasePyTestCase):
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         for u in [bodhi, python_nose, python_paste_deploy]:
             assert u.locked
-            assert u.date_locked <= datetime.utcnow()
+            assert u.date_locked <= datetime.now(timezone.utc)
             assert u.compose.release.id == python_paste_deploy.release.id
             assert u.compose.request == models.UpdateRequest.testing
             assert u.compose.content_type == models.ContentType.rpm
@@ -770,7 +770,7 @@ class TestPush(base.BasePyTestCase):
         assert result.output == TEST_LOCKED_UPDATES_EXPECTED_OUTPUT
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         assert ejabberd.locked
-        assert ejabberd.date_locked <= datetime.utcnow()
+        assert ejabberd.date_locked <= datetime.now(timezone.utc)
         assert ejabberd.compose.release == ejabberd.release
         assert ejabberd.compose.request == ejabberd.request
         assert ejabberd.compose.state == models.ComposeState.requested
@@ -812,7 +812,7 @@ class TestPush(base.BasePyTestCase):
         assert result.output == TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         assert ejabberd.locked
-        assert ejabberd.date_locked <= datetime.utcnow()
+        assert ejabberd.date_locked <= datetime.now(timezone.utc)
         assert ejabberd.compose.release == ejabberd.release
         assert ejabberd.compose.request == ejabberd.request
         assert ejabberd.compose.state == models.ComposeState.requested
@@ -937,9 +937,9 @@ class TestPush(base.BasePyTestCase):
         assert f17_python_paste_deploy.compose is None
         # The new updates should both be locked.
         assert f25_python_nose.locked
-        assert f25_python_nose.date_locked <= datetime.utcnow()
+        assert f25_python_nose.date_locked <= datetime.now(timezone.utc)
         assert f26_python_paste_deploy.locked
-        assert f26_python_paste_deploy.date_locked <= datetime.utcnow()
+        assert f26_python_paste_deploy.date_locked <= datetime.now(timezone.utc)
         # The new updates should also be associated with the new Composes.
         assert f25_python_nose.compose.release.id == f25.id
         assert f25_python_nose.compose.request == models.UpdateRequest.testing
@@ -1033,7 +1033,7 @@ class TestPush(base.BasePyTestCase):
         assert f37_python_nose.compose is None
         # The python-paste_deploy F37 should be locked.
         assert f37_python_paste_deploy.locked
-        assert f37_python_paste_deploy.date_locked <= datetime.utcnow()
+        assert f37_python_paste_deploy.date_locked <= datetime.now(timezone.utc)
         # ...and associated with the new Compose.
         assert f37_python_paste_deploy.compose.release.id == f37.id
         assert f37_python_paste_deploy.compose.request == models.UpdateRequest.testing
@@ -1114,9 +1114,9 @@ class TestPush(base.BasePyTestCase):
         assert f17_python_paste_deploy.compose is None
         # The new updates should both be locked.
         assert f25_python_nose.locked
-        assert f25_python_nose.date_locked <= datetime.utcnow()
+        assert f25_python_nose.date_locked <= datetime.now(timezone.utc)
         assert f26_python_paste_deploy.locked
-        assert f26_python_paste_deploy.date_locked <= datetime.utcnow()
+        assert f26_python_paste_deploy.date_locked <= datetime.now(timezone.utc)
         # The new updates should also be associated with the new Composes.
         assert f25_python_nose.compose.release.id == f25.id
         assert f25_python_nose.compose.request == models.UpdateRequest.testing
@@ -1210,9 +1210,9 @@ class TestPush(base.BasePyTestCase):
         assert f37_python_nose.compose is None
         # The python-nose F36 and python-paste_deploy F37 should both be locked.
         assert f36_python_nose.locked
-        assert f36_python_nose.date_locked <= datetime.utcnow()
+        assert f36_python_nose.date_locked <= datetime.now(timezone.utc)
         assert f37_python_paste_deploy.locked
-        assert f37_python_paste_deploy.date_locked <= datetime.utcnow()
+        assert f37_python_paste_deploy.date_locked <= datetime.now(timezone.utc)
         # The two updates should also be associated with the new Composes.
         assert f36_python_nose.compose.release.id == f36.id
         assert f36_python_nose.compose.request == models.UpdateRequest.stable
@@ -1256,7 +1256,7 @@ class TestPush(base.BasePyTestCase):
             assert python_nose.compose is None
             for u in [bodhi, python_paste_deploy]:
                 assert u.locked
-                assert u.date_locked <= datetime.utcnow()
+                assert u.date_locked <= datetime.now(timezone.utc)
                 assert u.compose.release.id == python_paste_deploy.release.id
                 assert u.compose.request == models.UpdateRequest.testing
                 assert u.compose.content_type == models.ContentType.rpm
@@ -1317,7 +1317,7 @@ class TestPush(base.BasePyTestCase):
             assert python_nose_f37.compose is None
             # Stable compose for f17 should have been processed
             assert python_nose.locked
-            assert python_nose.date_locked <= datetime.utcnow()
+            assert python_nose.date_locked <= datetime.now(timezone.utc)
             assert python_nose.compose.release.id == python_nose.release.id
 
     def test_resume_flag(self):
@@ -1353,7 +1353,7 @@ class TestPush(base.BasePyTestCase):
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         # ejabberd should be locked still
         assert ejabberd.locked
-        assert ejabberd.date_locked <= datetime.utcnow()
+        assert ejabberd.date_locked <= datetime.now(timezone.utc)
         assert ejabberd.compose.release == ejabberd.release
         assert ejabberd.compose.request == ejabberd.request
         # The other packages should have been left alone
@@ -1394,7 +1394,7 @@ class TestPush(base.BasePyTestCase):
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         # ejabberd should be locked still
         assert ejabberd.locked
-        assert ejabberd.date_locked <= datetime.utcnow()
+        assert ejabberd.date_locked <= datetime.now(timezone.utc)
         assert ejabberd.compose.release == ejabberd.release
         assert ejabberd.compose.request == ejabberd.request
         # The other packages should have been left alone
@@ -1441,7 +1441,7 @@ class TestPush(base.BasePyTestCase):
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         # ejabberd should still be locked.
         assert ejabberd.locked
-        assert ejabberd.date_locked <= datetime.utcnow()
+        assert ejabberd.date_locked <= datetime.now(timezone.utc)
         assert ejabberd.compose.release == ejabberd.release
         assert ejabberd.compose.request == ejabberd.request
         # These should be left alone.
@@ -1496,7 +1496,7 @@ class TestPush(base.BasePyTestCase):
         # These should still be locked.
         for u in [ejabberd, python_nose]:
             assert u.locked
-            assert u.date_locked <= datetime.utcnow()
+            assert u.date_locked <= datetime.now(timezone.utc)
             assert u.compose.release == u.release
             assert u.compose.request == u.request
         # paste_deploy should have been left alone
@@ -1542,7 +1542,7 @@ class TestPush(base.BasePyTestCase):
         assert not python_nose.locked
         assert python_nose.date_locked is None
         assert python_paste_deploy.locked
-        assert python_paste_deploy.date_locked <= datetime.utcnow()
+        assert python_paste_deploy.date_locked <= datetime.now(timezone.utc)
         assert python_paste_deploy.compose.release == python_paste_deploy.release
         assert python_paste_deploy.compose.request == python_paste_deploy.request
 
@@ -1581,11 +1581,11 @@ class TestPush(base.BasePyTestCase):
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
         assert python_nose.locked
-        assert python_nose.date_locked <= datetime.utcnow()
+        assert python_nose.date_locked <= datetime.now(timezone.utc)
         assert python_nose.compose.release == python_paste_deploy.release
         assert python_nose.compose.request == python_paste_deploy.request
         assert python_paste_deploy.locked
-        assert python_paste_deploy.date_locked <= datetime.utcnow()
+        assert python_paste_deploy.date_locked <= datetime.now(timezone.utc)
         assert python_paste_deploy.compose.release == python_paste_deploy.release
         assert python_paste_deploy.compose.request == python_paste_deploy.request
 

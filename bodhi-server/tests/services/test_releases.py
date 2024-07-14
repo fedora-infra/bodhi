@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from unittest import mock
 import os
 
@@ -560,7 +560,7 @@ class TestReleasesHTML(base.BasePyTestCase):
                             type=j[0],
                             notes='Useful details!',
                             release=release,
-                            date_submitted=datetime(1984, 11, 2),
+                            date_submitted=datetime(1984, 11, 2, tzinfo=timezone.utc),
                             stable_karma=3,
                             unstable_karma=-3,
                         )
