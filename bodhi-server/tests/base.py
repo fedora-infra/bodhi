@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Contains a useful base test class that helps with common testing needs for bodhi.server."""
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest import mock
 import os
 import subprocess
@@ -135,7 +135,7 @@ def create_update(session, build_nvrs, release_name='F17'):
         session.add(build)
 
         # Add a buildroot override for this build
-        expiration_date = datetime.utcnow()
+        expiration_date = datetime.now(timezone.utc)
         expiration_date = expiration_date + timedelta(days=1)
         override = models.BuildrootOverride(build=build, submitter=user,
                                             notes='blah blah blah',
@@ -146,7 +146,7 @@ def create_update(session, build_nvrs, release_name='F17'):
         update = models.Update(
             builds=builds, user=user, request=models.UpdateRequest.testing,
             notes='Useful details!', type=models.UpdateType.bugfix,
-            date_submitted=datetime(1984, 11, 2),
+            date_submitted=datetime(1984, 11, 2, tzinfo=timezone.utc),
             stable_karma=3, unstable_karma=-3, release=release)
     session.add(update)
     return update

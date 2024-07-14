@@ -13,7 +13,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Look for overrides that are past their expiration dates and mark them expired."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 from bodhi.server import Session
@@ -36,7 +36,7 @@ def main():
 
 def expire_overrides(db: Session):
     """Search for overrides that are past their expiration date and mark them expired."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     overrides = db.query(BuildrootOverride)
     overrides = overrides.filter(BuildrootOverride.expired_date.is_(None))
     overrides = overrides.filter(BuildrootOverride.expiration_date < now)
