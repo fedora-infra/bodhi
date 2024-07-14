@@ -826,7 +826,7 @@ class SaveOverrideSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
 
     expiration_date = colander.SchemaNode(
-        colander.DateTime(default_tzinfo=None),
+        colander.DateTime(),
     )
 
     expired = colander.SchemaNode(

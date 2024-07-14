@@ -28,7 +28,7 @@ the signed status in the db to match the tags found in Koji.
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from bodhi.server import buildsys, models
 from bodhi.server.config import config
@@ -41,7 +41,8 @@ log = logging.getLogger(__name__)
 def main():
     """Check build tags and sign those we missed."""
     db_factory = transactional_session_maker()
-    older_than = datetime.utcnow() - timedelta(days=config.get('check_signed_builds_delay'))
+    older_than = (datetime.now(timezone.utc)
+                  - timedelta(days=config.get('check_signed_builds_delay')))
     with db_factory() as session:
         updates = models.Update.query.filter(
             models.Update.status == models.UpdateStatus.pending

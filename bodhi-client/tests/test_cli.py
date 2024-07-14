@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.client."""
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from unittest import mock
 import copy
 import os
@@ -1285,7 +1285,7 @@ class TestSaveBuildrootOverrides:
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = mocked_client_class.send_request.mock_calls[0][2]['data']['expiration_date']
-        assert (datetime.utcnow() - expire_time) < timedelta(seconds=5)
+        assert (datetime.now(timezone.utc) - expire_time) < timedelta(seconds=5)
         # There should be two calls to send_request(). The first to save the override, and the
         # second to find out the release tags so the koji wait-repo hint can be printed.
         assert mocked_client_class.send_request.call_count == 2
@@ -1432,7 +1432,7 @@ class TestSaveBuildrootOverrides:
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = mocked_client_class.send_request.mock_calls[0][2]['data']['expiration_date']
-        assert (datetime.utcnow() - expire_time) < timedelta(seconds=5)
+        assert (datetime.now(timezone.utc) - expire_time) < timedelta(seconds=5)
         # There should be one calls to send_request().
         assert mocked_client_class.send_request.call_count == 1
         assert mocked_client_class.send_request.mock_calls[0] == mock.call(
@@ -2003,7 +2003,7 @@ class TestEditBuildrootOverrides:
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = mocked_client_class.send_request.mock_calls[0][2]['data']['expiration_date']
-        assert (datetime.utcnow() - expire_time) < timedelta(seconds=5)
+        assert (datetime.now(timezone.utc) - expire_time) < timedelta(seconds=5)
         mocked_client_class.send_request.assert_called_once_with(
             'overrides/', verb='POST', auth=True,
             data={

@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A collection of validators for Bodhi requests."""
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from functools import wraps
 
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
@@ -1333,7 +1333,7 @@ def validate_expiration_date(request, **kwargs):
         return
 
     expiration_date = expiration_date.date()
-    now = datetime.utcnow().date()
+    now = datetime.now(timezone.utc).date()
 
     if expiration_date <= now:
         request.errors.add('body', 'expiration_date',

@@ -23,7 +23,7 @@ comprised of a fedora messaging consumer that launches threads for each reposito
 composed.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from http.client import IncompleteRead
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
@@ -667,7 +667,7 @@ class ComposerThread(threading.Thread):
         eol_sidetags = []
         log.info('Updating update statuses.')
         for update in self.compose.updates:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             if update.request is UpdateRequest.testing:
                 update.status = UpdateStatus.testing
                 update.date_testing = now
@@ -1089,7 +1089,7 @@ class PungiComposerThread(ComposerThread):
         self._create_pungi_config()
         config_file = os.path.join(self._pungi_conf_dir, 'pungi.conf')
         self._label = '%s-%s' % (config.get('pungi.labeltype'),
-                                 datetime.utcnow().strftime('%Y%m%d.%H%M'))
+                                 datetime.now(timezone.utc).strftime('%Y%m%d.%H%M'))
         pungi_cmd = [config.get('pungi.cmd'),
                      '--config', config_file,
                      '--quiet',
