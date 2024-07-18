@@ -115,7 +115,7 @@ PyYAML = ">=5.4.1"
 requests = ">=2.25.1"
 SQLAlchemy = ">=1.4, <2.1"
 waitress = ">=1.4.4"
-zstandard = "^0.21 || ^0.22.0"
+zstandard = "^0.21 || ^0.22.0 || ^0.23.0"
 
 [tool.pytest.ini_options]
 addopts = "--cov-config .coveragerc --cov=bodhi --cov-report term --cov-report xml --cov-report html"
