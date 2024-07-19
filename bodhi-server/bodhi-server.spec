@@ -45,7 +45,7 @@ Requires: python3-librepo
 Requires: python3-mod_wsgi
 
 Provides:  bundled(chrissimpkins-hack-fonts)
-Provides:  bundled(fedora-bootstrap) = 2.0.2
+Provides:  bundled(fedora-bootstrap) = 5.3.3-0
 Provides:  bundled(fontawesome-fonts-web) = 4.6.3
 Provides:  bundled(js-chart) = 3.8.0
 Provides:  bundled(js-jquery) = 3.6.0
