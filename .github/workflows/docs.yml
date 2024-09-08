@@ -27,7 +27,7 @@ jobs:
         run: devel/ci/bodhi-ci docs -r pip
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.6.3
+        uses: JamesIves/github-pages-deploy-action@v4.6.4
         with:
           branch: gh-pages
           folder: test_results/pip-docs/html
