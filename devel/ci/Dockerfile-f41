@@ -1,0 +1,73 @@
+FROM quay.io/fedora/fedora:41
+LABEL maintainer="Mattia Verga <mattia.verga@fedoraproject.org>"
+
+# RUN echo "fastestmirror=False" >> /etc/dnf/dnf.conf
+# RUN echo "zchunk = False" >> /etc/dnf/dnf.conf
+
+RUN dnf --best install -y \
+    createrepo_c \
+    fedora-messaging \
+    findutils \
+    git \
+    krb5-devel \
+    make \
+    pip \
+    poetry \
+    python-unversioned-command \
+    python3-alembic \
+    python3-arrow \
+    python3-authlib \
+    python3-backoff \
+    python3-bleach \
+    python3-bugzilla \
+    python3-celery \
+    python3-click \
+    python3-colander \
+    python3-cornice \
+    python3-createrepo_c \
+    python3-devel \
+    python3-diff-cover \
+    python3-dnf \
+    python3-dogpile-cache \
+    python3-feedgen \
+    python3-gssapi \
+    python3-jinja2 \
+    python3-koji \
+    python3-libcomps \
+    python3-librepo \
+    python3-markdown \
+    python3-munch \
+    python3-openid \
+    python3-psycopg2 \
+    python3-prometheus_client \
+    python3-pylibravatar \
+    python3-pymediawiki \
+    python3-pyramid \
+    python3-pyramid-fas-openid \
+    python3-pyramid-mako \
+    python3-pytest \
+    python3-pytest-cov \
+    python3-pytest-mock \
+    python3-requests-kerberos \
+    python3-responses \
+    python3-sphinx \
+    python3-sqlalchemy \
+    python3-sqlalchemy_schemadisplay \
+    python3-waitress \
+    python3-webtest \
+    python3-wheel \
+    python3-yaml \
+    python3-zstandard \
+    rpm-build \
+    rpmdevtools \
+    skopeo
+
+VOLUME ["/results"]
+WORKDIR /bodhi
+CMD ["bash"]
+COPY . /bodhi
+ENV VIRTUAL_ENV=/srv/venv
+RUN cp devel/development.ini.example bodhi-server/development.ini
+RUN sed -i '/pyramid_debugtoolbar/d' bodhi-server/development.ini
+RUN poetry config virtualenvs.create false
+RUN git config --global --add safe.directory /bodhi

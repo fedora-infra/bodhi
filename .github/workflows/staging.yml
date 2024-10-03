@@ -24,7 +24,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+<<<<<<< HEAD
         release: [f38,f39,f40]
+=======
+        release: [f40,f41]
+>>>>>>> f1183d1c3 (Add F41 to tests matrix)
 
   build_in_koji:
     name: Build ${{matrix.module}} on ${{matrix.release}} in Koji
@@ -74,4 +78,8 @@ jobs:
       fail-fast: false
       matrix:
         module: [bodhi-client, bodhi-messages, bodhi-server]
+<<<<<<< HEAD
         release: [f38,f39,f40]
+=======
+        release: [f40,f41]
+>>>>>>> f1183d1c3 (Add F41 to tests matrix)
