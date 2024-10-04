@@ -403,7 +403,7 @@ def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
            '--refresh',
            '--nogpgcheck'] + list(dnf_args)
 
-    return subprocess.check_output(cmd, encoding='utf-8')
+    return subprocess.check_output(cmd, encoding='utf-8', stderr=subprocess.STDOUT)
 
 
 def age(context, date, only_distance=False):
