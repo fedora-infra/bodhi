@@ -4,6 +4,7 @@ queue_rules:
     - status-success=DCO
     - status-success=Pre-commit checks
     - status-success=Diff-cover check
+<<<<<<< HEAD
     - status-success=Integration Tests (f38)
     - status-success=Unit Tests (f38, bodhi-client)
     - status-success=Unit Tests (f38, bodhi-messages)
@@ -17,6 +18,21 @@ queue_rules:
     - status-success=Unit Tests (pip, bodhi-server)
     - status-success=Build Documentation (f38)
     - status-success=Build Documentation (f39)
+=======
+    - status-success=Integration Tests (f40)
+    - status-success=Integration Tests (f41)
+    - status-success=Unit Tests (f40, bodhi-client)
+    - status-success=Unit Tests (f40, bodhi-messages)
+    - status-success=Unit Tests (f40, bodhi-server)
+    - status-success=Unit Tests (f41, bodhi-client)
+    - status-success=Unit Tests (f41, bodhi-messages)
+    - status-success=Unit Tests (f41, bodhi-server)
+    - status-success=Unit Tests (pip, bodhi-client)
+    - status-success=Unit Tests (pip, bodhi-messages)
+    - status-success=Unit Tests (pip, bodhi-server)
+    - status-success=Build Documentation (f40)
+    - status-success=Build Documentation (f41)
+>>>>>>> 1fb3bc137 (Prepare for 8.2 branch)
     - status-success=Build Documentation (pip)
 
 
@@ -35,6 +51,7 @@ pull_request_rules:
   - status-success=DCO
   - status-success=Pre-commit checks
   - status-success=Diff-cover check
+<<<<<<< HEAD
   - status-success=Integration Tests (f38)
   - status-success=Unit Tests (f38, bodhi-client)
   - status-success=Unit Tests (f38, bodhi-messages)
@@ -48,6 +65,21 @@ pull_request_rules:
   - status-success=Unit Tests (pip, bodhi-server)
   - status-success=Build Documentation (f38)
   - status-success=Build Documentation (f39)
+=======
+  - status-success=Integration Tests (f40)
+  - status-success=Integration Tests (f41)
+  - status-success=Unit Tests (f40, bodhi-client)
+  - status-success=Unit Tests (f40, bodhi-messages)
+  - status-success=Unit Tests (f40, bodhi-server)
+  - status-success=Unit Tests (f41, bodhi-client)
+  - status-success=Unit Tests (f41, bodhi-messages)
+  - status-success=Unit Tests (f41, bodhi-server)
+  - status-success=Unit Tests (pip, bodhi-client)
+  - status-success=Unit Tests (pip, bodhi-messages)
+  - status-success=Unit Tests (pip, bodhi-server)
+  - status-success=Build Documentation (f40)
+  - status-success=Build Documentation (f41)
+>>>>>>> 1fb3bc137 (Prepare for 8.2 branch)
   - status-success=Build Documentation (pip)
 
 - name: backport 8.0
@@ -69,3 +101,13 @@ pull_request_rules:
   - label!=WIP
   - -draft
   - label=8.1-backports
+
+- name: backport 8.2
+  actions:
+    backport:
+      branches:
+      - '8.2'
+  conditions:
+  - label!=WIP
+  - -draft
+  - label=8.2-backports
