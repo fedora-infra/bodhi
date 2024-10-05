@@ -418,7 +418,7 @@ def query_updates(request):
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
     return_values = dict(
-        updates=query.all(),
+        updates=query.distinct().all(),
         page=page,
         pages=pages,
         rows_per_page=rows_per_page,
