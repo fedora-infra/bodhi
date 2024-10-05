@@ -6,11 +6,13 @@ on:
       - develop
       - 8.0
       - 8.1
+      - 8.2
   pull_request:
     branches:
       - develop
       - 8.0
       - 8.1
+      - 8.2
 
 jobs:
   analyze:
