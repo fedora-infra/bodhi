@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Buildroot Overrides &#8212; bodhi 8.1.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=1f462c57" />
+    <script src="../_static/documentation_options.js?v=23ce250a"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Fedora-Flavored Markdown" href="fedora-flavored-markdown.html" />
+    <link rel="prev" title="Automatic Updates" href="automatic_updates.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="buildroot-overrides">
+<h1>Buildroot Overrides<a class="headerlink" href="#buildroot-overrides" title="Link to this heading">¶</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<div class="line-block">
+<div class="line">Using buildroot overrides affects every user building their packages while the
+override is active. For that reason, buildroot overrides usage is highly deprecated.</div>
+<div class="line">For most purposes using <a class="reference external" href="https://docs.fedoraproject.org/en-US/package-maintainers/Package_Update_Guide/#multiple_packages">side-tags</a> is sufficient and easier.</div>
+</div>
+</div>
+<p>Koji’s buildroot is the set of packages that are available to use during a build. Normally this set
+of packages only includes packages that have been marked as stable in Bodhi. There are times when a
+developer will want to add a package to Koji’s buildroot that is not yet stable so that it can be
+used to build another package. This is where Bodhi’s buildroot override functionality comes into
+play.</p>
+<p>Developers can create a buildroot override in Bodhi’s create menu in the upper right hand corner, or
+they can use the bodhi command line interface to do it.</p>
+<p>Once a buildroot override is created, Bodhi will present a hint to the developer describing how to
+use the <code class="docutils literal notranslate"><span class="pre">koji</span></code> CLI to wait for the override to appear in the buildroot. Once <code class="docutils literal notranslate"><span class="pre">koji</span></code> confirms the
+package is present in the buildroot, subsequent builds that depend on it may be performed.</p>
+<p>Buildroot overrides have expiration dates, and Bodhi will automatically remove them from the build
+root when those dates are reached. Developers can also use the web interface or CLI to manually
+expire them if desired.</p>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo" />
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="update_states.html">Update states</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/bcd.html">BCD - the Bodhi Container Development environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/bcd_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="automatic_updates.html" title="previous chapter">Automatic Updates</a></li>
+      <li>Next: <a href="fedora-flavored-markdown.html" title="next chapter">Fedora-Flavored Markdown</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2007-2024, Red Hat, Inc..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/user/buildroot_overrides.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

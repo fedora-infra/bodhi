@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Debugging with Visual Studio Code &#8212; bodhi 8.1.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=1f462c57" />
+    <script src="../_static/documentation_options.js?v=23ce250a"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Database models" href="models.html" />
+    <link rel="prev" title="BCD - the Bodhi Container Development environment" href="bcd.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="debugging-with-visual-studio-code">
+<h1>Debugging with Visual Studio Code<a class="headerlink" href="#debugging-with-visual-studio-code" title="Link to this heading">¶</a></h1>
+<p>Visual Studio Code’s <cite>Dev Containers &lt;https://code.visualstudio.com/docs/devcontainers/containers&gt;</cite> extension may be able to use the environment provided by Vagrant,
+with support for discovering, running and debugging unit-tests. The person who implemented BCD
+doesn’t use VS Code, so we don’t really know. Please try it and tell us, then we can make this
+doc better.</p>
+<p>This provides an IDE alternative to running <cite>btest</cite> from <cite>./bcd shell</cite>.</p>
+<p>This assumes you have working environment as described in <a class="reference internal" href="bcd.html"><span class="doc">BCD - the Bodhi Container Development environment</span></a></p>
+<section id="configure-vs-code-for-bcd">
+<h2>Configure VS Code for BCD<a class="headerlink" href="#configure-vs-code-for-bcd" title="Link to this heading">¶</a></h2>
+<p>Since BCD uses podman, <cite>this handy guide from Stack Overflow &lt;https://stackoverflow.com/questions/77167514&gt;</cite> should help.
+You want to start the BCD containers as described in the BCD page, then set up podman so VS Code will be able to see it
+(as explained on the SO question), then finally have VS Code attach to the running bodhi-dev-bodhi container. The upstream
+VS Code docs explain that to attach to a running container, you should either select Dev Containers: Attach to Running Container
+from the Command Palette (F1) or use the Remote Explorer in the Activity Bar and from the Containers view, select the
+Attach to Container inline action on the container you want to connect to.</p>
+<p>Again, we haven’t tried this. Sorry. Let us know how it goes. The following instructions are preserved mostly unmodified
+from when this page documented using VS Code with Vagrant. They’re probably still more or less relevant to BCD.</p>
+</section>
+<section id="debugging-application-running-in-bcd">
+<h2>Debugging application running in BCD<a class="headerlink" href="#debugging-application-running-in-bcd" title="Link to this heading">¶</a></h2>
+<p>When inside the container set the debug configuration in <cite>launch.json</cite> for Pyramid (you should get the pyramid conf as a suggestion):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.2.0&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;configurations&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Python: Pyramid Application&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;python&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="s2">&quot;launch&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;pyramid.scripts.pserve&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;/home/vagrant/development.ini&quot;</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;pyramid&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+        <span class="s2">&quot;jinja&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+    <span class="p">},</span>
+</pre></div>
+</div>
+<p>When you want to start application for debugging, you first need to run <cite>systemctl stop bodhi</cite> in the container shell,
+otherwise the debugger will complain about ports already in use, as it will launch another instance of bodhi inside of the application.</p>
+<p>After you stopped the bodhi service, you can run the “Python: Pyramid Application” from the Debug pane (Ctrl+Shift+D) and
+the application will stop on breakpoints.</p>
+</section>
+<section id="debugging-unit-tests">
+<h2>Debugging unit-tests<a class="headerlink" href="#debugging-unit-tests" title="Link to this heading">¶</a></h2>
+<p>For running unit-tests install <cite>Python Test Explorer for Visual Studio Code &lt;https://marketplace.visualstudio.com/items?itemName=littlefoxteam.vscode-python-test-adapter&gt;</cite> extension
+Open settings (CTRL+Comma), and in the settings for the container, swith to JSON view and make the following configuration changes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;python.testing.pytestEnabled&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">&quot;python.testing.pytestPath&quot;</span><span class="p">:</span> <span class="s2">&quot;py.test-3&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;pythonTestExplorer.testFramework&quot;</span><span class="p">:</span> <span class="s2">&quot;pytest&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;python.pythonPath&quot;</span><span class="p">:</span> <span class="s2">&quot;python3&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;python.testing.pytestArgs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;--no-cov&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Currently coverage reporting and debugging don’t work at the same time, due to a reported issue.
+Currently suggested workaround is to disable the coverage-reporting with <cite>–no-cov</cite> parameter.
+The issue is currently tracked in <a class="reference external" href="https://github.com/microsoft/vscode-python/issues/693">https://github.com/microsoft/vscode-python/issues/693</a></p>
+<p>After configuring you should be able to populate the test-explorer with unit tests and start debugging!</p>
+</section>
+<section id="debugging-celery">
+<h2>Debugging celery<a class="headerlink" href="#debugging-celery" title="Link to this heading">¶</a></h2>
+<p>If you want to debug code running in the celery worker, you first need to stop the celery service and then start celery from inside vs-code,
+in similar fashion as you’d run <cite>pserve</cite> in previous example.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo" />
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/update_states.html">Update states</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bcd.html">BCD - the Bodhi Container Development environment</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Debugging with Visual Studio Code</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configure-vs-code-for-bcd">Configure VS Code for BCD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#debugging-application-running-in-bcd">Debugging application running in BCD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#debugging-unit-tests">Debugging unit-tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#debugging-celery">Debugging celery</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="bcd.html" title="previous chapter">BCD - the Bodhi Container Development environment</a></li>
+      <li>Next: <a href="models.html" title="next chapter">Database models</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2007-2024, Red Hat, Inc..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/developer/bcd_vscode.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

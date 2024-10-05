@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>BCD - the Bodhi Container Development environment &#8212; bodhi 8.1.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=1f462c57" />
+    <script src="../_static/documentation_options.js?v=23ce250a"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Debugging with Visual Studio Code" href="bcd_vscode.html" />
+    <link rel="prev" title="Release process" href="releases.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="bcd-the-bodhi-container-development-environment">
+<h1>BCD - the Bodhi Container Development environment<a class="headerlink" href="#bcd-the-bodhi-container-development-environment" title="Link to this heading">¶</a></h1>
+<p>BCD is an Ansible-orchestrated, Podman-powered container-based development environment for Bodhi.
+It lets you quickly and easily test your changes in a live Bodhi environment, without any external
+dependencies, root privilege requirements, or virtual machines. It’s also convenient for running
+the unit tests.</p>
+<p>To get started on a Fedora or Enterprise Linux-ish system, do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo dnf install ansible-core ansible-collection-containers-podman podman
+$ ./bcd run
+</pre></div>
+</div>
+<p>Your newly provisioned bodhi development instance is now available at <a class="reference external" href="http://localhost.localdomain:6543/">http://localhost.localdomain:6543/</a> .</p>
+<p>The AMQP message broker web interface is available at <a class="reference external" href="http://localhost:15672/">http://localhost:15672/</a>. The default username
+is <code class="docutils literal notranslate"><span class="pre">guest</span></code> and the password is <code class="docutils literal notranslate"><span class="pre">guest</span></code>.</p>
+<p>The Waiverdb web interface is available at <a class="reference external" href="http://localhost:6544/">http://localhost:6544/</a> , and the Greenwave web interface
+is available at <a class="reference external" href="http://localhost:6545/">http://localhost:6545/</a> .</p>
+<p>The Ipsilon identity service web interface is available at <a class="reference external" href="http://localhost:6546/">http://localhost:6546/</a> (though there
+isn’t much reason to use it directly in this environment).</p>
+<section id="other-commands">
+<h2>Other commands<a class="headerlink" href="#other-commands" title="Link to this heading">¶</a></h2>
+<p>Other command commands are <code class="docutils literal notranslate"><span class="pre">./bcd</span> <span class="pre">stop</span></code> to stop all containers, <code class="docutils literal notranslate"><span class="pre">./bcd</span> <span class="pre">remove</span></code> to remove all
+containers, <code class="docutils literal notranslate"><span class="pre">bcd</span> <span class="pre">logs</span> <span class="pre">(container)</span></code> to view the logs for a container, <code class="docutils literal notranslate"><span class="pre">bcd</span> <span class="pre">shell</span> <span class="pre">(container)</span></code>
+to shell into a container (the Bodhi container by default), and <code class="docutils literal notranslate"><span class="pre">./bcd</span> <span class="pre">cis</span></code> to clear Ipsilon’s
+session cache. This is necessary to log in to Bodhi as a different user - first log out, then run
+<code class="docutils literal notranslate"><span class="pre">./bcd</span> <span class="pre">cis</span></code>, then log in again. If you don’t clear the session cache Ipsilon will just keep
+logging you in as the same user. Run <code class="docutils literal notranslate"><span class="pre">./bcd</span> <span class="pre">-h</span></code> or <code class="docutils literal notranslate"><span class="pre">./bcd</span> <span class="pre">(subcommand)</span> <span class="pre">-h</span></code> for more help.</p>
+</section>
+<section id="containers">
+<h2>Containers<a class="headerlink" href="#containers" title="Link to this heading">¶</a></h2>
+<p>Behind the scenes, BCD uses an Ansible playbook that controls a pod of Podman containers. The
+pod is called <code class="docutils literal notranslate"><span class="pre">bodhi-dev</span></code>. The full names of the containers are <code class="docutils literal notranslate"><span class="pre">bodhi-dev-database</span></code>,
+<code class="docutils literal notranslate"><span class="pre">bodhi-dev-waiverdb</span></code>, <code class="docutils literal notranslate"><span class="pre">bodhi-dev-greenwave</span></code>, <code class="docutils literal notranslate"><span class="pre">bodhi-dev-rabbitmq</span></code>, <code class="docutils literal notranslate"><span class="pre">bodhi-dev-ipsilon</span></code> and
+<code class="docutils literal notranslate"><span class="pre">bodhi-dev-bodhi</span></code>. BCD commands which take a container name use shortened names with ‘bodhi-dev-’
+omitted, for convenience. You can interact with the pod and the containers directly using normal
+podman commands if you wish - to start and stop individual containers, for instance.</p>
+<p>The ‘database’ container runs postgresql and is initialized with a dump of real data for waiverdb
+and Bodhi, both of which connect to it. The ‘waiverdb’ and ‘greenwave’ containers run those services
+respectively, which are used by Bodhi for retrieving test results and test waivers and deciding
+on the gating status of updates. Note that the ‘greenwave’ container is configured to connect to
+the real, production ResultsDB and forward results from it, so the results shown and the gating
+status calculated will change to reflect the real-world state. The ‘rabbitmq’ container runs an
+instance of the RabbitMQ message broker which Bodhi will publish messages to and consume messages
+from. The ‘ipsilon’ container runs the authentication service (see below for details). And, of
+course, the ‘bodhi’ container runs Bodhi itself. It has your source tree mapped as a volume, so
+changes you make to your source tree are immediately reflected in the development environment.
+The server will automatically reload when any Python source file is changed.</p>
+<p>The Bodhi container uses systemd, so you can shell into it and stop or restart the bodhi service
+or any of the ancillary services it runs, if you need to.</p>
+</section>
+<section id="authentication">
+<h2>Authentication<a class="headerlink" href="#authentication" title="Link to this heading">¶</a></h2>
+<p>The BCD environment uses an instance of the Ipsilon authentication service (as also used for
+Fedora authentication in the real world). This instance is configured in testauth mode, which means
+you can log in as any user at all with the password ‘ipsilon’. If you log in as a user that does
+not exist in the Bodhi database, it will be added.</p>
+<p>Note that the group memberships and email addresses for real users are not the same as in the real
+world. This Ipsilon instance is configured by default to say that all users are members of the
+groups “fedora-contributors” and “packagers” and also a group of the same name as their username,
+and have the email address “<a class="reference external" href="mailto:username&#37;&#52;&#48;example&#46;com">username<span>&#64;</span>example<span>&#46;</span>com</a>”. These values will be changed in the Bodhi
+database on login.</p>
+<p>There is a special mechanism for testing different group memberships. You can login with a username
+like ‘someuser:groups=somegroup1,somegroup2’ to log in as user ‘someuser’ but with your groups
+reported as ‘somegroup1’ and ‘somegroup2’ (you will <em>not</em> be reported as a member of ‘packagers’
+or ‘fedora-contributors’ in this case). You can also take advantage of the ‘user is a member of
+the group with the same name’ mechanism, e.g. by logging in as ‘provenpackager’ to be reported as
+a member of the ‘provenpackager’ group.</p>
+<p>As mentioned above, switching users can be a bit tricky, as Ipsilon likes to cache the session
+(this is sort of what it’s supposed to do, after all). To switch users, log out, run <code class="docutils literal notranslate"><span class="pre">./bcd</span> <span class="pre">cis</span></code>,
+then log in again. If things get really messy you may need to stop and remove the bodhi and ipsilon
+containers to get back to a clean state.</p>
+</section>
+<section id="quick-tips-about-the-bcd-environment">
+<h2>Quick tips about the BCD environment<a class="headerlink" href="#quick-tips-about-the-bcd-environment" title="Link to this heading">¶</a></h2>
+<p>You can shell into the running Bodhi container like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Make sure your bodhi checkout is your shell&#39;s cwd
+$ ./bcd shell
+</pre></div>
+</div>
+<p>Note the container must be running, or this will fail. Once you are inside the development
+environment, there are a helpful set of commands in your <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code> that will be printed to the
+screen via the <code class="docutils literal notranslate"><span class="pre">/etc/motd</span></code> file. Be sure to familiarize yourself with these:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+Welcome to the Bodhi development environment! Here are some helpful commands:
+
+bdocs:       Build Bodhi&#39;s documentation.
+blint:       Run a series of linter checks.
+btest:       Run Bodhi&#39;s test suite (includes blint and bdocs).
+bmessages:   Display the log of Bodhi&#39;s messages on the bus.
+blog:        View Bodhi&#39;s log. (Support all the systemctl options, such as -lf).
+bresetdb:    Drop and reimport the database.
+brestart:    Restart the Bodhi service.
+bodhi-shell: Get a handy python shell initialized with Bodhi models.
+bstart:      Start the Bodhi service.
+bstop:       Stop the Bodhi service.
+
+The BODHI_URL and BODHI_OPENID_PROVIDER variables are set so the
+the bodhi client will use the local development server and all
+requests should work correctly.
+
+You can run `systemctl start fm-consumer@remote.service` to run a
+callback consumer that listens to real messages on the production
+bus from Koji and ResultsDB, though this dev env may not be able
+to correctly process all messages.
+
+Happy hacking!
+</pre></div>
+</div>
+<p>The code from your development host will be mounted in <code class="docutils literal notranslate"><span class="pre">/bodhi</span></code> in the Bodhi container.
+You can edit this code on the host, and the changes will automatically be reflected in the container.</p>
+<p>The development server is run inside the container by the <code class="docutils literal notranslate"><span class="pre">bodhi.service</span></code> systemd unit.
+You can use <code class="docutils literal notranslate"><span class="pre">bodhi-shell</span></code> to get a Python shell quickly set up with a nice environment for you to hack
+in. Here’s an example where we use <code class="docutils literal notranslate"><span class="pre">bodhi-shell</span></code> to set an update’s request to stable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [root@bodhi-dev bodhi]# bodhi-shell
+Python 3.12.0 (main, Oct  2 2023, 00:00:00) [GCC 13.2.1 20230918 (Red Hat 13.2.1-3)] on linux
+Type &quot;help&quot; for more information.
+
+Environment:
+  app          The WSGI application.
+  registry     Active Pyramid registry.
+  request      Active request object.
+  root         Root of the default resource tree.
+  root_factory Default root factory used to create `root`.
+
+Custom Variables:
+  m            bodhi.server.models
+  s            bodhi.server.Session
+
+&gt;&gt;&gt; u = m.Update.query.filter_by(alias=&#39;FEDORA-2016-840ff89708&#39;).one()
+&gt;&gt;&gt; u.request = m.UpdateRequest.stable
+&gt;&gt;&gt; s().commit()
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo" />
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user/update_states.html">Update states</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../user/release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releases.html">Release process</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">BCD - the Bodhi Container Development environment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#other-commands">Other commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#containers">Containers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#authentication">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-tips-about-the-bcd-environment">Quick tips about the BCD environment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bcd_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="releases.html" title="previous chapter">Release process</a></li>
+      <li>Next: <a href="bcd_vscode.html" title="next chapter">Debugging with Visual Studio Code</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2007-2024, Red Hat, Inc..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/developer/bcd.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Testing updates &#8212; bodhi 8.1.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=c058f7c8" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=1f462c57" />
+    <script src="../_static/documentation_options.js?v=23ce250a"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Update states" href="update_states.html" />
+    <link rel="prev" title="Fedora-Flavored Markdown" href="fedora-flavored-markdown.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="testing-updates">
+<h1>Testing updates<a class="headerlink" href="#testing-updates" title="Link to this heading">¶</a></h1>
+<p>Bodhi’s primary use case is to gate proposed software updates based on testing feedback. Feedback
+can be provided automatically by CI systems, or can be provided by humans through comments and
+karma.</p>
+<section id="karma">
+<h2>Karma<a class="headerlink" href="#karma" title="Link to this heading">¶</a></h2>
+<p>Authenticated users may post positive or negative karma onto an update, along with a comment to
+describe their experience. Once the update reaches its karma threshold (set by the packager), it may
+be pushed out to the stable repositories. This will happen automatically if the update is configured
+to use Bodhi’s autokarma system, or manually by the packager if it is not.</p>
+<p>Some updates are associated with Bugzilla tickets, and these updates will allow the tester to mark
+whether they think the given bug is addressed by the update. Updates may also be linked to Wiki
+documents that describe a testing plan for the associated packages, and the tester may provide
+feedback for each of the wiki test pages as well.</p>
+</section>
+<section id="automated-tests">
+<h2>Automated tests<a class="headerlink" href="#automated-tests" title="Link to this heading">¶</a></h2>
+<p>Bodhi may also provide feedback from automated test systems if it is configured to do so. To view
+this feedback, click on the update’s “Automated Tests” tab.</p>
+<p>Bodhi may also be configured to query <a class="reference external" href="https://pagure.io/greenwave">Greenwave</a> for automated test based gating decisions on
+updates. If this is enabled, the update’s web page will display the current status of Greenwave’s
+gating decision.</p>
+</section>
+<section id="stable-push">
+<h2>Stable push<a class="headerlink" href="#stable-push" title="Link to this heading">¶</a></h2>
+<p>An update can be pushed to stable repository either manually or automatically, through Bodhi’s
+<cite>autotime</cite> or <cite>autokarma</cite> features.</p>
+<p>For becoming pushable to stable an update must fulfill some criteria set by the associated
+release. Typically, each release has <cite>critpath.mandatory_days_in_testing</cite>,
+<cite>mandatory_days_in_testing</cite> and <cite>min_karma</cite> values that define thresholds for associated updates
+to be pushed to stable. The <cite>mandatory_days_in_testing</cite> settings define an amount of days of
+waiting in the updates repository for critical path and non-critical-path updates respectively.
+The <cite>min_karma</cite> setting specifies a karma total threshold. An update can be manually pushed to
+stable by its submitter or anyone else with edit privileges on the update when <strong>either</strong>
+threshold is reached. For example, if a release has a <cite>min_karma</cite> of 2, an update which reaches
++2 karma <strong>can be pushed to stable even if it hasn’t reached the `mandatory_days_in_testing`</strong>.</p>
+<p>When submitting an update, the user can enable the <cite>autotime</cite> and the <cite>autokarma</cite> features and
+set the related values <cite>stable_days</cite> and <cite>stable_karma</cite> for that specific update.
+The <cite>stable_days</cite> value defines an amount of days the update must spend in testing repository
+before the autopush is done. It must be equal to or greater than the <cite>mandatory_days_in_testing</cite>
+value that applies to the update. The <cite>stable_karma</cite> value defines a karma total the update must
+reach before the autopush is done. It must be equal to or greater than the release <cite>min_karma</cite>.
+Autopush will happen as soon as <strong>either</strong> threshold is reached. For example, if a release has a
+<cite>mandatory_days_in_testing</cite> of 7, an update which has <cite>autotime</cite> enabled and <cite>stable_days</cite> set to
+10 will be pushable after 7 days <strong>by manual action</strong>, but the autopush will be performed
+<strong>after 3 more days</strong>. If an update has both <cite>autotime</cite> and <cite>autokarma</cite> enabled, with thresholds
+of 7 days and 3 karma respectively, it will be pushed stable as soon as it reaches +3 karma, even
+if 7 days have not yet passed; or it will be pushed stable after 7 days have passed, even if it
+has not yet reached +3 karma.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo" />
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Testing updates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#karma">Karma</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#automated-tests">Automated tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stable-push">Stable push</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="update_states.html">Update states</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/bcd.html">BCD - the Bodhi Container Development environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/bcd_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="fedora-flavored-markdown.html" title="previous chapter">Fedora-Flavored Markdown</a></li>
+      <li>Next: <a href="update_states.html" title="next chapter">Update states</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2007-2024, Red Hat, Inc..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/user/testing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
