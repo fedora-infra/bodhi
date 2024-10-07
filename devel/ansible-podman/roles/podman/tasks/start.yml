@@ -52,7 +52,7 @@
 - name: Run the RabbitMQ container
   containers.podman.podman_container:
     name: bodhi-dev-rabbitmq
-    image: "docker.io/library/rabbitmq:3-management"
+    image: "docker.io/library/rabbitmq:4-management"
     state: started
     pod: bodhi-dev
 
