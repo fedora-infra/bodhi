@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install deps
-        run: pip install click sphinx sqlalchemy_schemadisplay
+        run: pip install --break-system-packages click sphinx sqlalchemy_schemadisplay
 
       - name: Build the docs
         run: devel/ci/bodhi-ci docs -r pip
