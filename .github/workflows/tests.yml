@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install deps
-        run: pip install click
+        run: pip install --break-system-packages click
 
       # we only really need to run the precommit checks for one release,
       # so we just do it for pip
@@ -51,7 +51,7 @@ jobs:
         shell: bash
 
       - name: Install deps
-        run: pip install diff-cover
+        run: pip install --break-system-packages diff-cover
 
       - name: Run the diff-cover check
         shell: bash
@@ -65,7 +65,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install deps
-        run: pip3 install click -r devel/ci/integration/requirements.txt
+        run: pip3 install --break-system-packages click -r devel/ci/integration/requirements.txt
 
       - name: Run the integration tests
         run: python3 devel/ci/bodhi-ci integration -r ${{ matrix.release }}
@@ -83,7 +83,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install deps
-        run: pip install click
+        run: pip install --break-system-packages click
 
       - name: Run the unit tests
         run: devel/ci/bodhi-ci unit -r ${{ matrix.release }} -m ${{matrix.module}}
@@ -107,7 +107,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install deps
-        run: pip install click -r docs/requirements.txt
+        run: pip install --break-system-packages click -r docs/requirements.txt
 
       - name: Build the docs
         run: devel/ci/bodhi-ci docs -r ${{ matrix.release }}
@@ -123,7 +123,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install deps
-        run: pip install click
+        run: pip install --break-system-packages click
 
       - name: Build the rpms
         run: devel/ci/bodhi-ci rpm -r ${{ matrix.release }}
