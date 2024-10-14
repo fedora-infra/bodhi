@@ -400,10 +400,12 @@ class TestValidateAcls(BasePyTestCase):
         assert not len(mock_request.errors)
         mock_gpcfp.assert_not_called()
 
+    @mock.patch('bodhi.server.models.Package.hascommitaccess',
+                return_value=False)
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['guest'], []))
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
-    def test_validate_acls_sidetag_wrong_owner(self, mock_gpcfp):
+    def test_validate_acls_sidetag_wrong_owner(self, mock_gpcfp, mock_access):
         """Test that a user can submit updates only for sidetags they owns."""
         mock_request = self.get_mock_request(sidetag=True)
         mock_request.validated['sidetag_owner'] = 'mattia'
@@ -411,15 +413,17 @@ class TestValidateAcls(BasePyTestCase):
         error = [{
             'location': 'body',
             'name': 'builds',
-            'description': 'guest does not own f33-build-side-0000 side-tag'
+            'description': 'guest does not have commit access to bodhi'
         }]
         assert mock_request.errors == error
         mock_gpcfp.assert_not_called()
 
+    @mock.patch('bodhi.server.models.Package.hascommitaccess',
+                return_value=False)
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['guest'], []))
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
-    def test_validate_acls_sidetag_owner_not_set(self, mock_gpcfp):
+    def test_validate_acls_sidetag_owner_not_set(self, mock_gpcfp, mock_access):
         """If side-tag update, sidetag_owner must be present in request."""
         mock_request = self.get_mock_request(sidetag=True)
         mock_request.validated['sidetag_owner'] = None
@@ -427,8 +431,7 @@ class TestValidateAcls(BasePyTestCase):
         error = [{
             'location': 'body',
             'name': 'builds',
-            'description': ('Update appear to be from side-tag, but we cannot determine '
-                            'the side-tag owner')
+            'description': 'guest does not have commit access to bodhi'
         }]
         assert mock_request.errors == error
         mock_gpcfp.assert_not_called()
@@ -444,10 +447,12 @@ class TestValidateAcls(BasePyTestCase):
         assert not len(mock_request.errors)
         mock_gpcfp.assert_not_called()
 
+    @mock.patch('bodhi.server.models.Package.hascommitaccess',
+                return_value=False)
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['guest'], []))
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
-    def test_validate_acls_sidetag_update_cannot_view_edit_page(self, mock_gpcfp):
+    def test_validate_acls_sidetag_update_cannot_view_edit_page(self, mock_gpcfp, mock_access):
         """Test that a user can display the edit form."""
         user = self.db.query(models.User).filter_by(id=2).one()
         self.db.flush()
@@ -458,7 +463,7 @@ class TestValidateAcls(BasePyTestCase):
         error = [{
             'location': 'body',
             'name': 'builds',
-            'description': 'guest does not own f33-build-side-0000 side-tag'
+            'description': 'guest does not have commit access to bodhi'
         }]
         assert mock_request.errors == error
         mock_gpcfp.assert_not_called()

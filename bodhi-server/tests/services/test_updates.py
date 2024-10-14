@@ -430,7 +430,7 @@ class TestNewUpdate(BasePyTestCase):
             with mock.patch('bodhi.server.models.Release.mandatory_days_in_testing', 0):
                 r = app.post_json('/updates/', update, status=403)
         assert r.json_body['errors'][0]['description'] == (
-            "mattia does not own f17-build-side-7777 side-tag"
+            "mattia does not have commit access to gnome-backgrounds"
         )
 
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task')
