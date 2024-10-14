@@ -455,9 +455,9 @@ def validate_acls(request, **kwargs):
     former update submitter doesn't have commit rights, the original submitter
     will lose their privs to edit the update.
 
-    In case of a side-tag update, we don't validate against the builds,
-    but we require the submitter to be whom created the side-tag.
-    The 'sidetag_owner' field is set by `validate_from_tag()`.
+    In case of a side-tag update, we require the submitter to be whom created
+    the side-tag. The 'sidetag_owner' field is set by `validate_from_tag()`.
+    If the requirement is not met we fall back to validating against the builds.
 
     Args:
         request (pyramid.request.Request): The current request.
@@ -515,31 +515,24 @@ def validate_acls(request, **kwargs):
         # the validate_from_tag() must have set the sidetag_owner field
         sidetag_owner = request.validated.get('sidetag_owner', None)
         if sidetag_owner is None:
-            error = ('Update appear to be from side-tag, but we cannot determine '
-                     'the side-tag owner')
-            request.errors.add('body', 'builds', error)
+            log.warning('Update appear to be from side-tag, but we cannot determine '
+                        'the side-tag owner')
+        elif sidetag_owner != user.name:
+            log.warning(f'{user.name} does not own {sidetag} side-tag')
+        else:
+            log.debug(f'{user.name} owns {sidetag} side-tag')
             return
-
-        if sidetag_owner != user.name:
-            request.errors.add('body',
-                               'builds',
-                               f'{user.name} does not own {sidetag} side-tag')
-            request.errors.status = 403
-        return
     elif 'update' in request.validated and sidetag:
         # This is a simplified check to avoid quering Koji for the side-tag owner
         # The user whom created the update is surely the one owning the side-tag
         update = request.validated['update']
         if user == update.user:
             log.debug(f'{user.name} owns {update.alias} side-tag update')
+            return
         else:
-            request.errors.add('body',
-                               'builds',
-                               f'{user.name} does not own {sidetag} side-tag')
-            request.errors.status = 403
-        return
+            log.warning(f'{user.name} does not own {sidetag} side-tag')
 
-    # For normal updates, check against every build
+    # Check against every build
     log.debug('Using builds validation method')
     for build in builds:
         # The whole point of the blocks inside this conditional is to determine
