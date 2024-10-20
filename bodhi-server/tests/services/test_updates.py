@@ -306,10 +306,12 @@ class TestNewUpdate(BasePyTestCase):
         assert up['errors'][0]['description'] == "Koji error getting build: bodhi-2.0.0-2.fc17"
 
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task')
+    @mock.patch('bodhi.server.services.updates.log.debug')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     @unused_mock_patch(**mock_uuid4_version1)
     @pytest.mark.parametrize('rawhide_workflow', (True, False))
-    def test_new_rpm_update_from_tag(self, handle_side_and_related_tags_task, rawhide_workflow):
+    def test_new_rpm_update_from_tag(self, log_debug,
+                                     handle_side_and_related_tags_task, rawhide_workflow):
         """Test creating an update using builds from a Koji tag."""
         # We don't want the new update to obsolete the existing one.
         self.db.delete(Update.query.one())
@@ -332,6 +334,7 @@ class TestNewUpdate(BasePyTestCase):
                     r = self.app.post_json('/updates/', update)
                     msg = mockpub.call_args.args[0]
 
+        log_debug.assert_any_call('guest owns f17-build-side-7777 side-tag')
         up = r.json_body
         assert up['title'] == 'gnome-backgrounds-3.0-1.fc17'
         assert up['builds'][0]['nvr'] == 'gnome-backgrounds-3.0-1.fc17'
@@ -395,14 +398,17 @@ class TestNewUpdate(BasePyTestCase):
         )
 
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task')
+    @mock.patch('bodhi.server.services.updates.log.warning')
+    @mock.patch('bodhi.server.services.updates.log.debug')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     @unused_mock_patch(**mock_uuid4_version1)
     @pytest.mark.parametrize('rawhide_workflow', (True, False))
-    def test_new_rpm_update_from_tag_wrong_owner(self, handle_side_and_related_tags_task,
+    def test_new_rpm_update_from_tag_wrong_owner(self, log_debug, log_warning,
+                                                 handle_side_and_related_tags_task,
                                                  rawhide_workflow):
         """
         Test creating an update using builds from a Koji tag fails if user doesn't own
-        the side-tag.
+        the side-tag and doesn't have rights to all builds in side-tag.
         """
         # We don't want the new update to obsolete the existing one.
         self.db.delete(Update.query.one())
@@ -429,9 +435,57 @@ class TestNewUpdate(BasePyTestCase):
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
             with mock.patch('bodhi.server.models.Release.mandatory_days_in_testing', 0):
                 r = app.post_json('/updates/', update, status=403)
+        log_warning.assert_called_once_with('mattia does not own f17-build-side-7777 side-tag')
+        log_debug.assert_any_call('Using builds validation method')
         assert r.json_body['errors'][0]['description'] == (
             "mattia does not have commit access to gnome-backgrounds"
         )
+
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task')
+    @mock.patch('bodhi.server.services.updates.log.warning')
+    @mock.patch('bodhi.server.services.updates.log.debug')
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    @unused_mock_patch(**mock_uuid4_version1)
+    @pytest.mark.parametrize('rawhide_workflow', (True, False))
+    def test_new_rpm_update_from_tag_wrong_owner_with_rights(self, log_debug, log_warning,
+                                                             handle_side_and_related_tags_task,
+                                                             rawhide_workflow):
+        """
+        Test creating an update using builds from a Koji tag succeed if user doesn't own
+        the side-tag BUT does have rights to all builds in side-tag.
+        """
+        # We don't want the new update to obsolete the existing one.
+        self.db.delete(Update.query.one())
+
+        if rawhide_workflow:
+            # We need a release that isn't composed by bodhi
+            release = Release.query.one()
+            release.composed_by_bodhi = False
+            self.db.commit()
+
+        update = self.get_update(builds=None, from_tag='f17-build-side-7777')
+
+        user = User(name='ralph')
+        self.db.add(user)
+        self.db.commit()
+        group = self.db.query(Group).filter_by(name='packager').one()
+        user.groups.append(group)
+
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing='ralph', session=self.db, **self.app_settings))
+
+        update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
+            with mock.patch('bodhi.server.models.Release.mandatory_days_in_testing', 0):
+                # we don't use mock_sends here as we want to do some custom checking
+                with mock.patch('bodhi.server.models.notifications.publish'):
+                    r = app.post_json('/updates/', update)
+
+        log_warning.assert_called_once_with('ralph does not own f17-build-side-7777 side-tag')
+        log_debug.assert_any_call('Using builds validation method')
+        up = r.json_body
+        assert up['title'] == 'gnome-backgrounds-3.0-1.fc17'
 
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
