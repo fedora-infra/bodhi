@@ -20,9 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Install deps
-        run: pip install --break-system-packages click sphinx sqlalchemy_schemadisplay
+        run: pip install click sphinx sqlalchemy_schemadisplay
 
       - name: Build the docs
         run: devel/ci/bodhi-ci docs -r pip
