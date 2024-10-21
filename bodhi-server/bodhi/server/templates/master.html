@@ -112,7 +112,7 @@
                             <a class="dropdown-item" href="${request.route_url('user', name=request.identity.name)}">
                                 Your Public Profile
                             </a>
-                            <a class="dropdown-item" href="${request.registry.settings.get('fmn_url')}${request.identity.openid}/">
+                            <a class="dropdown-item" href="${request.registry.settings.get('fmn_url')}/">
                                 Manage Alerts
                             </a>
                             % if request.identity:
