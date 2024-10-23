@@ -450,16 +450,16 @@ def test_get_user_view(bodhi_container, db_container):
         raise
 
 
-def create_avatar_url(username, size):
+def create_avatar_url(username, usermail, size):
     hardcoded_avatars = {
         'bodhi': f'https://apps.fedoraproject.org/img/icons/bodhi-{size}.png',
     }
     if username in hardcoded_avatars:
         return hardcoded_avatars[username]
 
-    openid = f"http://{username}.id.dev.fedoraproject.org/"
+    email = 'default' if not usermail else usermail
     query = urlencode({'s': size, 'd': 'retro'})
-    hash = hashlib.sha256(openid.encode('utf-8')).hexdigest()
+    hash = hashlib.sha256(email.lower().encode('utf-8')).hexdigest()
     return f"https://seccdn.libravatar.org/avatar/{hash}?{query}"
 
 
@@ -513,7 +513,7 @@ def test_get_users_json(bodhi_container, db_container):
         http_response = c.get("/users")
 
     for user in users:
-        user["avatar"] = create_avatar_url(user["name"], 24)
+        user["avatar"] = create_avatar_url(user["name"], user["email"], 24)
         user["openid"] = f"{user['name']}.id.dev.fedoraproject.org"
         # Python and SQL don't sort identically :(
         # Python: fedorabugs > fedora-contributor
@@ -588,7 +588,7 @@ def test_get_user_json(bodhi_container, db_container):
         "id": user_id,
         "name": user_name,
         "email": user_email,
-        "avatar": create_avatar_url(user_name, 24),
+        "avatar": create_avatar_url(user_name, user_email, 24),
         "openid": f"{user_name}.id.dev.fedoraproject.org",
         "groups": user_groups,
     }

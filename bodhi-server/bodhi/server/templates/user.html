@@ -5,11 +5,11 @@
   <div class="col-md-12">
     <div class="float-start">
       % if request.identity and user['name'] == request.identity.name:
-        <a href="https://www.libravatar.org/openid/login/?openid_identifier=${request.identity.openid}">
-          <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}" width="128px" height="128px" alt="User Icon"/>
+        <a href="https://www.libravatar.org/accounts/login/">
+          <img class="img-thumbnail" src="${self.util.avatar(user['name'], user['email'], size=128)}" width="128px" height="128px" alt="User Icon"/>
         </a>
       % else:
-        <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}" alt="User Icon"/>
+        <img class="img-thumbnail" src="${self.util.avatar(user['name'], user['email'], size=128)}" alt="User Icon"/>
       % endif
     </div>
     <div class="float-start" style="margin-left: 15px">

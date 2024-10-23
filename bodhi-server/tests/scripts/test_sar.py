@@ -34,7 +34,7 @@ from ..base import BasePyTestCase
 EXPECTED_USER_DATA_OUTPUT = """\
 ==========> User account data for: guest <==========
 
-email: None
+email: guest@bodhi-dev.example.com
 groups: ['packager']
 
 ----> Comments: <----
@@ -72,7 +72,7 @@ user: guest
 EXPECTED_JSON_OUTPUT = (
     '{"guest": {"comments": [{"karma": 1, "karma_critpath": 0, "text":'
     ' "wow. amaze.", "timestamp": "1984-11-02 00:00:00", "update_alias": '
-    '"ALIAS", "username": "guest"}], "email": null, "groups": '
+    '"ALIAS", "username": "guest"}], "email": "guest@bodhi-dev.example.com", "groups": '
     '["packager"], "name": "guest", "updates": [{"alias": '
     '"ALIAS", "autokarma": true, "bugs": [12345], "builds": '
     '["bodhi-2.0-1.fc17"], "close_bugs": true, "date_submitted": "1984-11-02 00:00:00", '

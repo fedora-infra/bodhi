@@ -24,6 +24,7 @@ import shutil
 import subprocess
 import tempfile
 
+from munch import munchify
 from webob.multidict import MultiDict
 import bleach
 import createrepo_c
@@ -38,13 +39,18 @@ from bodhi.server.models import ReleaseState, TestGatingStatus, Update
 from . import base
 
 
-class TestAvatar:
+class TestAvatar():
     """Test the avatar() function."""
 
     def test_libravatar_disabled(self):
         """If libravatar_enabled is False, libravatar.org should be returned."""
         config['libravatar_enabled'] = False
         context = {'request': mock.MagicMock()}
+        context['request'].identity = munchify(
+            {'name': 'bowlofeggs',
+             'email': 'bowlofeggs@bodhi-dev.example.com',
+             }
+        )
 
         def cache_on_arguments():
             """A fake cache - we aren't testing this so let's just return f."""
@@ -52,7 +58,8 @@ class TestAvatar:
 
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
-        assert util.avatar(context, 'bowlofeggs', 50) == 'libravatar.org'
+        avatar = util.avatar(context, 'bowlofeggs', 'bowlofeggs@bodhi-dev.example.com', 50)
+        assert avatar == 'libravatar.org'
 
     @mock.patch('bodhi.server.util.libravatar.libravatar_url', return_value='cool url')
     def test_libravatar_dns_set_ssl_false(self, libravatar_url):
@@ -64,6 +71,11 @@ class TestAvatar:
         })
         context = {'request': mock.MagicMock()}
         context['request'].registry.settings = config
+        context['request'].identity = munchify(
+            {'name': 'bowlofeggs',
+             'email': 'bowlofeggs@bodhi-dev.example.com',
+             }
+        )
 
         def cache_on_arguments():
             """A fake cache - we aren't testing this so let's just return f."""
@@ -71,9 +83,9 @@ class TestAvatar:
 
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
-        assert util.avatar(context, 'bowlofeggs', 50) == 'cool url'
-        openid_user_host = config['openid_template'].format(username='bowlofeggs')
-        libravatar_url.assert_called_once_with(openid=f'http://{openid_user_host}/',
+        avatar = util.avatar(context, 'bowlofeggs', 'bowlofeggs@bodhi-dev.example.com', 50)
+        assert avatar == 'cool url'
+        libravatar_url.assert_called_once_with(email='bowlofeggs@bodhi-dev.example.com',
                                                https=False, size=50, default='retro')
 
     @mock.patch('bodhi.server.util.libravatar.libravatar_url', return_value='cool url')
@@ -86,6 +98,11 @@ class TestAvatar:
         })
         context = {'request': mock.MagicMock()}
         context['request'].registry.settings = config
+        context['request'].identity = munchify(
+            {'name': 'bowlofeggs',
+             'email': 'bowlofeggs@bodhi-dev.example.com',
+             }
+        )
 
         def cache_on_arguments():
             """A fake cache - we aren't testing this so let's just return f."""
@@ -93,10 +110,45 @@ class TestAvatar:
 
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
-        assert util.avatar(context, 'bowlofeggs', 50) == 'cool url'
-        openid_user_host = config['openid_template'].format(username='bowlofeggs')
-        libravatar_url.assert_called_once_with(openid=f'http://{openid_user_host}/',
+        avatar = util.avatar(context, 'bowlofeggs', 'bowlofeggs@bodhi-dev.example.com', 50)
+        assert avatar == 'cool url'
+        libravatar_url.assert_called_once_with(email='bowlofeggs@bodhi-dev.example.com',
                                                https=True, size=50, default='retro')
+
+    @mock.patch('bodhi.server.util.libravatar.libravatar_url', return_value='cool url')
+    def test_libravatar_user_without_email(self, libravatar_url):
+        """Test the correct default value when retrieving avatar for user without email in db."""
+        config.update({
+            'libravatar_enabled': True,
+            'libravatar_dns': True,
+            'libravatar_prefer_tls': True,
+        })
+        context = {'request': mock.MagicMock()}
+        context['request'].registry.settings = config
+        context['request'].identity = munchify(
+            {'name': 'guest',
+             'email': 'guest@bodhi-dev.example.com',
+             }
+        )
+
+        def cache_on_arguments():
+            """A fake cache - we aren't testing this so let's just return f."""
+            return lambda x: x
+
+        context['request'].cache.cache_on_arguments = cache_on_arguments
+
+        avatar = util.avatar(context, 'bowlofeggs', None, 50)
+        assert avatar == 'cool url'
+        libravatar_url.assert_called_once_with(email='default',
+                                               https=True, size=50, default='retro')
+
+    @mock.patch('bodhi.server.util.libravatar.libravatar_url', return_value='cool url')
+    def test_user_with_hardcoded_avatar(self, libravatar_url):
+        """Test the correct return value when retrieving avatar for user with hardcoded avatar."""
+        context = {'request': mock.MagicMock()}
+        avatar = util.avatar(context, 'bodhi', None, 50)
+        assert avatar == 'https://apps.fedoraproject.org/img/icons/bodhi-50.png'
+        libravatar_url.assert_not_called()
 
 
 class TestBugLink:

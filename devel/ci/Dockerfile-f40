@@ -37,13 +37,11 @@ RUN dnf --best install -y \
     python3-librepo \
     python3-markdown \
     python3-munch \
-    python3-openid \
     python3-psycopg2 \
     python3-prometheus_client \
     python3-pylibravatar \
     python3-pymediawiki \
     python3-pyramid \
-    python3-pyramid-fas-openid \
     python3-pyramid-mako \
     python3-pytest \
     python3-pytest-cov \
