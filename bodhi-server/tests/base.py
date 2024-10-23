@@ -159,7 +159,7 @@ def populate(db):
     Args:
         db (sqlalchemy.orm.session.Session): The database session.
     """
-    user = models.User(name='guest')
+    user = models.User(name='guest', email='guest@bodhi-dev.example.com')
     db.add(user)
     anonymous = models.User(name='anonymous')
     db.add(anonymous)

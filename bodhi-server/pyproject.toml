@@ -108,7 +108,6 @@ py3dns = ">=3.2.1" # Should be required by pyLibravatar https://bugs.launchpad.n
 pyLibravatar = ">=1.6"
 pymediawiki = "^0.7"
 pyramid = "~2.0.0"
-pyramid-fas-openid = "^0.4.0"
 pyramid-mako = "^1.1"
 python-bugzilla = ">=3.2.0"
 PyYAML = ">=5.4.1"

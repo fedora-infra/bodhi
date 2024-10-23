@@ -92,7 +92,7 @@
                 % for tester, count in top_testers:
                 <div class="list-group-item">
                     <a href="${request.route_url('user', name=tester['name'])}">
-                      <img class="rounded-circle" src="${self.util.avatar(tester['name'], size=24)}" alt="User Icon"/>
+                      <img class="rounded-circle" src="${self.util.avatar(tester['name'], tester['email'], size=24)}" alt="User Icon"/>
                       ${tester['name']}
                     </a>
                   <div class="float-end">${str(count)} comments</div>
@@ -106,7 +106,7 @@
               % for tester, count in top_packagers:
               <div class="list-group-item">
                   <a href="${request.route_url('user', name=tester['name'])}">
-                    <img class="rounded-circle" src="${self.util.avatar(tester['name'], size=24)}" alt="User Icon"/>
+                    <img class="rounded-circle" src="${self.util.avatar(tester['name'], tester['email'], size=24)}" alt="User Icon"/>
                     ${tester['name']}
                   </a>
                 <div class="float-end">${str(count)} updates</div>

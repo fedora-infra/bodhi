@@ -85,12 +85,12 @@ ${parent.css()}
           <div class="form-group">
             %if override is not UNDEFINED:
             <a href="${request.route_url('user', name=override.submitter.name)}">
-              <img src="${util.avatar(override.submitter.name, size=24)}" alt="User Icon"/>
+              <img src="${util.avatar(override.submitter.name, override.submitter.email, size=24)}" alt="User Icon"/>
               ${override.submitter.name}
             </a>
             %else:
             <a href="${request.route_url('user', name=request.identity.name)}">
-              <img src="${util.avatar(request.identity.name, size=24)}" alt="User Icon"/>
+              <img src="${util.avatar(request.identity.name, override.submitter.email, size=24)}" alt="User Icon"/>
               ${request.identity.name}
             </a>
             %endif
@@ -187,7 +187,7 @@ ${parent.css()}
             </h5>
           <div>
             <a href="${request.route_url('user', name=override.submitter.name)}">
-              <img src="${util.avatar(override.submitter.name, size=24)}" alt="User Icon"/>
+              <img src="${util.avatar(override.submitter.name, override.submitter.email, size=24)}" alt="User Icon"/>
               ${override.submitter.name}
             </a>
           </div>

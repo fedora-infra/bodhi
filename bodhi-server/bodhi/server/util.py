@@ -425,13 +425,14 @@ hardcoded_avatars = {
 }
 
 
-def avatar(context, username, size):
+def avatar(context, username, usermail, size):
     """
     Return a URL of an avatar for the given username of the given size.
 
     Args:
         context (mako.runtime.Context): The current template rendering context.
         username (str): The username to return an avatar URL for.
+        usermail (str): The user email to return an avatar URL for.
         size (int): The size of the avatar you wish to retrieve, in unknown libravatar units.
     Returns:
         str: A URL to an avatar for the given username.
@@ -444,30 +445,30 @@ def avatar(context, username, size):
     # context is a mako context object
     request = context['request']
     https = request.registry.settings.get('libravatar_prefer_tls')
+    email = 'default' if not usermail else usermail
 
     @request.cache.cache_on_arguments()
-    def get_libravatar_url(openid, https, size):
+    def get_libravatar_url(email, https, size):
         return libravatar.libravatar_url(
-            openid=openid,
+            email=email,
             https=https,
             size=size,
             default='retro',
         )
 
-    def work(username, size):
-        openid = "http://" + config.get('openid_template').format(username=username) + "/"
+    def work(email, size):
         if config.get('libravatar_enabled'):
             if config.get('libravatar_dns'):
-                return get_libravatar_url(openid, https, size)
+                return get_libravatar_url(email, https, size)
             else:
                 query = urlencode({'s': size, 'd': 'retro'})
-                hash = hashlib.sha256(openid.encode('utf-8')).hexdigest()
+                hash = hashlib.sha256(email.lower().encode('utf-8')).hexdigest()
                 template = "https://seccdn.libravatar.org/avatar/%s?%s"
                 return template % (hash, query)
 
         return 'libravatar.org'
 
-    return work(username, size)
+    return work(email, size)
 
 
 def splitter(value):
