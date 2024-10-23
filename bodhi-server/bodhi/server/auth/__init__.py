@@ -20,8 +20,6 @@ def includeme(config):
     config.add_view('bodhi.server.auth.views.login', route_name='login')
     config.add_route('logout', '/logout')
     config.add_view('bodhi.server.auth.views.logout', route_name='logout')
-    config.add_route('verify_openid', pattern='/dologin.html')
-    config.add_view('pyramid_fas_openid.verify_openid', route_name='verify_openid')
 
     # OIDC (OpenID Connect)
     oauth = OAuth()

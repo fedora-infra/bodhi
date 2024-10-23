@@ -34,13 +34,6 @@ def login(request: 'pyramid.request.Request') -> HTTPFound:
         referrer = request.route_url('home')
     came_from = request.params.get('came_from', referrer)
     request.session['came_from'] = came_from
-    if request.GET.get("method", "oidc") == "openid":
-        oid_url = request.registry.settings['openid.url']
-        return HTTPFound(
-            location=request.route_url(
-                'verify_openid', _query=dict(openid=oid_url)
-            )
-        )
     # Use OIDC
     return HTTPFound(location=request.route_url('oidc_login'))
 

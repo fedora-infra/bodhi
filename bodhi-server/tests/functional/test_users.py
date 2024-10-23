@@ -59,7 +59,9 @@ class TestUsersService(base.BasePyTestCase):
         assert res.json_body['user']['name'] == 'guest'
 
         base = 'https://seccdn.libravatar.org/avatar/'
-        h = 'eb48e08cc23bcd5961de9541ba5156c385cd39799e1dbf511477aa4d4d3a37e7'
+        # This is the hash of 'guest@bodhi-dev.example.com'
+        # see fake_identity set up for testing in server __init__.py
+        h = '4b9fbd26009562b568c44bba075c5df741647dd1255ff7a29e2cfe0cba28f509'
         tail = '?d=retro&s=24'
         url = base + h
 

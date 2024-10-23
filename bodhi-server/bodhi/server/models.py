@@ -4867,7 +4867,7 @@ class User(Base):
         if not request:
             return None
         context = dict(request=request)
-        return get_avatar(context=context, username=self.name, size=24)
+        return get_avatar(context=context, username=self.name, usermail=self.email, size=24)
 
     def openid(self, request: 'pyramid.request') -> str:
         """

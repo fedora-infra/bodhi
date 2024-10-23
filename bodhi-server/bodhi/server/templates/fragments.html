@@ -129,7 +129,7 @@ ${statusmap[status]}\
           <div class="col font-size-09">
           % if comment.user:
           <a href="${request.route_url('user', name=comment.user.name)}" class="fw-bold notblue">
-            <img src="${util.avatar(comment.user.name, size=16)}" alt="User Icon"/>
+            <img src="${util.avatar(comment.user.name, comment.user.email, size=16)}" alt="User Icon"/>
             ${comment.user.name}
           </a>
           % if comment.text:

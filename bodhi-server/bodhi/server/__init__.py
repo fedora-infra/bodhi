@@ -220,8 +220,6 @@ def main(global_config, testing=None, session=None, **settings):
     for key in ('important_groups', 'admin_packager_groups', 'mandatory_packager_groups',
                 'admin_groups'):
         default.extend(bodhi_config.get(key))
-    # pyramid_fas_openid looks for this setting
-    bodhi_config['openid.groups'] = bodhi_config.get('openid.groups', default)
 
     config = Configurator(settings=bodhi_config, session_factory=session_factory)
 
@@ -268,7 +266,7 @@ def main(global_config, testing=None, session=None, **settings):
                         {'name': 'fedora-contributor'},
                         {'name': 'signed_fpca'},
                         {'name': 'fedorabugs'},],
-             'openid': bodhi_config['openid_template'].format(username=testing)}
+             }
         )
         config.testing_securitypolicy(userid=testing, identity=fake_identity, permissive=True)
     else:
