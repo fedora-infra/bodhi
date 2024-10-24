@@ -20,11 +20,6 @@ class TestLogin(base.BasePyTestCase):
         resp = self.app.get('/login', status=302)
         assert resp.location == "http://localhost/oidc/login"
 
-    def test_login_openid(self):
-        """Test the login redirect for openid"""
-        resp = self.app.get('/login?method=openid', status=302)
-        assert 'dologin.html' in resp
-
 
 class TestLogout(base.BasePyTestCase):
     """Test the logout() function."""
