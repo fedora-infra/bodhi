@@ -1122,7 +1122,7 @@ def _generate_wait_repo_command(override: munch.Munch, client: bindings.BodhiCli
     if 'release_id' in override.build:
         release = client.get_releases(ids=[override.build.release_id])['releases'][0]
         return ('koji', 'wait-repo', f'{release.dist_tag}-build',
-                f'--build={override.build.nvr}')
+                f'--build={override.build.nvr}', '--request')
     return None
 
 

@@ -147,7 +147,7 @@ ${parent.css()}
           <%doc>
             FIXME: Add a Release.build_tag column to the model?
           </%doc>
-          <pre class="font-size-09 bg-transparent mb-0 ps-0 pt-0"><code><small>$ koji wait-repo ${override.build.release.dist_tag}-build --build=${override.build.nvr}</small></code></pre>
+          <pre class="font-size-09 bg-transparent mb-0 ps-0 pt-0"><code><small>$ koji wait-repo ${override.build.release.dist_tag}-build --build=${override.build.nvr} --request</small></code></pre>
         </div>
         %endif
 
