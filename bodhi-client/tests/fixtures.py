@@ -894,7 +894,7 @@ EXPECTED_OVERRIDES_OUTPUT = EXPECTED_OVERRIDE_STR_OUTPUT + """
 
 Use the following to ensure the override is active:
 
-\t$ koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25
+\t$ koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 --request
 
 """
 

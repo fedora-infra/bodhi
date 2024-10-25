@@ -813,7 +813,7 @@ class TestPrintOverrideKojiHint:
 
         echo.assert_called_once_with(
             '\n\nUse the following to ensure the override is active:\n\n\t$ koji '
-            'wait-repo f25-build --build=python-pyramid-1.5.6-3.fc25\n')
+            'wait-repo f25-build --build=python-pyramid-1.5.6-3.fc25 --request\n')
         c.send_request.assert_called_once_with('releases/', verb='GET',
                                                params={'ids': [15]})
 
@@ -1324,11 +1324,12 @@ class TestSaveBuildrootOverrides:
 
         assert result.exit_code == 0
         expected_output = (
-            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'.format(
+            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 '
+            '--request\n\n'.format(
                 client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT))
         assert result.output == expected_output
         call.assert_called_once_with(
-            ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
+            ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25', '--request'),
             stderr=-1, stdout=-1)
 
     def test_wait_flag(self, mocked_client_class, mocker):
@@ -1353,11 +1354,12 @@ class TestSaveBuildrootOverrides:
 
         assert result.exit_code == 0
         expected_output = (
-            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'.format(
+            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 '
+            '--request\n\n'.format(
                 client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT))
         assert result.output == expected_output
         call.assert_called_once_with(
-            ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
+            ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25', '--request'),
             stderr=-1, stdout=-1)
 
     def test_wait_flag_fail(self, mocked_client_class, mocker):
@@ -1382,12 +1384,12 @@ class TestSaveBuildrootOverrides:
 
         assert result.exit_code == 42
         expected_output = (
-            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'
+            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 --request\n\n'
             'WARNING: ensuring active override failed for js-tag-it-2.0-1.fc25\n')
         expected_output = expected_output.format(client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT)
         assert result.output == expected_output
         call.assert_called_once_with(
-            ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
+            ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25', '--request'),
             stderr=-1, stdout=-1)
 
     def test_create_multiple_overrides(self, mocked_client_class):
@@ -2032,11 +2034,12 @@ class TestEditBuildrootOverrides:
 
         assert result.exit_code == 0
         expected_output = (
-            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'.format(
+            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 '
+            '--request\n\n'.format(
                 client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT))
         assert result.output == expected_output
         call.assert_called_once_with(
-            ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
+            ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25', '--request'),
             stderr=-1, stdout=-1)
 
     def test_wait_flag_fail(self, mocked_client_class, mocker):
@@ -2060,12 +2063,12 @@ class TestEditBuildrootOverrides:
 
         assert result.exit_code == 24
         expected_output = (
-            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'
+            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 --request\n\n'
             'WARNING: ensuring active override failed for js-tag-it-2.0-1.fc25\n')
         expected_output = expected_output.format(client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT)
         assert result.output == expected_output
         call.assert_called_once_with(
-            ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
+            ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25', '--request'),
             stderr=-1, stdout=-1)
 
 
