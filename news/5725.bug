@@ -1,1 +1,0 @@
-Fixed a build validation issue which would prevent a sidetag update from being submitted in some circumstances
