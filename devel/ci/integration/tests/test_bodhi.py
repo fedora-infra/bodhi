@@ -200,8 +200,7 @@ def test_get_releases_view(bodhi_container, db_container):
     with conn:
         with conn.cursor() as curs:
             curs.execute(query)
-            for record in curs:
-                expected_releases = [r[0] for r in curs]
+            expected_releases = [r[0] for r in curs]
     conn.close()
 
     # GET on /releases

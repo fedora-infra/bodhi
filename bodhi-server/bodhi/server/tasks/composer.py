@@ -1506,8 +1506,8 @@ class ModuleComposerThread(PungiComposerThread):
         for update in self.compose.updates:
             # We need to get the Koji builds also for the updates.
             koji.multicall = True
-            for update in self.compose.updates:
-                for build in update.builds:
+            for updt in self.compose.updates:
+                for build in updt.builds:
                     koji.getBuild(build.nvr)
             results = koji.multiCall()
             for result, build in zip(results, update.builds):

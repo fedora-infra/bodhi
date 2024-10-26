@@ -441,11 +441,9 @@ class TestEnumMeta:
                            {'testing': ('testing', 'Testing'), 'stable': ('stable', 'Stable')})
         expected_values = ['testing', 'stable']
 
-        for v in iter(m):
-            assert repr(v) == '<{}>'.format(expected_values.pop(0))
+        for v, e in zip(iter(m), expected_values):
+            assert repr(v) == f'<{e}>'
             assert type(v) is model.EnumSymbol  # noqa: E721
-
-        assert expected_values == []
 
 
 class TestEnumSymbol:
@@ -456,10 +454,8 @@ class TestEnumSymbol:
         s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
         expected_values = ['value', 'description']
 
-        for v in iter(s):
-            assert v == expected_values.pop(0)
-
-        assert expected_values == []
+        for v, e in zip(iter(s), expected_values):
+            assert v == e
 
     def test___json__(self):
         """Ensure that the __json__() method returns the value."""

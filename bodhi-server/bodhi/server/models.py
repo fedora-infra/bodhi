@@ -3117,7 +3117,7 @@ class Update(Base):
 
             LockedUpdateException: If the update is locked.
         """
-        log.debug('Attempting to set request %s' % action)
+        log.debug(f'Attempting to set request {action}')
         notes = []
         if isinstance(action, str):
             action = UpdateRequest.from_string(action)
