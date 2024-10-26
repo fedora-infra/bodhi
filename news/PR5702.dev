@@ -1,1 +1,0 @@
-Calls to `datetime.datetime.utcnow()` have been changed to `datetime.datetime.now(datetime.timezone.utc)`. We previously assumed all datetimes were UTC based, now this is explicit by using timezone aware datetimes

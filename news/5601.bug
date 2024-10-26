@@ -1,1 +1,0 @@
-Openid based login support has been removed from Bodhi. `python-openid` and `pyramid-fas-openid` are EOL and we moved to OIDC authentication.

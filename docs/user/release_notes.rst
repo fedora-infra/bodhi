@@ -4,6 +4,104 @@ Release notes
 
 .. towncrier release notes start
 
+v8.2.0
+======
+
+
+
+Released on 2024-10-26.
+This is a feature release that needs configuration file adjustments. See the
+following notes for the details.
+
+
+Backwards incompatible changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Bodhi's update status checking has been overhauled, and some configuration
+  options have changed.
+
+  * `critpath.num_admin_approvals` is removed. This backed the old Fedora "proven
+    testers" concept, which has not been used for some years.
+  * `critpath.min_karma` is removed and is replaced by a new setting just called
+    `min_karma`. This applies to all updates, not just critical path.
+  * `critpath.stable_after_days_without_negative_karma` is renamed to
+    `critpath.mandatory_days_in_testing` and its behavior has changed: there is no
+    longer any check for 'no negative karma'. Critical path updates, like
+    non-critical path updates, can now be manually pushed stable after reaching
+    this time threshold even if they have negative karma.
+
+  As before, these settings can be specified with prefixes to apply only to
+  particular releases and milestones. `min_karma` and
+  `(critpath.)mandatory_days_in_testing` now act strictly and consistently as
+  minimum requirements for stable push. Any update may be pushed stable once it
+  reaches either of those thresholds (and passes gating requirements, if gating
+  is enabled). The update's `stable_karma` value is no longer ever considered in
+  determining whether it may be pushed stable. `stable_karma` and `stable_days` are
+  only used as triggers for automatic stable pushes (but for an update to be
+  automatically pushed it must *also* reach either `min_karma` or
+  `(critpath.)mandatory_days_in_testing`).
+
+  The most obvious practical result of this change for Fedora is that, during
+  phases where the policy minimum karma requirement is +2, you will no longer
+  be able to make non-critical path updates pushable with +1 karma by setting
+  this as their `stable_karma` value. Additionally:
+
+  * It is no longer possible to set an update's request to 'stable' if it has
+    previously met requirements but currently does not
+  * Two cases where updates that reached their unstable_karma thresholds were
+    not obsoleted are resolved
+  * Updates in 'pending' as well as 'testing' status have autopush disabled
+    upon receiving any negative karma
+  * The `date_approved` property of updates is more consistently set as the
+    date the update first became eligible for stable push (:pr:`5630`).
+
+Features
+^^^^^^^^
+
+* When searching updates, you can now specify multiple gating statuses by
+  passing the 'gating' query arg more than once (:pr:`5658`).
+* Bundled fedora-bootstrap has been updated to 5.3.3-0 (:pr:`5711`).
+* A packager can now edit a side-tag update even if the side-tag is not owned
+  by them, provided they have commit rights on all packages included in the
+  side-tag (:pr:`5764`).
+
+Bug fixes
+^^^^^^^^^
+
+* The development.ini.example config - on which the BCD config is based - is
+  now set up to listen on both IPv4 and IPv6 (:pr:`5659`).
+* Openid based login support has been removed from Bodhi. `python-openid` and
+  `pyramid-fas-openid` are EOL and we moved to OIDC authentication.
+  (:issue:`5601`).
+* Fixed a build validation issue which would prevent a sidetag update from
+  being submitted in some circumstances (:issue:`5725`).
+* Fixed broken pagination for listing updates in webUI and JSON
+  (:issue:`5738`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Calls to `datetime.datetime.utcnow()` have been changed to
+  `datetime.datetime.now(datetime.timezone.utc)`. We previously assumed all
+  datetimes were UTC based, now this is explicit by using timezone aware
+  datetimes (:pr:`5702`).
+
+Documentation improvements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Bodhi's documentation is now served from ReadTheDocs pages (:pr:`5774`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Williamson
+* Mattia Verga
+* Nikola Forró
+* Ryan Lerch
+
+
 v8.1.1
 ======
 

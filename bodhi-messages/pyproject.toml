@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhi-messages"
-version = "8.1.1"
+version = "8.2.0"
 description = "JSON schema for messages sent by Bodhi"
 readme = "README.rst"
 authors = ["Fedora Infrastructure Team"]
@@ -22,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: System :: Software Distribution"
 ]
 
