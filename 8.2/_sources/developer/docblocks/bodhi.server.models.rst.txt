@@ -34,6 +34,7 @@
       ReleaseState
       RpmBuild
       RpmPackage
+      TZDateTime
       TestCase
       TestCaseKarma
       TestGatingStatus
