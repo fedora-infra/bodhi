@@ -4,11 +4,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bodhi.server.models &#8212; bodhi 8.1.1 documentation</title>
+    <title>bodhi.server.models &#8212; bodhi 8.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=9f6847e8" />
-    <script src="../../../_static/documentation_options.js?v=23ce250a"></script>
-    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=1f462c57" />
+    <script src="../../../_static/documentation_options.js?v=15c97ff8"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -49,8 +50,8 @@
 <span class="sd">&quot;&quot;&quot;Bodhi&#39;s database models.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span><span class="p">,</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">textwrap</span> <span class="kn">import</span> <span class="n">wrap</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urljoin</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
@@ -427,6 +428,42 @@
         <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialect_impl</span><span class="p">(</span><span class="n">bind</span><span class="o">.</span><span class="n">dialect</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">SchemaType</span><span class="p">):</span>
             <span class="n">t</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">bind</span><span class="p">,</span> <span class="n">checkfirst</span><span class="o">=</span><span class="n">checkfirst</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="TZDateTime">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.TZDateTime">[docs]</a>
+<span class="k">class</span> <span class="nc">TZDateTime</span><span class="p">(</span><span class="n">TypeDecorator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A database column type to mock timezone aware DateTime.</span>
+
+<span class="sd">    In Bodhi all times are considered UTC, so we store naive datetimes in db</span>
+<span class="sd">    and always return aware datetimes in UTC.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">impl</span> <span class="o">=</span> <span class="n">DateTime</span>
+    <span class="n">cache_ok</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;See ``sqlalchemy.types.TypeDecorator.cache_ok``&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TZDateTime.process_bind_param">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.TZDateTime.process_bind_param">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_bind_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert time to UTC and store as naive.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">or</span> <span class="n">value</span><span class="o">.</span><span class="n">tzinfo</span><span class="o">.</span><span class="n">utcoffset</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;tzinfo is required&quot;</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="TZDateTime.process_result_value">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.TZDateTime.process_result_value">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_result_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return datetime with UTC timezone.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
 </div>
 
 
@@ -1854,7 +1891,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;query_wiki_test_cases&#39;</span><span class="p">):</span>
             <span class="k">return</span>
 
-        <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Querying the wiki for test cases of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">wiki</span> <span class="o">=</span> <span class="n">MediaWiki</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;wiki_url&#39;</span><span class="p">),</span>
@@ -1899,7 +1936,7 @@
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Added testcase &quot;</span><span class="si">{</span><span class="n">case</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
         <span class="n">db</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Finished querying for test cases in </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Finished querying for test cases in </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
 </div>
 
 
@@ -2230,11 +2267,11 @@
     <span class="n">close_bugs</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Timestamps</span>
-    <span class="n">date_submitted</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">date_modified</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
-    <span class="n">date_approved</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
-    <span class="n">date_testing</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
-    <span class="n">date_stable</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
+    <span class="n">date_submitted</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">date_modified</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">)</span>
+    <span class="n">date_approved</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">)</span>
+    <span class="n">date_testing</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">)</span>
+    <span class="n">date_stable</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">)</span>
 
     <span class="c1"># eg: FEDORA-EPEL-2009-12345</span>
     <span class="n">alias</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">(</span><span class="mi">64</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -2669,7 +2706,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">gotsat</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">gotunsat</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">recent</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_modified</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">recent</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_modified</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">satisfied</span><span class="p">,</span> <span class="n">unsatisfied</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_greenwave_requirements_generator</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">satisfied</span><span class="p">:</span>
                 <span class="n">gotsat</span> <span class="o">=</span> <span class="kc">True</span>
@@ -3021,7 +3058,7 @@
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">up</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
-        <span class="n">up</span><span class="o">.</span><span class="n">date_modified</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+        <span class="n">up</span><span class="o">.</span><span class="n">date_modified</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
 
         <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">update_schemas</span><span class="o">.</span><span class="n">UpdateEditV2</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
             <span class="n">message</span><span class="o">=</span><span class="p">{</span>
@@ -3312,6 +3349,15 @@
         <span class="k">return</span> <span class="n">val</span></div>
 
 
+<div class="viewcode-block" id="Update.get_bug_karma">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_bug_karma">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_bug_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bug</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Redirect to get_bug_feedback().&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;get_bug_karma() is deprecated, use get_bug_feedback(); date=2024-06-12&quot;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bug_feedback</span><span class="p">(</span><span class="n">bug</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="Update.get_bug_feedback">
 <a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_bug_feedback">[docs]</a>
     <span class="k">def</span> <span class="nf">get_bug_feedback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bug</span><span class="p">):</span>
@@ -3336,6 +3382,16 @@
                     <span class="k">elif</span> <span class="n">feedback</span><span class="o">.</span><span class="n">feedback</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">bad</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">bad</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">good</span></div>
+
+
+<div class="viewcode-block" id="Update.get_testcase_karma">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.Update.get_testcase_karma">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_testcase_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">testcase</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Redirect to get_testcase_feedback().&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;get_testcase_karma() is deprecated, use get_testcase_feedback(); &quot;</span>
+                      <span class="s2">&quot;date=2024-06-12&quot;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_testcase_feedback</span><span class="p">(</span><span class="n">testcase</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Update.get_testcase_feedback">
@@ -4199,7 +4255,7 @@
                          <span class="s2">&quot;requirements&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
                 <span class="k">return</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_approved</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">date_approved</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">date_approved</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Automatically marking </span><span class="si">%s</span><span class="s2"> as stable&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_request</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span><span class="p">,</span> <span class="n">agent</span><span class="p">)</span>
             <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">update_schemas</span><span class="o">.</span><span class="n">UpdateKarmaThresholdV1</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
@@ -4361,7 +4417,7 @@
 <span class="sd">            int: The number of days since this update&#39;s date_testing if it is set, else 0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_testing</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_testing</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_testing</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
 
@@ -4612,8 +4668,9 @@
     <span class="c1"># need the ability to query inside this so the JSONB type probably isn&#39;t useful.</span>
     <span class="n">checkpoints</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="n">error_message</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">)</span>
-    <span class="n">date_created</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span>
-    <span class="n">state_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span>
+    <span class="n">date_created</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
+    <span class="n">state_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
 
     <span class="n">release</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Release&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;composes&#39;</span><span class="p">)</span>
     <span class="n">state</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ComposeState</span><span class="o">.</span><span class="n">db_type</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ComposeState</span><span class="o">.</span><span class="n">requested</span><span class="p">)</span>
@@ -4737,7 +4794,7 @@
 <span class="sd">                transition.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">old</span><span class="p">:</span>
-            <span class="n">target</span><span class="o">.</span><span class="n">state_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span></div>
+            <span class="n">target</span><span class="o">.</span><span class="n">state_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>
@@ -4814,6 +4871,16 @@
 <span class="n">event</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="n">Compose</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="s1">&#39;set&#39;</span><span class="p">,</span> <span class="n">Compose</span><span class="o">.</span><span class="n">update_state_date</span><span class="p">,</span> <span class="n">active_history</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="BugKarma">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugKarma">[docs]</a>
+<span class="k">def</span> <span class="nf">BugKarma</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Redirect to BugKarma class.&quot;&quot;&quot;</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Class BugKarma is deprecated, use BugFeedback; date=2024-06-12&quot;</span><span class="p">,</span>
+                  <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">BugFeedback</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
 <span class="c1"># Used for one-to-one relationships between a comment and a bug</span>
 <div class="viewcode-block" id="BugFeedback">
 <a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugFeedback">[docs]</a>
@@ -4829,6 +4896,17 @@
 
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s1">&#39;comment_bug_assoc&#39;</span>
 
+<div class="viewcode-block" id="BugFeedback.__getattribute__">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.BugFeedback.__getattribute__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecate BugFeedback properties warnings.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s1">&#39;karma&#39;</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;BugFeedback&#39;s karma class variable is deprecated, &quot;</span>
+                          <span class="s2">&quot;use feedback instead; date=2024-06-12&quot;</span><span class="p">,</span>
+                          <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
+
+
     <span class="n">feedback</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="c1"># DEPRECATED this is only for temporary backwards compatibility</span>
     <span class="n">karma</span> <span class="o">=</span> <span class="n">synonym</span><span class="p">(</span><span class="s1">&#39;feedback&#39;</span><span class="p">)</span>
@@ -4839,6 +4917,16 @@
 
     <span class="n">bug_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;bugs.bug_id&#39;</span><span class="p">))</span>
     <span class="n">bug</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;Bug&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;feedback&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TestCaseKarma">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseKarma">[docs]</a>
+<span class="k">def</span> <span class="nf">TestCaseKarma</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Redirect to TestCaseKarma class.&quot;&quot;&quot;</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Class TestCaseKarma is deprecated, use TestCaseFeedback; date=2024-06-12&quot;</span><span class="p">,</span>
+                  <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">TestCaseFeedback</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 
@@ -4856,6 +4944,17 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s1">&#39;comment_testcase_assoc&#39;</span>
+
+<div class="viewcode-block" id="TestCaseFeedback.__getattribute__">
+<a class="viewcode-back" href="../../../developer/docblocks/bodhi.server.models.html#bodhi.server.models.TestCaseFeedback.__getattribute__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecate TestCaseFeedback properties warnings.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s1">&#39;karma&#39;</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;TestCaseFeedback&#39;s karma class variable is deprecated, &quot;</span>
+                          <span class="s2">&quot;use feedback instead; date=2024-06-12&quot;</span><span class="p">,</span>
+                          <span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
+
 
     <span class="n">feedback</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="c1"># DEPRECATED this is only for temporary backwards compatibility</span>
@@ -4882,7 +4981,7 @@
 <span class="sd">            **DEPRECATED** no longer used in the UI</span>
 <span class="sd">        text (str): The text of the comment.</span>
 <span class="sd">        timestamp (datetime.datetime): The time the comment was created. Defaults to</span>
-<span class="sd">            the return value of datetime.utcnow().</span>
+<span class="sd">            the return value of datetime.now(timezone.utc).</span>
 <span class="sd">        update (Update): The update that this comment pertains to.</span>
 <span class="sd">        user (User): The user who wrote this comment.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -4894,7 +4993,7 @@
     <span class="n">karma</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">karma_critpath</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
 
     <span class="c1"># One-to-many relationships</span>
     <span class="n">bug_feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;BugFeedback&#39;</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s1">&#39;comment&#39;</span><span class="p">,</span>
@@ -5231,7 +5330,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="n">context</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">get_avatar</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">get_avatar</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">usermail</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">email</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="User.openid">
@@ -5304,9 +5403,10 @@
 
     <span class="n">notes</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="n">submission_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">expiration_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">expired_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">)</span>
+    <span class="n">submission_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+                             <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">expiration_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">expired_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">)</span>
 
     <span class="c1"># Many-to-one relationships</span>
     <span class="n">build_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;builds.id&#39;</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -5397,7 +5497,7 @@
         <span class="k">if</span> <span class="s1">&#39;submission_date&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="n">override</span><span class="o">.</span><span class="n">submission_date</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;submission_date&#39;</span><span class="p">]</span>
 
-        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">override</span><span class="o">.</span><span class="n">expired_date</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">override</span><span class="o">.</span><span class="n">expiration_date</span> <span class="o">&gt;</span> <span class="n">now</span><span class="p">:</span>
             <span class="c1"># Buildroot override had expired, we need to unexpire it</span>
@@ -5440,7 +5540,7 @@
                 <span class="n">koji_session</span><span class="o">.</span><span class="n">untagBuild</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to untag override </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">: &#39;</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">expired_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expired_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
 
         <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">override_schemas</span><span class="o">.</span><span class="n">BuildrootOverrideUntagV1</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
             <span class="p">{</span><span class="s1">&#39;override&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="p">}))</span></div>
@@ -5452,7 +5552,7 @@
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <p class="logo">
   <a href="../../../index.html">
@@ -5538,8 +5638,8 @@
       &#169;2007-2024, Red Hat, Inc..
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
 
