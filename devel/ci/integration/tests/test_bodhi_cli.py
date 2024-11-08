@@ -150,7 +150,7 @@ def test_composes_list(bodhi_container, db_container):
     assert result.exit_code == 0
     # Parse command output
     updates_by_compose = {}
-    output_parser = re.compile(r"[\*\s]?([\w-]+)\s*:\s+(\d+) updates \((\w+)\)")
+    output_parser = re.compile(r"[\*\s]?([\w\.-]+)\s*:\s+(\d+) updates \((\w+)\)")
     for line in result.output.splitlines():
         match = output_parser.match(line)
         assert match is not None
