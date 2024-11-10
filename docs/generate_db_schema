@@ -2,6 +2,8 @@
 """
 Generate an image of the database schema
 """
+import os
+
 from packaging import version
 from sqlalchemy import create_engine
 from sqlalchemy_schemadisplay import create_schema_graph
@@ -11,6 +13,9 @@ except ImportError:
     sqlschemaver = '1.0'
 
 from bodhi.server import models
+
+
+DOCS_DIR = os.path.dirname(__file__)
 
 
 def write_graph(filename):
@@ -35,4 +40,4 @@ def write_graph(filename):
 
 
 if __name__ == '__main__':
-    write_graph('generated/database.png')
+    write_graph(f'{DOCS_DIR}/generated/database.png')
