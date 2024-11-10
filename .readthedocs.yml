@@ -19,16 +19,22 @@ build:
   tools:
     python: "3.10"
   apt_packages:
+    - graphviz
     - libkrb5-dev
+    - python3-pydot
     - python3-rpm
     - python3-librepo
   jobs:
     post_install:
-      - pip install rpm
+      - pip install sqlalchemy-schemadisplay rpm
       - dpkg -L python3-librepo
       - ln -s /usr/lib/python3/dist-packages/librepo $READTHEDOCS_VIRTUALENV_PATH/lib/python3.10/site-packages/librepo
       - cp devel/development.ini.example bodhi-server/development.ini
       - python -c "import bodhi.server.models"
+    pre_build:
+      - mkdir -p docs/generated
+      - python docs/generate_db_schema
+      - python docs/generate_json_schema
   # commands:
   #   - ./devel/ci/bodhi-ci docs -r pip
   #   - mv test_results/pip-docs/html/ $READTHEDOCS_OUTPUT/
