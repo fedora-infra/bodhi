@@ -3439,7 +3439,7 @@
 
 <span class="sd">            LockedUpdateException: If the update is locked.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Attempting to set request </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">action</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Attempting to set request </span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">notes</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">action</span> <span class="o">=</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
