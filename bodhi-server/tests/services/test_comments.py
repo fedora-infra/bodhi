@@ -21,7 +21,6 @@ from unittest import mock
 import copy
 
 from fedora_messaging import api, testing as fml_testing
-import pytest
 import webtest
 
 from bodhi.messages.schemas import update as update_schemas
@@ -106,14 +105,10 @@ class TestCommentsService(base.BasePyTestCase):
         assert res.json_body['comment']['user_id'] == 1
         assert res.json_body['comment']['karma_critpath'] == -1
 
-    @pytest.mark.parametrize('compat', (True, False))
-    def test_commenting_with_bug_feedback(self, compat):
+    def test_commenting_with_bug_feedback(self):
         comment = self.make_comment()
         comment['bug_feedback.0.bug_id'] = 12345
-        if compat:
-            comment['bug_feedback.0.karma'] = 1
-        else:
-            comment['bug_feedback.0.feedback'] = 1
+        comment['bug_feedback.0.karma'] = 1
 
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
             res = self.app.post_json('/comments/', comment)
@@ -230,7 +225,7 @@ class TestCommentsService(base.BasePyTestCase):
         """Ensure that a comment without text or feedback is not permitted."""
         comment = self.make_comment(text='')
         comment['bug_feedback.0.bug_id'] = 12345
-        comment['bug_feedback.0.feedback'] = 0
+        comment['bug_feedback.0.karma'] = 0
         comment['testcase_feedback.0.testcase_name'] = "Wat"
         comment['testcase_feedback.0.karma'] = 0
         res = self.app.post_json('/comments/', comment, status=400)

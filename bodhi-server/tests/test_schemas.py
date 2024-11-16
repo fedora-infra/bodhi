@@ -26,7 +26,7 @@ class TestSchemas:
             'text': 'this is an update comment',
             'karma': -1,
             'karma_critpath': 1,
-            'bug_feedback': [{'bug_id': 1, 'feedback': 1}],
+            'bug_feedback': [{'bug_id': 1, 'karma': 1}],
             'testcase_feedback': [{'testcase_name': "wat", 'karma': -1}],
         }
         flat_structure = {
@@ -34,7 +34,7 @@ class TestSchemas:
             'karma': -1,
             'karma_critpath': 1,
             'bug_feedback.0.bug_id': 1,
-            'bug_feedback.0.feedback': 1,
+            'bug_feedback.0.karma': 1,
             'testcase_feedback.0.testcase_name': 'wat',
             'testcase_feedback.0.karma': -1,
         }

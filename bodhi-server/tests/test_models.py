@@ -46,7 +46,7 @@ from bodhi.server.exceptions import (
     LockedUpdateException,
 )
 from bodhi.server.models import (
-    BugFeedback,
+    BugKarma,
     PackageManager,
     ReleaseState,
     TestGatingStatus,
@@ -2260,19 +2260,19 @@ class TestUpdateVersionHash(BasePyTestCase):
 
 
 class TestUpdateGetBugKarma(BasePyTestCase):
-    """Test the get_bug_feedback() method."""
+    """Test the get_bug_karma() method."""
 
     def test_feedback_wrong_bug(self):
         """Feedback for other bugs should be ignored."""
         update = model.Update.query.first()
-        # Let's add a bug feedback to the existing comment on the bug.
-        bk = model.BugFeedback(feedback=1, comment=update.comments[0], bug=update.bugs[0])
+        # Let's add a bug karma to the existing comment on the bug.
+        bk = model.BugKarma(karma=1, comment=update.comments[0], bug=update.bugs[0])
         self.db.add(bk)
         # Now let's associate a new bug with the update.
         bug = model.Bug(bug_id=12345, title='some title')
         update.bugs.append(bug)
 
-        bad, good = update.get_bug_feedback(bug)
+        bad, good = update.get_bug_karma(bug)
 
         assert bad == 0
         assert good == 0
@@ -2285,10 +2285,10 @@ class TestUpdateGetBugKarma(BasePyTestCase):
             comment = model.Comment(text='Test comment', karma=karma, user=user)
             self.db.add(comment)
             update.comments.append(comment)
-            bug_karma = model.BugFeedback(feedback=karma, comment=comment, bug=update.bugs[0])
+            bug_karma = model.BugKarma(karma=karma, comment=comment, bug=update.bugs[0])
             self.db.add(bug_karma)
 
-        bad, good = update.get_bug_feedback(update.bugs[0])
+        bad, good = update.get_bug_karma(update.bugs[0])
 
         assert bad == -1
         assert good == 2
@@ -2299,7 +2299,7 @@ class TestUpdateGetBugKarma(BasePyTestCase):
         self.db.add(comment)
         update.comments.append(comment)
 
-        bad, good = update.get_bug_feedback(update.bugs[0])
+        bad, good = update.get_bug_karma(update.bugs[0])
 
         assert bad == 0
         assert good == 0
@@ -3676,9 +3676,9 @@ class TestUpdate(ModelTest):
         assert update.bugs[0].bug_id == 4321
         assert self.db.query(model.Bug).filter_by(bug_id=1234).first() is None
 
-        # Try removing a bug when it already has BugFeedback
-        bug_feedback = BugFeedback(bug_id=4321, feedback=1)
-        self.db.add(bug_feedback)
+        # Try removing a bug when it already has BugKarma
+        karma = BugKarma(bug_id=4321, karma=1)
+        self.db.add(karma)
         self.db.flush()
         bugs = ['5678']
         update.update_bugs(bugs, session)

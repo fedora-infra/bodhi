@@ -584,8 +584,8 @@ elif can_edit and update.status.value == 'testing' and update.test_gating_status
         <div class="list-group-item">
           <div class="row align-self-center">
             <div class="col fw-bold">${self.util.bug_link(bug) | n}</div>
-            <div class="col-auto ps-3 fw-bold">${self.fragments.karma(update.get_bug_feedback(bug)[0], show_digit=True, zero_thumbsup=False)}</div>
-            <div class="col-auto ps-3 fw-bold">${self.fragments.karma(update.get_bug_feedback(bug)[1], show_digit=True, zero_thumbsup=True)}</div>
+            <div class="col-auto ps-3 fw-bold">${self.fragments.karma(update.get_bug_karma(bug)[0], show_digit=True, zero_thumbsup=False)}</div>
+            <div class="col-auto ps-3 fw-bold">${self.fragments.karma(update.get_bug_karma(bug)[1], show_digit=True, zero_thumbsup=True)}</div>
           </div>
         </div>
         % endfor

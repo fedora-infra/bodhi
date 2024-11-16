@@ -130,16 +130,10 @@ class BugFeedback(colander.MappingSchema):
     """A schema for BugFeedback to be provided via API parameters."""
 
     bug_id = colander.SchemaNode(colander.Integer())
-    feedback = colander.SchemaNode(
-        colander.Integer(),
-        validator=colander.Range(min=-1, max=1),
-        missing=0,
-    )
-    # DEPRECATED this is only for temporary backwards compatibility
     karma = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(min=-1, max=1),
-        missing=None,
+        missing=0,
     )
 
 
@@ -153,16 +147,10 @@ class TestcaseFeedback(colander.MappingSchema):
     """A schema for TestcaseFeedback to be provided via API parameters."""
 
     testcase_name = colander.SchemaNode(colander.String())
-    feedback = colander.SchemaNode(
-        colander.Integer(),
-        validator=colander.Range(min=-1, max=1),
-        missing=0,
-    )
-    # DEPRECATED this is only for temporary backwards compatibility
     karma = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(min=-1, max=1),
-        missing=None,
+        missing=0,
     )
 
 

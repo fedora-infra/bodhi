@@ -49,7 +49,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import class_mapper, declarative_base, relationship, synonym, validates
+from sqlalchemy.orm import class_mapper, declarative_base, relationship, validates
 from sqlalchemy.orm.base import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.properties import RelationshipProperty
@@ -3041,15 +3041,15 @@ class Update(Base):
             val = ' '.join([str(bug.bug_id) for bug in self.bugs])
         return val
 
-    def get_bug_feedback(self, bug):
+    def get_bug_karma(self, bug):
         """
-        Return the feedback for this update for the given bug.
+        Return the karma for this update for the given bug.
 
         Args:
-            bug (Bug): The bug we want the feedback about.
+            bug (Bug): The bug we want the karma about.
         Returns:
-            tuple: A 2-tuple of integers. The first represents negative feedback, the second
-            represents positive feedback.
+            tuple: A 2-tuple of integers. The first represents negative karma, the second represents
+            positive karma.
         """
         good, bad, seen = 0, 0, set()
         for comment in self.comments_since_karma_reset:
@@ -3058,9 +3058,9 @@ class Update(Base):
             seen.add(comment.user.name)
             for feedback in comment.bug_feedback:
                 if feedback.bug == bug:
-                    if feedback.feedback > 0:
+                    if feedback.karma > 0:
                         good += 1
-                    elif feedback.feedback < 0:
+                    elif feedback.karma < 0:
                         bad += 1
         return bad * -1, good
 
@@ -3523,8 +3523,8 @@ class Update(Base):
         for bug in to_remove:
             self.bugs.remove(bug)
             if len(bug.updates) == 0:
-                # Don't delete the Bug instance if there is any associated BugFeedback
-                if not session.query(BugFeedback).filter_by(bug_id=bug.bug_id).count():
+                # Don't delete the Bug instance if there is any associated BugKarma
+                if not session.query(BugKarma).filter_by(bug_id=bug.bug_id).count():
                     log.debug("Destroying stray Bugzilla #%d" % bug.bug_id)
                     session.delete(bug)
         session.flush()
@@ -3561,7 +3561,7 @@ class Update(Base):
 
         got_feedback = False
         for feedback_dict in (bug_feedback + testcase_feedback):
-            if feedback_dict['feedback'] != 0:
+            if feedback_dict['karma'] != 0:
                 got_feedback = True
                 break
 
@@ -3622,7 +3622,7 @@ class Update(Base):
         session.flush()
 
         for feedback_dict in bug_feedback:
-            feedback = BugFeedback(**feedback_dict)
+            feedback = BugKarma(**feedback_dict)
             session.add(feedback)
             comment.bug_feedback.append(feedback)
 
@@ -4450,22 +4450,20 @@ class Compose(Base):
 event.listen(Compose.state, 'set', Compose.update_state_date, active_history=True)
 
 
-# Used for one-to-one relationships between a comment and a bug
-class BugFeedback(Base):
+# Used for many-to-many relationships between karma and a bug
+class BugKarma(Base):
     """
-    Feedback for a bug associated with a comment.
+    Karma for a bug associated with a comment.
 
     Attributes:
-        feedback (int): The feedback associated with this bug and comment.
-        comment (Comment): The comment this BugFeedback is part of.
-        bug (Bug): The bug this BugFeedback pertains to.
+        karma (int): The karma associated with this bug and comment.
+        comment (Comment): The comment this BugKarma is part of.
+        bug (Bug): The bug this BugKarma pertains to.
     """
 
     __tablename__ = 'comment_bug_assoc'
 
-    feedback = Column(Integer, default=0)
-    # DEPRECATED this is only for temporary backwards compatibility
-    karma = synonym('feedback')
+    karma = Column(Integer, default=0)
 
     # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
@@ -4489,7 +4487,6 @@ class TestCaseKarma(Base):
     __tablename__ = 'comment_testcase_assoc'
 
     karma = Column(Integer, default=0)
-    feedback = synonym('karma')
 
     # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
@@ -4524,7 +4521,7 @@ class Comment(Base):
     timestamp = Column(TZDateTime, default=partial(datetime.now, tz=timezone.utc))
 
     # One-to-many relationships
-    bug_feedback = relationship('BugFeedback', back_populates='comment',
+    bug_feedback = relationship('BugKarma', back_populates='comment',
                                 cascade="all,delete,delete-orphan")
 
     testcase_feedback = relationship('TestCaseKarma', back_populates='comment',
@@ -4647,7 +4644,7 @@ class Bug(Base):
     # Many-to-many relationships
     updates = relationship('Update', secondary=update_bug_table, back_populates='bugs')
 
-    feedback = relationship('BugFeedback', back_populates='bug')
+    feedback = relationship('BugKarma', back_populates='bug')
 
     @property
     def url(self) -> str:

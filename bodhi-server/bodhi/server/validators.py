@@ -1055,9 +1055,6 @@ def validate_bug_feedback(request, **kwargs):
             bad_bugs.append(bug_id)
         else:
             item['bug'] = bug
-            if item['karma'] is not None:
-                # DEPRECATED this is only for temporary backwards compatibility
-                item['feedback'] = item.pop('karma')
             validated.append(item)
 
     if bad_bugs:
@@ -1117,8 +1114,6 @@ def validate_testcase_feedback(request, **kwargs):
             bad_testcases.append(name)
         else:
             item['testcase'] = testcase
-            if item['karma'] is not None:
-                item['feedback'] = item.pop('karma')
             validated.append(item)
 
     if bad_testcases:
