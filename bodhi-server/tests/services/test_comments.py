@@ -126,15 +126,11 @@ class TestCommentsService(base.BasePyTestCase):
         feedback = res.json_body['comment']['bug_feedback']
         assert len(feedback) == 1
 
-    @pytest.mark.parametrize('compat', (True, False))
-    def test_commenting_with_testcase_feedback(self, compat):
+    def test_commenting_with_testcase_feedback(self):
         comment = self.make_comment()
 
         comment['testcase_feedback.0.testcase_name'] = "Wat"
-        if compat:
-            comment['testcase_feedback.0.karma'] = -1
-        else:
-            comment['testcase_feedback.0.feedback'] = -1
+        comment['testcase_feedback.0.karma'] = -1
 
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
             res = self.app.post_json('/comments/', comment)
@@ -236,7 +232,7 @@ class TestCommentsService(base.BasePyTestCase):
         comment['bug_feedback.0.bug_id'] = 12345
         comment['bug_feedback.0.feedback'] = 0
         comment['testcase_feedback.0.testcase_name'] = "Wat"
-        comment['testcase_feedback.0.feedback'] = 0
+        comment['testcase_feedback.0.karma'] = 0
         res = self.app.post_json('/comments/', comment, status=400)
 
         assert res.json_body['status'] == 'error'

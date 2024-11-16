@@ -1145,7 +1145,7 @@ class TestCase(Base):
     name = Column(UnicodeText, nullable=False, unique=True)
 
     # One-to-many relationships
-    feedback = relationship('TestCaseFeedback', back_populates='testcase')
+    feedback = relationship('TestCaseKarma', back_populates='testcase')
 
     # Many-to-many relationships
     builds = relationship('Build', secondary=build_testcase_table,
@@ -3064,15 +3064,15 @@ class Update(Base):
                         bad += 1
         return bad * -1, good
 
-    def get_testcase_feedback(self, testcase):
+    def get_testcase_karma(self, testcase):
         """
-        Return the feedback for this update for the given TestCase.
+        Return the karma for this update for the given TestCase.
 
         Args:
-            testcase (TestCase): The TestCase we want the feedback about.
+            testcase (TestCase): The TestCase we want the karma about.
         Returns:
-            tuple: A 2-tuple of integers. The first represents negative feedback, the second
-            represents positive feedback.
+            tuple: A 2-tuple of integers. The first represents negative karma, the second represents
+            positive karma.
         """
         good, bad, seen = 0, 0, set()
         for comment in self.comments_since_karma_reset:
@@ -3081,9 +3081,9 @@ class Update(Base):
             seen.add(comment.user.name)
             for feedback in comment.unique_testcase_feedback:
                 if feedback.testcase == testcase:
-                    if feedback.feedback > 0:
+                    if feedback.karma > 0:
                         good += 1
-                    elif feedback.feedback < 0:
+                    elif feedback.karma < 0:
                         bad += 1
         return bad * -1, good
 
@@ -3627,7 +3627,7 @@ class Update(Base):
             comment.bug_feedback.append(feedback)
 
         for feedback_dict in testcase_feedback:
-            feedback = TestCaseFeedback(**feedback_dict)
+            feedback = TestCaseKarma(**feedback_dict)
             session.add(feedback)
             comment.testcase_feedback.append(feedback)
 
@@ -4108,7 +4108,7 @@ class Update(Base):
         # of the test cases in our output as well but take extra care to
         # short-circuit some of the insane recursion for
         # https://github.com/fedora-infra/bodhi/issues/343
-        seen = [Build, TestCaseFeedback]
+        seen = [Package, TestCaseKarma]
         result['test_cases'] = [
             test._to_json(
                 obj=test,
@@ -4475,22 +4475,21 @@ class BugFeedback(Base):
     bug = relationship('Bug', back_populates='feedback')
 
 
-# Used for one-to-one relationships between a comment and a TestCase
-class TestCaseFeedback(Base):
+# Used for many-to-many relationships between karma and a TestCase
+class TestCaseKarma(Base):
     """
-    Feedback for a TestCase associated with a comment.
+    Karma for a TestCase associated with a comment.
 
     Attributes:
-        feedback (int): The feedback associated with this TestCase comment.
-        comment (Comment): The comment this TestCaseFeedback is associated with.
-        testcase (TestCase): The TestCase this TestCaseFeedback pertains to.
+        karma (int): The karma associated with this TestCase comment.
+        comment (Comment): The comment this TestCaseKarma is associated with.
+        testcase (TestCase): The TestCase this TestCaseKarma pertains to.
     """
 
     __tablename__ = 'comment_testcase_assoc'
 
-    feedback = Column(Integer, default=0)
-    # DEPRECATED this is only for temporary backwards compatibility
-    karma = synonym('feedback')
+    karma = Column(Integer, default=0)
+    feedback = synonym('karma')
 
     # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
@@ -4528,7 +4527,7 @@ class Comment(Base):
     bug_feedback = relationship('BugFeedback', back_populates='comment',
                                 cascade="all,delete,delete-orphan")
 
-    testcase_feedback = relationship('TestCaseFeedback', back_populates='comment',
+    testcase_feedback = relationship('TestCaseKarma', back_populates='comment',
                                      cascade="all,delete,delete-orphan")
 
     # Many-to-one relationships
@@ -4549,15 +4548,15 @@ class Comment(Base):
         return url
 
     @property
-    def unique_testcase_feedback(self) -> typing.List[TestCaseFeedback]:
+    def unique_testcase_feedback(self) -> typing.List[TestCaseKarma]:
         """
-        Return a list of unique :class:`TestCaseFeedback` objects found in the testcase_feedback.
+        Return a list of unique :class:`TestCaseKarma` objects found in the testcase_feedback.
 
         This will filter out duplicates for :class:`TestCases <TestCase>`. It will return the
         correct number of TestCases in testcase_feedback as a list.
 
         Returns:
-            A list of unique :class:`TestCaseFeedback` objects associated with this comment.
+            A list of unique :class:`TestCaseKarma` objects associated with this comment.
         """
         feedbacks = self.testcase_feedback
         unique_feedbacks = set()

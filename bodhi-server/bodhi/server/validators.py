@@ -1118,7 +1118,6 @@ def validate_testcase_feedback(request, **kwargs):
         else:
             item['testcase'] = testcase
             if item['karma'] is not None:
-                # DEPRECATED this is only for temporary backwards compatibility
                 item['feedback'] = item.pop('karma')
             validated.append(item)
 

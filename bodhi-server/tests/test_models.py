@@ -2395,21 +2395,21 @@ class TestUpdateInstallCommand(BasePyTestCase):
         assert update.install_command == ''
 
 
-class TestUpdateGetTestcaseFeedback(BasePyTestCase):
-    """Test the get_testcase_feedback() method."""
+class TestUpdateGetTestcaseKarma(BasePyTestCase):
+    """Test the get_testcase_karma() method."""
 
     def test_feedback_wrong_testcase(self):
         """Feedback for other testcases should be ignored."""
         update = model.Update.query.first()
-        # Let's add a testcase feedback to the existing comment on the testcase.
-        tck = model.TestCaseFeedback(feedback=1, comment=update.comments[0],
-                                     testcase=update.builds[0].testcases[0])
+        # Let's add a testcase karma to the existing comment on the testcase.
+        tck = model.TestCaseKarma(karma=1, comment=update.comments[0],
+                                  testcase=update.builds[0].testcases[0])
         self.db.add(tck)
         # Now let's associate a new testcase with the update.
         testcase = model.TestCase(name='a testcase')
         update.builds[0].testcases.append(testcase)
 
-        bad, good = update.get_testcase_feedback(testcase)
+        bad, good = update.get_testcase_karma(testcase)
 
         assert bad == 0
         assert good == 0
@@ -2422,11 +2422,11 @@ class TestUpdateGetTestcaseFeedback(BasePyTestCase):
             comment = model.Comment(text='Test comment', karma=karma, user=user)
             self.db.add(comment)
             update.comments.append(comment)
-            testcase_feedback = model.TestCaseFeedback(feedback=karma, comment=comment,
-                                                       testcase=update.builds[0].testcases[0])
-            self.db.add(testcase_feedback)
+            testcase_karma = model.TestCaseKarma(karma=karma, comment=comment,
+                                                 testcase=update.builds[0].testcases[0])
+            self.db.add(testcase_karma)
 
-        bad, good = update.get_testcase_feedback(update.builds[0].testcases[0])
+        bad, good = update.get_testcase_karma(update.builds[0].testcases[0])
 
         assert bad == -1
         assert good == 2
@@ -2437,7 +2437,7 @@ class TestUpdateGetTestcaseFeedback(BasePyTestCase):
         self.db.add(comment)
         update.comments.append(comment)
 
-        bad, good = update.get_testcase_feedback(update.builds[0].testcases[0])
+        bad, good = update.get_testcase_karma(update.builds[0].testcases[0])
 
         assert bad == 0
         assert good == 0

@@ -1,1 +1,0 @@
-The `TestCaseKarma` model has been renamed to `TestCaseFeedback`. Also, its `karma` property has been renamed to `feedback`, therefore when posting a comment with feedback to a TestCase, the new name should be used (`karma` will still work as compatibility layer for some time, but you should update any external code call ASAP)

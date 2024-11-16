@@ -668,8 +668,8 @@ elif can_edit and update.status.value == 'testing' and update.test_gating_status
       </thead>
       % for test in update.full_test_cases:
       <tr>
-        <td>${self.fragments.karma(update.get_testcase_feedback(test)[0], show_digit=True, zero_thumbsup=False)}</td>
-        <td>${self.fragments.karma(update.get_testcase_feedback(test)[1], show_digit=True, zero_thumbsup=True)}</td>
+        <td>${self.fragments.karma(update.get_testcase_karma(test)[0], show_digit=True, zero_thumbsup=False)}</td>
+        <td>${self.fragments.karma(update.get_testcase_karma(test)[1], show_digit=True, zero_thumbsup=True)}</td>
         <td>${self.util.testcase_link(test) | n}</td>
       </tr>
       % endfor
