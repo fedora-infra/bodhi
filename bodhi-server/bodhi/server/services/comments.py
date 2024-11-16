@@ -18,6 +18,7 @@
 """Define the service endpoints that handle Comments."""
 
 import math
+import warnings
 
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
@@ -222,6 +223,13 @@ def new_comment(request):
         request.errors.add('body', 'email', 'You must provide an author')
         request.errors.status = HTTPForbidden.code
         return
+
+    if data.get('karma_critpath', None):
+        data.pop('karma_critpath')
+        warnings.warn(
+            "karma_critpath is not used anymore and should not be passed in new comments; "
+            "date=2024-11-16", DeprecationWarning, stacklevel=2
+        )
 
     try:
         comment, caveats = update.comment(session=request.db, author=author, **data)

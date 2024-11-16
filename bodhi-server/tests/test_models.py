@@ -4804,3 +4804,17 @@ class TestBuildrootOverride(ModelTest):
         calls = [mock.call(release_f17.override_tag, build.nvr, strict=True),
                  mock.call(build.release.override_tag, build.nvr, strict=True)]
         get_session.return_value.untagBuild.assert_has_calls(calls)
+
+
+class TestDeprecatedObjects(BasePyTestCase):
+    """Test deprecated objects."""
+    @mock.patch('bodhi.server.models.warnings.warn')
+    def test_deprecated_BugKarma(self, warn):
+        """Trying to define a BugKarma should return a BugFeedback object."""
+        update = model.Update.query.first()
+        update.comment(self.db, 'testing', author='enemy', karma=-1, karma_critpath=-1)
+        warn.assert_called_once_with(
+            "karma_critpath is not used anymore and should not be passed in comment() call; "
+            "date=2024-11-16",
+            DeprecationWarning, stacklevel=2
+        )

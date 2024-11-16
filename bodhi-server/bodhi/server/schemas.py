@@ -178,6 +178,7 @@ class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
         validator=colander.Range(min=-1, max=1),
         missing=0,
     )
+    # DEPRECATED not used anymore; date=2024-06-13
     karma_critpath = colander.SchemaNode(
         colander.Integer(),
         validator=colander.Range(min=-1, max=1),
