@@ -3041,12 +3041,6 @@ class Update(Base):
             val = ' '.join([str(bug.bug_id) for bug in self.bugs])
         return val
 
-    def get_bug_karma(self, bug):
-        """Redirect to get_bug_feedback()."""
-        warnings.warn("get_bug_karma() is deprecated, use get_bug_feedback(); date=2024-06-12",
-                      DeprecationWarning, stacklevel=2)
-        return self.get_bug_feedback(bug)
-
     def get_bug_feedback(self, bug):
         """
         Return the feedback for this update for the given bug.
@@ -3069,13 +3063,6 @@ class Update(Base):
                     elif feedback.feedback < 0:
                         bad += 1
         return bad * -1, good
-
-    def get_testcase_karma(self, testcase):
-        """Redirect to get_testcase_feedback()."""
-        warnings.warn("get_testcase_karma() is deprecated, use get_testcase_feedback(); "
-                      "date=2024-06-12",
-                      DeprecationWarning, stacklevel=2)
-        return self.get_testcase_feedback(testcase)
 
     def get_testcase_feedback(self, testcase):
         """
@@ -4463,13 +4450,6 @@ class Compose(Base):
 event.listen(Compose.state, 'set', Compose.update_state_date, active_history=True)
 
 
-def BugKarma(*args, **kwargs):
-    """Redirect to BugKarma class."""
-    warnings.warn("Class BugKarma is deprecated, use BugFeedback; date=2024-06-12",
-                  DeprecationWarning, stacklevel=2)
-    return BugFeedback(*args, **kwargs)
-
-
 # Used for one-to-one relationships between a comment and a bug
 class BugFeedback(Base):
     """
@@ -4483,14 +4463,6 @@ class BugFeedback(Base):
 
     __tablename__ = 'comment_bug_assoc'
 
-    def __getattribute__(self, item):
-        """Deprecate BugFeedback properties warnings."""
-        if item == 'karma':
-            warnings.warn("BugFeedback's karma class variable is deprecated, "
-                          "use feedback instead; date=2024-06-12",
-                          DeprecationWarning, stacklevel=2)
-        return super().__getattribute__(item)
-
     feedback = Column(Integer, default=0)
     # DEPRECATED this is only for temporary backwards compatibility
     karma = synonym('feedback')
@@ -4501,13 +4473,6 @@ class BugFeedback(Base):
 
     bug_id = Column(Integer, ForeignKey('bugs.bug_id'))
     bug = relationship('Bug', back_populates='feedback')
-
-
-def TestCaseKarma(*args, **kwargs):
-    """Redirect to TestCaseKarma class."""
-    warnings.warn("Class TestCaseKarma is deprecated, use TestCaseFeedback; date=2024-06-12",
-                  DeprecationWarning, stacklevel=2)
-    return TestCaseFeedback(*args, **kwargs)
 
 
 # Used for one-to-one relationships between a comment and a TestCase
@@ -4522,14 +4487,6 @@ class TestCaseFeedback(Base):
     """
 
     __tablename__ = 'comment_testcase_assoc'
-
-    def __getattribute__(self, item):
-        """Deprecate TestCaseFeedback properties warnings."""
-        if item == 'karma':
-            warnings.warn("TestCaseFeedback's karma class variable is deprecated, "
-                          "use feedback instead; date=2024-06-12",
-                          DeprecationWarning, stacklevel=2)
-        return super().__getattribute__(item)
 
     feedback = Column(Integer, default=0)
     # DEPRECATED this is only for temporary backwards compatibility

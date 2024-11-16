@@ -2259,7 +2259,7 @@ class TestUpdateVersionHash(BasePyTestCase):
         assert update.version_hash == updated_calculated_hash
 
 
-class TestUpdateGetBugFeedback(BasePyTestCase):
+class TestUpdateGetBugKarma(BasePyTestCase):
     """Test the get_bug_feedback() method."""
 
     def test_feedback_wrong_bug(self):
@@ -4804,91 +4804,3 @@ class TestBuildrootOverride(ModelTest):
         calls = [mock.call(release_f17.override_tag, build.nvr, strict=True),
                  mock.call(build.release.override_tag, build.nvr, strict=True)]
         get_session.return_value.untagBuild.assert_has_calls(calls)
-
-
-class TestDeprecatedObjects(BasePyTestCase):
-    """Test deprecated objects are still correctly working."""
-    @mock.patch('bodhi.server.models.warnings.warn')
-    def test_deprecated_BugKarma(self, warn):
-        """Trying to define a BugKarma should return a BugFeedback object."""
-        update = model.Update.query.first()
-        bk = model.BugKarma(feedback=1, comment=update.comments[0], bug=update.bugs[0])
-        self.db.add(bk)
-        self.db.commit()
-        bk_db = model.BugFeedback.query.first()
-        warn.assert_called_once_with(
-            "Class BugKarma is deprecated, use BugFeedback; date=2024-06-12",
-            DeprecationWarning, stacklevel=2
-        )
-        assert bk_db.comment == update.comments[0]
-        assert bk_db.bug == update.bugs[0]
-
-    @mock.patch('bodhi.server.models.warnings.warn')
-    def test_bugfeedback_karma(self, warn):
-        """Retrieving BugFeedback karma should return feedback property with warning."""
-        update = model.Update.query.first()
-        bk = model.BugFeedback(feedback=1, comment=update.comments[0], bug=update.bugs[0])
-        assert bk.karma == bk.feedback
-        warn.assert_called_once_with(
-            "BugFeedback's karma class variable is deprecated, use feedback instead; "
-            "date=2024-06-12", DeprecationWarning, stacklevel=2
-        )
-
-    @mock.patch('bodhi.server.models.warnings.warn')
-    @mock.patch('bodhi.server.models.Update.get_bug_feedback')
-    def test_get_bug_karma(self, gbf, warn):
-        """Calling get_bug_karma() should return get_bug_feedback()."""
-        update = model.Update.query.first()
-        bk = model.BugFeedback(feedback=1, comment=update.comments[0], bug=update.bugs[0])
-        self.db.add(bk)
-        self.db.commit()
-        update.get_bug_karma(update.bugs[0])
-        warn.assert_called_once_with(
-            "get_bug_karma() is deprecated, use get_bug_feedback(); "
-            "date=2024-06-12", DeprecationWarning, stacklevel=2
-        )
-        gbf.assert_called_once()
-
-    @mock.patch('bodhi.server.models.warnings.warn')
-    def test_deprecated_TestCaseKarma(self, warn):
-        """Trying to define a TestCaseKarma should return a TestCaseFeedback object."""
-        update = model.Update.query.first()
-        tck = model.TestCaseKarma(feedback=1, comment=update.comments[0],
-                                  testcase=update.builds[0].testcases[0])
-        self.db.add(tck)
-        self.db.commit()
-        tck_db = model.TestCaseFeedback.query.first()
-        warn.assert_called_once_with(
-            "Class TestCaseKarma is deprecated, use TestCaseFeedback; date=2024-06-12",
-            DeprecationWarning, stacklevel=2
-        )
-        assert tck_db.comment == update.comments[0]
-        assert tck_db.testcase == update.builds[0].testcases[0]
-
-    @mock.patch('bodhi.server.models.warnings.warn')
-    def test_testcasefeedback_karma(self, warn):
-        """Retrieving TestCaseFeedback karma should return feedback property with warning."""
-        update = model.Update.query.first()
-        tck = model.TestCaseFeedback(feedback=1, comment=update.comments[0],
-                                     testcase=update.builds[0].testcases[0])
-        assert tck.karma == tck.feedback
-        warn.assert_called_once_with(
-            "TestCaseFeedback's karma class variable is deprecated, use feedback instead; "
-            "date=2024-06-12", DeprecationWarning, stacklevel=2
-        )
-
-    @mock.patch('bodhi.server.models.warnings.warn')
-    @mock.patch('bodhi.server.models.Update.get_testcase_feedback')
-    def test_get_testcase_karma(self, gtf, warn):
-        """Calling get_testcase_karma() should return get_testcase_feedback()."""
-        update = model.Update.query.first()
-        tck = model.TestCaseFeedback(feedback=1, comment=update.comments[0],
-                                     testcase=update.builds[0].testcases[0])
-        self.db.add(tck)
-        self.db.commit()
-        update.get_testcase_karma(tck)
-        warn.assert_called_once_with(
-            "get_testcase_karma() is deprecated, use get_testcase_feedback(); "
-            "date=2024-06-12", DeprecationWarning, stacklevel=2
-        )
-        gtf.assert_called_once()
