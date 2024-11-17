@@ -25,7 +25,7 @@ pyramid.debug_routematch = true
 pyramid.default_locale_name = en
 pyramid.includes =
     pyramid_debugtoolbar
-debugtoolbar.hosts = 127.0.0.1 ::1
+debugtoolbar.hosts = 0.0.0.0/0
 sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2
 authtkt.secret = changethisinproduction!
 session.secret = ChangeThisSecret!!1
@@ -82,8 +82,7 @@ greenwave_api_url = http://localhost:6545/api/v1.0
 
 [server:main]
 use = egg:waitress#main
-host = localhost
-port = 6543
+listen = 0.0.0.0:6543 [::1]:6543
 trusted_proxy = 127.0.0.1
 trusted_proxy_count = 1
 trusted_proxy_headers = x-forwarded-for x-forwarded-host x-forwarded-proto x-forwarded-port
