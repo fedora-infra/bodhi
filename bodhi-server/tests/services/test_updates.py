@@ -4029,7 +4029,7 @@ class TestUpdatesService(BasePyTestCase):
         up.request = None
         assert len(up.builds) == 1
         # just to set our base expectation
-        assert up.release.min_karma == 2
+        assert up.min_karma == 2
         up.test_gating_status = TestGatingStatus.passed
         # Clear pending messages
         self.db.info['messages'] = []
@@ -4873,7 +4873,7 @@ class TestUpdatesService(BasePyTestCase):
         status = up.status
         request = up.request
         # just for clarity that stable_karma is not lower and both are reached
-        assert up.release.min_karma == 2
+        assert up.min_karma == 2
         up.comment(self.db, "foo", 1, 'biz')
         # nothing should have changed yet, on any path. we don't need to test the
         # messages published so far here, either
@@ -4989,7 +4989,7 @@ class TestUpdatesService(BasePyTestCase):
         up.critpath = critpath
         up.status = status
         up.stable_karma = 1
-        assert up.release.min_karma == 2
+        assert up.min_karma == 2
         # we don't use _reach_autopush_threshold here because this is a bit different
         with mock.patch('bodhi.server.models.notifications.publish', autospec=True) as publish:
             _, caveats = up.comment(self.db, "foo", 1, 'biz')

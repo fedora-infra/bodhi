@@ -363,6 +363,9 @@ class BodhiConfig(dict):
         'critpath.mandatory_days_in_testing': {
             'value': 14,
             'validator': int},
+        'critpath.min_karma': {
+            'value': 2,
+            'validator': int},
         'critpath.type': {
             'value': None,
             'validator': _validate_none_or(str)},
@@ -447,6 +450,8 @@ class BodhiConfig(dict):
             'value': 'bodhi.server:templates',
             'validator': str},
         'min_karma': {
+            # 1 would be a closer match for Fedora's policy, but a lot
+            # of the tests expect 2
             'value': 2,
             'validator': int},
         'mandatory_packager_groups': {

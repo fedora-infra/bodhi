@@ -923,7 +923,9 @@ class Release(Base):
         instead.
 
         Returns:
-            The minimum karma required for updates for this release.
+            The minimum karma required for updates for this release to
+            be eligible for stable push before the mandatory_days_in_testing
+            threshold is reached.
         """
         if self.setting_status:
             min_karma = config.get(
@@ -931,6 +933,26 @@ class Release(Base):
             if min_karma:
                 return int(min_karma)
         return config.get('min_karma')
+
+    @property
+    def critpath_min_karma(self) -> int:
+        """
+        Return the critical path minimum karma for updates for this release.
+
+        If the release doesn't specify this, the default value is used
+        instead.
+
+        Returns:
+            The minimum karma required for critical path updates for this release
+            to be eligible for stable push before the
+            critpath_mandatory_days_in_testing threshold is reached.
+        """
+        if self.setting_status:
+            min_karma = config.get(
+                f'{self.setting_prefix}.{self.setting_status}.critpath.min_karma', None)
+            if min_karma:
+                return int(min_karma)
+        return config.get('critpath.min_karma')
 
     @property
     def version_int(self):
@@ -2146,6 +2168,10 @@ class Update(Base):
         """
         Calculate and return how many days an update should be in testing before becoming stable.
 
+        This is how long the update must wait in testing before it is eligible to be pushed
+        to stable (either automatically or manually), if it does *not* reach the min_karma
+        threshold first (meeting *either* threshold makes the update eligible for push).
+
         :return: The number of mandatory days in testing.
         :rtype:  int
         """
@@ -2153,6 +2179,24 @@ class Update(Base):
             return self.release.critpath_mandatory_days_in_testing
         else:
             return self.release.mandatory_days_in_testing
+
+    @property
+    def min_karma(self):
+        """
+        Calculate and return how much karma an update should have before becoming stable.
+
+        This is how much karma the update must have before it is eligible to be pushed
+        to stable (either automatically or manually), if it does *not* reach the
+        mandatory_days_in_testing threshold first (meeting *either* threshold makes the update
+        eligible for push).
+
+        :return: The karma total.
+        :rtype:  int
+        """
+        if self.critpath:
+            return self.release.critpath_min_karma
+        else:
+            return self.release.min_karma
 
     @property
     def karma(self):
@@ -2560,12 +2604,12 @@ class Update(Base):
 
         # We also need to make sure stable_karma is not set below
         # the policy minimum for this release
-        if release.min_karma > up.stable_karma:
-            up.stable_karma = release.min_karma
+        if up.min_karma > up.stable_karma:
+            up.stable_karma = up.min_karma
             caveats.append({
                 'name': 'stable karma',
                 'description': "The stable karma required was set to the mandatory "
-                               f"release value of {release.min_karma}"
+                               f"release value of {up.min_karma}"
             })
 
         log.debug(f"Adding new update to the db {up.alias}.")
@@ -2639,12 +2683,12 @@ class Update(Base):
 
         # We also need to make sure stable_karma is not set below
         # the policy minimum for this release
-        if up.release.min_karma > data.get('stable_karma', up.stable_karma):
-            data['stable_karma'] = up.release.min_karma
+        if up.min_karma > data.get('stable_karma', up.stable_karma):
+            data['stable_karma'] = up.min_karma
             caveats.append({
                 'name': 'stable karma',
                 'description': "The stable karma required was raised to the mandatory "
-                               f"release value of {up.release.min_karma}"
+                               f"release value of {up.min_karma}"
             })
 
         # Determine which builds have been added
@@ -3940,7 +3984,7 @@ class Update(Base):
                 and reason is a str.
         """
         req_days = self.mandatory_days_in_testing
-        req_karma = self.release.min_karma
+        req_karma = self.min_karma
 
         if config.get('test_gating.required'):
             tgs = self.test_gating_status

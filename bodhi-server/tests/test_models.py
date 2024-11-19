@@ -874,11 +874,11 @@ class TestRelease(ModelTest):
         assert self.obj.inherited_override_tags == []
 
 
-class TestReleaseCritpathMinKarma(BasePyTestCase):
+class TestReleaseMinKarma(BasePyTestCase):
     """Tests for the Release.min_karma property."""
 
     @mock.patch.dict(
-        config, {'min_karma': 2, 'f17.beta.min_karma': 42, 'f17.status': "beta"})
+        config, {'min_karma': 1, 'f17.beta.min_karma': 42, 'f17.status': "beta"})
     def test_setting_status_min(self):
         """If a min is defined for the release, it should be returned."""
         release = model.Release.query.first()
@@ -894,12 +894,40 @@ class TestReleaseCritpathMinKarma(BasePyTestCase):
         assert release.min_karma == 25
 
     @mock.patch.dict(
-        config, {'min_karma': 72})
+        config, {'min_karma': 72, 'f17.beta.min_karma': 42})
     def test_setting_status_no_setting_status(self):
         """If no status is defined for the release, the general min karma should be returned."""
         release = model.Release.query.first()
 
         assert release.min_karma == 72
+
+
+class TestReleaseCritpathMinKarma(BasePyTestCase):
+    """Tests for the Release.critpath_min_karma property."""
+
+    @mock.patch.dict(
+        config, {'critpath.min_karma': 2, 'f17.beta.critpath.min_karma': 42, 'f17.status': "beta"})
+    def test_setting_status_min(self):
+        """If a min is defined for the release, it should be returned."""
+        release = model.Release.query.first()
+
+        assert release.critpath_min_karma == 42
+
+    @mock.patch.dict(
+        config, {'critpath.min_karma': 25, 'f17.status': "beta"})
+    def test_setting_status_no_min(self):
+        """If no min is defined for the release, the general min karma config should be returned."""
+        release = model.Release.query.first()
+
+        assert release.critpath_min_karma == 25
+
+    @mock.patch.dict(
+        config, {'critpath.min_karma': 72, 'f17.beta.critpath.min_karma': 42})
+    def test_setting_status_no_setting_status(self):
+        """If no status is defined for the release, the general min karma should be returned."""
+        release = model.Release.query.first()
+
+        assert release.critpath_min_karma == 72
 
 
 class TestReleaseModular(ModelTest):
@@ -2678,7 +2706,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         # check, and make it clear, what we're assuming the karma value is now
         # and the min_karma value we're testing against
         assert update.karma == 1
-        assert update.release.min_karma == 2
+        assert update.min_karma == 2
         # this should always be False. in the past we allowed non-critpath
         # updates to be pushed stable in this case but we no longer do
         assert not update.meets_testing_requirements
@@ -2765,26 +2793,36 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.comment(self.db, 'testing', author='bro', karma=1)
 
         assert update.karma == 1
-        assert update.release.min_karma == 2
+        assert update.min_karma == 2
         assert update.meets_testing_requirements is True
 
     @pytest.mark.parametrize('critpath', (True, False))
     def test_update_reaching_min_karma(self, critpath):
         """Both critpath and non-critpath packages should be allowed to go stable when
         meeting the policy minimum karma requirement for critpath packages, even if there
-        is negative karma."""
+        is negative karma. This also tests different thresholds for critpath vs.
+        non-critpath."""
+        # set the non-critpath min_karma to 1 for testing
+        config["min_karma"] = 1
         update = model.Update.query.first()
         update.critpath = critpath
         # make sure no autopush gets in the way
         update.stable_karma = 3
         update.comment(self.db, 'testing', author='enemy', karma=-1)
         update.comment(self.db, 'testing', author='bro', karma=1)
-        # at this point we're at +1 as the update starts at +1. Add
-        # another +1 so total is +2, which meets min_karma
+        # at this point we're at +1 as the update starts at +1. Non
+        # critpath should now pass, critpath should fail
+        assert update.karma == 1
+        if update.critpath:
+            assert update.min_karma == 2
+            assert not update.meets_testing_requirements
+        else:
+            assert update.min_karma == 1
+            assert update.meets_testing_requirements
+        # Add another +1 so total is +2, which meets critpath.min_karma
         update.comment(self.db, 'testing', author='ham', karma=1)
 
         assert update.karma == 2
-        assert update.release.min_karma == 2
         assert update.meets_testing_requirements
 
     @pytest.mark.parametrize('critpath', (True, False))
@@ -2815,7 +2853,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.comment(self.db, 'testing', author='bro', karma=1)
         # Assert that our preconditions from the docblock are correct.
         assert update.karma == 2
-        assert update.release.min_karma == 2
+        assert update.min_karma == 2
         assert update.meets_testing_requirements is expected
 
     def test_test_gating_not_required(self):
