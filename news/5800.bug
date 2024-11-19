@@ -1,0 +1,1 @@
+When editing an update from APIs it is no more required to specify the old bug ids list in sent data if no change is required

@@ -3171,6 +3171,56 @@ class TestUpdatesService(BasePyTestCase):
     @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
     @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_uuid4_version1)
+    def test_edit_update_without_specifying_bugs(self, *args):
+        """When editing an update, 'bugs' key should not be required if no change is expected."""
+        args = self.get_update('bodhi-2.0.0-2.fc17')
+
+        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
+                                    update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', args)
+
+        up = r.json_body
+        assert up['title'] == 'bodhi-2.0.0-2.fc17'
+        assert len(up['bugs']) == 1
+
+        args['edited'] = up['alias']
+        args.pop('bugs')
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
+            r = self.app.post_json('/updates/', args)
+
+        up = r.json_body
+        assert up['title'] == 'bodhi-2.0.0-2.fc17'
+        assert len(up['bugs']) == 1
+
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
+    @mock.patch(**mock_uuid4_version1)
+    def test_edit_deleting_bugs(self, *args):
+        """When editing an update, an empty string 'bugs' key should delete all bugs."""
+        args = self.get_update('bodhi-2.0.0-2.fc17')
+
+        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3,
+                                    update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', args)
+
+        up = r.json_body
+        assert up['title'] == 'bodhi-2.0.0-2.fc17'
+        assert len(up['bugs']) == 1
+
+        args['edited'] = up['alias']
+        args['bugs'] = ''
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV2):
+            r = self.app.post_json('/updates/', args)
+
+        up = r.json_body
+        assert up['title'] == 'bodhi-2.0.0-2.fc17'
+        assert len(up['bugs']) == 0
+
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
+    @mock.patch(**mock_uuid4_version1)
     def test_edit_rpm_update_from_tag(self, *args):
         """Test editing an update using (updated) builds from a Koji tag."""
         # We don't want the new update to obsolete the existing one.

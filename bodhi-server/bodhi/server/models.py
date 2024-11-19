@@ -2797,7 +2797,9 @@ class Update(Base):
             for tag in tags:
                 tag_update_builds_task.delay(tag=tag, builds=builds_to_tag)
 
-        new_bugs = up.update_bugs(data['bugs'], db)
+        new_bugs = []
+        if data['bugs'] is not None:
+            new_bugs = up.update_bugs(data['bugs'], db)
         del data['bugs']
 
         req = data.pop("request", None)
