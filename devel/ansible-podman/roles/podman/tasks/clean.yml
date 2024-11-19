@@ -1,0 +1,20 @@
+- include_tasks: remove.yml
+
+- name: "Remove all built images"
+  containers.podman.podman_image:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - "localhost/bodhi-dev-bodhi"
+    - "localhost/bodhi-dev-ipsilon"
+
+- name: "Update all base images"
+  containers.podman.podman_image:
+    name: "{{item }}"
+    force: true
+  with_items:
+    - "docker.io/library/postgres:latest"
+    - "factory2/waiverdb:latest"
+    - "quay.io/factory2/greenwave:latest"
+    - "docker.io/library/rabbitmq:4-management"
+    - "quay.io/fedora/fedora:latest"

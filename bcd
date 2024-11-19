@@ -69,6 +69,11 @@ def parse_args():
         aliases=["destroy"]
     )
     parser_remove.set_defaults(func=ansible)
+    parser_clean = subparsers.add_parser(
+        "clean",
+        description="Stop and remove all containers, remove built images, pull base images",
+    )
+    parser_clean.set_defaults(func=ansible)
     parser_cis = subparsers.add_parser(
         "cis",
         description="Clear Ipsilon sessions (to allow you to log in as a different user)"
