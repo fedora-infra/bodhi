@@ -33,7 +33,6 @@ RUN set -exo pipefail \
         nano \
         nmap-ncat \
         pcp-system-tools \
-        python3-ipdb \
         python3-pydocstyle \
         screen \
         tmux \
