@@ -36,17 +36,6 @@
   <section id="module-bodhi.server.models">
 <span id="bodhi-server-models"></span><h1>bodhi.server.models<a class="headerlink" href="#module-bodhi.server.models" title="Link to this heading">¶</a></h1>
 <p>Bodhi’s database models.</p>
-<p class="rubric">Functions</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#bodhi.server.models.BugKarma" title="bodhi.server.models.BugKarma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BugKarma</span></code></a>(*args, **kwargs)</p></td>
-<td><p>Redirect to BugKarma class.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#bodhi.server.models.TestCaseKarma" title="bodhi.server.models.TestCaseKarma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestCaseKarma</span></code></a>(*args, **kwargs)</p></td>
-<td><p>Redirect to TestCaseKarma class.</p></td>
-</tr>
-</tbody>
-</table>
 <p class="rubric">Classes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -56,8 +45,8 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#bodhi.server.models.Bug" title="bodhi.server.models.Bug"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Bug</span></code></a>(**kwargs)</p></td>
 <td><p>Represents a Bugzilla bug.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#bodhi.server.models.BugFeedback" title="bodhi.server.models.BugFeedback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BugFeedback</span></code></a>(**kwargs)</p></td>
-<td><p>Feedback for a bug associated with a comment.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bodhi.server.models.BugKarma" title="bodhi.server.models.BugKarma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BugKarma</span></code></a>(**kwargs)</p></td>
+<td><p>Karma for a bug associated with a comment.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#bodhi.server.models.Build" title="bodhi.server.models.Build"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Build</span></code></a>(**kwargs)</p></td>
 <td><p>This model represents a specific build of a package.</p></td>
@@ -134,8 +123,8 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#bodhi.server.models.TestCase" title="bodhi.server.models.TestCase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestCase</span></code></a>(**kwargs)</p></td>
 <td><p>Represents test cases from the wiki.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#bodhi.server.models.TestCaseFeedback" title="bodhi.server.models.TestCaseFeedback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestCaseFeedback</span></code></a>(**kwargs)</p></td>
-<td><p>Feedback for a TestCase associated with a comment.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#bodhi.server.models.TestCaseKarma" title="bodhi.server.models.TestCaseKarma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestCaseKarma</span></code></a>(**kwargs)</p></td>
+<td><p>Karma for a TestCase associated with a comment.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#bodhi.server.models.TestGatingStatus" title="bodhi.server.models.TestGatingStatus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestGatingStatus</span></code></a>()</p></td>
 <td><p>This class lists the different status the <code class="docutils literal notranslate"><span class="pre">Update.test_gating_status</span></code> flag can have.</p></td>
@@ -510,14 +499,14 @@ None, self.bug_id will be used to retrieve the bug. Defaults to None.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="bodhi.server.models.BugFeedback">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.server.models.</span></span><span class="sig-name descname"><span class="pre">BugFeedback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#BugFeedback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.BugFeedback" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="bodhi.server.models.BugKarma">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.server.models.</span></span><span class="sig-name descname"><span class="pre">BugKarma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#BugKarma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.BugKarma" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></p>
-<p>Feedback for a bug associated with a comment.</p>
+<p>Karma for a bug associated with a comment.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="bodhi.server.models.BugFeedback.feedback">
-<span class="sig-name descname"><span class="pre">feedback</span></span><a class="headerlink" href="#bodhi.server.models.BugFeedback.feedback" title="Link to this definition">¶</a></dt>
-<dd><p>The feedback associated with this bug and comment.</p>
+<dt class="sig sig-object py" id="bodhi.server.models.BugKarma.karma">
+<span class="sig-name descname"><span class="pre">karma</span></span><a class="headerlink" href="#bodhi.server.models.BugKarma.karma" title="Link to this definition">¶</a></dt>
+<dd><p>The karma associated with this bug and comment.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
@@ -526,9 +515,9 @@ None, self.bug_id will be used to retrieve the bug. Defaults to None.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="bodhi.server.models.BugFeedback.comment">
-<span class="sig-name descname"><span class="pre">comment</span></span><a class="headerlink" href="#bodhi.server.models.BugFeedback.comment" title="Link to this definition">¶</a></dt>
-<dd><p>The comment this BugFeedback is part of.</p>
+<dt class="sig sig-object py" id="bodhi.server.models.BugKarma.comment">
+<span class="sig-name descname"><span class="pre">comment</span></span><a class="headerlink" href="#bodhi.server.models.BugKarma.comment" title="Link to this definition">¶</a></dt>
+<dd><p>The comment this BugKarma is part of.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#bodhi.server.models.Comment" title="bodhi.server.models.Comment">Comment</a></p>
@@ -537,9 +526,9 @@ None, self.bug_id will be used to retrieve the bug. Defaults to None.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="bodhi.server.models.BugFeedback.bug">
-<span class="sig-name descname"><span class="pre">bug</span></span><a class="headerlink" href="#bodhi.server.models.BugFeedback.bug" title="Link to this definition">¶</a></dt>
-<dd><p>The bug this BugFeedback pertains to.</p>
+<dt class="sig sig-object py" id="bodhi.server.models.BugKarma.bug">
+<span class="sig-name descname"><span class="pre">bug</span></span><a class="headerlink" href="#bodhi.server.models.BugKarma.bug" title="Link to this definition">¶</a></dt>
+<dd><p>The bug this BugKarma pertains to.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#bodhi.server.models.Bug" title="bodhi.server.models.Bug">Bug</a></p>
@@ -548,14 +537,8 @@ None, self.bug_id will be used to retrieve the bug. Defaults to None.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="bodhi.server.models.BugFeedback.__getattribute__">
-<span class="sig-name descname"><span class="pre">__getattribute__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#BugFeedback.__getattribute__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.BugFeedback.__getattribute__" title="Link to this definition">¶</a></dt>
-<dd><p>Deprecate BugFeedback properties warnings.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bodhi.server.models.BugFeedback.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bodhi.server.models.BugFeedback.__init__" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="bodhi.server.models.BugKarma.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bodhi.server.models.BugKarma.__init__" title="Link to this definition">¶</a></dt>
 <dd><p>A simple constructor that allows initialization from kwargs.</p>
 <p>Sets attributes on the constructed instance using the names and
 values in <code class="docutils literal notranslate"><span class="pre">kwargs</span></code>.</p>
@@ -565,16 +548,10 @@ for example, any mapped columns or relationships.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="bodhi.server.models.BugFeedback.id">
-<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#bodhi.server.models.BugFeedback.id" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="bodhi.server.models.BugKarma.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#bodhi.server.models.BugKarma.id" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="bodhi.server.models.BugKarma">
-<span class="sig-prename descclassname"><span class="pre">bodhi.server.models.</span></span><span class="sig-name descname"><span class="pre">BugKarma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#BugKarma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.BugKarma" title="Link to this definition">¶</a></dt>
-<dd><p>Redirect to BugKarma class.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -1053,7 +1030,7 @@ for example, any mapped columns or relationships.</p>
 <dt class="sig sig-object py" id="bodhi.server.models.Comment.karma_critpath">
 <span class="sig-name descname"><span class="pre">karma_critpath</span></span><a class="headerlink" href="#bodhi.server.models.Comment.karma_critpath" title="Link to this definition">¶</a></dt>
 <dd><p>The critpath karma associated with this comment. Defaults to 0.
-<strong>DEPRECATED</strong> no longer used in the UI</p>
+<strong>DEPRECATED</strong> no longer used in the UI, maintained in db only for historic reason</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
@@ -1163,13 +1140,13 @@ for example, any mapped columns or relationships.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.server.models.Comment.unique_testcase_feedback">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unique_testcase_feedback</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#bodhi.server.models.TestCaseFeedback" title="bodhi.server.models.TestCaseFeedback"><span class="pre">TestCaseFeedback</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.server.models.Comment.unique_testcase_feedback" title="Link to this definition">¶</a></dt>
-<dd><p>Return a list of unique <a class="reference internal" href="#bodhi.server.models.TestCaseFeedback" title="bodhi.server.models.TestCaseFeedback"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestCaseFeedback</span></code></a> objects found in the testcase_feedback.</p>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unique_testcase_feedback</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#bodhi.server.models.TestCaseKarma" title="bodhi.server.models.TestCaseKarma"><span class="pre">TestCaseKarma</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#bodhi.server.models.Comment.unique_testcase_feedback" title="Link to this definition">¶</a></dt>
+<dd><p>Return a list of unique <a class="reference internal" href="#bodhi.server.models.TestCaseKarma" title="bodhi.server.models.TestCaseKarma"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestCaseKarma</span></code></a> objects found in the testcase_feedback.</p>
 <p>This will filter out duplicates for <a class="reference internal" href="#bodhi.server.models.TestCase" title="bodhi.server.models.TestCase"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestCases</span></code></a>. It will return the
 correct number of TestCases in testcase_feedback as a list.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A list of unique <a class="reference internal" href="#bodhi.server.models.TestCaseFeedback" title="bodhi.server.models.TestCaseFeedback"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestCaseFeedback</span></code></a> objects associated with this comment.</p>
+<dd class="field-odd"><p>A list of unique <a class="reference internal" href="#bodhi.server.models.TestCaseKarma" title="bodhi.server.models.TestCaseKarma"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestCaseKarma</span></code></a> objects associated with this comment.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3266,14 +3243,14 @@ for example, any mapped columns or relationships.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="bodhi.server.models.TestCaseFeedback">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.server.models.</span></span><span class="sig-name descname"><span class="pre">TestCaseFeedback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#TestCaseFeedback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.TestCaseFeedback" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="bodhi.server.models.TestCaseKarma">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.server.models.</span></span><span class="sig-name descname"><span class="pre">TestCaseKarma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#TestCaseKarma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.TestCaseKarma" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></p>
-<p>Feedback for a TestCase associated with a comment.</p>
+<p>Karma for a TestCase associated with a comment.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="bodhi.server.models.TestCaseFeedback.feedback">
-<span class="sig-name descname"><span class="pre">feedback</span></span><a class="headerlink" href="#bodhi.server.models.TestCaseFeedback.feedback" title="Link to this definition">¶</a></dt>
-<dd><p>The feedback associated with this TestCase comment.</p>
+<dt class="sig sig-object py" id="bodhi.server.models.TestCaseKarma.karma">
+<span class="sig-name descname"><span class="pre">karma</span></span><a class="headerlink" href="#bodhi.server.models.TestCaseKarma.karma" title="Link to this definition">¶</a></dt>
+<dd><p>The karma associated with this TestCase comment.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
@@ -3282,9 +3259,9 @@ for example, any mapped columns or relationships.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="bodhi.server.models.TestCaseFeedback.comment">
-<span class="sig-name descname"><span class="pre">comment</span></span><a class="headerlink" href="#bodhi.server.models.TestCaseFeedback.comment" title="Link to this definition">¶</a></dt>
-<dd><p>The comment this TestCaseFeedback is associated with.</p>
+<dt class="sig sig-object py" id="bodhi.server.models.TestCaseKarma.comment">
+<span class="sig-name descname"><span class="pre">comment</span></span><a class="headerlink" href="#bodhi.server.models.TestCaseKarma.comment" title="Link to this definition">¶</a></dt>
+<dd><p>The comment this TestCaseKarma is associated with.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#bodhi.server.models.Comment" title="bodhi.server.models.Comment">Comment</a></p>
@@ -3293,9 +3270,9 @@ for example, any mapped columns or relationships.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="bodhi.server.models.TestCaseFeedback.testcase">
-<span class="sig-name descname"><span class="pre">testcase</span></span><a class="headerlink" href="#bodhi.server.models.TestCaseFeedback.testcase" title="Link to this definition">¶</a></dt>
-<dd><p>The TestCase this TestCaseFeedback pertains to.</p>
+<dt class="sig sig-object py" id="bodhi.server.models.TestCaseKarma.testcase">
+<span class="sig-name descname"><span class="pre">testcase</span></span><a class="headerlink" href="#bodhi.server.models.TestCaseKarma.testcase" title="Link to this definition">¶</a></dt>
+<dd><p>The TestCase this TestCaseKarma pertains to.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#bodhi.server.models.TestCase" title="bodhi.server.models.TestCase">TestCase</a></p>
@@ -3304,14 +3281,8 @@ for example, any mapped columns or relationships.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="bodhi.server.models.TestCaseFeedback.__getattribute__">
-<span class="sig-name descname"><span class="pre">__getattribute__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#TestCaseFeedback.__getattribute__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.TestCaseFeedback.__getattribute__" title="Link to this definition">¶</a></dt>
-<dd><p>Deprecate TestCaseFeedback properties warnings.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bodhi.server.models.TestCaseFeedback.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bodhi.server.models.TestCaseFeedback.__init__" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="bodhi.server.models.TestCaseKarma.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bodhi.server.models.TestCaseKarma.__init__" title="Link to this definition">¶</a></dt>
 <dd><p>A simple constructor that allows initialization from kwargs.</p>
 <p>Sets attributes on the constructed instance using the names and
 values in <code class="docutils literal notranslate"><span class="pre">kwargs</span></code>.</p>
@@ -3321,16 +3292,10 @@ for example, any mapped columns or relationships.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="bodhi.server.models.TestCaseFeedback.id">
-<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#bodhi.server.models.TestCaseFeedback.id" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="bodhi.server.models.TestCaseKarma.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#bodhi.server.models.TestCaseKarma.id" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="bodhi.server.models.TestCaseKarma">
-<span class="sig-prename descclassname"><span class="pre">bodhi.server.models.</span></span><span class="sig-name descname"><span class="pre">TestCaseKarma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#TestCaseKarma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.TestCaseKarma" title="Link to this definition">¶</a></dt>
-<dd><p>Redirect to TestCaseKarma class.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -3955,7 +3920,7 @@ Deprecated in favor of meets_requirements_why property.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="bodhi.server.models.Update.comment">
-<span class="sig-name descname"><span class="pre">comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">karma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">karma_critpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bug_feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">testcase_feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">email_notification</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.comment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.comment" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">karma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">karma_critpath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bug_feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">testcase_feedback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">email_notification</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.comment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.comment" title="Link to this definition">¶</a></dt>
 <dd><p>Add a comment to this update.</p>
 <p>If the karma reaches the ‘stable_karma’ value, then request that this update be marked
 as stable. If it reaches the ‘unstable_karma’ value, then unpush it (obsolete it).</p>
@@ -4162,27 +4127,21 @@ mandatory_days_in_testing or longer.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="bodhi.server.models.Update.get_bug_feedback">
-<span class="sig-name descname"><span class="pre">get_bug_feedback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bug</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.get_bug_feedback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.get_bug_feedback" title="Link to this definition">¶</a></dt>
-<dd><p>Return the feedback for this update for the given bug.</p>
+<dt class="sig sig-object py" id="bodhi.server.models.Update.get_bug_karma">
+<span class="sig-name descname"><span class="pre">get_bug_karma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bug</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.get_bug_karma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.get_bug_karma" title="Link to this definition">¶</a></dt>
+<dd><p>Return the karma for this update for the given bug.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>bug</strong> (<a class="reference internal" href="#bodhi.server.models.Bug" title="bodhi.server.models.Bug"><em>Bug</em></a>) – The bug we want the feedback about.</p>
+<dd class="field-odd"><p><strong>bug</strong> (<a class="reference internal" href="#bodhi.server.models.Bug" title="bodhi.server.models.Bug"><em>Bug</em></a>) – The bug we want the karma about.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A 2-tuple of integers. The first represents negative feedback, the second
-represents positive feedback.</p>
+<dd class="field-even"><p>A 2-tuple of integers. The first represents negative karma, the second represents
+positive karma.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bodhi.server.models.Update.get_bug_karma">
-<span class="sig-name descname"><span class="pre">get_bug_karma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bug</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.get_bug_karma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.get_bug_karma" title="Link to this definition">¶</a></dt>
-<dd><p>Redirect to get_bug_feedback().</p>
 </dd></dl>
 
 <dl class="py method">
@@ -4280,27 +4239,21 @@ such as “f25” or “master”.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="bodhi.server.models.Update.get_testcase_feedback">
-<span class="sig-name descname"><span class="pre">get_testcase_feedback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">testcase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.get_testcase_feedback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.get_testcase_feedback" title="Link to this definition">¶</a></dt>
-<dd><p>Return the feedback for this update for the given TestCase.</p>
+<dt class="sig sig-object py" id="bodhi.server.models.Update.get_testcase_karma">
+<span class="sig-name descname"><span class="pre">get_testcase_karma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">testcase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.get_testcase_karma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.get_testcase_karma" title="Link to this definition">¶</a></dt>
+<dd><p>Return the karma for this update for the given TestCase.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>testcase</strong> (<a class="reference internal" href="#bodhi.server.models.TestCase" title="bodhi.server.models.TestCase"><em>TestCase</em></a>) – The TestCase we want the feedback about.</p>
+<dd class="field-odd"><p><strong>testcase</strong> (<a class="reference internal" href="#bodhi.server.models.TestCase" title="bodhi.server.models.TestCase"><em>TestCase</em></a>) – The TestCase we want the karma about.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A 2-tuple of integers. The first represents negative feedback, the second
-represents positive feedback.</p>
+<dd class="field-even"><p>A 2-tuple of integers. The first represents negative karma, the second represents
+positive karma.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bodhi.server.models.Update.get_testcase_karma">
-<span class="sig-name descname"><span class="pre">get_testcase_karma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">testcase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#Update.get_testcase_karma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.Update.get_testcase_karma" title="Link to this definition">¶</a></dt>
-<dd><p>Redirect to get_testcase_feedback().</p>
 </dd></dl>
 
 <dl class="py method">
