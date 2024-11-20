@@ -426,86 +426,96 @@ elif can_edit and update.status.value == 'testing' and update.test_gating_status
                 </div>
               </div>
               % endif
-              <div class="mt-3">
+
+              <div class="mt-3"><!-- Autopush settings div open -->
                   <div class="h5 d-flex align-items-center fw-bold border-bottom">
-                      <div class="py-2 text-uppercase font-size-09">Builds</div>
-                       <span class="badge text-bg-secondary badge-pill ms-1">${len(update.builds)}</span>
-                      % if request.identity and update.from_tag:
-                      <span class="badge text-bg-light badge-pill ms-auto border" title="Builds from the Side Tag: ${update.from_tag}" data-bs-toggle="tooltip"><i class="fa fa-tag pe-1"></i> ${update.from_tag}</span>
-                      % endif
+                      <span class="py-2 text-uppercase font-size-09">Autopush Settings</span>
+                      <span class="ms-auto " data-bs-toggle='tooltip' title='These are the thresholds that apply to the autokarma and autotime functions, if enabled'><i class="fa fa-question-circle text-primary" aria-hidden="true"></i></span>
                   </div>
 
-              % for build in update.builds:
-              <%
-              koji_web_url = request.registry.settings.get('koji_web_url').strip('/') + '/'
-              build_url = urljoin(koji_web_url, 'search?terms='+build.nvr+'&type=build&match=exact')
-              %>
-              <div class="pb-1">
-                  <div class="row">
-                    <div class="col text-muted text-truncate" data-bs-toggle="tooltip" title="${build.nvr}"><a href="${build_url}" target="_blank">
-                        ${build.nvr}</a></div>
-                  </div>
-              </div>
-              % endfor
-
-              </div>
-              <div class="mt-3">
-                  <div class="h5 d-flex align-items-center fw-bold border-bottom">
-                      <div class="py-2 text-uppercase font-size-09">Settings</div>
-                  </div>
-
-              % if update.unstable_karma:
-              <div class="pb-1">
-                  <div class="row">
-                    <div class="col fw-bold text-muted">Unstable by Karma</div>
-                    <div class="col-auto fw-bold">
+                  % if update.unstable_karma:
+                  <div class="pb-1">
+                    <div class="row">
+                      <div class="col fw-bold text-muted">Unstable by Karma</div>
+                      <div class="col-auto fw-bold">
                           <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='The update will be marked as unstable when karma reaches ${update.unstable_karma} '>
                             <i class="fa fa-thumbs-down pe-1"></i>${update.unstable_karma}
                           </span>
+                      </div>
                     </div>
                   </div>
-              </div>
-              % endif
+                  % endif
 
-              <div class="pb-1">
-                  <div class="row">
-                    <div class="col fw-bold text-muted">Stable by Karma</div>
-                    <div class="col-auto fw-bold">
-                      % if update.autokarma is True and update.stable_karma:
+                  <div class="pb-1">
+                    <div class="row">
+                      <div class="col fw-bold text-muted">Stable by Karma</div>
+                      <div class="col-auto fw-bold">
+                          % if update.autokarma is True and update.stable_karma:
                           <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='The update will be automatically pushed to stable when karma reaches ${update.stable_karma}'>
                             <i class="fa fa-thumbs-up pe-1"></i>${update.stable_karma}
                           </span>
-                      % else:
+                          % else:
                           <span class="text-muted fw-bold" data-bs-toggle='tooltip'
                             title='The update will not be automatically pushed to stable by karma'>
                             disabled
                           </span>
-                      % endif
+                          % endif
+                      </div>
                     </div>
                   </div>
-              </div>
 
-              <div class="pb-1">
-                <div class="row">
-                  <div class="col fw-bold text-muted">Stable by Time</div>
-                  <div class="col-auto fw-bold">
-                    % if update.autotime is True and update.stable_days is not None:
+                  <div class="pb-1">
+                    <div class="row">
+                      <div class="col fw-bold text-muted">Stable by Time</div>
+                      <div class="col-auto fw-bold">
+                        % if update.autotime is True and update.stable_days is not None:
                         <span class="text-muted fw-bold" data-bs-toggle='tooltip'
                         title='The update will be automatically pushed to stable after being in testing for ${update.stable_days} days'>
                           ${update.stable_days} days
                         </span>
-                    % else:
+                        % else:
                         <span class="text-muted fw-bold" data-bs-toggle='tooltip'
                           title='The update will not be automatically pushed to stable by a time frame'>
                           disabled
                         </span>
-                    % endif
+                        % endif
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              </div>
+              </div><!-- Autopush settings div close -->
 
-              <div class="mt-3">
+              % if not update.status.value == 'stable':
+              <div class="mt-3"><!-- Thresholds settings div open -->
+                  <div class="h5 d-flex align-items-center fw-bold border-bottom">
+                      <span class="py-2 text-uppercase font-size-09">Thresholds</span>
+                      <span class="ms-auto " data-bs-toggle='tooltip' title='These are the thresholds that qualify the update for being pushed stable'><i class="fa fa-question-circle text-primary" aria-hidden="true"></i></span>
+                  </div>
+
+                  <div class="pb-1">
+                    <div class="row">
+                      <div class="col fw-bold text-muted">Minimum Karma</div>
+                      <div class="col-auto fw-bold">
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='It will be possible to push the update to stable when it reaches a minimum of +${update.min_karma} karma'>
+                            +${update.min_karma}
+                          </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="pb-1">
+                    <div class="row">
+                      <div class="col fw-bold text-muted">Minimum Testing</div>
+                      <div class="col-auto fw-bold">
+                          <span class="text-muted fw-bold" data-bs-toggle='tooltip' title='It will be possible to push the update to stable after ${update.mandatory_days_in_testing} days spent in testing'>
+                            ${update.mandatory_days_in_testing} days
+                          </span>
+                      </div>
+                    </div>
+                  </div>
+              </div><!-- Thresholds settings div close -->
+              % endif
+
+              <div class="mt-3"><!-- Dates div open -->
                   <div class="h5 d-flex align-items-center fw-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">Dates</div>
                   </div>
@@ -573,6 +583,28 @@ elif can_edit and update.status.value == 'testing' and update.test_gating_status
                       </div>
                     % endif
               </div>
+              <div class="mt-3">
+                  <div class="h5 d-flex align-items-center fw-bold border-bottom">
+                      <div class="py-2 text-uppercase font-size-09">Builds</div>
+                       <span class="badge text-bg-secondary badge-pill ms-1">${len(update.builds)}</span>
+                      % if request.identity and update.from_tag:
+                      <span class="badge text-bg-light badge-pill ms-auto border" title="Builds from the Side Tag: ${update.from_tag}" data-bs-toggle="tooltip"><i class="fa fa-tag pe-1"></i> ${update.from_tag}</span>
+                      % endif
+                  </div>
+
+              % for build in update.builds:
+              <%
+              koji_web_url = request.registry.settings.get('koji_web_url').strip('/') + '/'
+              build_url = urljoin(koji_web_url, 'search?terms='+build.nvr+'&type=build&match=exact')
+              %>
+              <div class="pb-1">
+                  <div class="row">
+                    <div class="col text-muted text-truncate" data-bs-toggle="tooltip" title="${build.nvr}"><a href="${build_url}" target="_blank">
+                        ${build.nvr}</a></div>
+                  </div>
+              </div>
+              % endfor
+              </div><!-- Dates div close -->
         </div>
       </div>
     </div>
