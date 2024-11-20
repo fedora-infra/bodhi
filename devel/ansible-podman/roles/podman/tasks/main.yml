@@ -10,5 +10,8 @@
 - include_tasks: remove.yml
   when: "bodhi_dev_remove is defined"
 
+- include_tasks: clean.yml
+  when: "bodhi_dev_clean is defined"
+
 - include_tasks: clear_ipsilon_sessions.yml
   when: "bodhi_dev_cis is defined"

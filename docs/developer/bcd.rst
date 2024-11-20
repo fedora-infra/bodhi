@@ -27,11 +27,12 @@ Other commands
 ^^^^^^^^^^^^^^
 
 Other command commands are ``./bcd stop`` to stop all containers, ``./bcd remove`` to remove all
-containers, ``bcd logs (container)`` to view the logs for a container, ``bcd shell (container)``
-to shell into a container (the Bodhi container by default), and ``./bcd cis`` to clear Ipsilon's
-session cache. This is necessary to log in to Bodhi as a different user - first log out, then run
-``./bcd cis``, then log in again. If you don't clear the session cache Ipsilon will just keep
-logging you in as the same user. Run ``./bcd -h`` or ``./bcd (subcommand) -h`` for more help.
+containers, ``./bcd clean`` to do remove plus remove all built images and update all base images,
+``bcd logs (container)`` to view the logs for a container, ``bcd shell (container)`` to shell into
+a container (the Bodhi container by default), and ``./bcd cis`` to clear Ipsilon's session cache.
+This is necessary to log in to Bodhi as a different user - first log out, then run ``./bcd cis``,
+then log in again. If you don't clear the session cache Ipsilon will just keep logging you in as
+the same user. Run ``./bcd -h`` or ``./bcd (subcommand) -h`` for more help.
 
 Containers
 ^^^^^^^^^^
@@ -57,6 +58,22 @@ The server will automatically reload when any Python source file is changed.
 
 The Bodhi container uses systemd, so you can shell into it and stop or restart the bodhi service
 or any of the ancillary services it runs, if you need to.
+
+Refreshing the bcd environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Once you've set up a bcd environment, it's kind of frozen, aside from the bodhi code itself.
+All the containers will be built on whatever their 'latest' bases were are the time, but nothing
+ever rebuilds or updates them by default. So after a while, your environment will be stale and
+may not run newer Bodhi code correctly.
+
+To easily completely refresh the bcd environment, run ``./bcd clean`` then ``./bcd run`` again.
+This wipes all the existing containers and custom images, pulls the latest versions of all the
+base images, then rebuilds the custom images and the containers.
+
+Of course, any customizations, command history etc. within the containers will be lost. If you
+want to do something more granular, you'll have to do it 'behind the scenes' with normal podman
+commands to remove the container and/or images, pull base images, and rebuild.
 
 Authentication
 ^^^^^^^^^^^^^^
