@@ -1127,8 +1127,15 @@ def test_get_compose_json(bodhi_container, db_container):
         compose['content_type'] = updates[0]['builds'][0]['content_type']
     else:
         compose['content_type'] = None
-    # We can't get this from db
+    # We can't get these from db
     release['setting_status'] = http_response.json()['compose']['release']['setting_status']
+    release['min_karma'] = http_response.json()['compose']['release']['min_karma']
+    release['critpath_min_karma'] = \
+        http_response.json()['compose']['release']['critpath_min_karma']
+    release['mandatory_days_in_testing'] = \
+        http_response.json()['compose']['release']['mandatory_days_in_testing']
+    release['critpath_mandatory_days_in_testing'] = \
+        http_response.json()['compose']['release']['critpath_mandatory_days_in_testing']
 
     compose['release'] = release
     compose['update_summary'] = []

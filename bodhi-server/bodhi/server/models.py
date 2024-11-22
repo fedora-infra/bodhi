@@ -880,7 +880,8 @@ class Release(Base):
 
     __tablename__ = 'releases'
     __exclude_columns__ = ('id', 'builds', 'composes')
-    __include_extras__ = ('setting_status', )
+    __include_extras__ = ('critpath_mandatory_days_in_testing', 'mandatory_days_in_testing',
+                          'critpath_min_karma', 'min_karma', 'setting_status', )
     __get_by__ = ('name', 'long_name', 'dist_tag')
 
     name = Column(Unicode(10), unique=True, nullable=False)
