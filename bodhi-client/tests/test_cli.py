@@ -2510,6 +2510,58 @@ class TestInfo:
         assert result.output == "ERROR: an error was encountered... :(\n"
 
 
+class TestRequirements:
+    """
+    Test the requirements() function.
+    """
+    def test_url_flag(self, mocked_client_class):
+        """
+        Assert correct behavior with the --url flag.
+        """
+        mocked_client_class.send_request.return_value = \
+            client_test_data.EXAMPLE_RELEASE_MUNCH
+        runner = testing.CliRunner()
+
+        result = runner.invoke(cli.requirements_release, ['--url', 'http://localhost:6543', 'F27'])
+
+        assert result.exit_code == 0
+        assert result.output == \
+            client_test_data.EXPECTED_RELEASE_REQUIREMENTS_OUTPUT.replace('Saved r', 'R')
+        mocked_client_class.send_request.assert_called_once_with(
+            'releases/F27', verb='GET', auth=False)
+
+    def test_pending_release(self, mocked_client_class):
+        """
+        Assert correct output with a pensing prebeta release.
+        """
+        mocked_client_class.send_request.return_value = \
+            client_test_data.EXAMPLE_PENDING_RELEASE_MUNCH
+        runner = testing.CliRunner()
+
+        result = runner.invoke(cli.requirements_release, ['--url', 'http://localhost:6543', 'F29'])
+
+        assert result.exit_code == 0
+        assert result.output == \
+            client_test_data.EXPECTED_PENDING_RELEASE_REQUIREMENTS_OUTPUT.replace('Saved r', 'R')
+        mocked_client_class.send_request.assert_called_once_with(
+            'releases/F29', verb='GET', auth=False)
+
+    def test_requirements_with_errors(self, mocked_client_class):
+        """
+        Assert errors are printed if returned back in the request
+        """
+        mocked_client_class.send_request.return_value = {
+            "errors": [{"description": "an error was encountered... :("}]
+        }
+
+        runner = testing.CliRunner()
+
+        result = runner.invoke(cli.requirements_release, ['--url', 'http://localhost:6543', 'F27'])
+
+        assert result.exit_code == 1
+        assert result.output == "ERROR: an error was encountered... :(\n"
+
+
 class TestListReleases:
     """
     Test the list_releases() function.

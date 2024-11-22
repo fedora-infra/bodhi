@@ -915,7 +915,9 @@ EXAMPLE_RELEASE_MUNCH = Munch({
     'pending_testing_tag': 'f27-updates-testing-pending', 'stable_tag': 'f27-updates',
     'candidate_tag': 'f27-updates-candidate', 'mail_template': 'fedora_errata_template',
     'create_automatic_updates': False, 'package_manager': 'unspecified',
-    'testing_repository': None, 'released_on': None, 'eol': None, 'setting_status': None})
+    'testing_repository': None, 'released_on': None, 'eol': None,
+    'critpath_mandatory_days_in_testing': 0, 'mandatory_days_in_testing': 0,
+    'critpath_min_karma': 0, 'min_karma': 0, 'setting_status': None})
 
 
 EXPECTED_RELEASE_OUTPUT = """Saved release:
@@ -943,6 +945,16 @@ EXPECTED_RELEASE_OUTPUT = """Saved release:
   End of Life:              None
 """
 
+EXPECTED_RELEASE_REQUIREMENTS_OUTPUT = """Release F27 state is currently "pending"
+
+  - Requirements for critical path updates are:
+    0 days in testing OR +0 karma
+
+  - Requirements for non-critical path updates are:
+    0 days in testing OR +0 karma
+
+"""
+
 EXAMPLE_ARCHIVED_RELEASE_MUNCH = Munch({
     'composes': [], 'dist_tag': 'f26', 'name': 'F26',
     'testing_tag': 'f26-updates-testing', 'pending_stable_tag': 'f26-updates-pending',
@@ -953,7 +965,8 @@ EXAMPLE_ARCHIVED_RELEASE_MUNCH = Munch({
     'candidate_tag': 'f26-updates-candidate', 'stable_tag': 'f26-updates',
     'override_tag': 'f26-override', 'composed_by_bodhi': True,
     'package_manager': 'unspecified', 'testing_repository': None, 'released_on': None,
-    'eol': None, 'setting_status': None,
+    'eol': None, 'critpath_mandatory_days_in_testing': 14, 'mandatory_days_in_testing': 7,
+    'critpath_min_karma': 2, 'min_karma': 1, 'setting_status': None,
 })
 
 EXAMPLE_CURRENT_RELEASE_MUNCH = Munch({
@@ -966,7 +979,8 @@ EXAMPLE_CURRENT_RELEASE_MUNCH = Munch({
     'candidate_tag': 'f28-updates-candidate', 'stable_tag': 'f28-updates',
     'override_tag': 'f28-override', 'composed_by_bodhi': True,
     'package_manager': 'unspecified', 'testing_repository': None, 'released_on': None,
-    'eol': None, 'setting_status': None,
+    'eol': None, 'critpath_mandatory_days_in_testing': 14, 'mandatory_days_in_testing': 7,
+    'critpath_min_karma': 2, 'min_karma': 1, 'setting_status': None,
 })
 
 EXAMPLE_PENDING_RELEASE_MUNCH = Munch({
@@ -979,8 +993,19 @@ EXAMPLE_PENDING_RELEASE_MUNCH = Munch({
     'candidate_tag': 'f29-updates-candidate', 'stable_tag': 'f29-updates',
     'override_tag': 'f29-override', 'composed_by_bodhi': True,
     'package_manager': 'unspecified', 'testing_repository': None, 'released_on': None,
-    'eol': None, 'setting_status': None,
+    'eol': None, 'critpath_mandatory_days_in_testing': 3, 'mandatory_days_in_testing': 3,
+    'critpath_min_karma': 2, 'min_karma': 1, 'setting_status': 'prebeta',
 })
+
+EXPECTED_PENDING_RELEASE_REQUIREMENTS_OUTPUT = """Release F29 state is currently "pending prebeta"
+
+  - Requirements for critical path updates are:
+    3 days in testing OR +2 karma
+
+  - Requirements for non-critical path updates are:
+    3 days in testing OR +1 karma
+
+"""
 
 EXAMPLE_FROZEN_RELEASE_MUNCH = Munch({
     'composes': [], 'dist_tag': 'f30', 'name': 'F30',
@@ -992,7 +1017,8 @@ EXAMPLE_FROZEN_RELEASE_MUNCH = Munch({
     'candidate_tag': 'f30-updates-candidate', 'stable_tag': 'f30-updates',
     'override_tag': 'f30-override', 'composed_by_bodhi': True,
     'package_manager': 'unspecified', 'testing_repository': None, 'released_on': None,
-    'eol': None, 'setting_status': None,
+    'eol': None, 'critpath_mandatory_days_in_testing': 3, 'mandatory_days_in_testing': 3,
+    'critpath_min_karma': 2, 'min_karma': 1, 'setting_status': None,
 })
 
 EXAMPLE_RELEASE_MUNCH_NO_ARCHIVED = Munch({

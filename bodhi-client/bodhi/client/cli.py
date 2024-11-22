@@ -1261,6 +1261,12 @@ def edit_release(url: str, id_provider: str, client_id: str, debug: bool, **kwar
 
     data = munch.unmunchify(res)
 
+    # These are just read-only and not editable
+    data.pop('critpath_mandatory_days_in_testing', None)
+    data.pop('mandatory_days_in_testing', None)
+    data.pop('critpath_min_karma', None)
+    data.pop('min_karma', None)
+
     if 'errors' in data:
         print_errors(data)
 
@@ -1304,6 +1310,45 @@ def info_release(name: str, url: str, id_provider: str, client_id: str, **kwargs
     else:
         click.echo('Release:')
         print_release(res)
+
+
+@releases.command(name='requirements')
+@handle_errors
+@click.argument('name')
+@url_option
+@add_options(openid_options)
+@debug_option
+@staging_option
+def requirements_release(name: str, url: str, id_provider: str, client_id: str, **kwargs):
+    """Retrieve and print testing requirements for a release."""
+    def _bold(text: str, color: str = None):
+        """Return a click bolded text."""
+        if color is not None:
+            return click.style(text, bold=True, fg=color)
+        else:
+            return click.style(text, bold=True)
+
+    client = bindings.BodhiClient(
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+    )
+
+    res = client.send_request(f'releases/{name}', verb='GET', auth=False)
+
+    if 'errors' in res:
+        print_errors(res)
+    else:
+        status = f'{res['state']} {res['setting_status']}' if res['setting_status'] \
+            else res['state']
+
+        click.echo(f'Release {_bold(res["name"])} state is currently "{status}"\n')
+        click.echo('  - Requirements for critical path updates are:\n'
+                   f'    {_bold(res["critpath_mandatory_days_in_testing"], "white")} '
+                   'days in testing OR '
+                   f'{_bold("+" + str(res["critpath_min_karma"]), "white")} karma\n')
+        click.echo('  - Requirements for non-critical path updates are:\n'
+                   f'    {_bold(res["mandatory_days_in_testing"], "white")} '
+                   'days in testing OR '
+                   f'{_bold("+" + str(res["min_karma"]), "white")} karma\n')
 
 
 @releases.command(name='list')

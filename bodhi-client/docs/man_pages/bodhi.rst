@@ -680,6 +680,11 @@ The ``releases`` command allows users to manage update releases.
 
         Go to page number.
 
+``bodhi releases requirements RELEASE_NAME``
+
+    The ``requirements`` command prints information about the status of the given release
+    and the requirements needed by its updates for being pushed to stable.
+
 
 Examples
 ========
