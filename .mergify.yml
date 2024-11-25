@@ -50,16 +50,6 @@ pull_request_rules:
   - status-success=Build Documentation (f41)
   - status-success=Build Documentation (pip)
 
-- name: backport 8.0
-  actions:
-    backport:
-      branches:
-      - '8.0'
-  conditions:
-  - label!=WIP
-  - -draft
-  - label=8.0-backports
-
 - name: backport 8.1
   actions:
     backport:
@@ -79,3 +69,13 @@ pull_request_rules:
   - label!=WIP
   - -draft
   - label=8.2-backports
+
+- name: backport 8.3
+  actions:
+    backport:
+      branches:
+      - '8.3'
+  conditions:
+  - label!=WIP
+  - -draft
+  - label=8.3-backports
