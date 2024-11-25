@@ -1,81 +1,78 @@
 queue_rules:
   - name: default
-    conditions:
-    - status-success=DCO
-    - status-success=Pre-commit checks
-    - status-success=Diff-cover check
-    - status-success=Integration Tests (f40)
-    - status-success=Integration Tests (f41)
-    - status-success=Unit Tests (f40, bodhi-client)
-    - status-success=Unit Tests (f40, bodhi-messages)
-    - status-success=Unit Tests (f40, bodhi-server)
-    - status-success=Unit Tests (f41, bodhi-client)
-    - status-success=Unit Tests (f41, bodhi-messages)
-    - status-success=Unit Tests (f41, bodhi-server)
-    - status-success=Unit Tests (pip, bodhi-client)
-    - status-success=Unit Tests (pip, bodhi-messages)
-    - status-success=Unit Tests (pip, bodhi-server)
-    - status-success=Build Documentation (f40)
-    - status-success=Build Documentation (f41)
-    - status-success=Build Documentation (pip)
-
+    queue_conditions:
+      - label!=WIP
+      - -draft
+      - approved-reviews-by=@fedora-infra/bodhi
+      - "#changes-requested-reviews-by=0"
+      - status-success=DCO
+      - status-success=Pre-commit checks
+      - status-success=Diff-cover check
+      - status-success=Integration Tests (f40)
+      - status-success=Integration Tests (f41)
+      - status-success=Unit Tests (f40, bodhi-client)
+      - status-success=Unit Tests (f40, bodhi-messages)
+      - status-success=Unit Tests (f40, bodhi-server)
+      - status-success=Unit Tests (f41, bodhi-client)
+      - status-success=Unit Tests (f41, bodhi-messages)
+      - status-success=Unit Tests (f41, bodhi-server)
+      - status-success=Unit Tests (pip, bodhi-client)
+      - status-success=Unit Tests (pip, bodhi-messages)
+      - status-success=Unit Tests (pip, bodhi-server)
+      - status-success=Build Documentation (f40)
+      - status-success=Build Documentation (f41)
+      - status-success=Build Documentation (pip)
+    merge_conditions:
+      - status-success=DCO
+      - status-success=Pre-commit checks
+      - status-success=Diff-cover check
+      - status-success=Integration Tests (f40)
+      - status-success=Integration Tests (f41)
+      - status-success=Unit Tests (f40, bodhi-client)
+      - status-success=Unit Tests (f40, bodhi-messages)
+      - status-success=Unit Tests (f40, bodhi-server)
+      - status-success=Unit Tests (f41, bodhi-client)
+      - status-success=Unit Tests (f41, bodhi-messages)
+      - status-success=Unit Tests (f41, bodhi-server)
+      - status-success=Unit Tests (pip, bodhi-client)
+      - status-success=Unit Tests (pip, bodhi-messages)
+      - status-success=Unit Tests (pip, bodhi-server)
+      - status-success=Build Documentation (f40)
+      - status-success=Build Documentation (f41)
+      - status-success=Build Documentation (pip)
+    merge_method: rebase
 
 pull_request_rules:
+  - name: backport 8.1
+    actions:
+      backport:
+        branches:
+          - '8.1'
+    conditions:
+      - label!=WIP
+      - -draft
+      - label=8.1-backports
 
-- name: default
-  actions:
-    queue:
-      method: rebase
-      name: default
-  conditions:
-  - label!=WIP
-  - -draft
-  - approved-reviews-by=@fedora-infra/bodhi
-  - "#changes-requested-reviews-by=0"
-  - status-success=DCO
-  - status-success=Pre-commit checks
-  - status-success=Diff-cover check
-  - status-success=Integration Tests (f40)
-  - status-success=Integration Tests (f41)
-  - status-success=Unit Tests (f40, bodhi-client)
-  - status-success=Unit Tests (f40, bodhi-messages)
-  - status-success=Unit Tests (f40, bodhi-server)
-  - status-success=Unit Tests (f41, bodhi-client)
-  - status-success=Unit Tests (f41, bodhi-messages)
-  - status-success=Unit Tests (f41, bodhi-server)
-  - status-success=Unit Tests (pip, bodhi-client)
-  - status-success=Unit Tests (pip, bodhi-messages)
-  - status-success=Unit Tests (pip, bodhi-server)
-  - status-success=Build Documentation (f40)
-  - status-success=Build Documentation (f41)
-  - status-success=Build Documentation (pip)
+  - name: backport 8.2
+    actions:
+      backport:
+        branches:
+          - '8.2'
+    conditions:
+      - label!=WIP
+      - -draft
+      - label=8.2-backports
 
-- name: backport 8.1
-  actions:
-    backport:
-      branches:
-      - '8.1'
-  conditions:
-  - label!=WIP
-  - -draft
-  - label=8.1-backports
-
-- name: backport 8.2
-  actions:
-    backport:
-      branches:
-      - '8.2'
-  conditions:
-  - label!=WIP
-  - -draft
-  - label=8.2-backports
-
-- name: backport 8.3
-  actions:
-    backport:
-      branches:
-      - '8.3'
-  conditions:
-  - label!=WIP
-  - -draft
-  - label=8.3-backports
+  - name: backport 8.3
+    actions:
+      backport:
+        branches:
+          - '8.3'
+    conditions:
+      - label!=WIP
+      - -draft
+      - label=8.3-backports
+  - name: default
+    conditions: []
+    actions:
+      queue:
