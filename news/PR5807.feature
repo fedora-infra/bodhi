@@ -1,1 +1,0 @@
-The Release properties `min_karma`, `critpath_min_karma`, `mandatory_days_in_testing` and `critpath_mandatory_days_in_testing` are now expossed in JSON replies from bodhi-server and can be viewed in bodhi-client through the `release requirements` command
