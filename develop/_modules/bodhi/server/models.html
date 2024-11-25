@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bodhi.server.models &#8212; bodhi 8.2.0 documentation</title>
+    <title>bodhi.server.models &#8212; bodhi 8.3.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=686e5160" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=1f462c57" />
-    <script src="../../../_static/documentation_options.js?v=15c97ff8"></script>
+    <script src="../../../_static/documentation_options.js?v=641c35a1"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -1044,7 +1044,8 @@
 
     <span class="n">__tablename__</span> <span class="o">=</span> <span class="s1">&#39;releases&#39;</span>
     <span class="n">__exclude_columns__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;builds&#39;</span><span class="p">,</span> <span class="s1">&#39;composes&#39;</span><span class="p">)</span>
-    <span class="n">__include_extras__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;setting_status&#39;</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">__include_extras__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;critpath_mandatory_days_in_testing&#39;</span><span class="p">,</span> <span class="s1">&#39;mandatory_days_in_testing&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;critpath_min_karma&#39;</span><span class="p">,</span> <span class="s1">&#39;min_karma&#39;</span><span class="p">,</span> <span class="s1">&#39;setting_status&#39;</span><span class="p">,</span> <span class="p">)</span>
     <span class="n">__get_by__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;long_name&#39;</span><span class="p">,</span> <span class="s1">&#39;dist_tag&#39;</span><span class="p">)</span>
 
     <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Unicode</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -1087,7 +1088,9 @@
 <span class="sd">        instead.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            The minimum karma required for updates for this release.</span>
+<span class="sd">            The minimum karma required for updates for this release to</span>
+<span class="sd">            be eligible for stable push before the mandatory_days_in_testing</span>
+<span class="sd">            threshold is reached.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setting_status</span><span class="p">:</span>
             <span class="n">min_karma</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -1095,6 +1098,26 @@
             <span class="k">if</span> <span class="n">min_karma</span><span class="p">:</span>
                 <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_karma</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_karma&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">critpath_min_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the critical path minimum karma for updates for this release.</span>
+
+<span class="sd">        If the release doesn&#39;t specify this, the default value is used</span>
+<span class="sd">        instead.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The minimum karma required for critical path updates for this release</span>
+<span class="sd">            to be eligible for stable push before the</span>
+<span class="sd">            critpath_mandatory_days_in_testing threshold is reached.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setting_status</span><span class="p">:</span>
+            <span class="n">min_karma</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_prefix</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">setting_status</span><span class="si">}</span><span class="s1">.critpath.min_karma&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">min_karma</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_karma</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;critpath.min_karma&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version_int</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2421,6 +2444,10 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate and return how many days an update should be in testing before becoming stable.</span>
 
+<span class="sd">        This is how long the update must wait in testing before it is eligible to be pushed</span>
+<span class="sd">        to stable (either automatically or manually), if it does *not* reach the min_karma</span>
+<span class="sd">        threshold first (meeting *either* threshold makes the update eligible for push).</span>
+
 <span class="sd">        :return: The number of mandatory days in testing.</span>
 <span class="sd">        :rtype:  int</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2428,6 +2455,24 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">critpath_mandatory_days_in_testing</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">mandatory_days_in_testing</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">min_karma</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate and return how much karma an update should have before becoming stable.</span>
+
+<span class="sd">        This is how much karma the update must have before it is eligible to be pushed</span>
+<span class="sd">        to stable (either automatically or manually), if it does *not* reach the</span>
+<span class="sd">        mandatory_days_in_testing threshold first (meeting *either* threshold makes the update</span>
+<span class="sd">        eligible for push).</span>
+
+<span class="sd">        :return: The karma total.</span>
+<span class="sd">        :rtype:  int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">critpath</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">critpath_min_karma</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">min_karma</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">karma</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2852,12 +2897,12 @@
 
         <span class="c1"># We also need to make sure stable_karma is not set below</span>
         <span class="c1"># the policy minimum for this release</span>
-        <span class="k">if</span> <span class="n">release</span><span class="o">.</span><span class="n">min_karma</span> <span class="o">&gt;</span> <span class="n">up</span><span class="o">.</span><span class="n">stable_karma</span><span class="p">:</span>
-            <span class="n">up</span><span class="o">.</span><span class="n">stable_karma</span> <span class="o">=</span> <span class="n">release</span><span class="o">.</span><span class="n">min_karma</span>
+        <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">min_karma</span> <span class="o">&gt;</span> <span class="n">up</span><span class="o">.</span><span class="n">stable_karma</span><span class="p">:</span>
+            <span class="n">up</span><span class="o">.</span><span class="n">stable_karma</span> <span class="o">=</span> <span class="n">up</span><span class="o">.</span><span class="n">min_karma</span>
             <span class="n">caveats</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;stable karma&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s2">&quot;The stable karma required was set to the mandatory &quot;</span>
-                               <span class="sa">f</span><span class="s2">&quot;release value of </span><span class="si">{</span><span class="n">release</span><span class="o">.</span><span class="n">min_karma</span><span class="si">}</span><span class="s2">&quot;</span>
+                               <span class="sa">f</span><span class="s2">&quot;release value of </span><span class="si">{</span><span class="n">up</span><span class="o">.</span><span class="n">min_karma</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">})</span>
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Adding new update to the db </span><span class="si">{</span><span class="n">up</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
@@ -2934,12 +2979,12 @@
 
         <span class="c1"># We also need to make sure stable_karma is not set below</span>
         <span class="c1"># the policy minimum for this release</span>
-        <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">min_karma</span> <span class="o">&gt;</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stable_karma&#39;</span><span class="p">,</span> <span class="n">up</span><span class="o">.</span><span class="n">stable_karma</span><span class="p">):</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;stable_karma&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">min_karma</span>
+        <span class="k">if</span> <span class="n">up</span><span class="o">.</span><span class="n">min_karma</span> <span class="o">&gt;</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;stable_karma&#39;</span><span class="p">,</span> <span class="n">up</span><span class="o">.</span><span class="n">stable_karma</span><span class="p">):</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;stable_karma&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">up</span><span class="o">.</span><span class="n">min_karma</span>
             <span class="n">caveats</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
                 <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;stable karma&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s2">&quot;The stable karma required was raised to the mandatory &quot;</span>
-                               <span class="sa">f</span><span class="s2">&quot;release value of </span><span class="si">{</span><span class="n">up</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">min_karma</span><span class="si">}</span><span class="s2">&quot;</span>
+                               <span class="sa">f</span><span class="s2">&quot;release value of </span><span class="si">{</span><span class="n">up</span><span class="o">.</span><span class="n">min_karma</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">})</span>
 
         <span class="c1"># Determine which builds have been added</span>
@@ -3048,7 +3093,9 @@
             <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
                 <span class="n">tag_update_builds_task</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span> <span class="n">builds</span><span class="o">=</span><span class="n">builds_to_tag</span><span class="p">)</span>
 
-        <span class="n">new_bugs</span> <span class="o">=</span> <span class="n">up</span><span class="o">.</span><span class="n">update_bugs</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;bugs&#39;</span><span class="p">],</span> <span class="n">db</span><span class="p">)</span>
+        <span class="n">new_bugs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;bugs&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_bugs</span> <span class="o">=</span> <span class="n">up</span><span class="o">.</span><span class="n">update_bugs</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;bugs&#39;</span><span class="p">],</span> <span class="n">db</span><span class="p">)</span>
         <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;bugs&#39;</span><span class="p">]</span>
 
         <span class="n">req</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;request&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -4314,7 +4361,7 @@
 <span class="sd">                and reason is a str.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">req_days</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mandatory_days_in_testing</span>
-        <span class="n">req_karma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="o">.</span><span class="n">min_karma</span>
+        <span class="n">req_karma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_karma</span>
 
         <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test_gating.required&#39;</span><span class="p">):</span>
             <span class="n">tgs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_gating_status</span>
