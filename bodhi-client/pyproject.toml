@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhi-client"
-version = "8.2.0"
+version = "8.3.0"
 description = "Bodhi client"
 authors = ["Fedora Infrastructure team"]
 maintainers = ["Fedora Infrastructure Team <infrastructure@lists.fedoraproject.org>"]

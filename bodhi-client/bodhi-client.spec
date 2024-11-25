@@ -1,7 +1,7 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-client
 %global src_name bodhi_client
-%global pypi_version 8.2.0
+%global pypi_version 8.3.0
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
@@ -65,6 +65,9 @@ install -pm0644 bodhi-client.bash %{buildroot}%{_sysconfdir}/bash_completion.d/b
 %config(noreplace) %{_sysconfdir}/bash_completion.d/bodhi-client.bash
 
 %changelog
+* Mon Nov 25 2024 Mattia Verga <mattia.verga@fedoraproject.org> - 8.3.0-1
+- Update to 8.3.0
+
 * Sat Oct 26 2024 Mattia Verga <mattia.verga@fedoraproject.org> - 8.2.0-1
 - Update to 8.2.0
 
