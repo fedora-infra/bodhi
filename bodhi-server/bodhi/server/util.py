@@ -394,14 +394,26 @@ def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
     Raises:
         Exception: If the repodata is not valid or does not exist.
     """
-    cmd = ['dnf',
-           '--disablerepo=*',
-           f'--repofrompath=testrepo,{myurl}',
-           '--enablerepo=testrepo',
-           '--setopt=skip_if_unavailable=0',
-           '--setopt=testrepo.skip_if_unavailable=0',
-           '--refresh',
-           '--nogpgcheck'] + list(dnf_args)
+    # check dnf version
+    version_cmd = subprocess.check_output(['dnf', '--version'], encoding='utf-8',
+                                          stderr=subprocess.STDOUT)
+    if version_cmd.startswith('dnf5'):
+        cmd = ['dnf',
+               f'--repofrompath=testrepo,{myurl}',
+               '--repo=testrepo',
+               '--setopt=skip_if_unavailable=0',
+               '--setopt=testrepo.skip_if_unavailable=0',
+               '--refresh',
+               '--no-gpgchecks'] + list(dnf_args)
+    else:
+        cmd = ['dnf',
+               '--disablerepo=*',
+               f'--repofrompath=testrepo,{myurl}',
+               '--enablerepo=testrepo',
+               '--setopt=skip_if_unavailable=0',
+               '--setopt=testrepo.skip_if_unavailable=0',
+               '--refresh',
+               '--nogpgcheck'] + list(dnf_args)
 
     return subprocess.check_output(cmd, encoding='utf-8', stderr=subprocess.STDOUT)
 
