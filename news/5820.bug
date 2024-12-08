@@ -1,0 +1,1 @@
+Where available, libdnf5 Python bindings are now used in repository sanity checks, otherwise we're forcing dnf-4 usage with the old method

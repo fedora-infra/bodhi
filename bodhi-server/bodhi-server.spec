@@ -4,6 +4,8 @@
 %global client_min_version 8.1.1
 %global messages_min_version 8.1.1
 
+%bcond libdnf5 %[0%{?fedora} >= 41]
+
 Name:           %{pypi_name}
 Version:        %{pypi_version}
 Release:        0%{?dist}
@@ -66,7 +68,11 @@ updates for a software distribution.
 Summary: Bodhi composer backend
 
 Requires: %{py3_dist jinja2}
+%if %{with libdnf5}
+Requires: python3-bodhi-server+libdnf5 == %{version}-%{release}
+%else
 Requires: bodhi-server == %{version}-%{release}
+%endif
 Requires: pungi >= 4.1.20
 Requires: python3-createrepo_c
 Requires: skopeo
@@ -75,6 +81,10 @@ Requires: skopeo
 The Bodhi composer is the component that publishes Bodhi artifacts to
 repositories.
 
+%if %{with libdnf5}
+%pyproject_extras_subpkg -n python3-bodhi-server libdnf5
+%endif
+
 
 %prep
 %autosetup -n %{src_name}-%{pypi_version}
@@ -82,7 +92,7 @@ repositories.
 rm -rf %{pypi_name}.egg-info
 
 %generate_buildrequires
-%pyproject_buildrequires
+%pyproject_buildrequires %{?_with_libdnf5:-x libdnf5}
 
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/UsersAndGroups/#_dynamic_allocation
 cat > %{name}.sysusers << EOF
@@ -117,9 +127,7 @@ install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 install -p -D -m 0644 %{name}.sysusers %{buildroot}%{_sysusersdir}/%{name}.sysusers
 
 %check
-# sanity_checks tests rely on dnf command, but system's dnf cache is not accessible
-# from koji
-%{pytest} -v -k 'not sanity_check and not TestSanityCheckRepodata'
+%{pytest} -v
 
 %pre -n %{pypi_name}
 %sysusers_create_compat %{name}.sysusers
