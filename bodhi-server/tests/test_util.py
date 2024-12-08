@@ -22,6 +22,7 @@ import gzip
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 
 from munch import munchify
@@ -465,6 +466,17 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
 
+    @mock.patch('bodhi.server.util.load_repo_libdnf5', side_effect=Exception("Exception message"))
+    def test_invalid_repo_exception(self, *args):
+        """An exception should be raised if repo data is corrupted."""
+        pytest.importorskip('libdnf5', reason='This tests correct behavior with libdnf5 '
+                            'which is not installed')
+        base.mkmetadatadir(self.tempdir, compress_type='xz')
+
+        with pytest.raises(util.RepodataException) as exc:
+            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
+        assert str(exc.value) == "Error loading the repository: Exception message"
+
     def test_correct_yum_repo_with_gz_compress(self):
         """No Exception should be raised if the repo is normal.
 
@@ -535,6 +547,10 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
                 root.remove(data)
         repomd_tree.write(repomd_path, encoding='UTF-8', xml_declaration=True)
 
+    @pytest.mark.skipif(
+        "libdnf5" in sys.modules,
+        reason='This can only be tested if lidnf5 is not installed'
+    )
     @mock.patch('subprocess.check_output', return_value='Some output')
     def test_correct_module_repo(self, *args):
         """No Exception should be raised if the repo is a normal module repo."""
@@ -542,9 +558,13 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='module', drpms=True)
 
+    @pytest.mark.skipif(
+        "libdnf5" in sys.modules,
+        reason='This can only be tested if lidnf5 is not installed'
+    )
     @mock.patch('subprocess.check_output', return_value='')
     def test_module_repo_no_dnf_output(self, *args):
-        """No Exception should be raised if the repo is a normal module repo."""
+        """An Exception should be raised if the repo is invalid module repo."""
         self._mkmetadatadir_w_modules()
 
         with pytest.raises(util.RepodataException) as exc:

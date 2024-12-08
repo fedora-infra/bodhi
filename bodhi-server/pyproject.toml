@@ -102,6 +102,7 @@ Markdown = ">=3.3.6"
 munch = ">=2.5.0"
 koji = ">=1.27.1"
 libcomps ="^0.1.20"
+libdnf5 = {version = "^5.2", optional = true}
 packaging = ">=21.3"
 prometheus-client = ">=0.13.1"
 psycopg2 = ">=2.8.6"
@@ -116,6 +117,9 @@ requests = ">=2.25.1"
 SQLAlchemy = ">=1.4, <2.1"
 waitress = ">=1.4.4"
 zstandard = "^0.21 || ^0.22.0 || ^0.23.0"
+
+[tool.poetry.extras]
+libdnf5 = ["libdnf5"]
 
 [tool.pytest.ini_options]
 addopts = "--cov-config .coveragerc --cov=bodhi --cov-report term --cov-report xml --cov-report html"
