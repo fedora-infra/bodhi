@@ -59,6 +59,11 @@ from bodhi.server import __version__, ffmarkdown, log, buildsys, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
 
+try:
+    import libdnf5
+    use_libdnf5 = True
+except ImportError:
+    use_libdnf5 = False
 
 _ = TranslationStringFactory('bodhi')
 
@@ -354,29 +359,36 @@ def sanity_check_repodata(myurl, repo_type, drpms=True):
         if not ret:
             raise RepodataException('updateinfo.xml.gz contains empty ID tags')
 
-        # Now call out to DNF to check if the repo is usable
-        # "tests" is a list of tuples with (dnf args, expected output) to run.
-        # For every test, DNF is run with the arguments, and if the expected output is not found,
-        #  an error is raised.
-        tests = []
+        if use_libdnf5:
+            try:
+                testdir = tempfile.mkdtemp(dir=tmpdir)
+                load_repo_libdnf5(testdir, myurl)
+            except Exception as e:
+                raise RepodataException(f'Error loading the repository: {e}')
+        else:
+            # Now call out to DNF to check if the repo is usable
+            # "tests" is a list of tuples with (dnf args, expected output) to run.
+            # For every test, DNF is run with the arguments, and if the expected output
+            # is not found, an error is raised.
+            tests = []
 
-        if repo_type in ('yum', 'source'):
-            tests.append((['list', '--available'], 'testrepo'))
-        else:  # repo_type == 'module', verified above
-            tests.append((['module', 'list'], '.*'))
+            if repo_type in ('yum', 'source'):
+                tests.append((['list', '--available'], 'testrepo'))
+            else:  # repo_type == 'module', verified above
+                tests.append((['module', 'list'], '.*'))
 
-        for test in tests:
-            dnfargs, expout = test
+            for test in tests:
+                dnfargs, expout = test
 
-            # Make sure every DNF test runs in a new temp dir
-            testdir = tempfile.mkdtemp(dir=tmpdir)
-            output = sanity_check_repodata_dnf(testdir, myurl, *dnfargs)
-            if (expout == ".*" and len(output.strip()) != 0) or (expout in output):
-                continue
-            else:
-                raise RepodataException(
-                    "DNF did not return expected output when running test!"
-                    + f" Test: {dnfargs}, expected: {expout}, output: {output}")
+                # Make sure every DNF test runs in a new temp dir
+                testdir = tempfile.mkdtemp(dir=tmpdir)
+                output = sanity_check_repodata_dnf(testdir, myurl, *dnfargs)
+                if (expout == ".*" and len(output.strip()) != 0) or (expout in output):
+                    continue
+                else:
+                    raise RepodataException(
+                        "DNF did not return expected output when running test!"
+                        + f" Test: {dnfargs}, expected: {expout}, output: {output}")
 
 
 def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
@@ -394,7 +406,7 @@ def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
     Raises:
         Exception: If the repodata is not valid or does not exist.
     """
-    cmd = ['dnf',
+    cmd = ['dnf4',
            '--disablerepo=*',
            f'--repofrompath=testrepo,{myurl}',
            '--enablerepo=testrepo',
@@ -404,6 +416,33 @@ def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
            '--nogpgcheck'] + list(dnf_args)
 
     return subprocess.check_output(cmd, encoding='utf-8', stderr=subprocess.STDOUT)
+
+
+def load_repo_libdnf5(tempdir, myurl):
+    """
+    Use libdnf5 python bindings to try to load a repository.
+
+    Args:
+        tempdir (str): Temporary directory for libdnf cache.
+        myurl (str): A path to a repodata directory.
+    Raises:
+        Exception: If the repodata is not valid or does not exist.
+    """
+    base = libdnf5.base.Base()
+    base_config = base.get_config()
+    base_config.plugins = False
+    base_config.cachedir = tempdir
+    base.setup()
+    repo_sack = base.get_repo_sack()
+    repo = repo_sack.create_repo("testrepo")
+    repo.get_config().baseurl = myurl
+    repo_sack.load_repos(libdnf5.repo.Repo.Type_AVAILABLE)
+    query = libdnf5.repo.RepoQuery(base)
+    query.filter_enabled(True)
+    repos = [r.get_id() for r in query]
+    assert len(repos) == 1
+    assert repos[0] == 'testrepo'
+    return True
 
 
 def age(context, date, only_distance=False):
