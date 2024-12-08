@@ -370,13 +370,18 @@ def sanity_check_repodata(myurl, repo_type, drpms=True):
 
             # Make sure every DNF test runs in a new temp dir
             testdir = tempfile.mkdtemp(dir=tmpdir)
-            output = sanity_check_repodata_dnf(testdir, myurl, *dnfargs)
-            if (expout == ".*" and len(output.strip()) != 0) or (expout in output):
-                continue
-            else:
+            try:
+                output = sanity_check_repodata_dnf(testdir, myurl, *dnfargs)
+                if (expout == ".*" and len(output.strip()) != 0) or (expout in output):
+                    continue
+                else:
+                    raise RepodataException(
+                        "DNF did not return expected output when running test!"
+                        + f" Test: {dnfargs}, expected: {expout}, output: {output}")
+            except subprocess.CalledProcessError as e:
                 raise RepodataException(
-                    "DNF did not return expected output when running test!"
-                    + f" Test: {dnfargs}, expected: {expout}, output: {output}")
+                    "There was a problem running DNF command!"
+                    + f" Command {dnfargs} returned {e.output}")
 
 
 def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
