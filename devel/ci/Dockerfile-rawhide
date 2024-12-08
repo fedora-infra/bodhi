@@ -34,6 +34,7 @@ RUN dnf --best install -y \
     python3-jinja2 \
     python3-koji \
     python3-libcomps \
+    python3-libdnf5 \
     python3-librepo \
     python3-markdown \
     python3-munch \

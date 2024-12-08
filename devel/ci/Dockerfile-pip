@@ -17,6 +17,7 @@ RUN dnf install -y \
     poetry \
     postgresql-devel \
     python3-devel \
+    python3-libdnf5 \
     python3-librepo \
     redhat-rpm-config \
     python3-libcomps \
