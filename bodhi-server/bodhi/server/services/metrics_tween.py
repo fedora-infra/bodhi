@@ -45,9 +45,11 @@ def histo_tween_factory(handler, registry):
     Collects metrics on individual requests.
     """
     def tween(request):
+        r_patt = get_pattern(request)
+        r_meth = request.method
         gauge_labels = {
-            'method': request.method,
-            'path_info_pattern': get_pattern(request),
+            'method': r_meth,
+            'path_info_pattern': r_patt,
         }
         pyramid_request_ingress.labels(**gauge_labels).inc()
 
@@ -60,8 +62,8 @@ def histo_tween_factory(handler, registry):
         finally:
             duration = time() - start
             pyramid_request.labels(
-                method=request.method,
-                path_info_pattern=get_pattern(request),
+                method=r_meth,
+                path_info_pattern=r_patt,
                 status=status,
             ).observe(duration)
             pyramid_request_ingress.labels(**gauge_labels).dec()
