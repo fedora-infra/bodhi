@@ -36,6 +36,9 @@ BuildRequires:  python3-zstandard
 BuildRequires:  createrepo_c
 BuildRequires:  skopeo
 BuildRequires:  dnf
+%if %{with libdnf5}
+BuildRequires:  python3dist(libdnf5)
+%endif
 
 Requires: bodhi-client >= %{client_min_version}
 Requires: python3-bodhi-messages >= %{messages_min_version}
@@ -69,10 +72,9 @@ Summary: Bodhi composer backend
 
 Requires: %{py3_dist jinja2}
 %if %{with libdnf5}
-Requires: python3-bodhi-server+libdnf5 == %{version}-%{release}
-%else
-Requires: bodhi-server == %{version}-%{release}
+Requires: python3dist(libdnf5)
 %endif
+Requires: bodhi-server == %{version}-%{release}
 Requires: pungi >= 4.1.20
 Requires: python3-createrepo_c
 Requires: skopeo
@@ -81,10 +83,6 @@ Requires: skopeo
 The Bodhi composer is the component that publishes Bodhi artifacts to
 repositories.
 
-%if %{with libdnf5}
-%pyproject_extras_subpkg -n python3-bodhi-server libdnf5
-%endif
-
 
 %prep
 %autosetup -n %{src_name}-%{pypi_version}
@@ -92,7 +90,7 @@ repositories.
 rm -rf %{pypi_name}.egg-info
 
 %generate_buildrequires
-%pyproject_buildrequires %{?_with_libdnf5:-x libdnf5}
+%pyproject_buildrequires
 
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/UsersAndGroups/#_dynamic_allocation
 cat > %{name}.sysusers << EOF
