@@ -191,20 +191,26 @@ class AutomaticUpdateHandler:
             except ValueError:
                 critpath_groups = None
                 critpath = Update.contains_critpath_component([build], rel.branch)
+            # Avoid sqlalchemy warnings about adding relationships before the Update is in session
             update = Update(
                 release=rel,
-                builds=[build],
-                bugs=closing_bugs,
                 notes=notes,
                 type=utype,
                 stable_karma=3,
                 unstable_karma=-3,
                 autokarma=False,
-                user=user,
                 status=UpdateStatus.pending,
                 critpath_groups=critpath_groups,
                 critpath=critpath,
             )
+
+            log.debug("Adding new update to the database.")
+            dbsession.add(update)
+
+            # Now add relationships
+            update.user = user
+            update.bugs = closing_bugs
+            update.builds = [build]
 
             # Comment on the update that it was automatically created.
             update.comment(
@@ -215,9 +221,6 @@ class AutomaticUpdateHandler:
 
             update.add_tag(update.release.pending_signing_tag)
 
-            log.debug("Adding new update to the database.")
-            dbsession.add(update)
-
             log.debug("Flushing changes to the database.")
             dbsession.flush()
 
@@ -227,6 +230,7 @@ class AutomaticUpdateHandler:
             except Exception as e:
                 log.error(f'Problem obsoleting older updates: {e}')
 
+            Update._ready_for_testing(update, None)
             alias = update.alias
             buglist = [b.bug_id for b in update.bugs]
 

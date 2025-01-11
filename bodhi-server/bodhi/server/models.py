@@ -2085,8 +2085,6 @@ class Update(Base):
 
         log.debug('Set alias for %s to %s' % (self.get_title(), alias))
 
-        self._ready_for_testing(self, None)
-
     @property
     def version_hash(self):
         """
@@ -2547,7 +2545,6 @@ class Update(Base):
         """
         db = request.db
         user = User.get(request.identity.name)
-        data['user'] = user
         caveats = []
         try:
             data['critpath_groups'] = cls.get_critpath_groups(
@@ -2574,9 +2571,12 @@ class Update(Base):
                     db.add(bug)
                     db.flush()
                 bugs.append(bug)
-        data['bugs'] = bugs
 
         del data['edited']
+        # Avoid sqlalchemy warnings about adding relationships before the Update is in session
+        data.pop("bugs", None)
+        builds = data.pop("builds", None)
+        data.pop("user", None)
 
         req = data.pop("request", UpdateRequest.testing)
 
@@ -2591,7 +2591,15 @@ class Update(Base):
             data['stable_days'] = 0
             log.debug("Overriding autotime settings for rawhide update.")
 
+        # Add the update to session
         up = Update(**data, release=release)
+        log.debug(f"Adding new update to the db {up.alias}.")
+        db.add(up)
+
+        # Now add relationships
+        up.user = user
+        up.bugs = bugs
+        up.builds = builds
 
         # We want to make sure that the value of stable_days
         # will not be lower than the mandatory_days_in_testing.
@@ -2613,8 +2621,8 @@ class Update(Base):
                                f"release value of {up.min_karma}"
             })
 
-        log.debug(f"Adding new update to the db {up.alias}.")
-        db.add(up)
+        cls._ready_for_testing(up, None)
+
         log.debug(f"Triggering db commit for new update {up.alias}.")
         db.commit()
 
@@ -4251,7 +4259,7 @@ class Update(Base):
         """
         if old == NEVER_SET:
             # This is the object initialization phase. This instance is not ready, don't create
-            # the message now. This method will be called again at the end of __init__
+            # the message now. This method will be called again after the update is created
             return
         if target.content_type != ContentType.rpm:
             return
