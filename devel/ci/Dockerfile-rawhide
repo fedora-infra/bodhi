@@ -59,7 +59,8 @@ RUN dnf --best install -y \
     python3-zstandard \
     rpm-build \
     rpmdevtools \
-    skopeo
+    skopeo \
+    systemd-rpm-macros
 
 VOLUME ["/results"]
 WORKDIR /bodhi
