@@ -128,6 +128,43 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
                  call(f'Resubmitting {update.alias} to testing')]
         debug.assert_has_calls(calls)
         request.assert_called_once()
+        assert not update.builds[0].signed
+
+    @patch('bodhi.server.models.Update.untag')
+    @patch('bodhi.server.tasks.handle_side_and_related_tags_task.delay')
+    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
+    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    def test_check_signed_builds_stuck_Update_fromtag_with_signed_build(self, debug, buildsys,
+                                                                        tag, untag):
+        """
+        The side-tag update was probably ejected from a compose and is stuck.
+        """
+        update = models.Update.query.first()
+        update.from_tag = 'f17-build-side-1111'
+        assert update.builds[0].signed
+
+        self.db.commit()
+
+        listTags = [
+            {'arches': 'i386 x86_64 ppc ppc64', 'id': 1111, 'locked': False,
+             'name': 'f17-build-side-1111', 'perm': None, 'perm_id': None,
+             'extra': {'sidetag_user': 'guest', 'sidetag': True}},
+            {'arches': None, 'id': 10, 'locked': True,
+             'name': 'f17-updates-testing', 'perm': None, 'perm_id': None},]
+
+        buildsys.get_session.return_value.listTags.return_value = listTags
+        check_signed_builds_main()
+
+        buildsys.get_session.assert_called_once()
+        calls = [call('bodhi-2.0-1.fc17 already marked as signed'),
+                 call(f'Resubmitting {update.alias} to testing')]
+        debug.assert_has_calls(calls)
+        untag.assert_called_once()
+        tag.assert_called_with(builds=['bodhi-2.0-1.fc17'],
+                               pending_signing_tag='f17-updates-signing-pending',
+                               from_tag='f17-build-side-1111',
+                               candidate_tag='f17-updates-candidate')
+        assert not update.builds[0].signed
 
     @patch('bodhi.server.tasks.check_signed_builds.buildsys')
     @patch('bodhi.server.tasks.check_signed_builds.log.debug')
