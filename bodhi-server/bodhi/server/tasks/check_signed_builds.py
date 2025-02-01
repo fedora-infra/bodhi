@@ -32,6 +32,7 @@ from datetime import datetime, timedelta, timezone
 
 from bodhi.server import buildsys, models
 from bodhi.server.config import config
+from bodhi.server.tasks import handle_side_and_related_tags_task
 from bodhi.server.util import transactional_session_maker
 
 
@@ -79,15 +80,30 @@ def main():
                 continue
             pending_signing_tag = update.release.pending_signing_tag
             pending_testing_tag = update.release.pending_testing_tag
+            candidate_tag = update.release.candidate_tag
             for build in builds:
                 build_tags = [t['name'] for t in kc.listTags(build=build.nvr)]
                 if build.signed:
                     log.debug(f'{build.nvr} already marked as signed')
+                    # We need to "unsign" the build in Bodhi database, otherwise the
+                    # signed consumer will ignore the message and stops the flow
+                    build.signed = False
+                    session.flush()
                     if (update.release.testing_tag in build_tags
                             and update.release.candidate_tag not in build_tags):
                         # The update was probably ejected from a compose and is stuck
                         log.debug(f'Resubmitting {update.alias} to testing')
-                        update.set_request(session, models.UpdateRequest.testing, 'bodhi')
+                        if update.from_tag:
+                            side_tag = update.from_tag
+                            update.untag(session)
+                            builds = [b.nvr for b in update.builds]
+                            handle_side_and_related_tags_task.delay(
+                                builds=builds,
+                                pending_signing_tag=pending_signing_tag,
+                                from_tag=side_tag,
+                                candidate_tag=candidate_tag)
+                        else:
+                            update.set_request(session, models.UpdateRequest.testing, 'bodhi')
                         break
                     continue
                 if pending_signing_tag not in build_tags and pending_testing_tag in build_tags:
