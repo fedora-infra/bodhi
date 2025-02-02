@@ -209,8 +209,15 @@ ${statusmap[status]}\
       <div class="row align-items-center no-gutters">
           <div class="col-md mb-1 mb-md-0">
               <div class="d-flex align-items-center">
-                  <div class="flex-shrink-0">
-                    ${util.type2icon(update['type'])|n}
+                  <div class="flex-column flex-shrink-0">
+                    <div>${util.type2icon(update['type'])|n}</div>
+                    %if update.test_gating_status is not None and update.test_gating_status.value == 'failed':
+                    <div>
+                      <span data-toggle="tooltip" aria-label="This update failed gating tests" data-bs-original-title="This update failed gating tests">
+                        <i class="fa fa-fw fa-heartbeat text-danger"></i>
+                      </span>
+                    </div>
+                    %endif
                   </div>
                   <div class="flex-grow-1 ms-2">
                       <div class="fw-bold">
