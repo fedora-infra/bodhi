@@ -45,7 +45,7 @@
     pod: bodhi-dev
     volume:
       - /tmp/bodhi-dev/greenwave-settings.py:/etc/greenwave/settings.py:Z
-      - /tmp/bodhi-dev/fedora.yaml:/etc/greenwave/policies/fedora.yaml:Z
+      - /tmp/bodhi-dev/fedora.yaml.j2:/etc/greenwave/policies/fedora.yaml:Z
     healthcheck: "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:6545/api/v1.0/about')\""
     command: ["gunicorn", "--bind", "0.0.0.0:6545", "--access-logfile", "-", "--error-logfile", "-", "--enable-stdio-inheritance", "greenwave.wsgi:app"]
 

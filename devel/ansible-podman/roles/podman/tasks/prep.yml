@@ -33,7 +33,7 @@
     force: yes
   loop:
     - https://infrastructure.fedoraproject.org/infra/db-dumps/waiverdb.dump.xz
-    - https://pagure.io/fedora-infra/ansible/raw/main/f/roles/openshift-apps/greenwave/templates/fedora.yaml
+    - https://pagure.io/fedora-infra/ansible/raw/main/f/roles/openshift-apps/greenwave/templates/fedora.yaml.j2
 
 - name: Copy various required files into place
   ansible.builtin.copy:
