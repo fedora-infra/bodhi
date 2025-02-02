@@ -5,8 +5,6 @@
 
   from bodhi.server import models
 
-  from bodhi.server.config import config
-
   install_command = update.install_command
 %>
 
@@ -42,7 +40,7 @@ if can_edit and update.release.composed_by_bodhi:
       actions['unpush'] = True
       if update.meets_testing_requirements and not update.request:
         actions['push to stable'] = True
-elif can_edit and update.status.value == 'testing' and update.test_gating_status.value == 'failed':
+elif can_edit and update.status.value == 'testing' and update.test_gating_status == models.TestGatingStatus.failed:
   actions['unpush'] = True
 %>
 <div class="subheader pt-3">
