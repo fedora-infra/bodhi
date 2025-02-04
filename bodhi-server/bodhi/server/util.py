@@ -1355,7 +1355,7 @@ def markdown_to_text(markdown_string: str) -> str:
 
     # extract text
     soup = BeautifulSoup(html, "html.parser")
-    text = ''.join(soup.findAll(string=True))
+    text = ''.join(soup.find_all(string=True))
 
     return text
 
