@@ -3375,6 +3375,26 @@ class Update(Base):
             koji.tagBuild(tag, build.nvr, force=True)
         return koji.multiCall()
 
+    def move_tags(self, from_tag, to_tag):
+        """
+        Move all :class:`Builds <Build>` in this update netween koji tags.
+
+        Args:
+            from_tag (str): The tag to be removed to the builds.
+            to_tag (str): The tag to be added to the builds.
+        """
+        log.debug(f'Moving tags from {from_tag} to {to_tag} for {self.title}')
+        if any([not from_tag, not to_tag]):
+            log.warning(f"Not moving builds of {self.title} because of empty tag: "
+                        f"from {from_tag} to {to_tag}")
+            return []  # An empty iterator in place of koji multicall
+
+        koji = buildsys.get_session()
+        koji.multicall = True
+        for build in self.builds:
+            koji.moveBuild(from_tag, to_tag, build.nvr, force=True)
+        return koji.multiCall()
+
     def remove_tag(self, tag, koji=None):
         """
         Remove the given koji tag from all builds in this update.

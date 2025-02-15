@@ -3669,6 +3669,18 @@ class TestUpdate(ModelTest):
             self.obj.last_modified
         assert 'Update has no timestamps set:' in str(exc.value)
 
+    @pytest.mark.parametrize("from_tag,to_tag", [("f17-pending-testing", ""),
+                                                 ("", "f17-testing")])
+    @mock.patch('bodhi.server.models.log.warning')
+    def test_move_tags_emptystring(self, warning, from_tag, to_tag):
+        """Test move_tags() with a tag of ''."""
+        assert self.obj.move_tags(from_tag, to_tag) == []
+
+        warning.assert_called_once_with(
+            f"Not moving builds of {self.obj.title} because of empty tag: "
+            f"from {from_tag} to {to_tag}"
+        )
+
     @mock.patch('bodhi.server.models.log.warning')
     def test_remove_tag_emptystring(self, warning):
         """Test remove_tag() with a tag of ''."""
