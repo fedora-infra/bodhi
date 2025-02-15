@@ -130,6 +130,9 @@ class SignedHandler(object):
                 log.info("Every build in update is signed, set status to testing")
 
                 build.update.status = UpdateStatus.testing
+                from_tag = build.update.release.pending_testing_tag
+                to_tag = build.update.release.testing_tag
+                build.update.move_tags(from_tag, to_tag)
                 build.update.date_testing = func.current_timestamp()
                 build.update.request = None
                 build.update.pushed = True

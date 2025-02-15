@@ -1,0 +1,1 @@
+Builds for rawhide or branched updates are now moved from pending-testing to testing tag when the update is moved into testing. Despite being pointless, this ensure to not break update flow when a release enters Bodhi activation point
