@@ -73,6 +73,9 @@ EXAMPLE_QUERY_MUNCH_MULTI_BUILDS.updates[0]['builds'].append({
     'nvr': 'nodejs-pants-0.3.0-2.fc25',
     'signed': True
 })
+EXAMPLE_QUERY_MUNCH_EPEL = copy.deepcopy(client_test_data.EXAMPLE_QUERY_MUNCH)
+EXAMPLE_QUERY_MUNCH_EPEL.updates[0]['release']['id_prefix'] = 'FEDORA-EPEL'
+EXAMPLE_QUERY_MUNCH_EPEL.updates[0]['release']['version'] = '7.0'
 
 
 @pytest.fixture
@@ -135,7 +138,13 @@ class TestDownload:
 
         result = runner.invoke(
             cli.download,
-            ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--url', 'http://localhost:6543'])
+            [
+                '--no-gpg',
+                '--builds',
+                'nodejs-grunt-wrap-0.3.0-2.fc25',
+                '--url', 'http://localhost:6543'
+            ]
+        )
 
         assert result.exit_code == 0
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
@@ -156,7 +165,7 @@ class TestDownload:
 
         result = runner.invoke(
             cli.download,
-            ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--arch', 'x86_64'])
+            ['--no-gpg', '--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--arch', 'x86_64'])
 
         assert result.exit_code == 0
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
@@ -174,7 +183,7 @@ class TestDownload:
 
         result = runner.invoke(
             cli.download,
-            ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--arch', 'all'])
+            ['--no-gpg', '--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--arch', 'all'])
 
         assert result.exit_code == 0
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
@@ -191,7 +200,15 @@ class TestDownload:
 
         result = runner.invoke(
             cli.download,
-            ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--arch', 'all', '--debuginfo'])
+            [
+                '--no-gpg',
+                '--builds',
+                'nodejs-grunt-wrap-0.3.0-2.fc25',
+                '--arch',
+                'all',
+                '--debuginfo'
+            ]
+        )
 
         assert result.exit_code == 0
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
@@ -208,8 +225,14 @@ class TestDownload:
 
         result = runner.invoke(
             cli.download,
-            ['--builds', 'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25',
-                '--arch', 'all'])
+            [
+                '--no-gpg',
+                '--builds',
+                'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25',
+                '--arch',
+                'all'
+            ]
+        )
 
         assert result.exit_code == 0
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
@@ -238,7 +261,7 @@ class TestDownload:
         mocked_client_class.send_request.return_value = no_builds_response
         result = runner.invoke(
             cli.download,
-            ['--builds', 'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25'])
+            ['--no-gpg', '--builds', 'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25'])
 
         assert result.exit_code == 0
         assert result.output == 'WARNING: No builds found!\n'
@@ -255,7 +278,7 @@ class TestDownload:
 
         result = runner.invoke(
             cli.download,
-            ['--builds', 'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25'])
+            ['--no-gpg', '--builds', 'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25'])
 
         assert result.exit_code == 0
         assert result.output == ('WARNING: Some builds not found!\nDownloading packages '
@@ -275,7 +298,7 @@ class TestDownload:
 
         result = runner.invoke(
             cli.download,
-            ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            ['--no-gpg', '--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
         assert result.exit_code == 0
         assert result.output == ('Downloading packages from FEDORA-2017-c95b33872d\n'
@@ -294,7 +317,7 @@ class TestDownload:
 
         result = runner.invoke(
             cli.download,
-            ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
+            ['--no-gpg', '--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
 
         assert result.exit_code == 0
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
@@ -303,6 +326,145 @@ class TestDownload:
         call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+
+class TestDownloadGPG:
+    """
+    Test the signature handling features of download().
+    """
+    def setup_method(self, method):
+        """We always use these patchers."""
+        self.ep = mock.patch('bodhi.client.cli.os.path.exists', return_value=True)
+        self.exists = self.ep.start()
+        self.cp = mock.patch('bodhi.client.cli.subprocess.call', return_value=0)
+        self.call = self.cp.start()
+        self.rp = mock.patch('bodhi.client.cli.subprocess.run')
+        self.run = self.rp.start()
+        self.run.return_value.returncode = 0
+        self.run.return_value.stdout = """
+# off=0 ctb=99 tag=6 hlen=3 plen=525
+:public key packet:
+    version 4, algo 1, created 1459446579, expires 0
+    pkey[0]: [4096 bits]
+    pkey[1]: [17 bits]
+    keyid: 4089D8F2FDB19C98
+# off=528 ctb=b4 tag=13 hlen=2 plen=60
+"""
+
+    def teardown_method(self, method):
+        """Stop the patchers."""
+        self.ep.stop()
+        self.cp.stop()
+        self.rp.stop()
+
+    def test_fedora_good(self, mocked_client_class):
+        """Success path for Fedora update."""
+        mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            cli.download,
+            ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
+
+        assert result.exit_code == 0
+        assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
+        mocked_client_class.send_request.assert_called_once_with(
+            'updates/', verb='GET', params={'updateid': 'FEDORA-2017-c95b33872d'})
+        self.run.assert_called_once_with(
+            ('gpg', '--list-packets', '/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-primary'),
+            capture_output=True,
+            text=True
+        )
+        self.call.assert_called_once_with([
+            'koji', 'download-build', '--key=fdb19c98', '--arch=noarch',
+            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+    def test_epel_good(self, mocked_client_class):
+        """Success path for EPEL update."""
+        # epel case
+        mocked_client_class.send_request.return_value = EXAMPLE_QUERY_MUNCH_EPEL
+        runner = testing.CliRunner()
+        result = runner.invoke(
+            cli.download,
+            ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
+
+        assert result.exit_code == 0
+        assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
+        self.run.assert_called_once_with(
+            ('gpg', '--list-packets', '/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7'),
+            capture_output=True,
+            text=True
+        )
+        self.call.assert_called_once_with([
+            'koji', 'download-build', '--key=fdb19c98', '--arch=noarch',
+            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+    def test_gpg_fails(self, mocked_client_class):
+        """Handle gpg command failing."""
+        mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
+        runner = testing.CliRunner()
+        self.run.return_value.returncode = 1
+        result = runner.invoke(
+            cli.download,
+            ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
+        assert result.exit_code == 0
+        assert result.output == '''Downloading packages from FEDORA-2017-c95b33872d
+WARNING: gpg failed
+WARNING: could not find GPG key, packages will be unsigned
+'''
+        self.call.assert_called_once_with([
+            'koji', 'download-build', '--arch=noarch',
+            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+    def test_gpg_noexist(self, mocked_client_class):
+        """Handle gpg command not existing."""
+        mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
+        runner = testing.CliRunner()
+        self.run.side_effect = FileNotFoundError('gpg')
+        result = runner.invoke(
+            cli.download,
+            ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
+        assert result.exit_code == 0
+        assert result.output == '''Downloading packages from FEDORA-2017-c95b33872d
+WARNING: could not run gpg
+WARNING: could not find GPG key, packages will be unsigned
+'''
+        self.call.assert_called_once_with([
+            'koji', 'download-build', '--arch=noarch',
+            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+    def test_key_noexist(self, mocked_client_class):
+        """Handle key file not existing."""
+        mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
+        runner = testing.CliRunner()
+        self.exists.return_value = False
+        result = runner.invoke(
+            cli.download,
+            ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
+        assert result.exit_code == 0
+        assert result.output == '''Downloading packages from FEDORA-2017-c95b33872d
+WARNING: key file /etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-primary does not exist
+WARNING: could not find GPG key, packages will be unsigned
+'''
+        self.call.assert_called_once_with([
+            'koji', 'download-build', '--arch=noarch',
+            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+    def test_no_key_id(self, mocked_client_class):
+        """Handle key file existing but not showing a key ID."""
+        mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
+        runner = testing.CliRunner()
+        self.run.return_value.stdout = "A fish!"
+        result = runner.invoke(
+            cli.download,
+            ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
+        assert result.exit_code == 0
+        assert result.output == '''Downloading packages from FEDORA-2017-c95b33872d
+WARNING: could not find GPG key, packages will be unsigned
+'''
+        self.call.assert_called_once_with([
+            'koji', 'download-build', '--arch=noarch',
+            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
 
 class TestComposeInfo:
