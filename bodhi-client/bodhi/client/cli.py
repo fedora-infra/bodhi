@@ -773,6 +773,7 @@ def comment(update: str, text: str, karma: int, url: str, id_provider: str, clie
               help=('Include debuginfo packages'))
 @click.option('--updateid', help='Download update(s) by ID(s) (comma-separated list)')
 @click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
+@click.option('--gpg/--no-gpg', help='Download GPG-signed packages', default=True)
 @url_option
 @add_options(openid_options)
 @debug_option
@@ -797,10 +798,12 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
     )
     requested_arch = kwargs['arch']
     debuginfo = kwargs['debuginfo']
+    gpg = kwargs['gpg']
 
     del kwargs['staging']
     del kwargs['arch']
     del kwargs['debuginfo']
+    del kwargs['gpg']
     # At this point we need to have reduced the kwargs dict to only our
     # query options (updateid or builds)
     if not any(kwargs.values()):
@@ -832,8 +835,39 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
 
             for update in resp.updates:
                 click.echo(f"Downloading packages from {update['alias']}")
+                keyid = ''
+                if gpg:
+                    # try to figure out the key ID we need to get signed packages
+                    relnum = update['release']['version'].split('.')[0]
+                    if update['release']['id_prefix'] == 'FEDORA-EPEL':
+                        keyname = f'RPM-GPG-KEY-EPEL-{relnum}'
+                    else:
+                        keyname = f'RPM-GPG-KEY-fedora-{relnum}-primary'
+                    keypath = f'/etc/pki/rpm-gpg/{keyname}'
+                    if os.path.exists(keypath):
+                        try:
+                            ret = subprocess.run(
+                                ('gpg', '--list-packets', keypath),
+                                capture_output=True,
+                                text=True
+                            )
+                        except FileNotFoundError:
+                            click.echo('WARNING: could not run gpg')
+                            ret = None
+                        if ret and not ret.returncode:
+                            for line in ret.stdout.splitlines():
+                                if 'keyid: ' in line:
+                                    keyid = line.split("keyid: ")[-1][-8:].lower()
+                        elif ret:
+                            click.echo('WARNING: gpg failed')
+                    else:
+                        click.echo(f'WARNING: key file {keypath} does not exist')
+                    if not keyid:
+                        click.echo('WARNING: could not find GPG key, packages will be unsigned')
                 for build in update['builds']:
                     args = ['koji', 'download-build']
+                    if keyid:
+                        args.append(f'--key={keyid}')
                     if debuginfo:
                         args.append('--debuginfo')
                     # subprocess is icky, but koji module doesn't
