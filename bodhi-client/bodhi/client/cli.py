@@ -30,6 +30,7 @@ import typing
 
 import click
 import munch
+import requests
 
 from bodhi.client import bindings, constants
 
@@ -843,6 +844,8 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
                         keyname = f'RPM-GPG-KEY-EPEL-{relnum}'
                     else:
                         keyname = f'RPM-GPG-KEY-fedora-{relnum}-primary'
+
+                    # first try from a local file
                     keypath = f'/etc/pki/rpm-gpg/{keyname}'
                     if os.path.exists(keypath):
                         try:
@@ -854,14 +857,42 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
                         except FileNotFoundError:
                             click.echo('WARNING: could not run gpg')
                             ret = None
-                        if ret and not ret.returncode:
-                            for line in ret.stdout.splitlines():
-                                if 'keyid: ' in line:
-                                    keyid = line.split("keyid: ")[-1][-8:].lower()
-                        elif ret:
-                            click.echo('WARNING: gpg failed')
                     else:
-                        click.echo(f'WARNING: key file {keypath} does not exist')
+                        # try and get key file from dist-git
+                        if update['release']['id_prefix'] == 'FEDORA-EPEL':
+                            url = 'https://src.fedoraproject.org/rpms/epel-release'
+                            url += f'/raw/epel{relnum}/f/{keyname}'
+                        else:
+                            url = 'https://src.fedoraproject.org/rpms/fedora-repos'
+                            url += f'/raw/rawhide/f/{keyname}'
+                        try:
+                            resp = requests.get(url)
+                        except requests.exceptions.RequestException as err:
+                            click.echo(f'WARNING: Tried {url} to get key, failed with {err}')
+                            resp = None
+                            ret = None
+                        if resp and resp.status_code == 200:
+                            try:
+                                ret = subprocess.run(
+                                    ('gpg', '--list-packets', '-'),
+                                    input=resp.text,
+                                    capture_output=True,
+                                    text=True
+                                )
+                            except FileNotFoundError:
+                                click.echo('WARNING: could not run gpg')
+                                ret = None
+                        elif resp:
+                            click.echo(f'WARNING: Tried {url} to get key, got {resp.status_code}')
+                            ret = None
+
+                    if ret and not ret.returncode:
+                        for line in ret.stdout.splitlines():
+                            if 'keyid: ' in line:
+                                keyid = line.split("keyid: ")[-1][-8:].lower()
+                    elif ret:
+                        click.echo('WARNING: gpg failed')
+
                     if not keyid:
                         click.echo('WARNING: could not find GPG key, packages will be unsigned')
                 for build in update['builds']:
