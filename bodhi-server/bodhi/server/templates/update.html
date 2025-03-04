@@ -957,7 +957,11 @@ ${parent.javascript()}
                         if (!(requirement.subject_identifier in waived)) {
                             waived[requirement.subject_identifier] = {};
                         }
-                        var key = [requirement.testcase, requirement.scenario].join('##');
+                        var scenario = 'no_scenario';
+                        if (requirement.scenario) {
+                            scenario = requirement.scenario;
+                        }
+                        var key = [requirement.testcase, scenario].join('##');
                         waived[requirement.subject_identifier][key] = requirement.waiver_id;
                     }
                 });
