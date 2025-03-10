@@ -570,13 +570,13 @@ files = [
 
 [[package]]
 name = "jinja2"
-version = "3.1.5"
+version = "3.1.6"
 description = "A very fast and expressive template engine."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "jinja2-3.1.5-py3-none-any.whl", hash = "sha256:aba0f4dc9ed8013c424088f68a5c226f7d6097ed89b246d7749c2ec4175c6adb"},
-    {file = "jinja2-3.1.5.tar.gz", hash = "sha256:8fefff8dc3034e27bb80d67c671eb8a9bc424c0ef4c0826edbff304cceff43bb"},
+    {file = "jinja2-3.1.6-py3-none-any.whl", hash = "sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"},
+    {file = "jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d"},
 ]
 
 [package.dependencies]
@@ -606,24 +606,24 @@ six = "*"
 
 [[package]]
 name = "krb5"
-version = "0.7.0"
+version = "0.7.1"
 description = "Kerberos API bindings for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "krb5-0.7.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:69dc98084de5d693a97725f746d5af46299590bb9658c9fc32e4769a4a0f3079"},
-    {file = "krb5-0.7.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:4a32a35e425ce967f5577f9247a4e0a7d7e9a7e4527a778f7e0719aeb99e295f"},
-    {file = "krb5-0.7.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:717e5b8b4d78268eefdba72a39cb0f93e5821a23e626ada3a45a583a2454d084"},
-    {file = "krb5-0.7.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:66b286d9b4af42b4f5d2d561354cd44d891bee275768f1a2ac795ad4e8042dce"},
-    {file = "krb5-0.7.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:fa4ea45629e585787c0bcc455c7fbed7e09176031a7f9e7c87b9deaad401da36"},
-    {file = "krb5-0.7.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:a33896483f6d415c4289e5cc108b0450a919bae0546a997f3352d982bd4e7c99"},
-    {file = "krb5-0.7.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:87a6d11bb182a289dd86086c19cba3f03a8108175e8e23292d3d2786ff3ecaeb"},
-    {file = "krb5-0.7.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:691e2eafd0b16cb1b209b2bd36888526ea7df24ce69ba39e72ccad281ffdadb2"},
-    {file = "krb5-0.7.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:dd954a76973ddc295756a5741e7fcfda70cfd31d965d45ed47422bffe5792b6f"},
-    {file = "krb5-0.7.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:aead8037a4ef3f8a12db09fec32ff7f561399a35970c40bf62d748b834ac0eb5"},
-    {file = "krb5-0.7.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:72d551ce659502f3a7c46c65cdd75af682c077d3d1a081d4d1bb478e14a55ffd"},
-    {file = "krb5-0.7.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:f2cef1a7f78d331cc07b69cb8dc4cfb4a80f7b11dc2949f4e81f8cf86fd1836a"},
-    {file = "krb5-0.7.0.tar.gz", hash = "sha256:6a308f2e17d151c395b24e6aec7bdff6a56fe3627a32042fc86d412398a92ddd"},
+    {file = "krb5-0.7.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:cbdcd2c4514af5ca32d189bc31f30fee2ab297dcbff74a53bd82f92ad1f6e0ef"},
+    {file = "krb5-0.7.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:40ad837d563865946cffd65a588f24876da2809aa5ce4412de49442d7cf11d50"},
+    {file = "krb5-0.7.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:8f503ec4b44dedb6bfe49b636d5e4df89399b27a1d06218a876a37d5651c5ab3"},
+    {file = "krb5-0.7.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:af6eedfe51b759a8851c41e67f7ae404c382d510b14b626ec52cca564547a7f7"},
+    {file = "krb5-0.7.1-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:a075da3721b188070d801814c58652d04d3f37ccbf399dee63251f5ff27d2987"},
+    {file = "krb5-0.7.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:af1932778cd462852e2a25596737cf0ae4e361f69e892b6c3ef3a29c960de3a0"},
+    {file = "krb5-0.7.1-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:3c4c2c5b48f7685a281ae88aabbc7719e35e8af454ea812cf3c38759369c7aac"},
+    {file = "krb5-0.7.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:7590317af8c9633e420f90d112163687dbdd8fc9c3cee6a232d6537bcb5a65c3"},
+    {file = "krb5-0.7.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:87a592359cc545d061de703c164be4eabb977e3e8cae1ef0d969fadc644f9df6"},
+    {file = "krb5-0.7.1-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:9c8c1d5967a910562dbffae74bdbe8a364d78a6cecce0a429ec17776d4729e74"},
+    {file = "krb5-0.7.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:44045e1f8a26927229eedbf262d3e8a5f0451acb1f77c3bd23cad1dc6244e8ad"},
+    {file = "krb5-0.7.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:e9b71148b8974fc032268df23643a4089677dc3d53b65167e26e1e72eaf43204"},
+    {file = "krb5-0.7.1.tar.gz", hash = "sha256:ed5f13d5031489b10d8655c0ada28a81c2391b3ecb8a08c6d739e1e5835bc450"},
 ]
 
 [[package]]
