@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.12 || 3.13'
 
       - name: Install deps
         run: pip install click
@@ -49,7 +49,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.12 || 3.13'
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -73,7 +73,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.12 || 3.13'
 
       - name: Install deps
         run: pip3 install click -r devel/ci/integration/requirements.txt
@@ -94,7 +94,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.12 || 3.13'
 
       - name: Install deps
         run: pip install click
@@ -121,7 +121,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.12 || 3.13'
 
       - name: Install deps
         run: pip install click -r docs/requirements.txt
@@ -140,7 +140,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.12 || 3.13'
 
       - name: Install deps
         run: pip install click
