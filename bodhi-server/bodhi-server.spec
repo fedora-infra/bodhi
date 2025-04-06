@@ -93,7 +93,7 @@ rm -rf %{pypi_name}.egg-info
 %pyproject_buildrequires
 
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/UsersAndGroups/#_dynamic_allocation
-cat > %{name}.sysusers << EOF
+cat > %{name}.conf << EOF
 #Type Name   ID  GECOS           Home directory         Shell
 u     bodhi  -   "Bodhi Server"  %{_datadir}/%{name}    /sbin/nologin
 EOF
@@ -122,13 +122,13 @@ install apache/bodhi.wsgi %{buildroot}%{_datadir}/bodhi/bodhi.wsgi
 install -d %{buildroot}%{_mandir}/man1
 install -pm0644 docs/_build/*.1 %{buildroot}%{_mandir}/man1/
 
-install -p -D -m 0644 %{name}.sysusers %{buildroot}%{_sysusersdir}/%{name}.sysusers
+install -p -D -m 0644 %{name}.conf %{buildroot}%{_sysusersdir}/%{name}.conf
 
 %check
 %{pytest} -v
 
 %pre -n %{pypi_name}
-%sysusers_create_compat %{name}.sysusers
+%sysusers_create_compat %{name}.conf
 
 
 %files -n %{pypi_name}
@@ -149,7 +149,7 @@ install -p -D -m 0644 %{name}.sysusers %{buildroot}%{_sysusersdir}/%{name}.sysus
 %{python3_sitelib}/bodhi_server-%{pypi_version}.dist-info
 %{_mandir}/man1/bodhi-*.1*
 %{_mandir}/man1/initialize_bodhi_db.1*
-%{_sysusersdir}/%{name}.sysusers
+%{_sysusersdir}/%{name}.conf
 %attr(-,bodhi,root) %{_datadir}/bodhi
 %attr(-,bodhi,bodhi) %config(noreplace) %{_sysconfdir}/bodhi/*
 %attr(0775,bodhi,bodhi) %{_localstatedir}/cache/bodhi
