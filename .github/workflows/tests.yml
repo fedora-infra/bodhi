@@ -84,7 +84,7 @@ jobs:
       fail-fast: false
       matrix:
         # integration tests are broken on pip atm, so not included in this list.
-        release: [f40,f41,rawhide]
+        release: [f40,f41,f42,rawhide]
 
   unit_tests:
     name: Unit Tests
@@ -111,7 +111,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f40,f41,pip,rawhide]
+        release: [f40,f41,f42,pip,rawhide]
         module: [bodhi-client, bodhi-messages, bodhi-server]
 
   docs:
@@ -159,4 +159,4 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f40,f41,rawhide]
+        release: [f40,f41,f42,rawhide]
