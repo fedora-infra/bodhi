@@ -702,7 +702,6 @@ def get_session() -> typing.Union[koji.ClientSession, DevBuildsys]:
     Raises:
         RuntimeError: If the build system has not been initialized. See setup_buildsystem().
     """
-    global _buildsystem
     if _buildsystem is None:
         raise RuntimeError('Buildsys needs to be setup')
     with _buildsystem_login_lock:
