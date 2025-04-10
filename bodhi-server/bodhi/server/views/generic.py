@@ -36,17 +36,18 @@ import bodhi.server.util
 
 def get_top_testers():
     """
-    Return a query of the 5 users that have submitted the most comments in the last 7 days.
+    Return a query of the top users that have submitted the most comments in the last 7 days.
 
     Returns:
         sqlalchemy.orm.query.Query: A SQLAlchemy query that contains the
-                                  5 users that have submitted the most comments
+                                  top users that have submitted the most comments
                                   in the last 7 days, and their total number of
                                   comments in bodhi.
     """
     blacklist = config.get('stats_blacklist')
     days = config.get('top_testers_timeframe')
     start_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
+    top_limit = config.get('homepage_stats_num_users')
 
     query = models.Session().query(
         models.User,
@@ -61,23 +62,24 @@ def get_top_testers():
 
     return query\
         .group_by(models.User)\
-        .limit(5)\
+        .limit(top_limit)\
         .all()
 
 
 def get_top_packagers():
     """
-    Return a query of the 5 users that have submitted the most updates in the last 7 days.
+    Return a query of the top users that have submitted the most updates in the last 7 days.
 
     Returns:
         sqlalchemy.orm.query.Query: A SQLAlchemy query that contains the
-                                  5 users that have submitted the most updates
+                                  top users that have submitted the most updates
                                   in the last 7 days, and their total number of
                                   updates in bodhi.
     """
     blacklist = config.get('stats_blacklist')
     days = config.get('top_testers_timeframe')
     start_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
+    top_limit = config.get('homepage_stats_num_users')
 
     query = models.Session().query(
         models.User,
@@ -92,7 +94,7 @@ def get_top_packagers():
 
     return query\
         .group_by(models.User)\
-        .limit(5)\
+        .limit(top_limit)\
         .all()
 
 
@@ -130,11 +132,11 @@ def _generate_home_page_stats():
 
     This function returns a dictionary with the following 5 keys:
 
-        top_testers:            a list of 5 tuples, the 5 top testers in the last 7 days.
+        top_testers:            a list of tuples, the top testers in the last 7 days.
                                 The first item of each tuple contains a dict of the items
                                 in the User model for that user. The second item of the tuple
                                 contains the number of comments the user has left in Bodhi.
-        top_packagers:           a list of 5 tuples, the 5 top packagers in the last 7 days.
+        top_packagers:          a list of tuples, the top packagers in the last 7 days.
                                 The first item of each tuple contains a dict of the items
                                 in the User model for that user. The second item of the tuple
                                 contains the number of updates the user has filed in Bodhi.
