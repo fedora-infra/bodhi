@@ -395,6 +395,9 @@ class BodhiConfig(dict):
         'fmn_url': {
             'value': 'https://apps.fedoraproject.org/notifications/',
             'validator': str},
+        'homepage_stats_num_users': {
+            'value': 10,
+            'validator': int},
         'important_groups': {
             # Defined in and tied to the Fedora Account System (limited to 16 characters)
             'value': ['proventesters', 'provenpackager', 'releng', 'security_respons', 'packager',
