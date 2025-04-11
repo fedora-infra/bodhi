@@ -315,9 +315,9 @@ elif can_edit and update.status.value == 'testing' and update.test_gating_status
           <div class="alert alert-secondary bg-light mt-5 mb-3 text-center text-muted">
             <p>
             % if request.matched_route:
-              Please <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
+              Please <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">log in</a> to add feedback.
             % else:
-              Please <a href="${request.route_url('login')}">login</a> to add feedback.
+              Please <a href="${request.route_url('login')}">log in</a> to add feedback.
             % endif
             </p>
           </div>

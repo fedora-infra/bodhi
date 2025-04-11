@@ -126,9 +126,9 @@
                     % if not request.identity:
                     <li class="nav-item ms-3">
                         % if request.matched_route:
-                        <a class="btn btn-primary" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">Login</a>
+                        <a class="btn btn-primary" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">Log in</a>
                         % else:
-                        <a class="btn btn-primary" href="${request.route_url('login')}">Login</a>
+                        <a class="btn btn-primary" href="${request.route_url('login')}">Log in</a>
                         % endif
                     </li>
                     % endif
