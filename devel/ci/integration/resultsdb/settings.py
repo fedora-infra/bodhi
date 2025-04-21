@@ -1,5 +1,7 @@
 SECRET_KEY = 'this-is-only-for-integration-testing'
 SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://resultsdb@db/resultsdb'
+HOST = '0.0.0.0'
+PORT = 5001
 FILE_LOGGING = False
 LOGFILE = '/var/log/resultsdb/resultsdb.log'
 SYSLOG_LOGGING = False

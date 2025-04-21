@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora:38
+FROM quay.io/fedora/fedora:latest
 # should be specified as hostname:port to listen on a non-standard port
 ARG hostname=id.dev.fedoraproject.org
 # can be a comma-separated list
@@ -22,7 +22,7 @@ RUN ipsilon-server-install --root-instance --secure no --testauth yes --testauth
 #     --subject-alt-name ipsilon.ci \
 #     --subject-alt-name ipsilon
 RUN \
-    dnf -y install openssl && \
+    dnf -y install gawk openssl && \
     cd /root && \
     curl -L -o easyrsa.tgz https://github.com/OpenVPN/easy-rsa/releases/download/v3.2.2/EasyRSA-3.2.2.tgz && \
     tar -xf /root/easyrsa.tgz && \

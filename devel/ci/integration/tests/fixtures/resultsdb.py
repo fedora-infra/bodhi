@@ -50,8 +50,8 @@ def resultsdb_container(docker_backend, docker_network, db_container, rabbitmq_c
     container = image.run_via_binary(additional_opts=run_opts)
     container.start()
     # Add sample data in the database
-    container.execute(["resultsdb", "init_db"])
+    container.execute(["/venv/bin/resultsdb", "init_db"])
     # we need to wait for the webserver to start serving
-    container.wait_for_port(80, timeout=30)
+    container.wait_for_port(5001, timeout=30)
     yield container
     stop_and_delete(container)
