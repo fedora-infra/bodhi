@@ -689,6 +689,7 @@ class UpdateType(DeclEnum):
         security (EnumSymbol): The update addresses security issues.
         newpackage (EnumSymbol): The update introduces new packages to the release.
         enhancement (EnumSymbol): The update introduces new features.
+        unspecified (EnumSymbol): The packager has not specified a type.
     """
 
     bugfix = 'bugfix', 'bugfix'
