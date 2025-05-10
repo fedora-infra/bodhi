@@ -13,6 +13,6 @@ SCOPE = " ".join([
     "https://id.fedoraproject.org/scope/groups",
     "https://id.fedoraproject.org/scope/agreements",
 ])
-UPDATE_TYPES = ['security', 'bugfix', 'enhancement', 'newpackage']
+UPDATE_TYPES = ['security', 'bugfix', 'enhancement', 'newpackage', 'unspecified']
 REQUEST_TYPES = ['testing', 'stable', 'unpush']
 SUGGEST_TYPES = ['unspecified', 'reboot', 'logout']
