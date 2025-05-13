@@ -474,7 +474,7 @@ def new(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
         except bindings.BodhiClientException as e:
             click.echo(str(e), err=True)
         except Exception:
-            traceback.print_exc()
+            click.echo(traceback.format_exc(), err=True)
 
 
 def _validate_edit_update(
