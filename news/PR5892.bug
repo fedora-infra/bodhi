@@ -1,0 +1,1 @@
+`UpdateType.unspecified` that was introduced with PR#3047 has been added to the documentation and `constants.UPDATE_TYPES` list.
