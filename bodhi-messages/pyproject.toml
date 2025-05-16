@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhi-messages"
-version = "8.3.0"
+version = "25.5.0"
 description = "JSON schema for messages sent by Bodhi"
 readme = "README.rst"
 authors = ["Fedora Infrastructure Team"]
@@ -17,7 +17,6 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -39,7 +38,7 @@ include = [
 generate-setup-file = true
 
 [tool.poetry.dependencies]
-python = ">=3.8, <4"
+python = ">=3.9, <4"
 fedora-messaging = ">=3.0.0"
 
 [tool.poetry.dev-dependencies]
