@@ -53,35 +53,16 @@ queue_rules:
     merge_method: rebase
 
 pull_request_rules:
-  - name: backport 8.1
+  - name: backport 25.2
     actions:
       backport:
         branches:
-          - '8.1'
+          - '25.2'
     conditions:
       - label!=WIP
       - -draft
-      - label=8.1-backports
+      - label=25.2-backports
 
-  - name: backport 8.2
-    actions:
-      backport:
-        branches:
-          - '8.2'
-    conditions:
-      - label!=WIP
-      - -draft
-      - label=8.2-backports
-
-  - name: backport 8.3
-    actions:
-      backport:
-        branches:
-          - '8.3'
-    conditions:
-      - label!=WIP
-      - -draft
-      - label=8.3-backports
   - name: default
     conditions: []
     actions:

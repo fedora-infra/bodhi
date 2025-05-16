@@ -1,1 +1,0 @@
-When creating a new Update, do not add relationships before the Update object is in session. Fixes some SQLAlchemy 2.x warnings.

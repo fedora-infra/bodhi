@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhi-client"
-version = "8.3.0"
+version = "25.5.0"
 description = "Bodhi client"
 authors = ["Fedora Infrastructure team"]
 maintainers = ["Fedora Infrastructure Team <infrastructure@lists.fedoraproject.org>"]
@@ -16,7 +16,6 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -46,7 +45,7 @@ pytest-mock = ">=3.5.1"
 diff-cover = ">=4.2.1"
 
 [tool.poetry.dependencies]
-python = ">=3.8, <4"
+python = ">=3.9, <4"
 click = ">=7.1.2"
 koji = ">=1.27.1"
 authlib = ">=0.15.4"
