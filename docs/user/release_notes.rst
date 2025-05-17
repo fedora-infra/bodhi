@@ -4,6 +4,35 @@ Release notes
 
 .. towncrier release notes start
 
+v25.5.1
+=======
+
+
+Released on 2025-05-17.
+This adds a couple of features that were not included in the previous release
+by mistake.
+
+
+Features
+^^^^^^^^
+
+* The CLI updates download command will now download signed packages, if
+  possible. (:pr:`5859`).
+
+Bug fixes
+^^^^^^^^^
+
+* `UpdateType.unspecified` that was introduced with PR#3047 has been added to
+  the documentation and `constants.UPDATE_TYPES` list. (:pr:`5892`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Williamson
+* LuK1337
+
 v25.5
 =====
 
