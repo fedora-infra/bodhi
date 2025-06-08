@@ -1,0 +1,1 @@
+bodhi-server: support for configuring logging through pyramid_sawing has been removed

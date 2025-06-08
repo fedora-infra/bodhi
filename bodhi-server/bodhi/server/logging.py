@@ -20,24 +20,13 @@
 import logging
 
 from pyramid import paster
-import yaml
 
 from bodhi.server import config
 
 
 def setup():
     """Set up logging from our config file."""
-    pyramid_includes = config.config.get('pyramid.includes', '').split('\n')
-    if 'pyramid_sawing' in pyramid_includes:
-        # This Bodhi deployment is using pyramid_sawing to configure logging. This means that we
-        # cannot use paster.setup_logging() because the main config file doesn't have the logging
-        # settings. Let's read the main config file to find out where the logging settings are.
-        logging_config = config.config['pyramid_sawing.file']
-        with open(logging_config) as logging_config_file:
-            logging_config = yaml.safe_load(logging_config_file.read())
-        logging.config.dictConfig(logging_config)
-    else:
-        paster.setup_logging(config.get_configfile())
+    paster.setup_logging(config.get_configfile())
 
 
 class RateLimiter(logging.Filter):
