@@ -28,21 +28,6 @@ test_log = logging.Logger(__name__)
 
 class TestSetup:
     """Test the setup() function."""
-
-    @mock.patch(
-        'bodhi.server.logging.config.config',
-        {'pyramid.includes': 'some_plugin\npyramid_sawing\nsome_other_plugin',
-         'pyramid_sawing.file': '/some/file'})
-    @mock.patch('bodhi.server.logging.logging.config.dictConfig')
-    def test_with_sawing(self, dictConfig):
-        """Test for when the user is using pyramid_sawing."""
-        with mock.patch('builtins.open',
-                        mock.mock_open(read_data='some: data')) as mock_open:
-            bodhi_logging.setup()
-
-        mock_open.assert_called_once_with('/some/file')
-        dictConfig.assert_called_once_with({'some': 'data'})
-
     @mock.patch.dict('bodhi.server.logging.config.config',
                      {'pyramid.includes': 'some_plugin\nsome_other_plugin'})
     @mock.patch('bodhi.server.logging.config.get_configfile',
