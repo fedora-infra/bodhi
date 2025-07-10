@@ -39,6 +39,7 @@ import threading
 import time
 import typing
 
+from munch import munchify
 import jinja2
 import sqlalchemy.orm.exc
 
@@ -1158,6 +1159,8 @@ class PungiComposerThread(ComposerThread):
             self._toss_out_repo()
             raise Exception('Empty compose found')
 
+        rel_data = munchify(self.compose.release)
+        rel_drpms = get_createrepo_config(rel_data).get('drpms_enabled')
         for arch in arches:
             # sanity check our repodata
             try:
@@ -1169,9 +1172,8 @@ class PungiComposerThread(ComposerThread):
                     repodata = os.path.join(self.path, 'compose',
                                             'Everything', arch, 'os', 'repodata')
                     repo_type = 'module' if self.ctype == ContentType.module else 'yum'
-                    drpms = get_createrepo_config(self.compose.release).get('drpms_enabled')
                     # for module repos drpms is not considered
-                    sanity_check_repodata(repodata, repo_type=repo_type, drpms=drpms)
+                    sanity_check_repodata(repodata, repo_type=repo_type, drpms=rel_drpms)
             except Exception:
                 log.exception("Repodata sanity check failed, compose thrown out")
                 self._toss_out_repo()
