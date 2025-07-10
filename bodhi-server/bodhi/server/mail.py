@@ -26,7 +26,7 @@ from bodhi.server.config import config
 from bodhi.server.util import get_rpm_header, get_absolute_path, markdown_to_text, wrap_text
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.server.models import Update  # noqa: 401
+    from bodhi.server.models import Update  # noqa: F401
 
 
 #

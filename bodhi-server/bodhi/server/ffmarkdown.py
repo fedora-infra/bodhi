@@ -36,8 +36,8 @@ from bodhi.server import MENTION_RE
 from bodhi.server.config import config
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import re  # noqa: 401
-    import xml  # noqa: 401
+    import re  # noqa: F401
+    import xml  # noqa: F401
 
 
 BUGZILLA_RE = r'([a-zA-Z]+)(#[0-9]{5,})'

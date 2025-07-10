@@ -30,7 +30,7 @@ import koji
 
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.server.config import BodhiConfig  # noqa: 401
+    from bodhi.server.config import BodhiConfig  # noqa: F401
 
 
 log = logging.getLogger('bodhi')

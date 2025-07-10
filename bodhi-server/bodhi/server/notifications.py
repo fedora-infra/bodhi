@@ -26,7 +26,7 @@ import backoff
 from bodhi.server import Session
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.messages.schemas import base  # noqa: 401
+    from bodhi.messages.schemas import base  # noqa: F401
 
 
 _log = logging.getLogger(__name__)

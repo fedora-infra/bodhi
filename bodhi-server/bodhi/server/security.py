@@ -28,7 +28,7 @@ from pyramid.request import RequestLocalCache
 from pyramid.threadlocal import get_current_registry
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import pyramid.request.Request  # noqa: 401
+    import pyramid.request.Request  # noqa: F401
 
 
 class BodhiSecurityPolicy:  # pragma: no cover

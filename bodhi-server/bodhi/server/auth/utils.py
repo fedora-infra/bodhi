@@ -11,9 +11,9 @@ from bodhi.server.models import Group, User
 
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import mako.runtime.Context  # noqa: 401
-    import pyramid.request.Request  # noqa: 401
-    import pyramid.response.Response  # noqa: 401
+    import mako.runtime.Context  # noqa: F401
+    import pyramid.request.Request  # noqa: F401
+    import pyramid.response.Response  # noqa: F401
 
 
 def get_and_store_user(

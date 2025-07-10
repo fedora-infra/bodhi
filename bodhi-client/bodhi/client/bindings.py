@@ -58,7 +58,7 @@ from .oidcclient import JSONStorage, OIDCClient, OIDCClientError
 
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import munch  # noqa: 401
+    import munch  # noqa: F401
 
 
 log = logging.getLogger(__name__)
