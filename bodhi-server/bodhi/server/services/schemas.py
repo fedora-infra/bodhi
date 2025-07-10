@@ -29,7 +29,7 @@ from bodhi.server.services import errors
 
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import pyramid.request.Request  # noqa: 401
+    import pyramid.request.Request  # noqa: F401
 
 
 READ_ACL = 'view_schemas'

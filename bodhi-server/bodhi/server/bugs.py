@@ -27,7 +27,7 @@ import bugzilla
 from bodhi.server.config import config
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.server import models  # noqa: 401
+    from bodhi.server import models  # noqa: F401
 
 
 bugtracker: typing.Union['Bugzilla', 'FakeBugTracker', None] = None

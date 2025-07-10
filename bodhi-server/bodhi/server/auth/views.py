@@ -15,8 +15,8 @@ from .utils import get_and_store_user, get_final_redirect
 
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import pyramid.request.Request  # noqa: 401
-    import pyramid.response.Response  # noqa: 401
+    import pyramid.request.Request  # noqa: F401
+    import pyramid.response.Response  # noqa: F401
 
 
 def login(request: 'pyramid.request.Request') -> HTTPFound:
