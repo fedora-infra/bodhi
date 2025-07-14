@@ -115,10 +115,15 @@
                             <a class="dropdown-item" href="${request.registry.settings.get('fmn_url')}/">
                                 Manage Alerts
                             </a>
-                            % if request.identity:
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#set_emails_pref">
+                                % if not request.identity.receive_emails:
+                                Enable email notifications
+                                % else:
+                                Disable email notifications
+                                % endif
+                            </a>
                             <a class="dropdown-item" href="${request.route_url('logout')}">
                                 Log out</a>
-                            % endif
                         </div>
                     </li>
                     % endif
@@ -195,6 +200,35 @@
       </div>
     </div>
 
+  <!-- Email Preferences Modal -->
+  <div class="modal fade" id="set_emails_pref" tabindex="-1" role="dialog" aria-labelledby="waiveModalLabel" aria-hidden="true">
+    <form>
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title" id="waiveModalLabel">Set email preferences</h3>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-sm-offset-2 col-sm-10">
+              % if not request.identity.receive_emails:
+              <p>Do you want to receive emails when other users reply on updates you previously commented?</p>
+              % else:
+              <p>Do you want to stop receiving emails when other users reply on updates you previously commented?</p>
+              % endif
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Confirm</button>
+        </div>
+      </div>
+    </div>
+    </form>
+  </div>
+
     <script>
       var settings = {
           bz_products: ["${ '","'.join(config['bz_products']) | n }"],
@@ -207,6 +241,34 @@
       $('#alertModal').on('hidden.bs.modal', function (e) {
           document.location.href = document.baseURI;
       })
+    </script>
+    <script>
+    // handle for setting email preferences.
+      $("#set_emails_pref").submit(function(evt) {
+        evt.preventDefault();
+        var url = '${request.route_url("user_email_pref")}';
+        var $this = $(this);
+        $.ajax({
+          url: url,
+          data: {
+            csrf_token: "${request.session.get_csrf_token()}",
+            % if not request.identity.receive_emails:
+            emails_preference: "on",
+            % else:
+            emails_preference: "off",
+            % endif
+          },
+          method: 'POST',
+          dataType: 'json',
+          success: function(response) {
+            location.reload();
+          },
+          error: function(response) {
+            $this.modal('hide');
+            alert('failed: ' + response.responseJSON.errors[0].description)
+          },
+        });
+      });
     </script>
     <script src="${request.static_url('bodhi.server:static/vendor/fedora-bootstrap/fedora-bootstrap.min.js')}"></script>
     <script src="${request.static_url('bodhi.server:static/js/site.js')}"></script>

@@ -3724,15 +3724,11 @@ class Update(Base):
         for person in self.get_maintainers():
             if person.email:
                 people.add(person.email)
-            else:
-                people.add(person.name)
         for comment in self.comments:
             if comment.user.name in ['anonymous', 'bodhi']:
                 continue
-            if comment.user.email:
+            if comment.user.email and comment.user.receive_emails:
                 people.add(comment.user.email)
-            else:
-                people.add(comment.user.name)
         if email_notification:
             mail.send(people, 'comment', self, sender=None, agent=author)
         return comment, caveats
@@ -4863,6 +4859,8 @@ class User(Base):
     Attributes:
         name (str): The username.
         email (str): An e-mail address for the user.
+        receive_emails (bool): User editable preference for receiving emails when new comments are
+            posted on updates the user had previously interacted with.
         comments (sqlalchemy.orm.dynamic.AppenderQuery): An iterable of :class:`Comments <Comment>`
             the user has written.
         updates (sqlalchemy.orm.dynamic.AppenderQuery): An iterable of :class:`Updates <Update>` the
@@ -4878,6 +4876,7 @@ class User(Base):
 
     name = Column(Unicode(64), unique=True, nullable=False)
     email = Column(UnicodeText)
+    receive_emails = Column(Boolean, default=True)
 
     # One-to-many relationships
     comments = relationship('Comment', back_populates='user', lazy='dynamic')

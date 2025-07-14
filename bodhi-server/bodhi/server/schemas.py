@@ -852,3 +852,12 @@ class TriggerTestsSchema(CSRFProtectedSchema, colander.MappingSchema):
     """An API schema for bodhi.server.services.updates.trigger_tests()."""
 
     pass
+
+
+class UserEmailPrefSchema(CSRFProtectedSchema, colander.MappingSchema):
+    """An API schema for bodhi.server.services.user.set_emails_pref()."""
+
+    emails_preference = colander.SchemaNode(
+        colander.String(),
+        validator=colander.OneOf(['on', 'off']),
+    )

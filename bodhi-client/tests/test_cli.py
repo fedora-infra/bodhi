@@ -3359,3 +3359,59 @@ class TestTriggerTests:
             data={'csrf_token': 'a_csrf_token',
                   'update': 'FEDORA-2017-c95b33872d'},
             verb='POST')
+
+
+class TestSetEmailPref:
+    """
+    Test the set_email_preference() function.
+    """
+
+    def test_set_pref_ok(self, mocked_client_class):
+        """
+        Assert correct change.
+        """
+        mocked_client_class.send_request.return_value = munch.Munch({
+            'status': 'success',
+            'description': "User's email preference set to off",
+        })
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            cli.set_email_preference,
+            [
+                'off',
+                '--url', 'http://localhost:6543',
+            ]
+        )
+
+        assert result.exit_code == 0
+        assert result.output == "User's email preference set to off\n"
+        mocked_client_class.send_request.assert_called_once_with(
+            '/set_emails_pref', verb='POST', auth=True,
+            data={'csrf_token': 'a_csrf_token', 'emails_preference': 'off'})
+
+    def test_set_pref_notok(self, mocked_client_class):
+        """
+        Assert trying to change to same value.
+        """
+        exception_message = (
+            "{'status': 'error', 'errors': [{'location': 'body', "
+            "'name': 'user', 'description': \"User's email preference already set to off\"}]}")
+        mocked_client_class.send_request.side_effect = bindings.BodhiClientException(
+            exception_message
+        )
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            cli.set_email_preference,
+            [
+                'off',
+                '--url', 'http://localhost:6543',
+            ]
+        )
+
+        assert result.exit_code == 1
+        assert result.output == "ERROR: User's email preference already set to off\n"
+        mocked_client_class.send_request.assert_called_once_with(
+            '/set_emails_pref', verb='POST', auth=True,
+            data={'csrf_token': 'a_csrf_token', 'emails_preference': 'off'})
