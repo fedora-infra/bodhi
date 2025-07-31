@@ -64,7 +64,7 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 log = logging.getLogger(__name__)
 
 
-UPDATE_ID_RE = r'FEDORA-(EPEL-)?\d{4,4}'
+UPDATE_ID_RE = r'FEDORA-(EPEL-|FLATPAK-)?\d{4,4}'
 UPDATE_TITLE_RE = r'(\.el|\.fc)\d\d?'
 
 
