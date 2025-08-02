@@ -183,7 +183,7 @@ class BuildV1(typing.NamedTuple):
         return self.nvr.rsplit('-', 2)[0]
 
     @staticmethod
-    def schema() -> dict:
+    def schema() -> dict:  # pragma: no cover
         """Return a schema snippet for a Build."""
         return {
             'type': 'object',
@@ -209,7 +209,7 @@ class ReleaseV1(typing.NamedTuple):
     name: str
 
     @staticmethod
-    def schema() -> dict:
+    def schema() -> dict:  # pragma: no cover
         """Return a schema snippet for a Build."""
         return {
             'type': 'object',
@@ -246,7 +246,7 @@ class UpdateV1(typing.NamedTuple):
         return [b.package for b in self.builds]
 
     @staticmethod
-    def schema() -> dict:
+    def schema() -> dict:  # pragma: no cover
         """Return a schema snippet for an Update."""
         return {
             'type': 'object',
@@ -290,7 +290,7 @@ class UserV1(typing.NamedTuple):
     name: str
 
     @staticmethod
-    def schema() -> dict:
+    def schema() -> dict:  # pragma: no cover
         """Return a schema snippet for a User."""
         return {
             'type': 'object',
