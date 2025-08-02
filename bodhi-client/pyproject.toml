@@ -46,7 +46,7 @@ diff-cover = ">=4.2.1"
 
 [tool.poetry.dependencies]
 python = ">=3.9, <4"
-click = ">=7.1.2"
+click = ">=7.1.2, !=8.2.2"
 koji = ">=1.27.1"
 authlib = ">=0.15.4"
 munch = ">=2.5.0"
