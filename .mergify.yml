@@ -41,19 +41,19 @@ queue_rules:
       - status-success=Build Documentation (f42)
       - status-success=Build Documentation (pip)
     merge_method: rebase
-
 pull_request_rules:
   - name: backport 25.2
     actions:
       backport:
         branches:
-          - '25.2'
+          - "25.2"
     conditions:
       - label!=WIP
       - -draft
       - label=25.2-backports
-
   - name: default
     conditions: []
     actions:
       queue:
+merge_queue:
+  max_parallel_checks: 1
