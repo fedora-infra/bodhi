@@ -18,7 +18,7 @@ Bodhi’s main features are:
   package updates.
 - Announces the arrival of new packages entering the collection.
 - Publishes end-user release notes known as errata.
-- Generates yum repositories.
+- Generates yum/dnf repositories.
 - Queries ResultsDB for automated test results and displays them on updates.
 
 
@@ -27,20 +27,22 @@ Documentation
 =============
 
 You can read Bodhi's
-`release notes <https://fedora-infra.github.io/bodhi/develop/user/release_notes.html>`_
-and documentation `online <https://fedora-infra.github.io/bodhi>`_.
+`release notes <https://bodhi.readthedocs.io/en/stable/user/release_notes.html>`_
+and documentation `online <https://bodhi.readthedocs.io/en/stable/>`_.
 
 If you are interested in contributing to Bodhi, you can read the
 `developer documentation`_.
 
-.. _developer documentation: https://fedora-infra.github.io/bodhi/develop/developer/index.html
+.. _developer documentation: https://bodhi.readthedocs.io/en/stable/developer/index.html
 
 
-IRC
-===
+Matrix
+======
 
-Come join us on `Libera <https://www.libera.chat/>`_! We've got two channels:
+Come join us on `Matrix <https://matrix.org>`_ chat! We've got two channels:
 
-* #bodhi - We use this channel to discuss upstream bodhi development
-* #fedora-apps - We use this channel to discuss Fedora's Bodhi deployment (it is more generally
-  about all of Fedora's infrastructure applications.)
+* `#bodhi <https://matrix.to/#/#bodhi:fedora.im>`_ - We use this channel to discuss upstream
+  bodhi development
+* `#fedora-apps <https://matrix.to/#/#apps:fedoraproject.org>`_ - We use this channel to discuss
+  Fedora's Bodhi deployment (it is more generally about all of Fedora's infrastructure
+  applications.)
