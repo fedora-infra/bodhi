@@ -21,7 +21,7 @@ Bodhi's main features are:
   higher quality package updates.
 * Announces the arrival of new packages entering the collection.
 * Publishes end-user release notes known as errata.
-* Generates yum repositories.
+* Generates yum/dnf repositories.
 * Queries ResultsDB for automated test results and displays them on updates.
 
 
@@ -79,14 +79,14 @@ Community
 =========
 
 Bodhi is maintained by the Fedora Project and its `source code`_ and `issue tracker`_ are on GitHub.
-There is a `mailing list`_ and an IRC channel on `Libera`_, ``#bodhi`` for discussion about Bodhi.
+There is a `mailing list`_ and a `#bodhi`_ channel on Matrix for discussion about Bodhi.
 Fedora runs a `production instance`_ and `staging instance`_. `Online documentation`_ is available.
 
 
 .. _source code: https://github.com/fedora-infra/bodhi
 .. _issue tracker: https://github.com/fedora-infra/bodhi/issues
 .. _mailing list: https://lists.fedoraproject.org/archives/list/bodhi@lists.fedorahosted.org/
-.. _Libera: https://libera.chat/
+.. _#bodhi: https://matrix.to/#/#bodhi:fedora.im
 .. _production instance: https://bodhi.fedoraproject.org/
 .. _staging instance: https://bodhi.stg.fedoraproject.org/
-.. _Online documentation: https://fedora-infra.github.io/bodhi/
+.. _Online documentation: https://bodhi.readthedocs.io/en/stable/
