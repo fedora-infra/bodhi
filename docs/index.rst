@@ -86,7 +86,7 @@ Fedora runs a `production instance`_ and `staging instance`_. `Online documentat
 .. _source code: https://github.com/fedora-infra/bodhi
 .. _issue tracker: https://github.com/fedora-infra/bodhi/issues
 .. _mailing list: https://lists.fedoraproject.org/archives/list/bodhi@lists.fedorahosted.org/
-.. _#bodhi: https://matrix.to/#/#bodhi:fedora.im
+.. _#bodhi: https://chat.fedoraproject.org/#/#bodhi:fedora.im
 .. _production instance: https://bodhi.fedoraproject.org/
 .. _staging instance: https://bodhi.stg.fedoraproject.org/
 .. _Online documentation: https://bodhi.readthedocs.io/en/stable/
