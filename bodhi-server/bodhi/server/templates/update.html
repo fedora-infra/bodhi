@@ -952,8 +952,8 @@ ${parent.javascript()}
                     if ($.inArray(requirement.testcase, requirements) == -1) {
                         requirements.push(requirement.testcase);
                     }
-                    // stash data about waived failures
-                    if (requirement.type == "test-result-failed-waived") {
+                    // stash data about waived non-passes
+                    if (requirement.type.endsWith("-waived")) {
                         if (!(requirement.subject_identifier in waived)) {
                             waived[requirement.subject_identifier] = {};
                         }
