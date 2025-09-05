@@ -832,20 +832,24 @@ ${parent.javascript()}
     var running_reqs_counter = 0;
     var greenwave_errors = 0;
 
+    var populate_missing_result = function(requirement) {
+        if (requirement.result_id) {
+            running_reqs_counter++;
+        }
+        else {
+            missing_reqs_counter++;
+            if (missing_tests[requirement.subject_identifier] === undefined)
+                missing_tests[requirement.subject_identifier] = [];
+            missing_tests[requirement.subject_identifier].push(requirement);
+        }
+    }
+
     // handle Greenwave decision
     var handle_unsatisfied_requirements = function(data) {
         $.each(data['unsatisfied_requirements'], function(i, requirement) {
             unsatisfied_reqs_counter++;
             if (requirement.type == 'test-result-missing') {
-                if (requirement.result_id) {
-                    running_reqs_counter++;
-                }
-                else {
-                    missing_reqs_counter++;
-                    if (missing_tests[requirement.subject_identifier] === undefined)
-                        missing_tests[requirement.subject_identifier] = [];
-                    missing_tests[requirement.subject_identifier].push(requirement);
-                }
+                populate_missing_result(requirement);
             }
             if (requirement.type.match('gating-yaml')) {
                 remoteerror_reqs_counter++;
@@ -949,6 +953,9 @@ ${parent.javascript()}
                 });
                 handle_unsatisfied_requirements(data);
                 $.each(data['satisfied_requirements'], function(i, requirement) {
+                    if (requirement.type == 'test-result-missing-waived') {
+                        populate_missing_result(requirement);
+                    }
                     if ($.inArray(requirement.testcase, requirements) == -1) {
                         requirements.push(requirement.testcase);
                     }
@@ -1099,16 +1106,17 @@ ${parent.javascript()}
         // show missing tests and remote rule yaml problems first
         if (buildname in missing_tests) {
           $.each(missing_tests[buildname], function(i, result) {
-            // note the data structure is a bit different for
-            // test-result-missing than the other cases we handle at
-            // the end, so getting scenario and subject is a bit
-            // different. why? ask greenwave
+            // note here we're dealing with a greenwave 'requirement'
+            // object from [un]satisfied_requirements, further down
+            // when we handle "results" we're dealing with the
+            // passed-through resultsdb results, they have different
+            // data structures
             var scenario = 'no_scenario';
             if (result.scenario) {
                 scenario = result.scenario;
             }
             table.append(make_row(
-              result.item[0],
+              result.subject_identifier,
               scenario,
               'ABSENT',
               result.testcase,
