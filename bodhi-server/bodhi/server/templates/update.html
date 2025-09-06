@@ -814,7 +814,7 @@ ${parent.javascript()}
     var builds = ${update.builds_json | n};
 
     // These are the required tests (from greenwave)
-    var requirements = [];
+    var requirements = {};
     // These are the known waivers of failed testcases (key - waiver id, value - waiver)
     var waivers = {};
     // These are waived test failures (key - subject, value - hash: key - testcase##scenario, value - waiver id)
@@ -844,6 +844,15 @@ ${parent.javascript()}
         }
     }
 
+    var add_to_requirements = function(subject, key) {
+        if (!(subject in requirements)) {
+            requirements[subject] = [];
+        }
+        if ($.inArray(key, requirements[subject]) == -1) {
+            requirements[subject].push(key);
+        }
+    }
+
     // handle Greenwave decision
     var handle_unsatisfied_requirements = function(data) {
         $.each(data['unsatisfied_requirements'], function(i, requirement) {
@@ -862,9 +871,12 @@ ${parent.javascript()}
                 if (requirement.type == 'failed-fetch-gating-yaml')
                     failed_fetch_gating_repos.push(requirement.subject_identifier);
             }
-            if ($.inArray(requirement.testcase, requirements) == -1) {
-                requirements.push(requirement.testcase);
+            var scenario = 'no_scenario';
+            if (requirement.scenario) {
+                scenario = requirement.scenario;
             }
+            var key = [requirement.testcase, scenario].join('##');
+            add_to_requirements(requirement.subject_identifier, key);
             $('#failed_requirements').append('<li class="list-group-item">' + requirement.testcase + '</li>');
 
             // there is at least one unsatisfied requirement, so show the button to be able to waive.
@@ -953,22 +965,20 @@ ${parent.javascript()}
                 });
                 handle_unsatisfied_requirements(data);
                 $.each(data['satisfied_requirements'], function(i, requirement) {
+                    var scenario = 'no_scenario';
+                    if (requirement.scenario) {
+                        scenario = requirement.scenario;
+                    }
+                    var key = [requirement.testcase, scenario].join('##');
                     if (requirement.type == 'test-result-missing-waived') {
                         populate_missing_result(requirement);
                     }
-                    if ($.inArray(requirement.testcase, requirements) == -1) {
-                        requirements.push(requirement.testcase);
-                    }
+                    add_to_requirements(requirement.subject_identifier, key);
                     // stash data about waived non-passes
                     if (requirement.type.endsWith("-waived")) {
                         if (!(requirement.subject_identifier in waived)) {
                             waived[requirement.subject_identifier] = {};
                         }
-                        var scenario = 'no_scenario';
-                        if (requirement.scenario) {
-                            scenario = requirement.scenario;
-                        }
-                        var key = [requirement.testcase, scenario].join('##');
                         waived[requirement.subject_identifier][key] = requirement.waiver_id;
                     }
                 });
@@ -1010,7 +1020,7 @@ ${parent.javascript()}
           'title="' + reason + '" ' +
           'class="fa fa-thumbs-up">' +
           '</span>';
-      } else if ($.inArray(testcase, requirements) != -1) {
+      } else if (subject in requirements && $.inArray(key, requirements[subject]) != -1) {
         required = '<span data-bs-toggle="tooltip" data-placement="top" ' +
           'title="' + testcase + ' is a required test" ' +
           'class="fa fa-asterisk">' +
