@@ -54,7 +54,10 @@ class TestOIDCLoginViews(base.BasePyTestCase):
 
     def test_authorize(self):
         """Test a user logging in."""
-        request = testing.DummyRequest(path="/oidc/authorize", params={"state": "STATE"})
+        request = testing.DummyRequest(
+            path="/oidc/authorize",
+            params={"state": "STATE", "code": "CODE"}
+        )
         set_session_data(request.session, "STATE", "state", "STATE", app_name="fedora")
         request.registry = self.registry
         request.db = self.db
@@ -76,7 +79,10 @@ class TestOIDCLoginViews(base.BasePyTestCase):
         user.groups = [models.Group(name="testgroup1"), models.Group(name="testgroup2")]
         self.db.commit()
 
-        request = testing.DummyRequest(path="/oidc/authorize", params={"state": "STATE"})
+        request = testing.DummyRequest(
+            path="/oidc/authorize",
+            params={"state": "STATE", "code": "CODE"}
+        )
         set_session_data(request.session, "STATE", "state", "STATE", app_name="fedora")
         request.registry = self.registry
         request.db = self.db

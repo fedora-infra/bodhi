@@ -171,7 +171,10 @@ class TestOAuth2(base.BasePyTestCase):
 
         with mock.patch('requests.sessions.Session.send') as send:
             send.return_value = mock_send_value(get_bearer_token())
-            request2 = testing.DummyRequest(path='/authorize', params={"state": state})
+            request2 = testing.DummyRequest(
+                path='/authorize',
+                params={"state": state, "code": "dummycode"}
+            )
             request2.session = request.session
 
             token = client.authorize_access_token(request2)
@@ -242,7 +245,7 @@ class TestOAuth2(base.BasePyTestCase):
         with mock.patch('requests.sessions.Session.send', fake_send):
             request2 = testing.DummyRequest(
                 path="/authorize",
-                params={"state": state}
+                params={"state": state, "code": "dummycode"}
             )
             request2.session = request.session
             token = client.authorize_access_token(request2)
@@ -276,7 +279,7 @@ class TestOAuth2(base.BasePyTestCase):
 
             request2 = testing.DummyRequest(
                 path='/authorize',
-                params={"state": state},
+                params={"state": state, "code": "dummycode"},
             )
             request2.session = request.session
 
