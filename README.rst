@@ -2,7 +2,7 @@
 Bodhi
 =====
 
-Welcome to Bodhi, Fedora's update gating system.
+Welcome to Bodhi, Fedora's update gating system. Monkeys.
 
 Bodhi is designed to democratize the package update testing and release process for RPM based Linux
 distributions. It provides an interface for developers to propose updates to a distribution, and an
