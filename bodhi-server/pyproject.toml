@@ -113,7 +113,7 @@ python-bugzilla = ">=3.2.0"
 requests = ">=2.25.1"
 SQLAlchemy = ">=1.4, <2.1"
 waitress = "^3.0.1"
-zstandard = "^0.21 || ^0.22.0 || ^0.23.0 || ^0.24.0"
+zstandard = "^0.21 || ^0.22.0 || ^0.23.0 || ^0.24.0 || ^0.25.0"
 
 [tool.pytest.ini_options]
 addopts = "--cov-config .coveragerc --cov=bodhi --cov-report term --cov-report xml --cov-report html"
