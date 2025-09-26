@@ -819,7 +819,8 @@ class TestNew:
         ]
         assert mocked_client_class.send_request.mock_calls == calls
 
-    def test_url_flag(self, mocked_client_class):
+    @mock.patch('bodhi.client.bindings.log.debug')
+    def test_url_flag(self, debug, mocked_client_class):
         """
         Assert correct behavior with the --url flag.
         """
@@ -856,8 +857,10 @@ class TestNew:
             )
         ]
         assert mocked_client_class.send_request.mock_calls == calls
+        debug.assert_called_once_with('No `errors` nor `decision` in the data returned')
 
-    def test_file_flag(self, mocked_client_class):
+    @mock.patch('bodhi.client.bindings.log.debug')
+    def test_file_flag(self, debug, mocked_client_class):
         """
         Assert correct behavior with the --file flag.
         """
@@ -895,6 +898,7 @@ class TestNew:
             )
         ]
         assert mocked_client_class.send_request.mock_calls == calls
+        debug.assert_called_once_with('No `errors` nor `decision` in the data returned')
 
     def test_bodhi_client_exception(self, mocked_client_class):
         """
@@ -931,7 +935,8 @@ class TestNew:
         assert "Traceback (most recent call last):" in result.output
         assert "Exception: This is an Exception message" in result.output
 
-    def test_close_bugs_flag(self, mocked_client_class):
+    @mock.patch('bodhi.client.bindings.log.debug')
+    def test_close_bugs_flag(self, debug, mocked_client_class):
         """
         Assert correct behavior with the --close-bugs flag.
         """
@@ -968,8 +973,10 @@ class TestNew:
             )
         ]
         assert mocked_client_class.send_request.mock_calls == calls
+        debug.assert_called_once_with('No `errors` nor `decision` in the data returned')
 
-    def test_display_name_flag(self, mocked_client_class):
+    @mock.patch('bodhi.client.bindings.log.debug')
+    def test_display_name_flag(self, debug, mocked_client_class):
         """
         Assert correct behavior with the --display-name flag.
         """
@@ -1006,8 +1013,10 @@ class TestNew:
             )
         ]
         assert mocked_client_class.send_request.mock_calls == calls
+        debug.assert_called_once_with('No `errors` nor `decision` in the data returned')
 
-    def test_from_tag_flag(self, mocked_client_class):
+    @mock.patch('bodhi.client.bindings.log.debug')
+    def test_from_tag_flag(self, debug, mocked_client_class):
         """
         Assert correct behavior with the --from-tag flag.
         """
@@ -1044,6 +1053,7 @@ class TestNew:
             )
         ]
         assert mocked_client_class.send_request.mock_calls == calls
+        debug.assert_called_once_with('No `errors` nor `decision` in the data returned')
 
     def test_from_tag_flag_multiple_tags(self, mocked_client_class):
         """
@@ -1143,7 +1153,8 @@ class TestQuery:
     Test the query() function.
     """
 
-    def test_query_single_update(self, mocked_client_class):
+    @mock.patch('bodhi.client.bindings.log.debug')
+    def test_query_single_update(self, debug, mocked_client_class):
         """
         Assert we display correctly when the query returns a single update.
         """
@@ -1178,6 +1189,7 @@ class TestQuery:
             )
         ]
         assert mocked_client_class.send_request.mock_calls == calls
+        debug.assert_called_once_with('No `errors` nor `decision` in the data returned')
 
     def test_query_multiple_update(self, mocked_client_class, mocker):
         """
@@ -1207,7 +1219,8 @@ class TestQuery:
                 'type': None, 'rows_per_page': None, 'page': None, 'gating': None,
                 'from_side_tag': None})
 
-    def test_url_flag(self, mocked_client_class):
+    @mock.patch('bodhi.client.bindings.log.debug')
+    def test_url_flag(self, debug, mocked_client_class):
         """
         Assert correct behavior with the --url flag.
         """
@@ -1244,6 +1257,7 @@ class TestQuery:
             )
         ]
         assert mocked_client_class.send_request.mock_calls == calls
+        debug.assert_called_once_with('No `errors` nor `decision` in the data returned')
 
     def test_query_mine_flag_username_unset(self, mocked_client_class, mocker):
         """Assert that we use get the username."""
@@ -1462,7 +1476,8 @@ class TestRequest:
     """
     This class tests the request() function.
     """
-    def test_successful_operation(self, mocked_client_class, mocker):
+    @mock.patch('bodhi.client.bindings.log.debug')
+    def test_successful_operation(self, debug, mocked_client_class, mocker):
         """
         Assert that a successful updates request is handled properly.
         """
@@ -1495,6 +1510,7 @@ class TestRequest:
         mocked_client_class._build_oidc_client.assert_called_with(
             constants.CLIENT_ID, 'https://id.example.com/'
         )
+        debug.assert_called_once_with('No `errors` nor `decision` in the data returned')
 
     def test_update_not_found(self, mocked_client_class):
         """
@@ -1530,7 +1546,8 @@ class TestRequest:
             data={'csrf_token': 'a_csrf_token', 'request': 'revoke',
                   'update': 'bodhi-2.2.4-99.el7'})
 
-    def test_url_flag(self, mocked_client_class):
+    @mock.patch('bodhi.client.bindings.log.debug')
+    def test_url_flag(self, debug, mocked_client_class):
         """
         Assert correct behavior with the --url flag.
         """
@@ -1560,6 +1577,7 @@ class TestRequest:
             )
         ]
         assert mocked_client_class.send_request.mock_calls == calls
+        debug.assert_called_once_with('No `errors` nor `decision` in the data returned')
 
 
 class TestSaveBuildrootOverrides:
@@ -3032,7 +3050,8 @@ class TestPrintResp:
     Test the print_resp() method.
     """
 
-    def test_single_update(self, mocked_client_class):
+    @mock.patch('bodhi.client.bindings.log.debug')
+    def test_single_update(self, debug, mocked_client_class):
         """
         Test the single update response returns the update.
         """
@@ -3047,6 +3066,7 @@ class TestPrintResp:
             'example.com/tests', 'localhost:6543'
         )
         assert compare_output(result.output, expected_output)
+        debug.assert_called_once_with('No `errors` nor `decision` in the data returned')
 
     def test_total_missing_in_response(self, mocked_client_class):
         """If total is missing in the response, the x updates found (y shown) should not appear."""
