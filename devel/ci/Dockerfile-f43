@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora:40
+FROM quay.io/fedora/fedora:43
 LABEL maintainer="Mattia Verga <mattia.verga@fedoraproject.org>"
 
 # RUN echo "fastestmirror=False" >> /etc/dnf/dnf.conf
@@ -34,6 +34,7 @@ RUN dnf --best install -y \
     python3-jinja2 \
     python3-koji \
     python3-libcomps \
+    python3-libdnf5 \
     python3-librepo \
     python3-markdown \
     python3-munch \
@@ -58,7 +59,8 @@ RUN dnf --best install -y \
     python3-zstandard \
     rpm-build \
     rpmdevtools \
-    skopeo
+    skopeo \
+    systemd-rpm-macros
 
 VOLUME ["/results"]
 WORKDIR /bodhi
