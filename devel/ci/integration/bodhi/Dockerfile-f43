@@ -1,4 +1,4 @@
-FROM bodhi-ci/f40
+FROM bodhi-ci/f43
 LABEL \
   name="bodhi-web" \
   vendor="Fedora Infrastructure" \
