@@ -4008,8 +4008,8 @@ class Update(Base):
         Before updates-testing enablement the minimum wait will be 0, so unless the gating
         check fails, this will always return True.
 
-        FIXME: we should probably wire up the test case and bug feedback requirements
-        that are shown in the UI but not currently enforced.
+        Also checks for test case and bug feedback requirements when require_testcases or 
+        require_bugs are set to True.
 
         Returns:
             tuple: A tuple containing (result, reason) where result is a bool
@@ -4034,17 +4034,36 @@ class Update(Base):
             basemsg = "Test gating is disabled,"
 
         if self.karma >= req_karma:
-            return (True, basemsg + f" and the update has at least {req_karma} karma.")
+            result = True
+            basemsg += f" and the update has at least {req_karma} karma."
+        elif not req_days:
+            result = True
+            basemsg += " and there is no minimum wait set."
+        elif self.days_in_testing >= req_days:
+            result = True
+            basemsg += " and update meets the wait time requirement."
+        else:
+            result = False
+            basemsg += f" but update has less than {req_karma} karma and has been in testing " \
+                      f"less than {req_days} days."
 
-        if not req_days:
-            return (True, basemsg + " and there is no minimum wait set.")
+        # Check for required test cases feedback
+        if self.require_testcases and self.test_cases:
+            # Check if all test cases have at least one positive feedback and no negative feedback
+            for testcase in self.full_test_cases:
+                negative_karma, positive_karma = self.get_testcase_karma(testcase)
+                if negative_karma < 0:  # There is negative karma for this testcase
+                    return (False, f"Test case '{testcase.name}' has negative feedback.")
+        
+        # Check for required bug feedback
+        if self.require_bugs and self.bugs:
+            # Check if all bugs have at least one positive feedback and no negative feedback
+            for bug in self.bugs:
+                negative_karma, positive_karma = self.get_bug_karma(bug)
+                if negative_karma < 0:  # There is negative karma for this bug
+                    return (False, f"Bug #{bug.bug_id} has negative feedback.")
 
-        # Any update that reaches req_days has met the testing requirements.
-        if self.days_in_testing >= req_days:
-            return (True, basemsg + " and update meets the wait time requirement.")
-        return (False,
-                basemsg + f" but update has less than {req_karma} karma and has been in testing "
-                f"less than {req_days} days.")
+        return (result, basemsg)
 
     @property
     def meets_testing_requirements(self):
