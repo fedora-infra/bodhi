@@ -36,7 +36,7 @@ jobs:
           ref: staging
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.12 || 3.13'
+          python-version: '3.12 || 3.13 || 3.14'
       - name: install Deps with apt
         run: sudo apt-get install krb5-k5tls krb5-user krb5-config libkrb5-dev
 
