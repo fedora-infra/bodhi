@@ -4048,7 +4048,7 @@ class Update(Base):
                       f"less than {req_days} days."
 
         # Check for required test cases feedback
-        if self.require_testcases and self.test_cases:
+        if self.require_testcases and self.full_test_cases:
             # Check if all test cases have at least one positive feedback and no negative feedback
             for testcase in self.full_test_cases:
                 negative_karma, positive_karma = self.get_testcase_karma(testcase)
