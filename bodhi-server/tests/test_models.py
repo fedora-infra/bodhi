@@ -2900,6 +2900,63 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         with pytest.deprecated_call():
             assert update.critpath_approved
 
+    def test_meets_requirements_why_with_negative_testcase_feedback(self):
+        """
+        Test meets_requirements_why when there are test cases with negative feedback.
+
+        This specifically tests the uncovered line 4056:
+        return (False, f"Test case '{testcase.name}' has negative feedback.")
+        """
+        update = model.Update.query.first()
+        update.require_testcases = True
+
+        # Create a negative feedback for a test case
+        user = model.User(name='testuser')
+        self.db.add(user)
+        comment = model.Comment(text='Test comment', karma=-1, user=user)
+        self.db.add(comment)
+        update.comments.append(comment)
+        
+        # Add karma for the first test case
+        testcase = update.builds[0].testcases[0]
+        testcase_karma = model.TestCaseKarma(karma=-1, comment=comment, testcase=testcase)
+        self.db.add(testcase_karma)
+
+        # The method should return False and mention the negative test case feedback
+        result, message = update.meets_requirements_why
+        assert result is False
+        assert f"Test case '{testcase.name}' has negative feedback." in message
+
+    def test_meets_requirements_why_with_negative_bug_feedback(self):
+        """
+        Test meets_requirements_why when there are bugs with negative feedback.
+
+        This specifically tests the uncovered lines 4061-4064:
+        for bug in self.bugs:
+            negative_karma, positive_karma = self.get_bug_karma(bug)
+            if negative_karma < 0:  # There is negative karma for this bug
+                return (False, f"Bug #{bug.bug_id} has negative feedback.")
+        """
+        update = model.Update.query.first()
+        update.require_bugs = True
+
+        # Create a negative feedback for a bug
+        user = model.User(name='testuser')
+        self.db.add(user)
+        comment = model.Comment(text='Test comment', karma=-1, user=user)
+        self.db.add(comment)
+        update.comments.append(comment)
+        
+        # Add karma for the first bug
+        bug = update.bugs[0]
+        bug_karma = model.BugKarma(karma=-1, comment=comment, bug=bug)
+        self.db.add(bug_karma)
+
+        # The method should return False and mention the negative bug feedback
+        result, message = update.meets_requirements_why
+        assert result is False
+        assert f"Bug #{bug.bug_id} has negative feedback." in message
+
 
 @mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
 @mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
