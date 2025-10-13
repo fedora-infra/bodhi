@@ -4008,7 +4008,7 @@ class Update(Base):
         Before updates-testing enablement the minimum wait will be 0, so unless the gating
         check fails, this will always return True.
 
-        Also checks for test case and bug feedback requirements when require_testcases or 
+        Also checks for test case and bug feedback requirements when require_testcases or
         require_bugs are set to True.
 
         Returns:
