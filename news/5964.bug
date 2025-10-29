@@ -1,0 +1,1 @@
+Fixed a schema issue which prevented to set the `released_on` property on Release

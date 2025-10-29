@@ -454,6 +454,10 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
         colander.Date(),
         missing=None,
     )
+    released_on = colander.SchemaNode(
+        colander.Date(),
+        missing=None,
+    )
 
 
 class ListUserSchema(PaginatedSchema, SearchableSchema):

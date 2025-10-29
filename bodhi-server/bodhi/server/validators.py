@@ -1295,6 +1295,28 @@ def validate_eol_date(request, **kwargs):
 
 
 @postschema_validator
+def validate_release_date(request, **kwargs):
+    """
+    Ensure the released_on date is in the right format.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    release_date = request.validated.get('released_on')
+    if release_date is None:
+        return
+
+    if not date(2100, 1, 1) > release_date > date(1999, 1, 1):
+        request.errors.add(
+            'body',
+            'released_on',
+            'Released-on date may not be in the right range of years (2000-2100)')
+
+        return
+
+
+@postschema_validator
 def validate_expiration_date(request, **kwargs):
     """
     Ensure the expiration date is in the future.
