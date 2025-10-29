@@ -46,7 +46,7 @@ jobs:
           python-version: '3.12 || 3.13 || 3.14'
 
       - name: Download artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
 
       - name: Edit the path in the coverage files
         run: sed -i -e "s,<source>/bodhi,<source>$PWD," Coverage*/coverage.xml
