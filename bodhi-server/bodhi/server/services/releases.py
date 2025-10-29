@@ -45,6 +45,7 @@ from bodhi.server.validators import (
     validate_packages,
     validate_release,
     validate_eol_date,
+    validate_release_date,
 )
 import bodhi.server.schemas
 import bodhi.server.services.errors
@@ -366,7 +367,8 @@ def query_releases_json(request):
                validators=(colander_body_validator,
                            validate_tags,
                            validate_enums,
-                           validate_eol_date))
+                           validate_eol_date,
+                           validate_release_date))
 def save_release(request):
     """
     Save a release.

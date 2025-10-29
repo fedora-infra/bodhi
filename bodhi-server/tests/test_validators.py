@@ -620,6 +620,45 @@ class TestValidateEOLDate(BasePyTestCase):
         assert not len(request.errors)
 
 
+class TestValidateReleaseDate(BasePyTestCase):
+    """Test the validate_release_date() function."""
+
+    def test_none(self):
+        """A released_on None should be OK."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {'eol': None}
+
+        validators.validate_release_date(request)
+
+        assert not len(request.errors)
+
+    def test_out_of_regex(self):
+        """A released_on date in a far future should make it sad."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {
+            'released_on': date(3120, 11, 5)}
+
+        validators.validate_release_date(request)
+
+        assert request.errors == [
+            {'location': 'body', 'name': 'released_on',
+             'description': 'Released-on date may not be in the right range of years (2000-2100)'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
+
+    def test_correct_date(self):
+        """A valid released_on date should pass the test."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {'released_on': date(2025, 11, 5)}
+
+        validators.validate_release_date(request)
+
+        assert not len(request.errors)
+
+
 class TestValidateOverrideNotes(BasePyTestCase):
     """Test the validate_override_notes() function."""
 

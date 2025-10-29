@@ -59,7 +59,8 @@ class TestReleasesService(base.BasePyTestCase):
             branch='f22',
             package_manager=PackageManager.dnf,
             testing_repository='updates-testing',
-            eol=date(2016, 6, 14))
+            eol=date(2016, 6, 14),
+            released_on=date(2015, 6, 14))
 
         self.db.add(release)
         self.db.commit()
@@ -455,6 +456,7 @@ class TestReleasesService(base.BasePyTestCase):
         r["state"] = "archived"
         r["csrf_token"] = self.get_csrf_token()
         r.pop("eol")
+        r.pop("released_on")
 
         res = self.app.post("/releases/", r, status=200)
 
