@@ -8,12 +8,8 @@ queue_rules:
       - status-success=DCO
       - status-success=Pre-commit checks
       - status-success=Diff-cover check
-      - status-success=Integration Tests (f41)
       - status-success=Integration Tests (f42)
       - status-success=Integration Tests (f43)
-      - status-success=Unit Tests (f41, bodhi-client)
-      - status-success=Unit Tests (f41, bodhi-messages)
-      - status-success=Unit Tests (f41, bodhi-server)
       - status-success=Unit Tests (f42, bodhi-client)
       - status-success=Unit Tests (f42, bodhi-messages)
       - status-success=Unit Tests (f42, bodhi-server)
@@ -23,7 +19,6 @@ queue_rules:
       - status-success=Unit Tests (pip, bodhi-client)
       - status-success=Unit Tests (pip, bodhi-messages)
       - status-success=Unit Tests (pip, bodhi-server)
-      - status-success=Build Documentation (f41)
       - status-success=Build Documentation (f42)
       - status-success=Build Documentation (f43)
       - status-success=Build Documentation (pip)
@@ -31,12 +26,8 @@ queue_rules:
       - status-success=DCO
       - status-success=Pre-commit checks
       - status-success=Diff-cover check
-      - status-success=Integration Tests (f41)
       - status-success=Integration Tests (f42)
       - status-success=Integration Tests (f43)
-      - status-success=Unit Tests (f41, bodhi-client)
-      - status-success=Unit Tests (f41, bodhi-messages)
-      - status-success=Unit Tests (f41, bodhi-server)
       - status-success=Unit Tests (f42, bodhi-client)
       - status-success=Unit Tests (f42, bodhi-messages)
       - status-success=Unit Tests (f42, bodhi-server)
@@ -46,21 +37,20 @@ queue_rules:
       - status-success=Unit Tests (pip, bodhi-client)
       - status-success=Unit Tests (pip, bodhi-messages)
       - status-success=Unit Tests (pip, bodhi-server)
-      - status-success=Build Documentation (f41)
       - status-success=Build Documentation (f42)
       - status-success=Build Documentation (f43)
       - status-success=Build Documentation (pip)
     merge_method: rebase
 pull_request_rules:
-  - name: backport 25.2
+  - name: backport 25.11
     actions:
       backport:
         branches:
-          - "25.2"
+          - "25.11"
     conditions:
       - label!=WIP
       - -draft
-      - label=25.2-backports
+      - label=25.11-backports
   - name: default
     conditions: []
     actions:

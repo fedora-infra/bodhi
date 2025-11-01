@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhi-server"
-version = "25.5.1"
+version = "25.11.1"
 description = "Bodhi server"
 readme = "README.rst"
 authors = ["Fedora Infrastructure Team"]
@@ -21,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: System :: Software Distribution",
     "Framework :: Pyramid",
     "Programming Language :: JavaScript",

@@ -1,7 +1,7 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-client
 %global src_name bodhi_client
-%global pypi_version 25.5.1
+%global pypi_version 25.11.1
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
@@ -65,6 +65,9 @@ install -pm0644 bodhi-client.bash %{buildroot}%{_sysconfdir}/bash_completion.d/b
 %config(noreplace) %{_sysconfdir}/bash_completion.d/bodhi-client.bash
 
 %changelog
+* Sat Nov 01 2025 Mattia Verga <mattia.verga@fedoraproject.org> - 25.11.1-1
+- Update to 25.11.1
+
 * Sat May 17 2025 Mattia Verga <mattia.verga@fedoraproject.org> - 25.5.1-1
 - Update to 25.5.1
 
