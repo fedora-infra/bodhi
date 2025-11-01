@@ -1,1 +1,0 @@
-bodhi-server: dependency on waitress now requires a version greater than 3.0.1

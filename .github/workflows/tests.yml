@@ -4,10 +4,12 @@ on:
     branches:
       - develop
       - 25.5
+      - 25.11
   pull_request:
     branches:
       - develop
       - 25.5
+      - 25.11
 
 name: Run tests
 
@@ -78,7 +80,7 @@ jobs:
       fail-fast: false
       matrix:
         # integration tests are broken on pip atm, so not included in this list.
-        release: [f41,f42,f43,rawhide]
+        release: [f42,f43,rawhide]
 
   unit_tests:
     name: Unit Tests
@@ -105,7 +107,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f41,f42,f43,pip,rawhide]
+        release: [f42,f43,pip,rawhide]
         module: [bodhi-client, bodhi-messages, bodhi-server]
 
   docs:
@@ -125,7 +127,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f41,f42,f43,pip,rawhide]
+        release: [f42,f43,pip,rawhide]
 
   rpms:
     name: Build the RPMS
@@ -153,4 +155,4 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [f41,f42,f43,rawhide]
+        release: [f42,f43,rawhide]
