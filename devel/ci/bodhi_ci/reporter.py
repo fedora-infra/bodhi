@@ -52,7 +52,11 @@ class ProgressReporter:
             # No label, no reporting
             return
         self._jobs.append(job)
-        loop = asyncio.get_event_loop()
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         loop.create_task(self._print_on_complete(job))
 
     async def _print_on_complete(self, job):

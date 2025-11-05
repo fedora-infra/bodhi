@@ -52,7 +52,12 @@ class Runner:
 
     def __init__(self, options: dict):
         self.options = options
-        self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
+        try:
+            _eventloop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
+        except RuntimeError:
+            _eventloop = asyncio.new_event_loop()
+        asyncio.set_event_loop(_eventloop)
+        self.loop = _eventloop
 
     def run_jobs(self, job_names, releases):
         """Get the jobs list and run them."""
