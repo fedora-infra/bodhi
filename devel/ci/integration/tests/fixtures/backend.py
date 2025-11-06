@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import logging
+import multiprocessing
 import os
 import uuid
 
@@ -25,6 +26,8 @@ from conu import DockerBackend, PodmanBackend
 from docker import errors
 
 from .conu_ext import DockerNetwork, PodmanNetwork
+
+multiprocessing.set_start_method('fork')
 
 
 @pytest.fixture(scope="session")
