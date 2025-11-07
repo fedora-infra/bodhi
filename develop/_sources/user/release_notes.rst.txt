@@ -4,6 +4,48 @@ Release notes
 
 .. towncrier release notes start
 
+v25.11.1
+========
+
+
+Released on 2025-11-01.
+This release fixes a few bugs regarding the display of automated test results
+in web pages.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* bodhi-server: dependency on waitress now requires a version greater than
+  3.0.1 (:pr:`5897`).
+* bodhi-server: support for configuring logging through pyramid_sawing has been
+  removed (:pr:`5906`).
+
+Features
+^^^^^^^^
+
+* User statistics in homepage will now default to show 10 entries. This number
+  can be configured in Bodhi's config file. (:pr:`5882`).
+
+Bug fixes
+^^^^^^^^^
+
+* client: aliases for Fedora Flatpak updates are now recognized from command
+  line (:pr:`5918`).
+* Fixed a schema issue which prevented to set the `released_on` property on
+  Release (:issue:`5964`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Akashdeep Dhar
+* Adam Williamson
+* Jens Petersen
+* Mattia Verga
+* Yaakov Selkowitz
+
 v25.5.1
 =======
 

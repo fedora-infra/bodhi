@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Base &#8212; bodhi 25.5.1 documentation</title>
+    <title>Base &#8212; bodhi 25.11.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=1f462c57" />
-    <script src="../../_static/documentation_options.js?v=3e341cb2"></script>
+    <script src="../../_static/documentation_options.js?v=f8466bba"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -47,7 +47,12 @@ messages.</p>
 <p>A base class for Bodhi messages.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em></dt>
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'body_schema':</span> <span class="pre">'ClassVar[dict[str,</span> <span class="pre">Any]]',</span> <span class="pre">'deprecated':</span> <span class="pre">'bool',</span> <span class="pre">'headers_schema':</span> <span class="pre">'ClassVar[dict[str,</span> <span class="pre">Any]]',</span> <span class="pre">'queue':</span> <span class="pre">'Optional[str]',</span> <span class="pre">'severity':</span> <span class="pre">'int',</span> <span class="pre">'topic':</span> <span class="pre">'str'}</span></em></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -192,9 +197,19 @@ messages.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'nvr':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></em></dt>
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'nvr':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7f1837bc57e0:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></em></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -274,6 +289,16 @@ messages.</p>
 <p>If an object has a <code class="docutils literal notranslate"><span class="pre">__json__()</span></code> method, use it to serialize to JSON.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">__firstlineno__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">308</span></em></dt>
 <dd></dd></dl>
 
@@ -306,9 +331,19 @@ messages.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></em></dt>
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7f1837c14700:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></em></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -401,9 +436,19 @@ messages.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'alias':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;,</span> <span class="pre">'builds':</span> <span class="pre">typing.Iterable[bodhi.messages.schemas.base.BuildV1],</span> <span class="pre">'release':</span> <span class="pre">ForwardRef('ReleaseV1'),</span> <span class="pre">'request':</span> <span class="pre">typing.Optional[str],</span> <span class="pre">'status':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;,</span> <span class="pre">'user':</span> <span class="pre">ForwardRef('UserV1')}</span></em></dt>
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'alias':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;,</span> <span class="pre">'builds':</span> <span class="pre">typing.Iterable[bodhi.messages.schemas.base.BuildV1],</span> <span class="pre">'release':</span> <span class="pre">ForwardRef('ReleaseV1'),</span> <span class="pre">'request':</span> <span class="pre">None</span> <span class="pre">|</span> <span class="pre">str,</span> <span class="pre">'status':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;,</span> <span class="pre">'user':</span> <span class="pre">ForwardRef('UserV1')}</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7f1837c14a30:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></em></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -521,9 +566,19 @@ messages.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotations__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></em></dt>
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></em></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7f1837c14f70:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></em></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
