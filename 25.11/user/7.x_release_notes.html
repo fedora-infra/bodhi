@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>7.x release notes &#8212; bodhi 25.11.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=1f462c57" />
+    <script src="../_static/documentation_options.js?v=f8466bba"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="6.x release notes" href="6.x_release_notes.html" />
+    <link rel="prev" title="Release notes" href="release_notes.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="x-release-notes">
+<h1>7.x release notes<a class="headerlink" href="#x-release-notes" title="Link to this heading">¶</a></h1>
+<p>These are the release notes for the 7.x series of Bodhi releases.</p>
+<section id="v7-2-2">
+<h2>v7.2.2<a class="headerlink" href="#v7-2-2" title="Link to this heading">¶</a></h2>
+<p>Released on 2023-10-03.
+This is a bugfix release.</p>
+<section id="bug-fixes">
+<h3>Bug fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed the detection of Flatpak update type (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5496">PR#5496</a>).</p></li>
+<li><p>Fix handling container tags which aren’t valid OCI tags (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5497">PR#5497</a>).</p></li>
+<li><p>Fixed display of waived failures in the Automated Tests tab (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5397">#5397</a>).</p></li>
+</ul>
+</section>
+<section id="contributors">
+<h3>Contributors<a class="headerlink" href="#contributors" title="Link to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Owen Taylor</p></li>
+<li><p>Adam Williamson</p></li>
+<li><p>Mattia Verga</p></li>
+</ul>
+</section>
+</section>
+<section id="v7-2-1">
+<h2>v7.2.1<a class="headerlink" href="#v7-2-1" title="Link to this heading">¶</a></h2>
+<p>Released on 2023-07-30.
+This is a bugfix release.</p>
+<section id="features">
+<h3>Features<a class="headerlink" href="#features" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>If an update has got any failing test, an help box is displayed in the
+Automated Tests tab (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5382">PR#5382</a>).</p></li>
+</ul>
+</section>
+<section id="id1">
+<h3>Bug fixes<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>On the Automated Tests tab, passed tests that are ‘required’ now correctly
+show as such (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5388">PR#5388</a>).</p></li>
+<li><p>client: do not rely on <cite>HOME</cite> being defined in os.environ variables
+(<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5398">PR#5398</a>).</p></li>
+<li><p>server: when resubmitting a pending update to testing, make sure the release
+candidate tag is applied to all builds (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5400">PR#5400</a>).</p></li>
+<li><p>Fixed wrong update attribution in ready for testing message string
+(<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5415">#5415</a>).</p></li>
+<li><p>Fixed missing whitespace in “bodhi update completed push to testing”
+(<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5416">#5416</a>).</p></li>
+<li><p>Update testing instruction command is now clearer as it now warns users that
+it may take up to 24 hours for an update to propagate to mirrors
+(<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5428">#5428</a>).</p></li>
+</ul>
+</section>
+<section id="development-improvements">
+<h3>Development improvements<a class="headerlink" href="#development-improvements" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Added support for dnf5 to repository sanity check tests (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5404">#5404</a>).</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>Contributors<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Aurélien Bompard</p></li>
+<li><p>Adam Williamson</p></li>
+<li><p>Mattia Verga</p></li>
+</ul>
+</section>
+</section>
+<section id="v7-2-0">
+<h2>v7.2.0<a class="headerlink" href="#v7-2-0" title="Link to this heading">¶</a></h2>
+<p>Released on 2023-04-30.
+This is a bugfix release.</p>
+<section id="id3">
+<h3>Features<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bodhi will not try to recalculate the gating status in response to a new
+result or a new waiver if the status is <cite>ignored</cite> (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5202">PR#5202</a>).</p></li>
+<li><p><cite>update.edit</cite> messages now include <cite>new_builds</cite> and <cite>removed_builds</cite>
+properties (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5237">PR#5237</a>).</p></li>
+<li><p>The Releases list webpage now hide inactive (disabled or archived) releases
+by default (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5264">PR#5264</a>).</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>Bug fixes<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Icons for tests in QUEUED and RUNNING states were not displayed in the webUI
+(<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5187">PR#5187</a>).</p></li>
+<li><p>Updated links to Bodhi extended markdown description page (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5190">PR#5190</a>).</p></li>
+<li><p>The title in the update webpage now has no more a hyperlink (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5089">#5089</a>).</p></li>
+<li><p>The bundled selectize js component was downgraded to 0.14.0 to solve a bug
+where the bug list was emptied upon editing an update (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5233">#5233</a>).</p></li>
+<li><p>Link to Koji builds are now correctly encoded (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5272">#5272</a>).</p></li>
+</ul>
+</section>
+<section id="id5">
+<h3>Development improvements<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Use functools lru_cache for caching <cite>Release.all_releases()</cite> and
+<cite>Release.get_tags()</cite> instead of a custom implementation (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5238">PR#5238</a>).</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>Contributors<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Aurélien Bompard</p></li>
+<li><p>Adam Williamson</p></li>
+<li><p>Kevin Fenzi</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Mikolaj Izdebski</p></li>
+<li><p>Michal Konečný</p></li>
+</ul>
+</section>
+</section>
+<section id="v7-1-1">
+<h2>v7.1.1<a class="headerlink" href="#v7-1-1" title="Link to this heading">¶</a></h2>
+<p>Released on 2023-03-18.
+This is a minor feature release.</p>
+<section id="id7">
+<h3>Features<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>The automated tests tab will now display information about <cite>queued</cite> and
+<cite>running</cite> tests (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5139">PR#5139</a>).</p></li>
+<li><p>Copy additional config files for pungi (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5154">PR#5154</a>).</p></li>
+</ul>
+</section>
+<section id="id8">
+<h3>Contributors<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Adam Williamson</p></li>
+<li><p>Michal Konečný</p></li>
+</ul>
+</section>
+</section>
+<section id="v7-1-0">
+<h2>v7.1.0<a class="headerlink" href="#v7-1-0" title="Link to this heading">¶</a></h2>
+<p>Released on 2023-03-11.
+This is a feature release.</p>
+<section id="dependency-changes">
+<h3>Dependency changes<a class="headerlink" href="#dependency-changes" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bodhi now uses pymediawiki instead of the unmaintained simplemediawiki to
+fetch test cases (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4852">PR#4852</a>).</p></li>
+</ul>
+</section>
+<section id="id9">
+<h3>Features<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>bodhi-messages is updated to include additional properties in the message
+schemas. The additional properties are: app_name, agent_name, and __str__
+(<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4950">#4950</a>).</p></li>
+</ul>
+</section>
+<section id="id10">
+<h3>Bug fixes<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Retrieving sidetags list for a user not known to Koji caused an exception in
+bodhi-server (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4994">PR#4994</a>).</p></li>
+<li><p>Added support for bleach &gt;= 6.0.0 (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/5003">PR#5003</a>).</p></li>
+<li><p>bodhi-client: do not run <cite>koji wait-repo</cite> when expiring a buildroot override
+(<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4830">#4830</a>).</p></li>
+<li><p>bodhi-client: fix <cite>–version</cite> option (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4981">#4981</a>).</p></li>
+<li><p>Update notes are now capped to a default of 10k characters, the value can be
+customized in config (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4982">#4982</a>).</p></li>
+<li><p>Fixed webUI template where karma and comment icons where misaligned at highly
+commented discussions (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4986">#4986</a>).</p></li>
+<li><p>Fixed the template of the update details page, where the testcases tab was
+always empty (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5000">#5000</a>).</p></li>
+<li><p>The link to the test gating tab in the update page was fixed (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5032">#5032</a>).</p></li>
+<li><p>The composer is now safer about not triggering stable composes for frozen
+releases (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5080">#5080</a>).</p></li>
+<li><p>Rawhide updates which are obsoleted before being pushed will now not be
+pushed to stable to avoid confusion (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5113">#5113</a>).</p></li>
+<li><p>Frozen releases didn’t show up in filters (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/5115">#5115</a>).</p></li>
+</ul>
+</section>
+<section id="id11">
+<h3>Contributors<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Kevin Fenzi</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Ryan Lerch</p></li>
+</ul>
+</section>
+</section>
+<section id="v7-0-1">
+<h2>v7.0.1<a class="headerlink" href="#v7-0-1" title="Link to this heading">¶</a></h2>
+<p>Released on 2023-01-14.
+This is a bugfix release.</p>
+<section id="id12">
+<h3>Bug fixes<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed template in overrides list page which prevents the display of filters
+dropdown (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4844">PR#4844</a>).</p></li>
+<li><p>Fixed a possible XSS attack vector in update_form.js (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4845">PR#4845</a>).</p></li>
+</ul>
+</section>
+<section id="id13">
+<h3>Contributors<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Mattia Verga</p></li>
+</ul>
+</section>
+</section>
+<section id="v7-0-0">
+<h2>v7.0.0<a class="headerlink" href="#v7-0-0" title="Link to this heading">¶</a></h2>
+<p>Released on 2022-11-26.
+This is a major release that fully enables <cite>frozen</cite> release state in bodhi-server
+and adds Kerberos authentication to bodhi-client.</p>
+<section id="server-upgrade-instructions">
+<h3>Server upgrade instructions<a class="headerlink" href="#server-upgrade-instructions" title="Link to this heading">¶</a></h3>
+<p>This release contains database migrations. To apply them, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+</pre></div>
+</div>
+</section>
+<section id="id14">
+<h3>Features<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bodhi client now autenticates using Kerberos by default and falls back to
+browser-based OIDC mechanism. (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4602">PR#4602</a>).</p></li>
+<li><p>Critical path information can now be read from JSON files (in the form output
+by the releng <cite>critpath.py</cite> script), using config options <cite>critpath.type =
+json</cite> and <cite>critpath.jsonpath</cite> (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4755">PR#4755</a>).</p></li>
+<li><p>Frozen releases updates will now be forced into testing before being pushed
+to stable (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4831">PR#4831</a>).</p></li>
+<li><p>The new update form UI will now display a warning when a release is
+approaching EOL (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4834">PR#4834</a>).</p></li>
+<li><p>Bodhi-push now defaults to push only testing composes for frozen releases
+(<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4478">#4478</a>).</p></li>
+</ul>
+</section>
+<section id="id15">
+<h3>Bug fixes<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Editing a stuck Rawhide side-tag update (usually when gating tests fail) will
+no more cause builds to be tagged with the release candidate-tag to prevent
+the automatic update consumer from creating an automatic update and breaking
+the side-tag update (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4745">PR#4745</a>).</p></li>
+<li><p>Bodhi client will not show the secret in terminal when logging in via browser
+(<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4814">PR#4814</a>).</p></li>
+<li><p>The check_signed_builds sometimes failed to unstuck updates due to the use of
+a wrong tag (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4819">PR#4819</a>).</p></li>
+<li><p>Updateinfo.xml metadata generation has been changed in order to try to fix
+errors reported by yum on EPEL (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/2487">#2487</a>).</p></li>
+<li><p>Releases in frozen state will now be listed in the release page and a warning
+box will be showed for updates of those releases (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4103">#4103</a>).</p></li>
+<li><p>The <cite>date_approved</cite> property of the <cite>Update</cite> model is now set when the update
+is ready to be pushed to stable (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4171">#4171</a>).</p></li>
+<li><p>Scenario is now included in request data when waiving test results
+(<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4270">#4270</a>).</p></li>
+<li><p>The update page now shows a single combined gating status, instead of listing
+the result of each separate greenwave query (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4320">#4320</a>).</p></li>
+<li><p>Bodhi-client now raises a generic <cite>SysExit</cite> exception instead of
+<cite>click.exceptions.Abort</cite> when a user aborts authentication, so external
+scripts can avoid importing Click in their code (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4623">#4623</a>).</p></li>
+</ul>
+</section>
+<section id="id16">
+<h3>Development improvements<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Bodhi client now supports configuring OIDC storage path. (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4603">PR#4603</a>).</p></li>
+<li><p>For gating, Bodhi now queries all Greenwave ‘decision contexts’ together,
+reducing the number of queries needed. (<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4821">PR#4821</a>).</p></li>
+<li><p>References to never used <cite>side_tag_active</cite> and <cite>side_tag_expired</cite> update
+statuses and the <cite>Update.side_tag_locked</cite> property have been removed
+(<a class="extlink-pr reference external" href="https://github.com/fedora-infra/bodhi/pull/4823">PR#4823</a>).</p></li>
+<li><p>The <cite>date_pushed</cite> database column of the <cite>Update</cite> model has been dropped and
+replaced by a property, no change should be noticeable to users
+(<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/4837">#4837</a>).</p></li>
+</ul>
+</section>
+<section id="id17">
+<h3>Contributors<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h3>
+<p>The following developers contributed to this release of Bodhi:</p>
+<ul class="simple">
+<li><p>Aurélien Bompard</p></li>
+<li><p>Adam Williamson</p></li>
+<li><p>Maxwell G</p></li>
+<li><p>Mattia Verga</p></li>
+<li><p>Matej Focko</p></li>
+<li><p>Tomas Tomecek</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.svg" alt="Logo" />
+    
+    <h1 class="logo logo-name">bodhi</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=fedora-infra&repo=bodhi&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="automatic_updates.html">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="buildroot_overrides.html">Buildroot Overrides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fedora-flavored-markdown.html">Fedora-Flavored Markdown</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="update_states.html">Update states</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="release_notes.html">Release notes</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../server_api/index.html">Bodhi Server APIs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_bindings.html">Python bindings</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../developer/index.html">Developer documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/releases.html">Release process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/bcd.html">BCD - the Bodhi Container Development environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/bcd_vscode.html">Debugging with Visual Studio Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developer/models.html">Database models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../administration.html">Administration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="release_notes.html">Release notes</a><ul>
+      <li>Previous: <a href="release_notes.html" title="previous chapter">Release notes</a></li>
+      <li>Next: <a href="6.x_release_notes.html" title="next chapter">6.x release notes</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2007-2025, Red Hat, Inc..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/user/7.x_release_notes.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
