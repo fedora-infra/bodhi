@@ -1226,17 +1226,19 @@ def _validate_override_build(request, nvr, db):
                                " release associated with the build does not support it.")
             return
 
-        for tag in build.get_tags():
-            if tag in (build.release.candidate_tag, build.release.testing_tag):
-                # The build is tagged as a candidate or testing
-                break
-
-        else:
-            # The build is tagged neither as a candidate or testing, it can't
-            # be in a buildroot override
-            request.errors.add('body', 'nvr', 'Invalid build.  It must be '
-                               'tagged as either candidate or testing.')
-            return
+        if not request.validated['expired']:
+            # We don't need to check build tags to expire a BRO
+            # https://github.com/fedora-infra/bodhi/issues/5937
+            for tag in build.get_tags():
+                if tag in (build.release.candidate_tag, build.release.testing_tag):
+                    # The build is tagged as a candidate or testing
+                    break
+            else:
+                # The build is tagged neither as a candidate or testing, it can't
+                # be in a buildroot override
+                request.errors.add('body', 'nvr', 'Invalid build.  It must be '
+                                   'tagged as either candidate or testing.')
+                return
 
     else:
         tag_types, tag_rels = Release.get_tags()
