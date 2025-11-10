@@ -697,7 +697,7 @@ class TestValidateOverrideBuild(BasePyTestCase):
         request.db = self.db
         request.errors = Errors()
         request.koji.listTags.side_effect = IOError('You forgot to pay your ISP.')
-        request.validated = {'edited': None}
+        request.validated = {'edited': None, 'expired': False}
 
         validators._validate_override_build(request, 'does not exist', self.db)
 
@@ -714,7 +714,7 @@ class TestValidateOverrideBuild(BasePyTestCase):
         request.db = self.db
         request.errors = Errors()
         request.koji.listTags.return_value = [{'name': 'invalid'}]
-        request.validated = {'edited': None}
+        request.validated = {'edited': None, 'expired': False}
         build = models.Build.query.first()
         build.release = None
         self.db.commit()
@@ -736,7 +736,7 @@ class TestValidateOverrideBuild(BasePyTestCase):
         request.db = self.db
         request.errors = Errors()
         request.koji.listTags.return_value = [{'name': release.candidate_tag}]
-        request.validated = {'edited': None}
+        request.validated = {'edited': None, 'expired': False}
         build = models.Build.query.first()
         build.release = None
         self.db.commit()
@@ -755,7 +755,7 @@ class TestValidateOverrideBuild(BasePyTestCase):
         request.db = self.db
         request.errors = Errors()
         request.koji.listTags.return_value = [{'name': release.stable_tag}]
-        request.validated = {'edited': None}
+        request.validated = {'edited': None, 'expired': False}
         get_session.return_value.listTags.return_value = request.koji.listTags.return_value
         build = models.Build.query.first()
 
@@ -767,12 +767,28 @@ class TestValidateOverrideBuild(BasePyTestCase):
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
+    @mock.patch('bodhi.server.models.buildsys.get_session')
+    def test_expire(self, get_session):
+        """Expiring an override doesn't need candidate or testing tag check."""
+        release = models.Release.query.first()
+        request = mock.Mock()
+        request.db = self.db
+        request.errors = Errors()
+        request.koji.listTags.return_value = [{'name': release.stable_tag}]
+        build = models.Build.query.first()
+        request.validated = {'edited': build.nvr, 'expired': True}
+        get_session.return_value.listTags.return_value = request.koji.listTags.return_value
+
+        validators._validate_override_build(request, build.nvr, self.db)
+
+        assert not len(request.errors)
+
     def test_test_gating_status_is_failed(self):
         """If a build's test gating status is failed, the validator should complain."""
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.validated = {'edited': None}
+        request.validated = {'edited': None, 'expired': False}
         build = models.Build.query.first()
         build.update.test_gating_status = models.TestGatingStatus.failed
         self.db.commit()
