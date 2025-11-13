@@ -1,0 +1,1 @@
+bodhi-server: refine logic to avoid stuck side-tag updates for releases not composed by bodhi
