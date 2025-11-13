@@ -78,32 +78,48 @@ def main():
                 update.obsolete(session)
                 session.flush()
                 continue
-            pending_signing_tag = update.release.pending_signing_tag
-            pending_testing_tag = update.release.pending_testing_tag
+            if update.from_tag and not update.release.composed_by_bodhi:
+                pending_signing_tag = update.release.get_pending_signing_side_tag(update.from_tag)
+                pending_testing_tag = update.release.get_pending_testing_side_tag(update.from_tag)
+            else:
+                pending_signing_tag = update.release.pending_signing_tag
+                pending_testing_tag = update.release.pending_testing_tag
             candidate_tag = update.release.candidate_tag
             for build in builds:
                 build_tags = [t['name'] for t in kc.listTags(build=build.nvr)]
                 if build.signed:
                     log.debug(f'{build.nvr} already marked as signed')
-                    # We need to "unsign" the build in Bodhi database, otherwise the
-                    # signed consumer will ignore the message and stops the flow
-                    build.signed = False
-                    session.flush()
-                    if (update.release.testing_tag in build_tags
-                            and update.release.candidate_tag not in build_tags):
-                        # The update was probably ejected from a compose and is stuck
-                        log.debug(f'Resubmitting {update.alias} to testing')
-                        if update.from_tag:
-                            side_tag = update.from_tag
-                            update.untag(session)
-                            builds = [b.nvr for b in update.builds]
-                            handle_side_and_related_tags_task.delay(
-                                builds=builds,
-                                pending_signing_tag=pending_signing_tag,
-                                from_tag=side_tag,
-                                candidate_tag=candidate_tag)
-                        else:
-                            update.set_request(session, models.UpdateRequest.testing, 'bodhi')
+                    if update.release.composed_by_bodhi or (not update.release.composed_by_bodhi
+                                                            and not update.from_tag):
+                        # We need to "unsign" the build in Bodhi database, otherwise the
+                        # signed consumer will ignore the message and stops the flow
+                        build.signed = False
+                        session.flush()
+                        if (update.release.testing_tag in build_tags
+                                and update.release.candidate_tag not in build_tags):
+                            # The update was probably ejected from a compose and is stuck
+                            log.debug(f'Resubmitting {update.alias} to testing')
+                            if update.from_tag:
+                                side_tag = update.from_tag
+                                update.untag(session)
+                                builds = [b.nvr for b in update.builds]
+                                handle_side_and_related_tags_task.delay(
+                                    builds=builds,
+                                    pending_signing_tag=pending_signing_tag,
+                                    from_tag=side_tag,
+                                    candidate_tag=candidate_tag)
+                            else:
+                                update.set_request(session, models.UpdateRequest.testing, 'bodhi')
+                            break
+                    elif update.from_tag and not update.release.composed_by_bodhi:
+                        side_tag = update.from_tag
+                        update.untag(session)
+                        builds = [b.nvr for b in update.builds]
+                        handle_side_and_related_tags_task.delay(
+                            builds=builds,
+                            pending_signing_tag=pending_signing_tag,
+                            from_tag=side_tag,
+                            pending_testing_tag=pending_testing_tag)
                         break
                     continue
                 if pending_signing_tag not in build_tags and pending_testing_tag in build_tags:
@@ -114,12 +130,13 @@ def main():
                     # autosign missed the message that the build is waiting to be signed
                     log.debug(f'{build.nvr} is stuck waiting to be signed, let\'s try again')
                     stuck_builds.append((build.nvr, pending_signing_tag))
-                elif (pending_signing_tag not in build_tags
+                elif (not update.from_tag and pending_signing_tag not in build_tags
                       and pending_testing_tag not in build_tags):
                     # this means that an update has been created but we never tagged the build
                     # as pending-signing
                     log.debug(f'Oh, no! We\'ve never sent {build.nvr} for signing, let\'s fix it')
                     overlooked_builds.append((build.nvr, pending_signing_tag))
+
             session.flush()
 
         if stuck_builds:

@@ -95,8 +95,6 @@ def autopush_update(update: Update, db: Session):
         update.request = None
         if update.from_tag is not None:
             update.status = UpdateStatus.pending
-            update.remove_tag(
-                update.release.get_pending_testing_side_tag(update.from_tag))
         else:
             update.status = UpdateStatus.obsolete
             update.remove_tag(update.release.pending_testing_tag)

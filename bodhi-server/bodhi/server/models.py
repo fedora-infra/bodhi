@@ -1620,11 +1620,17 @@ class Build(Base):
         """
         log.info('Unpushing %s' % self.nvr)
         release = self.update.release
+        if not release.composed_by_bodhi and from_side_tag:
+            pending_signing_tag = release.get_pending_signing_side_tag(self.update.from_tag)
+            pending_testing_tag = release.get_pending_testing_side_tag(self.update.from_tag)
+        else:
+            pending_signing_tag = release.pending_signing_tag
+            pending_testing_tag = release.pending_testing_tag
         for tag in self.get_tags(koji):
-            if tag == release.pending_signing_tag:
+            if tag == pending_signing_tag:
                 log.info('Removing %s tag from %s' % (tag, self.nvr))
                 koji.untagBuild(tag, self.nvr)
-            if tag == release.pending_testing_tag:
+            if tag == pending_testing_tag:
                 log.info('Removing %s tag from %s' % (tag, self.nvr))
                 koji.untagBuild(tag, self.nvr)
             if tag == release.pending_stable_tag:
