@@ -22,6 +22,8 @@ This module contains tests for the bodhi.server.tasks.check_signed_builds module
 from datetime import datetime, timezone
 from unittest.mock import call, patch
 
+import pytest
+
 from bodhi.server import models
 from bodhi.server.tasks import check_signed_builds_task
 from bodhi.server.tasks.check_signed_builds import main as check_signed_builds_main
@@ -134,14 +136,16 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
     @patch('bodhi.server.tasks.handle_side_and_related_tags_task.delay')
     @patch('bodhi.server.tasks.check_signed_builds.buildsys')
     @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    @pytest.mark.parametrize('rawhide', (False, True))
     def test_check_signed_builds_stuck_Update_fromtag_with_signed_build(self, debug, buildsys,
-                                                                        tag, untag):
+                                                                        tag, untag, rawhide):
         """
         The side-tag update was probably ejected from a compose and is stuck.
         """
         update = models.Update.query.first()
         update.from_tag = 'f17-build-side-1111'
         assert update.builds[0].signed
+        update.release.composed_by_bodhi = not rawhide
 
         self.db.commit()
 
@@ -156,15 +160,22 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         check_signed_builds_main()
 
         buildsys.get_session.assert_called_once()
-        calls = [call('bodhi-2.0-1.fc17 already marked as signed'),
-                 call(f'Resubmitting {update.alias} to testing')]
+        calls = [call('bodhi-2.0-1.fc17 already marked as signed')]
+        if not rawhide:
+            calls.append(call(f'Resubmitting {update.alias} to testing'))
         debug.assert_has_calls(calls)
         untag.assert_called_once()
-        tag.assert_called_with(builds=['bodhi-2.0-1.fc17'],
-                               pending_signing_tag='f17-updates-signing-pending',
-                               from_tag='f17-build-side-1111',
-                               candidate_tag='f17-updates-candidate')
-        assert not update.builds[0].signed
+        if not rawhide:
+            tag.assert_called_with(builds=['bodhi-2.0-1.fc17'],
+                                   pending_signing_tag='f17-updates-signing-pending',
+                                   from_tag='f17-build-side-1111',
+                                   candidate_tag='f17-updates-candidate')
+            assert not update.builds[0].signed
+        else:
+            tag.assert_called_with(builds=['bodhi-2.0-1.fc17'],
+                                   pending_signing_tag='f17-build-side-1111-signing-pending',
+                                   from_tag='f17-build-side-1111',
+                                   pending_testing_tag='f17-build-side-1111-testing-pending')
 
     @patch('bodhi.server.tasks.check_signed_builds.buildsys')
     @patch('bodhi.server.tasks.check_signed_builds.log.debug')
