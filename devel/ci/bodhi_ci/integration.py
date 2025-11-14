@@ -166,7 +166,7 @@ class IntegrationJob(Job):
     """
 
     _label = 'integration'
-    skip_releases = ['f32', 'pip']
+    skip_releases = ['pip']
     _dependencies = [IntegrationBuildJob]
 
     def __init__(self, *args, **kwargs):
