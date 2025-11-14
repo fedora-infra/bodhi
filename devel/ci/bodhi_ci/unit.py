@@ -53,15 +53,7 @@ class UnitJob(Job):
             # Run poetry install in all 3 modules
             f'for submodule in {" ".join(MODULES)}; do '
             '  pushd $submodule; '
-            '  VERSION=( $(poetry version) ); '
-            '  poetry build -f sdist; '
-            '  FILENAME=( $(find dist/ -type f) ); '
-            '  FILENAME=${FILENAME##*/}; '
-            '  FILENAME=${FILENAME%-*}; '
-            '  tar -xzvf "dist/$FILENAME-${VERSION[1]}.tar.gz" -C /tmp/; '
-            '  pushd "/tmp/$FILENAME-${VERSION[1]}"; '
-            '  python setup.py develop; '
-            '  popd; '
+            '  poetry install --only-root; '
             '  popd; '
             'done; '
             # Run the tests in each submodule
@@ -95,6 +87,63 @@ class UnitJob(Job):
         else:
             await super().run()
         return self
+
+
+class UnitOldJob(UnitJob):
+    """
+    Define a Job for running the unit tests - only for F42.
+
+    See the Job superclass's docblock for details about its attributes.
+    """
+
+    only_releases = ['f42']
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the UnitJob.
+
+        See the superclass's docblock for details about additional accepted parameters.
+        """
+        super().__init__(*args, **kwargs)
+
+        pytest_flags = '--junit-xml=nosetests.xml -v tests'
+        if self.options["failfast"]:
+            pytest_flags += ' -x'
+        if self.options["only_tests"]:
+            pytest_flags += f' -k {self.options["only_tests"]}'
+
+        modules = " ".join(self.options["modules"])
+
+        test_command = (
+            # Run poetry install in all 3 modules
+            f'for submodule in {" ".join(MODULES)}; do '
+            '  pushd $submodule; '
+            '  VERSION=( $(poetry version) ); '
+            '  poetry build -f sdist; '
+            '  FILENAME=( $(find dist/ -type f) ); '
+            '  FILENAME=${FILENAME##*/}; '
+            '  FILENAME=${FILENAME%-*}; '
+            '  tar -xzvf "dist/$FILENAME-${VERSION[1]}.tar.gz" -C /tmp/; '
+            '  pushd "/tmp/$FILENAME-${VERSION[1]}"; '
+            '  python setup.py develop; '
+            '  popd; '
+            '  popd; '
+            'done; '
+            # Run the tests in each submodule
+            f'for submodule in {modules}; do '
+            '  mkdir -p /results/$submodule; '
+            '  cd $submodule; '
+            f'/usr/bin/python3 -m pytest {pytest_flags}; '
+            '  exitcode=$?; '
+            '  cp *.xml /results/$submodule/; '
+            '  cp -r htmlcov /results/$submodule/; '
+            '  test $exitcode -gt 0 && exit 1; '
+            '  cd ..; '
+            'done'
+        )
+        self._command = ['/usr/bin/bash', '-c', test_command]
+
+        self._convert_command_for_container()
 
 
 class DiffCoverJob(Job):
