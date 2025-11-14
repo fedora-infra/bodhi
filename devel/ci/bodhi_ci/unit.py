@@ -60,7 +60,7 @@ class UnitJob(Job):
             '  FILENAME=${FILENAME%-*}; '
             '  tar -xzvf "dist/$FILENAME-${VERSION[1]}.tar.gz" -C /tmp/; '
             '  pushd "/tmp/$FILENAME-${VERSION[1]}"; '
-            '  python setup.py develop; '
+            '  poetry install; '
             '  popd; '
             '  popd; '
             'done; '
