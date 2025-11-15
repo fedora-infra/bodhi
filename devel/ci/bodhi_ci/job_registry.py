@@ -20,13 +20,13 @@
 
 import typing
 
-from .docs import DocsJob
+from .docs import DocsJob, DocsOldJob
 from .integration import (IntegrationBuildJob, IntegrationCleanJob,
                           IntegrationJob)
 from .job import BuildJob, CleanJob, Job
 from .linting import PreCommitJob
 from .rpm import RPMJob
-from .unit import DiffCoverJob, UnitJob
+from .unit import DiffCoverJob, UnitJob, UnitOldJob
 
 AVAILABLE_JOBS: typing.Dict[str, typing.Type['Job']] = {
     "build": BuildJob,
@@ -46,7 +46,7 @@ def build_jobs_list(
     main_job_names: typing.Sequence[str],
     releases: typing.Sequence[str],
     options: dict
-) -> typing.List[Job]:
+) -> typing.List[Job | DocsJob | UnitJob]:
     """
     Build and return a list of jobs to be run for the given command.
 
@@ -58,7 +58,7 @@ def build_jobs_list(
         A list of Jobs to be run.
     """
 
-    main_jobs = []
+    main_jobs: list[tuple[type[Job], dict[str, str]]] = []
     for job_name in main_job_names:
         for release in releases:
             job_class = AVAILABLE_JOBS[job_name]
@@ -66,16 +66,27 @@ def build_jobs_list(
                 continue
             if job_class.only_releases is not None and release not in job_class.only_releases:
                 continue
-            main_jobs.append(
-                (AVAILABLE_JOBS[job_name], dict(release=release))
-            )
+            # Fedora 42 has poetry < 2.1 and we use the old setup.py install devel command
+            # which doesn't work anymore with setuptools 80.x
+            if release == 'f42' and job_name == 'unit':
+                main_jobs.append(
+                    (UnitOldJob, dict(release=release))
+                )
+            elif release == 'f42' and job_name == 'docs':
+                main_jobs.append(
+                    (DocsOldJob, dict(release=release))
+                )
+            else:
+                main_jobs.append(
+                    (AVAILABLE_JOBS[job_name], dict(release=release))
+                )
 
     # Don't buffer output if there's only one main job
     options["buffer_output"] = options["concurrency"] != 1 and len(main_jobs) > 1
 
-    jobs = []  # type: typing.List[Job]
+    jobs: list[Job | DocsJob | UnitJob] = []
     # Don't duplicate when two jobs depend on the same job
-    job_index = {}  # type: typing.Dict[str, Job]
+    job_index: dict[str, Job | DocsJob | UnitJob] = {}
 
     def populate_jobs_list(job_class, job_args, parent=None):
         """Populate the full job list by going through the dependencies recursively.

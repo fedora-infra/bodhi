@@ -33,15 +33,7 @@ class DocsJob(Job):
         (
             'for submodule in ' + ' '.join(MODULES) + '; do '
             '  pushd $submodule; '
-            '  VERSION=( $(poetry version) ); '
-            '  poetry build -f sdist; '
-            '  FILENAME=( $(find dist/ -type f) ); '
-            '  FILENAME=${FILENAME##*/}; '
-            '  FILENAME=${FILENAME%-*}; '
-            '  tar -xzvf "dist/$FILENAME-${VERSION[1]}.tar.gz" -C /tmp/; '
-            '  pushd "/tmp/$FILENAME-${VERSION[1]}"; '
-            '  python setup.py develop; '
-            '  popd; '
+            '  poetry install --only-root; '
             '  popd; '
             'done;'
             'make -C docs clean && '
@@ -67,3 +59,34 @@ class DocsJob(Job):
         super().__init__(*args, **kwargs)
 
         self._convert_command_for_container()
+
+
+class DocsOldJob(DocsJob):
+    """
+    Define a Job for building docs - only for f42.
+
+    See the Job superclass's docblock for details about its attributes.
+    """
+
+    _command = [
+        '/usr/bin/bash', '-cx',
+        (
+            'for submodule in ' + ' '.join(MODULES) + '; do '
+            '  pushd $submodule; '
+            '  VERSION=( $(poetry version) ); '
+            '  poetry build -f sdist; '
+            '  FILENAME=( $(find dist/ -type f) ); '
+            '  FILENAME=${FILENAME##*/}; '
+            '  FILENAME=${FILENAME%-*}; '
+            '  tar -xzvf "dist/$FILENAME-${VERSION[1]}.tar.gz" -C /tmp/; '
+            '  pushd "/tmp/$FILENAME-${VERSION[1]}"; '
+            '  python setup.py develop; '
+            '  popd; '
+            '  popd; '
+            'done;'
+            'make -C docs clean && '
+            'make -C docs html PYTHON=/usr/bin/python3 && '
+            'make -C docs man PYTHON=/usr/bin/python3 && '
+            'cp -rv docs/_build/* /results/'
+        )]
+    only_releases = ['f42']
