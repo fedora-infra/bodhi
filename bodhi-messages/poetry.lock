@@ -41,13 +41,13 @@ files = [
 
 [[package]]
 name = "certifi"
-version = "2025.10.5"
+version = "2025.11.12"
 description = "Python package for providing Mozilla's CA Bundle."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "certifi-2025.10.5-py3-none-any.whl", hash = "sha256:0f212c2744a9bb6de0c56639a6f68afe01ecd92d91f14ae897c4fe7bbeeef0de"},
-    {file = "certifi-2025.10.5.tar.gz", hash = "sha256:47c09d31ccf2acf0be3f701ea53595ee7e0b8fa08801c6624be771df09ae7b43"},
+    {file = "certifi-2025.11.12-py3-none-any.whl", hash = "sha256:97de8790030bbd5c2d96b7ec782fc2f7820ef8dba6db909ccf95449f2d062d4b"},
+    {file = "certifi-2025.11.12.tar.gz", hash = "sha256:d8ab5478f2ecd78af242878415affce761ca6bc54a22a27e026d7c25357c3316"},
 ]
 
 [[package]]
@@ -500,13 +500,13 @@ test-randomorder = ["pytest-randomly"]
 
 [[package]]
 name = "diff-cover"
-version = "9.7.1"
+version = "9.7.2"
 description = "Run coverage and linting reports on diffs"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "diff_cover-9.7.1-py3-none-any.whl", hash = "sha256:a662f3cacf57ba494dcb0235349c4912ae7f44345b162894ce5949745501c9c7"},
-    {file = "diff_cover-9.7.1.tar.gz", hash = "sha256:a03b78bc64b7dc27dda7f11c46bc6d44f4e121c8fb9a5068d41f20a05d463548"},
+    {file = "diff_cover-9.7.2-py3-none-any.whl", hash = "sha256:cd6498620c747c2493a6c83c14362c32868bfd91cd8d0dd093f136070ec4ffc5"},
+    {file = "diff_cover-9.7.2.tar.gz", hash = "sha256:872c820d2ecbf79c61d52c7dc70419015e0ab9289589566c791dd270fc0c6e3b"},
 ]
 
 [package.dependencies]
@@ -537,13 +537,13 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "fedora-messaging"
-version = "3.8.0"
+version = "3.9.0"
 description = "A set of tools for using Fedora's messaging infrastructure"
 optional = false
 python-versions = "<4.0.0,>=3.9.0"
 files = [
-    {file = "fedora_messaging-3.8.0-py3-none-any.whl", hash = "sha256:ba178db2f6070350bfe4ca4d3a4e3e910d25985b3f268acb331783c9d1ca13e7"},
-    {file = "fedora_messaging-3.8.0.tar.gz", hash = "sha256:31413f1e28b0a5b1f79c42cf04e57232d75b9193a24b4ac4d6c0acb8bcb45c4e"},
+    {file = "fedora_messaging-3.9.0-py3-none-any.whl", hash = "sha256:377f6562879da0d80265fcbd93bb0febc85bcee3c9b9e7f4d272b3322798f87d"},
+    {file = "fedora_messaging-3.9.0.tar.gz", hash = "sha256:7eb861ff4404a8dcba4f11590874a66124cb4db32b7ff65356af6ffb0e3b0647"},
 ]
 
 [package.dependencies]
