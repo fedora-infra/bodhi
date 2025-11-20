@@ -112,6 +112,7 @@ class TestMain(BasePyTestCase):
         # Make sure the logged output is correct
         expected_output = set(dirs) - expected_dirs
         expected_output = {os.path.join(self.compose_dir, d) for d in expected_output}
-        expected_output = expected_output | {'Deleting the following directories:'}
+        expected_output = expected_output | {'Deleting the following directories:',
+                                             f'Cleaning {self.compose_dir}...'}
         logged = set([c[0][0] for c in log.info.call_args_list])
         assert logged == expected_output
