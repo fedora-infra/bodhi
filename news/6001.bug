@@ -1,0 +1,1 @@
+bodhi-server: gating status should be correctly updated to 'waiting' when all failed tests on an update are restarted.
