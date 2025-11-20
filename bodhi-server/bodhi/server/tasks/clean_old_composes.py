@@ -37,32 +37,34 @@ def main(num_to_keep: int):
     """
     compose_dir = config.config['compose_dir']
 
+    log.info(f'Cleaning {compose_dir}...')
     # This data structure will map the beginning of a group of dirs for the same repo to a list of
     # the dirs that start off the same way.
     pattern_matched_dirs = collections.defaultdict(list)
-
-    for directory in [d for d in os.listdir(compose_dir)
-                      if os.path.isdir(os.path.join(compose_dir, d))]:
-        # If this directory ends with a float, it is a candidate for potential deletion
-        try:
-            split_dir = directory.split('-')
-            float(split_dir[-1])
-        except ValueError:
-            # This directory didn't end in a float, so let's just move on to the next one.
-            continue
-
-        pattern = directory.replace(split_dir[-1], '')
-        pattern_matched_dirs[pattern].append(directory)
+    with os.scandir(compose_dir) as it:
+        for entry in it:
+            if entry.is_dir():
+                # If this directory ends with a float, it is a candidate for potential deletion
+                try:
+                    split_dir = entry.name.split('-')
+                    float(split_dir[-1])
+                except ValueError:
+                    # This directory didn't end in a float, so let's just move on to the next one.
+                    continue
+                pattern = entry.name.replace(split_dir[-1], '')
+                pattern_matched_dirs[pattern].append(entry)
 
     dirs_to_delete = []
 
     for dirs in pattern_matched_dirs.values():
         if len(dirs) > num_to_keep:
-            dirs_to_delete.extend(sorted(dirs, reverse=True)[num_to_keep:])
+            dirs_to_delete.extend(
+                sorted(dirs, key=lambda dir: dir.name, reverse=True)[num_to_keep:])
 
     if dirs_to_delete:
         log.info('Deleting the following directories:')
         for d in dirs_to_delete:
-            d = os.path.join(compose_dir, d)
-            log.info(d)
+            log.info(d.path)
             shutil.rmtree(d)
+    else:
+        log.info('Nothing to delete')
