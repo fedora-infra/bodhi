@@ -72,7 +72,7 @@ class ResultsdbHandler:
             if (
                 (passed and status == TestGatingStatus.passed)
                 or (waiting and status == TestGatingStatus.waiting)
-                or (not passed and status == TestGatingStatus.failed)
+                or (not passed and not waiting and status == TestGatingStatus.failed)
                 or status == TestGatingStatus.ignored
             ):
                 log.debug("Not updating test_gating_status as no chance of a change")
