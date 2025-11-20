@@ -203,7 +203,11 @@ class TestResultsdbHandler(BasePyTestCase):
             testmsg = self.get_sample_message(typ="koji_build", outcome="QUEUED")
             self.handler(testmsg)
             assert update.test_gating_status == models.TestGatingStatus.waiting
-            # now check passed
+            # now check failed
+            update.test_gating_status = models.TestGatingStatus.failed
+            self.handler(testmsg)
+            assert update.test_gating_status == models.TestGatingStatus.waiting
+            # and passed
             update.test_gating_status = models.TestGatingStatus.passed
             self.handler(testmsg)
             assert update.test_gating_status == models.TestGatingStatus.waiting
