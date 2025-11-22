@@ -37,14 +37,11 @@ class TestResultsdbHandler(BasePyTestCase):
         self.single_build_update = self.db.query(models.Update).join(models.Build).filter(
             models.Build.nvr == 'bodhi-2.0-1.fc17').one()
 
-    def get_sample_message(self, typ="bodhi_update", passed=True):
+    def get_sample_message(self, typ="bodhi_update", outcome="PASSED"):
         """
         Returns a sample message, for the specified type and success
         status.
         """
-        outcome = "PASSED"
-        if not passed:
-            outcome = "FAILED"
         if typ == "bodhi_update":
             data = {"item": [self.single_build_update.alias], "type": ["bodhi_update"]}
         elif typ == "koji_build":
@@ -90,7 +87,7 @@ class TestResultsdbHandler(BasePyTestCase):
                 'unsatisfied_requirements': []
             }
             mock_greenwave.return_value = greenwave_response
-            testmsg = self.get_sample_message(typ="koji_build", passed=True)
+            testmsg = self.get_sample_message(typ="koji_build")
             self.handler(testmsg)
             assert update.test_gating_status == models.TestGatingStatus.passed
             # now check failed
@@ -146,7 +143,7 @@ class TestResultsdbHandler(BasePyTestCase):
                 ]
             }
             mock_greenwave.return_value = greenwave_response
-            testmsg = self.get_sample_message(typ="koji_build", passed=False)
+            testmsg = self.get_sample_message(typ="koji_build", outcome="FAILED")
             self.handler(testmsg)
             assert update.test_gating_status == models.TestGatingStatus.failed
             # now check failed
@@ -158,6 +155,63 @@ class TestResultsdbHandler(BasePyTestCase):
             self.handler(testmsg)
             assert update.test_gating_status == models.TestGatingStatus.failed
             # now check we don't update if already failed...
+            with mock.patch("bodhi.server.models.Update.update_test_gating_status") as updmock:
+                self.handler(testmsg)
+                assert updmock.call_count == 0
+                # ...or ignored
+                update.test_gating_status = models.TestGatingStatus.ignored
+                self.handler(testmsg)
+                assert updmock.call_count == 0
+                assert update.test_gating_status == models.TestGatingStatus.ignored
+
+    def test_resultsdb_queued_koji_test(self):
+        """
+        Assert that a queued test ResultsDB message for a Koji build
+        from an update updates the gating status of the update if in
+        passed status, or with no status.
+        """
+        update = self.single_build_update
+
+        # before the consumer run the gating tests status is None
+        assert update.test_gating_status is None
+
+        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            greenwave_response = {
+                'policies_satisfied': False,
+                'summary': "Of 1 required tests, 1 test incomplete",
+                'applicable_policies': [
+                    'kojibuild_bodhipush_no_requirements',
+                    'kojibuild_bodhipush_remoterule',
+                    'bodhiupdate_bodhipush_no_requirements',
+                    'bodhiupdate_bodhipush_openqa'
+                ],
+                'satisfied_requirements': [],
+                'unsatisfied_requirements': [
+                    {
+                        'item': {
+                            'type': 'bodhi_update'
+                        },
+                        'result_id': 1,
+                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
+                        'subject_type': 'bodhi_update',
+                        'testcase': 'update.install_default_update_netinst',
+                        'type': 'test-result-missing'
+                    }
+                ]
+            }
+            mock_greenwave.return_value = greenwave_response
+            testmsg = self.get_sample_message(typ="koji_build", outcome="QUEUED")
+            self.handler(testmsg)
+            assert update.test_gating_status == models.TestGatingStatus.waiting
+            # now check failed
+            update.test_gating_status = models.TestGatingStatus.failed
+            self.handler(testmsg)
+            assert update.test_gating_status == models.TestGatingStatus.waiting
+            # and passed
+            update.test_gating_status = models.TestGatingStatus.passed
+            self.handler(testmsg)
+            assert update.test_gating_status == models.TestGatingStatus.waiting
+            # now check we don't update if already waiting...
             with mock.patch("bodhi.server.models.Update.update_test_gating_status") as updmock:
                 self.handler(testmsg)
                 assert updmock.call_count == 0
@@ -196,11 +250,11 @@ class TestResultsdbHandler(BasePyTestCase):
             }
             mock_greenwave.return_value = greenwave_response
             # check the 'success' case
-            testmsg = self.get_sample_message(typ="bodhi_update", passed=True)
+            testmsg = self.get_sample_message(typ="bodhi_update")
             self.handler(testmsg)
             assert update.test_gating_status == models.TestGatingStatus.passed
             # now check the 'failure' case
-            testmsg = self.get_sample_message(typ="bodhi_update", passed=False)
+            testmsg = self.get_sample_message(typ="bodhi_update", outcome="FAILED")
             greenwave_response = {
                 'policies_satisfied': False,
                 'summary': "1 of 1 required tests failed",
@@ -276,7 +330,7 @@ class TestResultsdbHandler(BasePyTestCase):
         Assert that the consumer logs and returns if a Koji result
         message is missing the NVR.
         """
-        testmsg = self.get_sample_message(typ="koji_build", passed=True)
+        testmsg = self.get_sample_message(typ="koji_build")
         del testmsg.body["data"]["nvr"]
         del testmsg.body["data"]["item"]
         self.handler(testmsg)
@@ -289,7 +343,7 @@ class TestResultsdbHandler(BasePyTestCase):
         Assert that the consumer raise an exception if we could not find the
         build nvr in the DB.
         """
-        testmsg = self.get_sample_message(typ="koji_build", passed=True)
+        testmsg = self.get_sample_message(typ="koji_build")
         testmsg.body["data"]["nvr"] = ["notapackage-2.0-1.fc17"]
         self.handler(testmsg)
         assert mock_log.error.call_count == 1
@@ -301,7 +355,7 @@ class TestResultsdbHandler(BasePyTestCase):
         Assert that the consumer logs and returns if a Bodhi result
         message is missing the update ID.
         """
-        testmsg = self.get_sample_message(typ="bodhi_update", passed=True)
+        testmsg = self.get_sample_message(typ="bodhi_update")
         del testmsg.body["data"]["item"]
         self.handler(testmsg)
         assert mock_log.error.call_count == 1
@@ -313,7 +367,7 @@ class TestResultsdbHandler(BasePyTestCase):
         Assert that the consumer raise an exception if we could not find the
         update ID in the DB.
         """
-        testmsg = self.get_sample_message(typ="bodhi_update", passed=True)
+        testmsg = self.get_sample_message(typ="bodhi_update")
         testmsg.body["data"]["item"] = ["NOTANUPDATE"]
         self.handler(testmsg)
         assert mock_log.error.call_count == 1
