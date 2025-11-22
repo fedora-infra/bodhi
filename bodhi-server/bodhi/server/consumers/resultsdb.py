@@ -54,6 +54,7 @@ class ResultsdbHandler:
             return
 
         passed = msg.get("outcome") in ("PASSED", "INFO")
+        waiting = msg.get("outcome") in ("QUEUED", "RUNNING")
 
         data = msg.get("data")
         if not data:
@@ -70,7 +71,8 @@ class ResultsdbHandler:
             status = update.test_gating_status
             if (
                 (passed and status == TestGatingStatus.passed)
-                or (not passed and status == TestGatingStatus.failed)
+                or (waiting and status == TestGatingStatus.waiting)
+                or (not passed and not waiting and status == TestGatingStatus.failed)
                 or status == TestGatingStatus.ignored
             ):
                 log.debug("Not updating test_gating_status as no chance of a change")
