@@ -41,6 +41,7 @@ queue_rules:
       - status-success=Build Documentation (f43)
       - status-success=Build Documentation (pip)
     merge_method: rebase
+    branch_protection_injection_mode: none
 pull_request_rules:
   - name: backport 25.11
     actions:
