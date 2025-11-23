@@ -4,6 +4,42 @@ Release notes
 
 .. towncrier release notes start
 
+v25.11.2
+========
+
+
+Released on 2025-11-23.
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* When expiring an override don't require candidate or testing build tags
+  (:issue:`5937`).
+* bodhi-server: refine logic to avoid stuck side-tag updates for releases not
+  composed by bodhi (:issue:`5989`).
+* bodhi-server: skip updating the gating status if the current status is
+  'waiting', and the message we're handling is for a QUEUED or RUNNING result
+  (:issue:`6000`).
+* bodhi-server: gating status should be correctly updated to 'waiting' when all
+  failed tests on an update are restarted. (:issue:`6001`).
+
+Other changes
+^^^^^^^^^^^^^
+
+* server: usage of `os.scandir()` instead of `os.listdir()` in
+  clean_old_composes task should give better performance (:pr:`5999`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Williamson
+* Mattia Verga
+
+
 v25.11.1
 ========
 
