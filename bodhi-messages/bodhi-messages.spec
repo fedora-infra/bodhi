@@ -1,7 +1,7 @@
 # Created by pyp2rpm-3.3.7
 %global pypi_name bodhi-messages
 %global src_name bodhi_messages
-%global pypi_version 25.11.1
+%global pypi_version 25.11.2
 
 Name:           %{pypi_name}
 Version:        %{pypi_version}
@@ -53,6 +53,9 @@ rm -rf %{pypi_name}.egg-info
 %doc README.rst
 
 %changelog
+* Sun Nov 23 2025 Mattia Verga <mattia.verga@fedoraproject.org> - 25.11.2-1
+- Update to 25.11.2
+
 * Sat Nov 01 2025 Mattia Verga <mattia.verga@fedoraproject.org> - 25.11.1-1
 - Update to 25.11.1
 
