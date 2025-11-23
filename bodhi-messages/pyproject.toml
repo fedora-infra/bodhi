@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhi-messages"
-version = "25.11.1"
+version = "25.11.2"
 description = "JSON schema for messages sent by Bodhi"
 readme = "README.rst"
 authors = ["Fedora Infrastructure Team"]
