@@ -1,1 +1,0 @@
-bodhi-server: skip updating the gating status if the current status is 'waiting', and the message we're handling is for a QUEUED or RUNNING result
