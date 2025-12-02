@@ -4,13 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bodhi.server.models &#8212; bodhi 25.11.1 documentation</title>
+    <title>bodhi.server.models &#8212; bodhi 25.11.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=1f462c57" />
-    <script src="../../../_static/documentation_options.js?v=f8466bba"></script>
-    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/documentation_options.js?v=cfbee1d0"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -1861,11 +1861,17 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Unpushing </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="p">)</span>
         <span class="n">release</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">release</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">release</span><span class="o">.</span><span class="n">composed_by_bodhi</span> <span class="ow">and</span> <span class="n">from_side_tag</span><span class="p">:</span>
+            <span class="n">pending_signing_tag</span> <span class="o">=</span> <span class="n">release</span><span class="o">.</span><span class="n">get_pending_signing_side_tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">from_tag</span><span class="p">)</span>
+            <span class="n">pending_testing_tag</span> <span class="o">=</span> <span class="n">release</span><span class="o">.</span><span class="n">get_pending_testing_side_tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">from_tag</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pending_signing_tag</span> <span class="o">=</span> <span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span>
+            <span class="n">pending_testing_tag</span> <span class="o">=</span> <span class="n">release</span><span class="o">.</span><span class="n">pending_testing_tag</span>
         <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tags</span><span class="p">(</span><span class="n">koji</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="n">release</span><span class="o">.</span><span class="n">pending_signing_tag</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="n">pending_signing_tag</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Removing </span><span class="si">%s</span><span class="s1"> tag from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="p">))</span>
                 <span class="n">koji</span><span class="o">.</span><span class="n">untagBuild</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="n">release</span><span class="o">.</span><span class="n">pending_testing_tag</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="n">pending_testing_tag</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Removing </span><span class="si">%s</span><span class="s1"> tag from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="p">))</span>
                 <span class="n">koji</span><span class="o">.</span><span class="n">untagBuild</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="n">release</span><span class="o">.</span><span class="n">pending_stable_tag</span><span class="p">:</span>
@@ -5657,7 +5663,7 @@
       &#169;2007-2025, Red Hat, Inc..
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.1</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
