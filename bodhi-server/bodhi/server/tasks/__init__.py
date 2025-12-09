@@ -87,7 +87,7 @@ def handle_update(api_version: int, **kwargs):
     handler.run(api_version=api_version, data=kwargs)
 
 
-@app.task(name="approve_testing")
+@app.task(name="approve_testing", ignore_result=True)
 def approve_testing_task(**kwargs):
     """Trigger the approve testing job. This is a periodic task."""
     from .approve_testing import main
@@ -96,7 +96,7 @@ def approve_testing_task(**kwargs):
     main()
 
 
-@app.task(name="check_policies")
+@app.task(name="check_policies", ignore_result=True)
 def check_policies_task(**kwargs):
     """Trigger the check policies job. This is a periodic task."""
     from .check_policies import main
@@ -105,7 +105,7 @@ def check_policies_task(**kwargs):
     main()
 
 
-@app.task(name="check_signed_builds")
+@app.task(name="check_signed_builds", ignore_result=True)
 def check_signed_builds_task(**kwargs):
     """Trigger the check signed builds job. This is a periodic task."""
     from .check_signed_builds import main
@@ -114,7 +114,7 @@ def check_signed_builds_task(**kwargs):
     main()
 
 
-@app.task(name="clean_old_composes")
+@app.task(name="clean_old_composes", ignore_result=True)
 def clean_old_composes_task(num_to_keep: int, **kwargs):
     """Trigger the clean old composes job. This is a periodic task."""
     from .clean_old_composes import main
@@ -123,7 +123,7 @@ def clean_old_composes_task(num_to_keep: int, **kwargs):
     main(num_to_keep)
 
 
-@app.task(name="expire_overrides")
+@app.task(name="expire_overrides", ignore_result=True)
 def expire_overrides_task(**kwargs):
     """Trigger the expire overrides job. This is a periodic task."""
     from .expire_overrides import main
@@ -156,7 +156,7 @@ def tag_update_builds_task(tag: str, builds: typing.List[str]):
 
 
 @app.task(name="bodhi.server.tasks.work_on_bugs", autoretry_for=(ExternalCallException,),
-          retry_kwargs={'max_retries': 5}, retry_backoff=True)
+          retry_kwargs={'max_retries': 5}, retry_backoff=True, ignore_result=True)
 def work_on_bugs_task(update: str, bugs: typing.List[int]):
     """Iterate the list of bugs, retrieving information from Bugzilla and modifying them."""
     from .work_on_bugs import main
@@ -166,7 +166,7 @@ def work_on_bugs_task(update: str, bugs: typing.List[int]):
 
 
 @app.task(name="bodhi.server.tasks.fetch_test_cases", autoretry_for=(ExternalCallException,),
-          retry_kwargs={'max_retries': 5}, retry_backoff=True)
+          retry_kwargs={'max_retries': 5}, retry_backoff=True, ignore_result=True)
 def fetch_test_cases_task(update: str):
     """Query the wiki for test cases for each package on the given update."""
     from .fetch_test_cases import main
