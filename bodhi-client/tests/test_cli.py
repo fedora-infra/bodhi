@@ -381,7 +381,7 @@ class TestDownloadGPG:
             text=True
         )
         self.call.assert_called_once_with([
-            'koji', 'download-build', '--key=fdb19c98', '--arch=noarch',
+            'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
             '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_epel_good(self, mocked_client_class):
@@ -401,7 +401,7 @@ class TestDownloadGPG:
             text=True
         )
         self.call.assert_called_once_with([
-            'koji', 'download-build', '--key=fdb19c98', '--arch=noarch',
+            'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
             '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_gpg_fails(self, mocked_client_class):
@@ -539,7 +539,7 @@ kRFmBygMR6M/
             text=True
         )
         self.call.assert_called_once_with([
-            'koji', 'download-build', '--key=fdb19c98', '--arch=noarch',
+            'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
             '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_epel_good_remote(self, mocked_client_class):
@@ -556,7 +556,7 @@ kRFmBygMR6M/
         url += '/raw/epel7/f/RPM-GPG-KEY-EPEL-7'
         self.get.assert_called_once_with(url)
         self.call.assert_called_once_with([
-            'koji', 'download-build', '--key=fdb19c98', '--arch=noarch',
+            'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
             '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_gpg_noexist_remote(self, mocked_client_class):
