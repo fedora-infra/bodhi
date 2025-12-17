@@ -899,6 +899,7 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
                     args = ['koji', 'download-build']
                     if keyid:
                         args.append(f'--key={keyid}')
+                        args.append('--fallback-unsigned')
                     if debuginfo:
                         args.append('--debuginfo')
                     # subprocess is icky, but koji module doesn't
