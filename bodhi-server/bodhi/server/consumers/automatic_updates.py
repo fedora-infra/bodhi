@@ -234,5 +234,9 @@ class AutomaticUpdateHandler:
             alias = update.alias
             buglist = [b.bug_id for b in update.bugs]
 
+            # Set an initial gating status
+            if config.get('test_gating.required'):
+                update.update_test_gating_status()
+
         # This must be run after dbsession is closed so changes are committed to db
         work_on_bugs_task.delay(alias, buglist)
