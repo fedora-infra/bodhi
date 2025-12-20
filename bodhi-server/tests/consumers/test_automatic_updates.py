@@ -77,21 +77,45 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
     # Test the main code paths.
 
+    @mock.patch.dict(config, [('test_gating.required', True)])
     @pytest.mark.parametrize('critpath', (True, False, "groups"))
     def test_consume(self, critpath, caplog):
         """Assert that messages about tagged builds create an update."""
         caplog.set_level(logging.DEBUG)
 
-        if critpath is True:
-            with mock.patch.dict(config, [('critpath_pkgs', ['colord'])]):
-                self.handler(self.sample_message)
-        elif critpath is False:
-            self.handler(self.sample_message)
-        elif critpath == "groups":
-            with mock.patch.dict(config, [('critpath.type', 'json')]):
-                with mock.patch('bodhi.server.util.read_critpath_json') as fakejson:
-                    fakejson.return_value = {'rpm': {'core': ['colord']}}
+        # mock a typical greenwave response to test initial
+        # gating status
+        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            greenwave_response = {
+                'policies_satisfied': True,
+                'summary': "1 of 1 required test results missing",
+                'applicable_policies': [
+                    'kojibuild_bodhipush_no_requirements',
+                    'kojibuild_bodhipush_remoterule',
+                    'bodhiupdate_bodhipush_no_requirements',
+                    'bodhiupdate_bodhipush_openqa'
+                ],
+                'satisfied_requirements': [],
+                'unsatisfied_requirements': [
+                    {
+                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.uefi',
+                        'subject_type': 'bodhi_update',
+                        'testcase': 'update.install_default_update_netinst',
+                        'type': 'test-result-missing'
+                    },
+                ]
+            }
+            mock_greenwave.return_value = greenwave_response
+            if critpath is True:
+                with mock.patch.dict(config, [('critpath_pkgs', ['colord'])]):
                     self.handler(self.sample_message)
+            elif critpath is False:
+                self.handler(self.sample_message)
+            elif critpath == "groups":
+                with mock.patch.dict(config, [('critpath.type', 'json')]):
+                    with mock.patch('bodhi.server.util.read_critpath_json') as fakejson:
+                        fakejson.return_value = {'rpm': {'core': ['colord']}}
+                        self.handler(self.sample_message)
 
         # check if the update exists...
         update = self.db.query(Update).join(Build).filter(
@@ -103,7 +127,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         assert update.type == UpdateType.newpackage
         assert update.status == UpdateStatus.pending
         assert update.autokarma is False
-        assert update.test_gating_status is None
+        assert update.test_gating_status == TestGatingStatus.waiting
         assert update.builds[0].release == self.release
         if critpath:
             assert update.critpath is True

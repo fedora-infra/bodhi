@@ -23,11 +23,9 @@ from fedora_messaging import api
 from fedora_messaging import testing as fml_testing
 
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server.config import config
 from bodhi.server.consumers import signed
 from bodhi.server.models import (
     Build,
-    TestGatingStatus,
     Update,
     UpdateRequest,
     UpdateStatus,
@@ -228,7 +226,6 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         assert build.signed is True
         assert update.status == UpdateStatus.pending
 
-    @mock.patch.dict(config, [('test_gating.required', True)])
     def test_consume_from_tag(self):
         """
         Assert that update created from tag is handled correctly when message
@@ -243,36 +240,13 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         update.pushed = False
 
         self.db.commit()
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
-            greenwave_response = {
-                'policies_satisfied': True,
-                'summary': "All required tests passed",
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
-                ],
-                'satisfied_requirements': [
-                    {
-                        'result_id': 39603316,
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-passed'
-                    },
-                ],
-                'unsatisfied_requirements': []
-            }
-            mock_greenwave.return_value = greenwave_response
-            self.handler(self.sample_side_tag_message)
+        self.handler(self.sample_side_tag_message)
 
         assert update.builds[0].signed is True
         assert update.builds[0].update.request is None
         assert update.status == UpdateStatus.testing
         assert update.pushed is True
-        assert update.test_gating_status == TestGatingStatus.passed
 
-    @mock.patch.dict(config, [('test_gating.required', True)])
     @mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
     @mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
     @mock.patch('bodhi.server.models.Update.add_tag')
@@ -294,33 +268,11 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         update.pushed = False
 
         self.db.commit()
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
-            greenwave_response = {
-                'policies_satisfied': True,
-                'summary': "All required tests passed",
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
-                ],
-                'satisfied_requirements': [
-                    {
-                        'result_id': 39603316,
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-passed'
-                    },
-                ],
-                'unsatisfied_requirements': []
-            }
-            mock_greenwave.return_value = greenwave_response
-            with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
-                self.handler(self.sample_side_tag_message_2)
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            self.handler(self.sample_side_tag_message_2)
 
         assert update.builds[0].signed is True
         assert update.builds[0].update.request == UpdateRequest.testing
         assert update.status == UpdateStatus.pending
         assert update.pushed is False
-        assert update.test_gating_status == TestGatingStatus.passed
         add_tag.assert_not_called()
