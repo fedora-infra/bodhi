@@ -1,4 +1,16 @@
 <%inherit file="master.html"/>
+
+<%block name="opengraph">
+    <meta property="og:title" content="${user['name'] | h} &mdash; Fedora Updates System" />
+    <meta property="og:description" content="User activity of ${user['name'] | h}" />
+    <meta property="og:image" content="${self.util.avatar(user['name'], user['email'], size=128)}" />
+    <meta property="og:image:width" content="128" />
+    <meta property="og:image:height" content="128" />
+    <meta property="og:url" content="${request.current_route_url()}" />
+</%block>
+
+<%block name="pagetitle">${user['name'] | h} &mdash; Fedora Updates System</%block>
+
 <div class="subheader">
 <div class="container pt-2">
 <div class="row" style="margin-top: 10px;">

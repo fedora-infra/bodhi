@@ -8,12 +8,14 @@
   install_command = update.install_command
 %>
 
-<%block name="pagetitle">
-  ${update.alias}
-&mdash;
-${update.type} update for ${update.get_title(amp=True,beautify=True) | h}
-&mdash; Fedora Updates System
+<%block name="opengraph">
+    <meta property="og:title" content="${update.alias} &mdash; Fedora Updates System" />
+    <meta property="og:description" content="${update.type} update for ${update.get_title(amp=True,beautify=True) | h}" />
+    <meta property="og:image" content="${request.static_url('bodhi.server:static/img/bodhi-logo.png')}" />
+    <meta property="og:url" content="${request.current_route_url()}" />
 </%block>
+
+<%block name="pagetitle">${update.alias} &mdash; ${update.type} update for ${update.get_title(amp=True,beautify=True) | h} &mdash; Fedora Updates System</%block>
 
 <%  update.bugs.sort(key = lambda x: x.bug_id)  %>
 

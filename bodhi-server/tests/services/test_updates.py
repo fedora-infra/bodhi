@@ -1901,7 +1901,7 @@ class TestUpdatesService(BasePyTestCase):
 
         res = self.app.get(f'/updates/{update.alias}', status=200, headers={'Accept': 'text/html'})
         assert "<script>thisIsBad()</script>" not in res.text
-        assert res.text.count("&lt;script&gt;thisIsBad()&lt;/script&gt;") == 2
+        assert res.text.count("&lt;script&gt;thisIsBad()&lt;/script&gt;") == 3
 
     def test_list_updates(self):
         res = self.app.get('/updates/')
