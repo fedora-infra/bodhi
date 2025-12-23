@@ -1,4 +1,14 @@
 <%inherit file="master.html"/>
+
+<%block name="opengraph">
+    <meta property="og:title" content="${release['long_name'] | h} &mdash; Fedora Updates System" />
+    <meta property="og:description" content="Release details of ${release['long_name'] | h}" />
+    <meta property="og:image" content="${request.static_url('bodhi.server:static/img/bodhi-logo.png')}" />
+    <meta property="og:url" content="${request.current_route_url()}" />
+</%block>
+
+<%block name="pagetitle">${release['long_name'] | h} &mdash; Fedora Updates System</%block>
+
 <div class="subheader">
     <div class="container py-4">
       <div class="row">

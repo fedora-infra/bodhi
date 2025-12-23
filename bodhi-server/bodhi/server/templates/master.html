@@ -11,10 +11,18 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="management of Fedora Project updates" />
+    <meta name="description" content="Management of Fedora Project updates" />
     <meta name="author" content="Luke Macken" />
     <meta name="author" content="Ralph Bean" />
     <meta name="author" content="Randy Barlow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Bodhi" />
+    <%block name="opengraph">
+    <meta property="og:title" content="Fedora Updates System" />
+    <meta property="og:description" content="Management of Fedora Project updates" />
+    <meta property="og:image" content="${request.static_url('bodhi.server:static/img/bodhi-logo.png')}" />
+    <meta property="og:url" content="${request.current_route_url()}" />
+    </%block>
 
     <!-- Only allow websockets connections to fedoraproject.org. -->
     <meta http-equiv="Content-Security-Policy" content="connect-src ${request.registry.settings['cors_connect_src']}">
@@ -22,11 +30,7 @@
     <link rel="shortcut icon" href="${request.static_url('bodhi.server:static/ico/favicon.ico')}">
 
     <base href="${request.registry.settings['base_address']}"/>
-    <title>
-      <%block name="pagetitle">
-      Fedora Updates System
-      </%block>
-    </title>
+    <title><%block name="pagetitle">Fedora Updates System</%block></title>
 
     <%block name="css">
     <link href="${request.static_url('bodhi.server:static/vendor/fedora-bootstrap/fedora-bootstrap.min.css') }" rel="stylesheet" />
