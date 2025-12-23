@@ -1,0 +1,1 @@
+server: avoid manually setting `TestGatingStatus.waiting` on Update before calling `update_test_gating_status()`
