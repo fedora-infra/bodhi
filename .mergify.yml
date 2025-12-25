@@ -1,47 +1,23 @@
-queue_rules:
-  - name: default
-    queue_conditions:
+pull_request_rules:
+  - name: Automatic merge when CI passes and reviews approve
+    conditions:
       - label!=WIP
       - -draft
+      - author!=renovate[bot] # renovate[bot] will handle their PR themselves
       - approved-reviews-by=@fedora-infra/bodhi
-      - "#changes-requested-reviews-by=0"
-      - status-success=DCO
-      - status-success=Pre-commit checks
-      - status-success=Diff-cover check
-      - status-success=Integration Tests (f42)
-      - status-success=Integration Tests (f43)
-      - status-success=Unit Tests (f42, bodhi-client)
-      - status-success=Unit Tests (f42, bodhi-messages)
-      - status-success=Unit Tests (f42, bodhi-server)
-      - status-success=Unit Tests (f43, bodhi-client)
-      - status-success=Unit Tests (f43, bodhi-messages)
-      - status-success=Unit Tests (f43, bodhi-server)
-      - status-success=Unit Tests (pip, bodhi-client)
-      - status-success=Unit Tests (pip, bodhi-messages)
-      - status-success=Unit Tests (pip, bodhi-server)
-      - status-success=Build Documentation (f42)
-      - status-success=Build Documentation (f43)
-      - status-success=Build Documentation (pip)
-    merge_conditions:
-      - status-success=DCO
-      - status-success=Pre-commit checks
-      - status-success=Diff-cover check
-      - status-success=Integration Tests (f42)
-      - status-success=Integration Tests (f43)
-      - status-success=Unit Tests (f42, bodhi-client)
-      - status-success=Unit Tests (f42, bodhi-messages)
-      - status-success=Unit Tests (f42, bodhi-server)
-      - status-success=Unit Tests (f43, bodhi-client)
-      - status-success=Unit Tests (f43, bodhi-messages)
-      - status-success=Unit Tests (f43, bodhi-server)
-      - status-success=Unit Tests (pip, bodhi-client)
-      - status-success=Unit Tests (pip, bodhi-messages)
-      - status-success=Unit Tests (pip, bodhi-server)
-      - status-success=Build Documentation (f42)
-      - status-success=Build Documentation (f43)
-      - status-success=Build Documentation (pip)
-    merge_method: rebase
-pull_request_rules:
+#     - "#changes-requested-reviews-by=0" -- handled by github branch protection
+#     - status-success=DCO -- handled by github branch protection
+#     - status-success=Pre-commit checks -- handled by github branch protection
+#     - status-success=Diff-cover check -- handled by github branch protection
+#     - status-success=Integration Tests (f42) -- handled by github branch protection
+#     - status-success=Unit Tests (f42, bodhi-client) -- handled by github branch protection
+#     - status-success=Unit Tests (f42, bodhi-messages) -- handled by github branch protection
+#     - status-success=Unit Tests (f42, bodhi-server) -- handled by github branch protection
+#     - status-success=Build Documentation (f42) -- handled by github branch protection
+    actions:
+      merge:
+        method: rebase
+
   - name: backport 25.11
     actions:
       backport:
@@ -51,9 +27,3 @@ pull_request_rules:
       - label!=WIP
       - -draft
       - label=25.11-backports
-  - name: default
-    conditions: []
-    actions:
-      queue:
-merge_queue:
-  max_parallel_checks: 1
