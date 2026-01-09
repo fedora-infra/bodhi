@@ -17,11 +17,35 @@ class OpenidExtension(OpenidExtensionBase):
         super(OpenidExtension, self).__init__("insecureAPI")
 
     def enable(self):
-        # This is the most ugly hack in my history of python...
-        # But I need to find the root object, and that is not passed into
-        #  the OpenID extension system anywhere...
-        root_obj = inspect.stack()[5][0].f_locals["self"]
+        """
+        Enable the OpenID extension.
+
+        This method retrieves the root application object to register the API page.
+        """
+        root_obj = self._retrieve_root_object()
         root_obj.api = APIPage(root_obj)
+
+    def _retrieve_root_object(self):
+        """
+        Retrieve the Ipsilon root application object.
+
+        This method inspects the call stack to find the root object, as it is not
+        directly passed to the extension's enable method by the framework.
+        """
+        # Note: This approach uses stack inspection to locate the 'self' variable
+        # from the caller's frame, which corresponds to the root application object.
+        # This is necessary because the OpenID extension system does not currently
+        # expose the root object to extensions.
+        #
+        # Stack index [6] is used because:
+        # - Frame 0: inspect.stack() call itself
+        # - Frame 1: This helper method (_retrieve_root_object)
+        # - Frames 2-5: OpenID extension framework call chain
+        # - Frame 6: Root application object (target)
+        #
+        # Note: Before refactoring into a helper method, this was [5] when the code
+        # was inline in enable(). The helper method itself adds one extra frame.
+        return inspect.stack()[6][0].f_locals["self"]
 
 
 class APIPage(Page):
