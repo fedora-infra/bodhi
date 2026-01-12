@@ -525,6 +525,17 @@ class TestReleasesService(base.BasePyTestCase):
         assert res.content_type == 'text/html'
         assert 'f17-updates-testing' in res
 
+    def test_get_rawhide_release_html(self):
+        """ Test retrieving Fedora rawhide release """
+        r = Release.query.filter_by(name='F17').first()
+        r.state = ReleaseState.pending
+        r.branch = 'rawhide'
+        self.db.flush()
+
+        res = self.app.get('/releases/rawhide', headers={'Accept': 'text/html'})
+        assert res.content_type == 'text/html'
+        assert 'f17-updates-testing' in res
+
     def test_get_single_release_html_two_same_updates_same_month(self):
         """Test the HTML view with two updates of the same type from the same month."""
         base.create_update(self.db, ['bodhi-3.4.0-1.fc27'])
@@ -542,6 +553,18 @@ class TestReleasesService(base.BasePyTestCase):
 
     def test_get_non_existent_release_html(self):
         self.app.get('/releases/x', headers={'Accept': 'text/html'}, status=404)
+
+    def test_two_rawhide_is_bad(self):
+        """ If two releases match rawhide and error is returned """
+        r17 = Release.query.filter_by(name='F17').first()
+        r17.state = ReleaseState.pending
+        r17.branch = 'rawhide'
+        r22 = Release.query.filter_by(name='F22').first()
+        r22.state = ReleaseState.pending
+        r22.branch = 'rawhide'
+        self.db.flush()
+
+        self.app.get('/releases/rawhide', headers={'Accept': 'text/html'}, status=404)
 
 
 class TestReleasesHTML(base.BasePyTestCase):
