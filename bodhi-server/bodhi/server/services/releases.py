@@ -23,6 +23,7 @@ from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
 from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
+from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql import or_
 
 from bodhi.server import log, security
@@ -65,6 +66,28 @@ list_releases = Service(name='list_releases', path='/list_releases/',
                         cors_origins=bodhi.server.security.cors_origins_ro)
 
 
+def _resolve_rawhide_release(db, id: str):
+    """
+    Resolve 'rawhide' to the real id of the current Rawhide release.
+
+    If the passed id is not 'rawhide', assume it's already the real id.
+    """
+    if id == 'rawhide':
+        try:
+            id = db.query(
+                Release.name
+            ).filter(
+                Release.state == ReleaseState.pending
+            ).filter(
+                Release.id_prefix == 'FEDORA'
+            ).filter(
+                Release.branch == 'rawhide'
+            ).one()[0]
+        except (NoResultFound, MultipleResultsFound):
+            log.exception("None or multiple values found for Fedora Rawhide release.")
+    return Release.get(id)
+
+
 @release.get(accept="text/html", renderer="release.html",
              error_handler=bodhi.server.services.errors.html_handler)
 def get_release_html(request):
@@ -76,15 +99,16 @@ def get_release_html(request):
     Returns:
         str: An HTML representation of the requested Release.
     """
+    db = request.db
     id = request.matchdict.get('name')
-    release = Release.get(id)
+    release = _resolve_rawhide_release(db, id)
     if not release:
         request.errors.add('body', 'name', 'No such release')
         request.errors.status = HTTPNotFound.code
-    updates = request.db.query(Update).filter(Update.release == release).order_by(
+    updates = db.query(Update).filter(Update.release == release).order_by(
         Update.date_submitted.desc())
 
-    updates_count = request.db.query(Update.date_submitted, Update.type).filter(
+    updates_count = db.query(Update.date_submitted, Update.type).filter(
         Update.release == release).order_by(Update.date_submitted.asc())
 
     date_commits = {}
@@ -101,7 +125,7 @@ def get_release_html(request):
         else:
             date_commits[update.type.description][yearmonth] = 0
 
-    base_count_query = request.db.query(Update)\
+    base_count_query = db.query(Update)\
         .filter(Update.release == release)
 
     num_updates_pending = base_count_query\
@@ -124,7 +148,7 @@ def get_release_html(request):
     num_updates_newpackage = base_count_query\
         .filter(Update.type == UpdateType.newpackage).count()
 
-    num_active_overrides = request.db.query(
+    num_active_overrides = db.query(
         BuildrootOverride
     ).filter(
         BuildrootOverride.expired_date.is_(None)
@@ -136,7 +160,7 @@ def get_release_html(request):
         Build.release == release
     ).count()
 
-    num_expired_overrides = request.db.query(
+    num_expired_overrides = db.query(
         BuildrootOverride
     ).filter(
         BuildrootOverride.expired_date.isnot(None)
@@ -191,8 +215,9 @@ def get_release_json(request):
     Returns:
         bodhi.server.models.Release: The matched Release.
     """
+    db = request.db
     id = request.matchdict.get('name')
-    release = Release.get(id)
+    release = _resolve_rawhide_release(db, id)
     if not release:
         request.errors.add('body', 'name', 'No such release')
         request.errors.status = HTTPNotFound.code
