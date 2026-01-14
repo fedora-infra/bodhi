@@ -424,6 +424,18 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
                    and r.getMessage() == f"Received incomplete tag message. Missing: {missing_elem}"
                    for r in caplog.records)
 
+    def test_too_long_nvr(self, caplog):
+        """Test tag message with a too long build NVR."""
+        caplog.set_level(logging.DEBUG)
+        msg = deepcopy(self.sample_message)
+        msg.body['version'] = '2.5.4^20251110gitf355928-2.20251110gitf355928.s20260106gitbb5417c'\
+            '.s20260106gitd847148.s20260106git4b12754.s20260106gitf4a7dbf.s20260106gite55b9b5'\
+            '.s20260106gita448a39.s20260106git6656728'
+        self.handler(msg)
+        assert any(r.levelno == logging.DEBUG
+                   and r.getMessage().startswith("Unable to create automatic update. Too long NVR:")
+                   for r in caplog.records)
+
     def test_unknown_koji_build(self, caplog):
         """Test tag message about unknown koji build."""
         caplog.set_level(logging.DEBUG)
