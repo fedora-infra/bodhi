@@ -78,6 +78,9 @@ class AutomaticUpdateHandler:
 
         btag = body['tag']
         bnvr = '{name}-{version}-{release}'.format(**body)
+        if len(bnvr) > 100:
+            log.debug(f"Unable to create automatic update. Too long NVR: {bnvr}.")
+            return
 
         koji = buildsys.get_session()
 
