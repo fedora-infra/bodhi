@@ -1,0 +1,1 @@
+server: builds with too long NVR (>100 chars) are now ignored by the automatic updates consumer
