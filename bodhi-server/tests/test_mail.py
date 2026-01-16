@@ -248,6 +248,7 @@ class TestSend(BasePyTestCase):
         assert sm.mock_calls[0][1][0] == 'updates@fedoraproject.org'
         assert sm.mock_calls[0][1][1] == ['fake@news.com']
         assert b'X-Bodhi-Update-Title: bodhi-2.0-1.fc17' in sm.mock_calls[0][1][2]
+        assert b'X-Bodhi-Agent: bowlofeggs' in sm.mock_calls[0][1][2]
         assert b'Subject: [Fedora Update] [comment] bodhi-2.0-1.fc17' in sm.mock_calls[0][1][2]
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.example.com'})

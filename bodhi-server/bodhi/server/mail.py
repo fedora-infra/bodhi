@@ -429,6 +429,7 @@ def send(to: typing.Iterable[str], msg_type: str, update: 'Update',
             "X-Bodhi-Update-Title": update.get_title(nvr=True, beautify=True),
             "X-Bodhi-Update-Pushed": update.pushed,
             "X-Bodhi-Update-Submitter": update.user.name,
+            "X-Bodhi-Agent": agent,
         }
         if update.request:
             headers["X-Bodhi-Update-Request"] = update.request.description
