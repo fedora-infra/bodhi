@@ -3733,7 +3733,7 @@ class Update(Base):
             else:
                 people.add(person.name)
         for comment in self.comments:
-            if comment.user.name in ['anonymous', 'bodhi']:
+            if comment.user.name in ['anonymous', 'bodhi', author]:
                 continue
             if comment.user.email:
                 people.add(comment.user.email)
