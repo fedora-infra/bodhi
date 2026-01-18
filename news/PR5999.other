@@ -1,1 +1,0 @@
-server: usage of `os.scandir()` instead of `os.listdir()` in clean_old_composes task should give better performance
