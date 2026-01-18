@@ -5,13 +5,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Base &#8212; bodhi 25.11.2 documentation</title>
+    <title>Base &#8212; bodhi 25.11.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=1f462c57" />
-    <script src="../../_static/documentation_options.js?v=cfbee1d0"></script>
-    <script src="../../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/documentation_options.js?v=6bc665c9"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Buildroot overrides" href="buildroot_override.html" />
@@ -42,32 +42,32 @@
 messages.</p>
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">BodhiMessage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BasicProperties</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#BodhiMessage"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">BodhiMessage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BasicProperties</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#BodhiMessage"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Message</span></code></p>
 <p>A base class for Bodhi messages.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em></dt>
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'body_schema':</span> <span class="pre">'ClassVar[dict[str,</span> <span class="pre">Any]]',</span> <span class="pre">'deprecated':</span> <span class="pre">'bool',</span> <span class="pre">'headers_schema':</span> <span class="pre">'ClassVar[dict[str,</span> <span class="pre">Any]]',</span> <span class="pre">'queue':</span> <span class="pre">'Optional[str]',</span> <span class="pre">'severity':</span> <span class="pre">'int',</span> <span class="pre">'topic':</span> <span class="pre">'str'}</span></em></dt>
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">38</span></em></dt>
+<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">38</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em></dt>
+<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">agent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">agent</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></dt>
 <dd><p>Return the agent’s username for this message.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -78,7 +78,7 @@ messages.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">agent_avatar</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">agent_avatar</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></dt>
 <dd><p>Return a URL to the avatar of the user who caused the action.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -89,7 +89,7 @@ messages.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">agent_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">agent_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></dt>
 <dd><p>Return the agent’s username for this message.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -100,7 +100,7 @@ messages.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">app_icon</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">app_icon</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span></dt>
 <dd><p>Return a URL that points to the application’s icon.</p>
 <p>This is used when displaying the message to users.</p>
 <dl class="field-list simple">
@@ -112,7 +112,7 @@ messages.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">app_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">app_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span></dt>
 <dd><p>Return the name of the application that generated the message.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -123,7 +123,7 @@ messages.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">containers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">containers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></dt>
 <dd><p>List of containers affected by the action that generated this message.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -134,7 +134,7 @@ messages.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flatpaks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">flatpaks</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></dt>
 <dd><p>List of flatpaks affected by the action that generated this message.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -145,7 +145,7 @@ messages.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BodhiMessage</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#BodhiMessage.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BodhiMessage</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#BodhiMessage.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Generate a message based on the given message dictionary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -159,7 +159,7 @@ messages.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">modules</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">modules</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></dt>
 <dd><p>List of modules affected by the action that generated this message.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -170,7 +170,7 @@ messages.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">usernames</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">usernames</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></dt>
 <dd><p>List of users affected by the action that generated this message.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -183,7 +183,7 @@ messages.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">BuildV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nvr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#BuildV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">BuildV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nvr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#BuildV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
 <p>A model for referencing a Build.</p>
 <dl class="py attribute">
@@ -197,24 +197,19 @@ messages.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
+<dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'nvr':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'nvr':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></em></dt>
+<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7fcab7e1f370:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7fab76fc4460:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></em></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">170</span></em></dt>
+<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">170</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -225,18 +220,18 @@ messages.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__match_args__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('nvr',)</span></em></dt>
+<span class="sig-name descname"><span class="pre">__match_args__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('nvr',)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nvr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nvr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Create new instance of BuildV1(nvr,)</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__orig_bases__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">NamedTuple&gt;,)</span></em></dt>
+<span class="sig-name descname"><span class="pre">__orig_bases__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">NamedTuple&gt;,)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -253,29 +248,29 @@ messages.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__slots__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em></dt>
+<span class="sig-name descname"><span class="pre">__slots__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em></dt>
+<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">nvr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<span class="sig-name descname"><span class="pre">nvr</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">package</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">package</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span></dt>
 <dd><p>Return the name of the package that this build is associated with.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#BuildV1.schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#BuildV1.schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Return a schema snippet for a Build.</p>
 </dd></dl>
 
@@ -283,28 +278,28 @@ messages.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">FedMsgEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure_ascii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_circular</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#FedMsgEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">FedMsgEncoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipkeys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensure_ascii</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_circular</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#FedMsgEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">JSONEncoder</span></code></p>
 <p>Encoder with convenience support.</p>
 <p>If an object has a <code class="docutils literal notranslate"><span class="pre">__json__()</span></code> method, use it to serialize to JSON.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em></dt>
+<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em></dt>
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">308</span></em></dt>
+<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">308</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em></dt>
+<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -317,7 +312,7 @@ messages.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">ReleaseV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#ReleaseV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">ReleaseV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#ReleaseV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
 <p>A model for referencing a Release.</p>
 <dl class="py attribute">
@@ -331,24 +326,19 @@ messages.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
+<dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></em></dt>
+<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7fcab7e1fa60:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7fab76fc7310:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></em></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">201</span></em></dt>
+<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">201</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -359,18 +349,18 @@ messages.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__match_args__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('name',)</span></em></dt>
+<span class="sig-name descname"><span class="pre">__match_args__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('name',)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Create new instance of ReleaseV1(name,)</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__orig_bases__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">NamedTuple&gt;,)</span></em></dt>
+<span class="sig-name descname"><span class="pre">__orig_bases__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">NamedTuple&gt;,)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -387,23 +377,23 @@ messages.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__slots__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em></dt>
+<span class="sig-name descname"><span class="pre">__slots__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em></dt>
+<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#ReleaseV1.schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#ReleaseV1.schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Return a schema snippet for a Build.</p>
 </dd></dl>
 
@@ -411,7 +401,7 @@ messages.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">UpdateV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alias</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">builds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">BuildV1</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">UserV1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">release</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ReleaseV1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#UpdateV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">UpdateV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alias</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">builds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">BuildV1</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">UserV1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">release</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ReleaseV1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#UpdateV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
 <p>A model for referencing an Update object.</p>
 <dl class="py attribute">
@@ -436,24 +426,19 @@ messages.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
+<dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'alias':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;,</span> <span class="pre">'builds':</span> <span class="pre">typing.Iterable[bodhi.messages.schemas.base.BuildV1],</span> <span class="pre">'release':</span> <span class="pre">ForwardRef('ReleaseV1'),</span> <span class="pre">'request':</span> <span class="pre">None</span> <span class="pre">|</span> <span class="pre">str,</span> <span class="pre">'status':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;,</span> <span class="pre">'user':</span> <span class="pre">ForwardRef('UserV1')}</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'alias':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;,</span> <span class="pre">'builds':</span> <span class="pre">typing.Iterable[bodhi.messages.schemas.base.BuildV1],</span> <span class="pre">'release':</span> <span class="pre">ForwardRef('ReleaseV1'),</span> <span class="pre">'request':</span> <span class="pre">None</span> <span class="pre">|</span> <span class="pre">str,</span> <span class="pre">'status':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;,</span> <span class="pre">'user':</span> <span class="pre">ForwardRef('UserV1')}</span></em></dt>
+<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7fcab7f4e770:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7fab76fc7640:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></em></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">227</span></em></dt>
+<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">227</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -464,18 +449,18 @@ messages.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__match_args__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('alias',</span> <span class="pre">'builds',</span> <span class="pre">'user',</span> <span class="pre">'status',</span> <span class="pre">'request',</span> <span class="pre">'release')</span></em></dt>
+<span class="sig-name descname"><span class="pre">__match_args__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('alias',</span> <span class="pre">'builds',</span> <span class="pre">'user',</span> <span class="pre">'status',</span> <span class="pre">'request',</span> <span class="pre">'release')</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alias</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">builds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">BuildV1</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">UserV1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">release</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ReleaseV1</span></span></em><span class="sig-paren">)</span></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alias</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">builds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">BuildV1</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">UserV1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">release</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ReleaseV1</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Create new instance of UpdateV1(alias, builds, user, status, request, release)</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__orig_bases__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">NamedTuple&gt;,)</span></em></dt>
+<span class="sig-name descname"><span class="pre">__orig_bases__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">NamedTuple&gt;,)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -492,59 +477,59 @@ messages.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__slots__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em></dt>
+<span class="sig-name descname"><span class="pre">__slots__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em></dt>
+<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">alias</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<span class="sig-name descname"><span class="pre">alias</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">builds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">BuildV1</span><span class="p"><span class="pre">]</span></span></em></dt>
+<span class="sig-name descname"><span class="pre">builds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">BuildV1</span><span class="p"><span class="pre">]</span></span></span></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">packages</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">packages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></dt>
 <dd><p>Return a list of package names included in this update.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">release</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ReleaseV1</span></em></dt>
+<span class="sig-name descname"><span class="pre">release</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ReleaseV1</span></span></dt>
 <dd><p>Alias for field number 5</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">request</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<span class="sig-name descname"><span class="pre">request</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></dt>
 <dd><p>Alias for field number 4</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#UpdateV1.schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#UpdateV1.schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Return a schema snippet for an Update.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<span class="sig-name descname"><span class="pre">status</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span></dt>
 <dd><p>Alias for field number 3</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">user</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UserV1</span></em></dt>
+<span class="sig-name descname"><span class="pre">user</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UserV1</span></span></dt>
 <dd><p>Alias for field number 2</p>
 </dd></dl>
 
@@ -552,7 +537,7 @@ messages.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">UserV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#UserV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">bodhi.messages.schemas.base.</span></span><span class="sig-name descname"><span class="pre">UserV1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#UserV1"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
 <p>A model for referencing a User object.</p>
 <dl class="py attribute">
@@ -566,24 +551,19 @@ messages.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
+<dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotate_func__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__annotations_cache__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">&lt;class</span> <span class="pre">'str'&gt;}</span></em></dt>
+<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7fcab7c68250:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__classdictcell__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;cell</span> <span class="pre">at</span> <span class="pre">0x7fab76fc7af0:</span> <span class="pre">dict</span> <span class="pre">object&gt;</span></em></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">282</span></em></dt>
+<span class="sig-name descname"><span class="pre">__firstlineno__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">282</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -594,18 +574,18 @@ messages.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__match_args__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('name',)</span></em></dt>
+<span class="sig-name descname"><span class="pre">__match_args__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('name',)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Create new instance of UserV1(name,)</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__orig_bases__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">NamedTuple&gt;,)</span></em></dt>
+<span class="sig-name descname"><span class="pre">__orig_bases__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;function</span> <span class="pre">NamedTuple&gt;,)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -622,23 +602,23 @@ messages.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__slots__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em></dt>
+<span class="sig-name descname"><span class="pre">__slots__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em></dt>
+<span class="sig-name descname"><span class="pre">__static_attributes__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#UserV1.schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">schema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/bodhi/messages/schemas/base.html#UserV1.schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Return a schema snippet for a User.</p>
 </dd></dl>
 
@@ -740,10 +720,10 @@ messages.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &#169;2007-2025, Red Hat, Inc..
+      &#169;2007-2026, Red Hat, Inc..
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
