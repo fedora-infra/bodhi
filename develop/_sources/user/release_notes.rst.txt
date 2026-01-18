@@ -4,6 +4,44 @@ Release notes
 
 .. towncrier release notes start
 
+v25.11.3
+========
+
+
+Released on 2026-01-18.
+This is a bugfix release which also brings some minor feature enhancements.
+
+
+Features
+^^^^^^^^
+
+* client: when downloading packages use the `--fallback-unsigned` option to tell
+  Koji to fall back to getting unsigned packages if it can't get signed ones
+  (:pr:`6039`).
+* server: allow retrieving a (Fedora) release by searching for `rawhide`
+  (:pr:`6061`).
+* server: added an X-Bodhi-Agent header to emails sent on update comments
+  (:pr:`6065`).
+* server: don't send a comment email notification to the comment author
+  (:pr:`6066`).
+
+Bug fixes
+^^^^^^^^^
+
+* server: avoid manually setting `TestGatingStatus.waiting` on Update before
+  calling `update_test_gating_status()` (:pr:`6044`).
+* server: builds with too long NVR (>100 chars) are now ignored by the
+  automatic updates consumer (:pr:`6063`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Williamson
+* Mattia Verga
+
+
 v25.11.2
 ========
 
