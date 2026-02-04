@@ -1199,23 +1199,29 @@ def copy_container(build, destination_registry=None, destination_tag=None):
     """
     source_registry = config['container.source_registry']
 
+    repository, digest = _get_build_repository_and_digest(build)
+    source_url = _container_image_url(source_registry, repository, digest=digest)
+
     if destination_tag is None:
         destination_tag = '{}-{}'.format(build.nvr_version, build.nvr_release)
-    if destination_registry is None:
-        destination_registry = config['container.destination_registry']
 
-    repository, digest = _get_build_repository_and_digest(build)
+    destination_registry_list = []
+    if destination_registry:
+        destination_registry_list.append(destination_registry)
+    else:
+        destination_registry_list = config['container.destination_registry']
 
-    source_url = _container_image_url(source_registry, repository, digest=digest)
-    destination_url = _container_image_url(destination_registry, repository,
-                                           tag=make_valid_container_tag(destination_tag))
+    for destination_registry in destination_registry_list:
 
-    skopeo_cmd = [
-        config.get('skopeo.cmd'), 'copy', source_url, destination_url]
-    if config.get('skopeo.extra_copy_flags'):
-        for flag in reversed(config.get('skopeo.extra_copy_flags').split(',')):
-            skopeo_cmd.insert(2, flag)
-    cmd(skopeo_cmd, raise_on_error=True)
+        destination_url = _container_image_url(
+            destination_registry, repository, tag=make_valid_container_tag(destination_tag))
+
+        skopeo_cmd = [
+            config.get('skopeo.cmd'), 'copy', source_url, destination_url]
+        if config.get('skopeo.extra_copy_flags'):
+            for flag in reversed(config.get('skopeo.extra_copy_flags').split(',')):
+                skopeo_cmd.insert(2, flag)
+        cmd(skopeo_cmd, raise_on_error=True)
 
 
 def _container_image_url(registry, repository, *, tag=None, digest=None):
