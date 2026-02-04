@@ -403,6 +403,10 @@ def query_updates(request):
         else:
             query = query.filter(Update.from_tag.is_(None))
 
+    from_side_tag_name = data.get('from_side_tag_name')
+    if from_side_tag_name is not None:
+        query = query.filter(Update.from_tag == from_side_tag_name)
+
     query = query.order_by(Update.date_submitted.desc())
 
     # We can't use ``query.count()`` here because it is naive with respect to

@@ -440,6 +440,7 @@ class BodhiClient:
             gating (str): filter by TestGatingStatus description.
             from_side_tag (bool): A boolean to filter updates created from side tag or from
                 normal workflow.
+            from_side_tag_name (str): Query for updates created from a certain side tag.
             user (str): Query for updates submitted by a specific user.
             rows_per_page (int): Limit the results to a certain number of rows per page
                 (min:1 max: 100 default: 20).
