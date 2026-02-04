@@ -81,7 +81,7 @@ mock_exc = mock.Mock()
 mock_exc.side_effect = Exception
 
 
-def _expected_skopeo_args(config, source, dtag, extra_args=[]):
+def _expected_skopeo_args(config, source, destination, dtag, extra_args=[]):
     source_repository, source_version_release = source.split(':')
     # Match how buildsys.py creates a fake digest
     source_digest = hashlib.sha256(source_version_release.encode("UTF-8")).hexdigest()
@@ -89,13 +89,13 @@ def _expected_skopeo_args(config, source, dtag, extra_args=[]):
     return [config['skopeo.cmd'], 'copy'] + extra_args + [
         'docker://{}/{}@sha256:{}'.format(config['container.source_registry'],
                                           source_repository, source_digest),
-        'docker://{}/{}:{}'.format(config['container.destination_registry'],
-                                   source_repository, dtag)
+        'docker://{}/{}:{}'.format(destination, source_repository, dtag)
     ]
 
 
-def _expected_skopeo_call(config, source, dtag, extra_args=[]):
-    return mock.call(_expected_skopeo_args(config, source, dtag, extra_args=extra_args),
+def _expected_skopeo_call(config, source, destination, dtag, extra_args=[]):
+    return mock.call(_expected_skopeo_args(config, source, destination, dtag,
+                                           extra_args=extra_args),
                      shell=False, stderr=-1, stdout=-1, cwd=None)
 
 
@@ -2252,9 +2252,10 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         for source in ('f28/testcontainer1:2.0.1-71.fc28container',
                        'f28/testcontainer2:1.0.1-1.fc28container'):
             for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'testing']:
-                mock_call = _expected_skopeo_call(config, source, dtag)
-                expected_mock_calls.append(mock_call)
-                expected_mock_calls.append(mock.call().communicate())
+                for destination in config['container.destination_registry']:
+                    mock_call = _expected_skopeo_call(config, source, destination, dtag)
+                    expected_mock_calls.append(mock_call)
+                    expected_mock_calls.append(mock.call().communicate())
         assert Popen.mock_calls == expected_mock_calls
 
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
@@ -2276,9 +2277,10 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         for source in ('f28/testcontainer1:2.0.1-71.fc28container',
                        'f28/testcontainer2:1.0.1-1.fc28container'):
             for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'latest']:
-                mock_call = _expected_skopeo_call(config, source, dtag)
-                expected_mock_calls.append(mock_call)
-                expected_mock_calls.append(mock.call().communicate())
+                for destination in config['container.destination_registry']:
+                    mock_call = _expected_skopeo_call(config, source, destination, dtag)
+                    expected_mock_calls.append(mock_call)
+                    expected_mock_calls.append(mock.call().communicate())
         assert Popen.mock_calls == expected_mock_calls
 
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
@@ -2298,6 +2300,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         # Popen should have been called once.
         skopeo_cmd = _expected_skopeo_args(config,
                                            "f28/testcontainer1:2.0.1-71.fc28container",
+                                           ", ".join(config['container.destination_registry']),
                                            "2.0.1-71.fc28container")
         Popen.assert_called_once_with(skopeo_cmd, shell=False, stderr=-1, stdout=-1, cwd=None)
         assert f"{' '.join(skopeo_cmd)} returned a non-0 exit code: 1" in str(exc.value)
@@ -2321,10 +2324,11 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         for source in ('f28/testcontainer1:2.0.1-71.fc28container',
                        'f28/testcontainer2:1.0.1-1.fc28container'):
             for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'testing']:
-                mock_call = _expected_skopeo_call(config, source, dtag,
-                                                  extra_args=['--dest-tls-verify=false'])
-                expected_mock_calls.append(mock_call)
-                expected_mock_calls.append(mock.call().communicate())
+                for destination in config['container.destination_registry']:
+                    mock_call = _expected_skopeo_call(config, source, destination, dtag,
+                                                      extra_args=['--dest-tls-verify=false'])
+                    expected_mock_calls.append(mock_call)
+                    expected_mock_calls.append(mock.call().communicate())
         assert Popen.mock_calls == expected_mock_calls
 
 
@@ -2408,9 +2412,10 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
         expected_mock_calls = []
         for source in ('testflatpak1:2.0.1-71.fc28flatpak', 'testflatpak2:1.0.1-1.fc28flatpak'):
             for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'testing']:
-                mock_call = _expected_skopeo_call(config, source, dtag)
-                expected_mock_calls.append(mock_call)
-                expected_mock_calls.append(mock.call().communicate())
+                for destination in config['container.destination_registry']:
+                    mock_call = _expected_skopeo_call(config, source, destination, dtag)
+                    expected_mock_calls.append(mock_call)
+                    expected_mock_calls.append(mock.call().communicate())
         assert Popen.mock_calls == expected_mock_calls
 
 

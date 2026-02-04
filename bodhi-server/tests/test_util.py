@@ -1381,7 +1381,7 @@ class TestCopyContainer(base.BasePyTestCase):
         self.build.nvr_release = '1'
         config.update({
             'container.source_registry': 'src',
-            'container.destination_registry': 'dest',
+            'container.destination_registry': ['dest1', 'dest2'],
             'skopeo.cmd': 'skopeo',
         })
 
@@ -1389,9 +1389,15 @@ class TestCopyContainer(base.BasePyTestCase):
         """Test the default code path."""
         util.copy_container(self.build)
 
-        cmd.assert_called_once_with(['skopeo', 'copy',
-                                     'src:testrepo@sha256:f00d00', 'dest:testrepo:1-1'],
-                                    raise_on_error=True)
+        assert mock.call(
+            ['skopeo', 'copy', 'src:testrepo@sha256:f00d00', 'dest1:testrepo:1-1'],
+            raise_on_error=True
+        ) in cmd.mock_calls
+
+        assert mock.call(
+            ['skopeo', 'copy', 'src:testrepo@sha256:f00d00', 'dest2:testrepo:1-1'],
+            raise_on_error=True
+        ) in cmd.mock_calls
 
     def test_with_destination_registry(self, cmd):
         """Test with specified destination_registry."""
@@ -1405,18 +1411,34 @@ class TestCopyContainer(base.BasePyTestCase):
         """Test with specified destination_tag."""
         util.copy_container(self.build, destination_tag='2-2')
 
-        cmd.assert_called_once_with(['skopeo', 'copy',
-                                     'src:testrepo@sha256:f00d00', 'dest:testrepo:2-2'],
-                                    raise_on_error=True)
+        assert mock.call(
+            ['skopeo', 'copy', 'src:testrepo@sha256:f00d00', 'dest1:testrepo:2-2'],
+            raise_on_error=True
+        ) in cmd.mock_calls
+        assert mock.call(
+            ['skopeo', 'copy', 'src:testrepo@sha256:f00d00', 'dest2:testrepo:2-2'],
+            raise_on_error=True
+        ) in cmd.mock_calls
 
     def test_with_extra_copy_flags(self, cmd):
         """Test with extra copy flags configured."""
         config['skopeo.extra_copy_flags'] = '--quiet,--remove-signatures'
         util.copy_container(self.build)
 
-        cmd.assert_called_once_with(['skopeo', 'copy', '--quiet', '--remove-signatures',
-                                     'src:testrepo@sha256:f00d00', 'dest:testrepo:1-1'],
-                                    raise_on_error=True)
+        assert mock.call(
+            [
+                'skopeo', 'copy', '--quiet', '--remove-signatures',
+                'src:testrepo@sha256:f00d00', 'dest1:testrepo:1-1'
+            ],
+            raise_on_error=True
+        ) in cmd.mock_calls
+        assert mock.call(
+            [
+                'skopeo', 'copy', '--quiet', '--remove-signatures',
+                'src:testrepo@sha256:f00d00', 'dest2:testrepo:1-1'
+            ],
+            raise_on_error=True
+        ) in cmd.mock_calls
 
 
 class TestTransactionalSessionMaker(base.BasePyTestCase):
