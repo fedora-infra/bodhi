@@ -1,0 +1,3 @@
+Support multiple destination registries for containers
+
+`container.destination_registry` config value can now be specified as list

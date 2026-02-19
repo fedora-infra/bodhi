@@ -337,7 +337,7 @@ class BodhiConfig(dict):
             'value': True,
             'validator': _validate_bool},
         'container.destination_registry': {
-            'value': ['registry.fedoraproject.org', 'quay.io/fedora/flatpak'],
+            'value': ['registry.fedoraproject.org'],
             'validator': _generate_list_validator()},
         'container.source_registry': {
             'value': 'candidate-registry.fedoraproject.org',
