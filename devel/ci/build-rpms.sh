@@ -31,7 +31,7 @@ for submodule in ${MODULES}; do
     rpmdev-bumpspec ~/rpmbuild/SPECS/$submodule.spec
     rpmbuild -ba --nocheck ~/rpmbuild/SPECS/$submodule.spec
     if [[ "$submodule" == bodhi-messages ]]; then
-        rpm -ivf /root/rpmbuild/RPMS/noarch/python3-bodhi-messages-*.rpm
+        rpm -ivf --nosignature /root/rpmbuild/RPMS/noarch/python3-bodhi-messages-*.rpm
     fi
     popd
 done
