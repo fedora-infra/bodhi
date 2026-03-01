@@ -26,7 +26,7 @@ build:
     - python3-librepo
   jobs:
     post_install:
-      - pip install sqlalchemy-schemadisplay rpm
+      - pip install standard-pkg-resources sqlalchemy-schemadisplay rpm
       - dpkg -L python3-librepo
       - ln -s /usr/lib/python3/dist-packages/librepo $READTHEDOCS_VIRTUALENV_PATH/lib/python3.10/site-packages/librepo
       - cp devel/development.ini.example bodhi-server/development.ini
