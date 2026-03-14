@@ -1,4 +1,4 @@
-FROM quay.io/factory2/resultsdb:prod-fedora
+FROM quay.io/factory2/resultsdb:prod
 LABEL \
   name="resultsdb" \
   vendor="Fedora Infrastructure" \
