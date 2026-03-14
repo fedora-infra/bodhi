@@ -17,7 +17,7 @@ jobs:
       - name: Build the rpms with bodhi-ci (just to get the SRPMS)
         run: devel/ci/bodhi-ci rpm -r ${{ matrix.release }}
       - name: Upload srpms
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.release }}-SRPMs
           path: test_results/${{ matrix.release }}-rpm/*.src.rpm
