@@ -1,4 +1,4 @@
-FROM quay.io/factory2/resultsdb:prod
+FROM quay.io/redhat-user-workloads/exd-sp-rhel-wf-tenant/resultsdb:prod-fedora
 LABEL \
   name="resultsdb" \
   vendor="Fedora Infrastructure" \
