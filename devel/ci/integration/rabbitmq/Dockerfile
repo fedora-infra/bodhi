@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora:41
+FROM quay.io/fedora/fedora:latest
 LABEL \
   name="rabbitmq" \
   vendor="Fedora Infrastructure" \
@@ -15,6 +15,7 @@ RUN yum install -y \
 
 RUN rabbitmq-plugins --offline enable rabbitmq_management && rm -f /root/.erlang.cookie
 
+COPY devel/ci/integration/rabbitmq/rabbitmq.conf /etc/rabbitmq/rabbitmq.conf
 COPY devel/ci/integration/rabbitmq/start.sh /etc/rabbitmq/start.sh
 COPY devel/ci/integration/rabbitmq/fedora-messaging.toml /etc/fedora-messaging/config.toml
 COPY devel/ci/integration/rabbitmq/fm_dumper.py /etc/fedora-messaging/fm_dumper.py
