@@ -4,6 +4,43 @@ Release notes
 
 .. towncrier release notes start
 
+v26.4.0
+=======
+
+
+Released on 2026-03-25.
+This is a feature release that adds support for uploading flatpaks to multiple
+registries.
+
+
+Backwards incompatible changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Support multiple destination registries for containers:
+  `container.destination_registry` config value can now be specified as list
+  (:pr:`6077`).
+
+Features
+^^^^^^^^
+
+* server: opengraph tags have been added to web pages (:pr:`6050`).
+* Bodhi query API now allows to query updates by Koji side tag name
+  (:pr:`6078`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Akashdeep Dhar
+* Adam Williamson
+* FeRD (Frank Dana)
+* Mattia Verga
+* Michal Konecny
+* Nikola Forró
+* WillyEverGreen
+
+
 v25.11.3
 ========
 
