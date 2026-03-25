@@ -164,7 +164,7 @@ elif can_edit and update.status.value == 'testing' and update.test_gating_status
   <div class="tab-content" id="updateTabContent">
     <div class="tab-pane show active" id="details-tab-pane" role="tabpanel" aria-labelledby="details-tab" tabindex="0">
       <div class="row">
-        <div class="col-md-9">
+        <div class="col-md-8 col-l-9">
 
           % if update.notes:
           ${self.util.markup(update.notes) | n}
@@ -325,7 +325,7 @@ elif can_edit and update.status.value == 'testing' and update.test_gating_status
           </div>
           %endif
         </div>
-        <div class="col-md-3 font-size-09">
+        <div class="col-md-4 col-l-3 font-size-09">
             <div>
               % if update.release.state == models.ReleaseState.frozen and (update.status == models.UpdateStatus.pending or update.status == models.UpdateStatus.testing):
               <div class="card border-info mb-1">
