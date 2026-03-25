@@ -1,6 +1,6 @@
 %global pypi_name bodhi-server
 %global src_name bodhi_server
-%global pypi_version 25.11.3
+%global pypi_version 26.4.0
 %global client_min_version 25.11.3
 %global messages_min_version 8.1.1
 
@@ -166,6 +166,9 @@ install -p -D -m 0644 %{name}.conf %{buildroot}%{_sysusersdir}/%{name}.conf
 %pycached %{python3_sitelib}/bodhi/server/metadata.py
 
 %changelog
+* Wed Mar 25 2026 Mattia Verga <mattia.verga@fedoraproject.org> - 26.4.0-1
+- Update to 26.4.0
+
 * Sun Jan 18 2026 Mattia Verga <mattia.verga@fedoraproject.org> - 25.11.3-1
 - Update to 25.11.3
 
