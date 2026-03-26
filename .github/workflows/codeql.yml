@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - develop
-      - 25.11
+      - 26.4
   pull_request:
     branches:
       - develop
-      - 25.11
+      - 26.4
 
 jobs:
   analyze:
