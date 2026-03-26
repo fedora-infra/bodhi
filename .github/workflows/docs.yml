@@ -3,8 +3,8 @@ on:
   push:
     branches:
       - develop
-      - 25.5
       - 25.11
+      - 26.4
     paths:
       - docs/**
 
