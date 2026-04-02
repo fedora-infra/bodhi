@@ -517,7 +517,9 @@ class TestReleasesService(base.BasePyTestCase):
         python_test_update = self.db.query(Build).filter_by(
             nvr='python-test-update.fc22').one().update
         expected_comment = ('There is an ongoing freeze; this will be pushed to'
-                            ' stable after the freeze is over.')
+                            ' stable after the freeze is over, or possibly'
+                            ' sooner if a bug it fixes is an accepted blocker'
+                            ' or freeze exception.')
         assert python_test_update.comments[-1].text == expected_comment
 
     def test_get_single_release_html(self):
