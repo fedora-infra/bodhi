@@ -3288,7 +3288,9 @@ class Update(Base):
         if self.release.state == ReleaseState.frozen and action == UpdateRequest.stable:
             comment_text += (
                 "\n\nThere is an ongoing freeze; this will be "
-                "pushed to stable after the freeze is over. "
+                "pushed to stable after the freeze is over, or "
+                "possibly sooner if a bug it fixes is an accepted "
+                "blocker or freeze exception. "
             )
         self.comment(db, comment_text, author=u'bodhi')
 

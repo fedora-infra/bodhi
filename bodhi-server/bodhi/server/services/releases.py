@@ -454,7 +454,9 @@ def save_release(request):
                         u.comment(
                             request.db,
                             'There is an ongoing freeze; this will be pushed to'
-                            ' stable after the freeze is over.',
+                            ' stable after the freeze is over, or possibly'
+                            ' sooner if a bug it fixes is an accepted blocker'
+                            ' or freeze exception.',
                             author='bodhi',
                         )
                 setattr(r, k, v)

@@ -4032,7 +4032,9 @@ class TestUpdate(ModelTest):
 
         # Check for information about frozen release in comment
         expected_info = ("There is an ongoing freeze; "
-                         "this will be pushed to stable after the freeze is over.")
+                         "this will be pushed to stable after the freeze is over, "
+                         "or possibly sooner if a bug it fixes is an accepted "
+                         "blocker or freeze exception.")
         assert expected_info in self.obj.comments[-1].text
 
     def test_set_request_stable_epel_requirements_not_met(self):
