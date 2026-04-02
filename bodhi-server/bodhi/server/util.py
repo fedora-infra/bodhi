@@ -129,75 +129,6 @@ def build_evr(build):
     return tuple(map(str, (build['epoch'], build['version'], build['release'])))
 
 
-class memoized(object):
-    """Decorator that permanently caches a function's return value each time it is called.
-
-    If the function is called later with the same arguments, the cached value is returned (not
-    reevaluated).
-
-    http://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
-
-    Attributes:
-        func (callable): The wrapped function.
-        cache (dict): The cache, mapping arguments to the cached response.
-    """
-
-    def __init__(self, func):
-        """
-        Initialize the memoized object.
-
-        Args:
-            func: The function the memoized object is wrapping.
-        """
-        self.func = func
-        self.cache = {}
-
-    def __call__(self, *args):
-        """
-        If the args are cached, return the cached value. If not, call the wrapped function.
-
-        If the wrapped function is called, it's response is only cached if the args are hashable.
-
-        Args:
-            args (list): The list of arguments passed to the wrapped function.
-        Returns:
-            object: The response from the wrapped function, or the cached response, if available.
-        """
-        try:
-            hash(args)
-        except TypeError:
-            # uncacheable. a list, for instance.
-            # better to not cache than blow up.
-            return self.func(*args)
-        if args in self.cache:
-            return self.cache[args]
-        else:
-            value = self.func(*args)
-            self.cache[args] = value
-            return value
-
-    def __repr__(self):
-        """
-        Return the function's docstring.
-
-        Returns:
-            str: The wrapped function's docstring.
-        """
-        return self.func.__doc__
-
-    def __get__(self, obj, objtype):
-        """
-        Support instance methods.
-
-        Args:
-            obj (object): The instance of the object the wrapped method is bound to.
-            objtype (type): The type of the instance of the object the wrapped method is bound to.
-        Returns:
-            callable: A functools.partial response with the wrapped method's instance passed to it.
-        """
-        return functools.partial(self.__call__, obj)
-
-
 def get_grouped_critpath_components(collection='master', component_type='rpm', components=None):
     """
     Return a dictionary of critical path components by group for a given collection.
@@ -488,6 +419,7 @@ def avatar(context, username, usermail, size):
 
     @request.cache.cache_on_arguments()
     def get_libravatar_url(email, https, size):
+        log.debug(f'Refreshing avatar cache for {email}')
         return libravatar.libravatar_url(
             email=email,
             https=https,

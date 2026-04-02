@@ -69,13 +69,13 @@ class TestGetBuildinfo:
 
 
 class TestGetCacheregion:
-    """Test get_cacheregion()."""
+    """Test get_cache_region()."""
     @mock.patch.dict('bodhi.server.bodhi_config', {'some': 'config'}, clear=True)
     @mock.patch('bodhi.server.make_region')
-    def test_get_cacheregion(self, make_region):
+    def test_get_cache_region(self, make_region):
         """Test get_cacheregion."""
-        # The argument (request) doesn't get used, so we'll just pass None.
-        region = server.get_cacheregion(None)
+        server.cache_region = None
+        region = server.get_cache_region()
 
         make_region.assert_called_once_with()
         assert region is make_region.return_value
@@ -161,40 +161,31 @@ class TestMain(base.BasePyTestCase):
 
         assert config['test'] == 'setting'
 
-    @mock.patch.dict(
-        'bodhi.server.config.config',
-        {'dogpile.cache.backend': 'dogpile.cache.memory', 'dogpile.cache.expiration_time': 100})
-    @mock.patch('bodhi.server.views.generic._generate_home_page_stats', autospec=True)
-    def test_sets_up_home_page_cache(self, _generate_home_page_stats):
-        """Ensure that the home page cache is configured."""
-        _generate_home_page_stats.return_value = 5
-        # Let's pull invalidate off of the mock so that main() will decorate it again as a cache.
-        del _generate_home_page_stats.invalidate
-        assert not hasattr(_generate_home_page_stats, 'invalidate')
-
-        server.main({}, testing='guest', session=self.db)
-
-        # main() should have given it a cache, which would give it an invalidate attribute.
-        assert hasattr(generic._generate_home_page_stats, 'invalidate')
-        assert generic._generate_home_page_stats() == 5
-        # Changing the return value of the mock should not affect the return value since it is
-        # cached.
-        _generate_home_page_stats.return_value = 7
-        assert generic._generate_home_page_stats() == 5
-        # If we invalidate the cache, we should see the new return value.
+    @mock.patch('bodhi.server.log.debug')
+    def test_sets_up_home_page_cache(self, debug):
+        """Ensure that the home page cache works."""
         generic._generate_home_page_stats.invalidate()
-        assert generic._generate_home_page_stats() == 7
+        self.app.get('/', status=200)
+        debug.assert_called_with("Refreshing home page stats")
+        debug.reset_mock()
+        self.app.get('/', status=200)
+        debug.assert_not_called
 
-    def test_warms_up_releases_cache(self):
+        generic._generate_home_page_stats.invalidate()
+        self.app.get('/', status=200)
+        debug.assert_called_with("Refreshing home page stats")
+
+    @mock.patch.dict('bodhi.server.config.config', {'warm_cache_on_start': True})
+    @mock.patch('bodhi.server.log.debug')
+    def test_warms_up_releases_cache(self, debug):
         """main() should warm up the all_releases cache."""
-        # Let's clear the release cache
-        config["warm_cache_on_start"] = True
-        models.Release.all_releases.cache_clear()
+        generic._generate_home_page_stats.invalidate()
 
         server.main({}, testing='guest', session=self.db)
 
-        # The cache should have a release in it now - let's just spot check it
-        assert models.Release.all_releases()['current'][0]['name'] == 'F17'
+        debug.assert_has_calls([mock.call('Refreshing releases cache'),
+                                mock.call('Refreshing tags cache'),
+                                mock.call('Refreshing home page stats')])
 
     def test_calls_initialize_db(self):
         """main() should call initialize_db() when called without a session arg."""
