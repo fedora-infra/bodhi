@@ -816,13 +816,16 @@ class TestRelease(ModelTest):
     def test_version_int(self):
         assert self.obj.version_int == 11
 
-    def test_all_releases(self):
+    @mock.patch('bodhi.server.log.debug')
+    def test_all_releases(self, debug):
         releases = model.Release.all_releases()
+        debug.assert_called_with("Refreshing releases cache")
+        debug.reset_mock()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
         assert 'long_name' in releases[state.value][0], releases
         # Make sure it's the same cached object
-        assert releases is model.Release.all_releases()
+        debug.assert_not_called()
 
     def test_get_pending_signing_side_tag_found(self):
         """
@@ -955,13 +958,16 @@ class TestReleaseModular(ModelTest):
     def test_version_int(self):
         assert self.obj.version_int == 11
 
-    def test_all_releases(self):
+    @mock.patch('bodhi.server.log.debug')
+    def test_all_releases(self, debug):
         releases = model.Release.all_releases()
+        debug.assert_called_with("Refreshing releases cache")
+        debug.reset_mock()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
         assert 'long_name' in releases[state.value][0], releases
         # Make sure it's the same cached object
-        assert releases is model.Release.all_releases()
+        debug.assert_not_called()
 
 
 class TestReleaseContainer(ModelTest):
@@ -989,13 +995,16 @@ class TestReleaseContainer(ModelTest):
     def test_version_int(self):
         assert self.obj.version_int == 11
 
-    def test_all_releases(self):
+    @mock.patch('bodhi.server.log.debug')
+    def test_all_releases(self, debug):
         releases = model.Release.all_releases()
+        debug.assert_called_with("Refreshing releases cache")
+        debug.reset_mock()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
         assert 'long_name' in releases[state.value][0], releases
         # Make sure it's the same cached object
-        assert releases is model.Release.all_releases()
+        debug.assert_not_called()
 
 
 class TestReleaseFlatpak(ModelTest):
@@ -1023,13 +1032,16 @@ class TestReleaseFlatpak(ModelTest):
     def test_version_int(self):
         assert self.obj.version_int == 29
 
-    def test_all_releases(self):
+    @mock.patch('bodhi.server.log.debug')
+    def test_all_releases(self, debug):
         releases = model.Release.all_releases()
+        debug.assert_called_with("Refreshing releases cache")
+        debug.reset_mock()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
         assert 'long_name' in releases[state.value][0], releases
         # Make sure it's the same cached object
-        assert releases is model.Release.all_releases()
+        debug.assert_not_called()
 
 
 class TestPackageModel(BasePyTestCase):

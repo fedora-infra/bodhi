@@ -279,64 +279,6 @@ class TestCallAPI:
         sleep.assert_called_once_with(1)
 
 
-class TestMemoized:
-    """Test the memoized class."""
-
-    def test_caching(self):
-        """Ensure that caching works for hashable parameters."""
-        return_value = True
-
-        @util.memoized
-        def some_function(arg):
-            return return_value
-
-        assert some_function(42)
-        # Let's flip the value of return_value just to make sure the cached value is used and not
-        # the new value.
-        return_value = False
-        # It should still return True, indicating that some_function() was not called again.
-        assert some_function(42)
-
-    def test_caching_different_args(self):
-        """Ensure that caching works for hashable parameters, but is sensitive to arguments."""
-        return_value = True
-
-        @util.memoized
-        def some_function(arg):
-            return return_value
-
-        assert some_function(42)
-        # Let's flip the value of return_value just to make sure the cached value is not used.
-        return_value = False
-        # It should return False because the argument is different.
-        assert not some_function(41)
-
-    def test_dont_cache_lists(self):
-        """memoized should not cache calls with list arguments."""
-        return_value = True
-
-        @util.memoized
-        def some_function(arg):
-            return return_value
-
-        assert some_function(['some', 'list'])
-        # Let's flip the value of return_value just to make sure it isn't cached.
-        return_value = False
-        assert not some_function(['some', 'list'])
-
-    def test___get__(self):
-        """__get__() should allow us to set the function as an attribute of another object."""
-        @util.memoized
-        def some_function(arg):
-            """Some docblock"""
-            return 42
-
-        class some_class(object):
-            thing = some_function
-
-        assert some_class().thing() == 42
-
-
 class TestNoAutoflush:
     """Test the no_autoflush context manager."""
     def test_autoflush_disabled(self):

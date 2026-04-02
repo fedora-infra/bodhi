@@ -43,13 +43,14 @@ __version__ = METADATA['version']
 MENTION_RE = r'(?<!\S)(@[\w-]+)'
 
 log = python_logging.getLogger(__name__)
-
+cache_region = None
 
 #
 # Request methods
 #
 
-def get_cacheregion(request):
+
+def get_cache_region(request=None):
     """
     Return a CacheRegion to be used to cache results.
 
@@ -58,9 +59,11 @@ def get_cacheregion(request):
     Returns:
         dogpile.cache.region.CacheRegion: A configured CacheRegion.
     """
-    region = make_region()
-    region.configure_from_config(bodhi_config, "dogpile.cache.")
-    return region
+    global cache_region
+    if cache_region is None:
+        cache_region = make_region()
+        cache_region.configure_from_config(bodhi_config, "dogpile.cache.")
+    return cache_region
 
 
 def setup_buildsys():
@@ -223,6 +226,9 @@ def main(global_config, testing=None, session=None, **settings):
 
     config = Configurator(settings=bodhi_config, session_factory=session_factory)
 
+    # Initialize cache_region
+    get_cache_region()
+
     # Plugins
     config.include('pyramid_mako')
     config.include('cornice')
@@ -238,7 +244,7 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_request_method(lambda x: Session, 'db', reify=True)
 
     config.add_request_method(get_koji, 'koji', reify=True)
-    config.add_request_method(get_cacheregion, 'cache', reify=True)
+    config.add_request_method(get_cache_region, 'cache', reify=True)
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
     config.add_request_method(get_from_tag_inherited, 'from_tag_inherited', reify=True)
     config.add_request_method(get_releases, 'releases', property=True)
@@ -315,23 +321,14 @@ def main(global_config, testing=None, session=None, **settings):
     config.scan('bodhi.server.services')
     config.scan('bodhi.server.webapp')
 
-    # Though importing in the middle of this function is the darkest of evils, we cannot do it any
-    # other way without a backwards-incompatible change. See
-    # https://github.com/fedora-infra/bodhi/issues/2294
-    from bodhi.server import models
-    from bodhi.server.views import generic
-
-    # Let's put a cache on the home page stats, but only if it isn't already cached. The cache adds
-    # an invalidate attribute to the method, so that's how we can tell. The server would not
-    # encounter this function already having a cache in normal operation, but the unit tests do run
-    # this function many times so we don't want them to cause it to cache a cache of the cache of
-    # the cache…
-    if not hasattr(generic._generate_home_page_stats, 'invalidate'):
-        generic._generate_home_page_stats = get_cacheregion(None).cache_on_arguments()(
-            generic._generate_home_page_stats)
-
     if bodhi_config['warm_cache_on_start']:
         log.info('Warming up caches…')
+
+        # Though importing in the middle of this function is the darkest of evils, we cannot do it
+        # any other way without a backwards-incompatible change. See
+        # https://github.com/fedora-infra/bodhi/issues/2294
+        from bodhi.server import models
+        from bodhi.server.views import generic
 
         # Let's warm up the Release.all_releases and Release_get_tags caches.
         # We can just call the function - we don't need to capture the return value.

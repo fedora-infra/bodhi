@@ -195,8 +195,8 @@ class TestComposer(base.BasePyTestCase):
         self.handler = ComposerHandler(db_factory=self.db_factory, compose_dir=self.tempdir)
 
         # Reset "cached" objects before each test.
-        Release.all_releases.cache_clear()
-        Release.get_tags.cache_clear()
+        Release.all_releases.invalidate()
+        Release.get_tags.invalidate()
 
         self.expected_sems = 0
         self.semmock = mock.MagicMock()
@@ -998,7 +998,7 @@ That was the actual one'''
             update.test_gating_status = TestGatingStatus.passed
 
             # Wipe out the tag cache so it picks up our new release
-            Release.get_tags.cache_clear()
+            Release.get_tags.invalidate()
 
             # Clear pending messages
             self.db.info['messages'] = []
@@ -1088,7 +1088,7 @@ That was the actual one'''
             update.test_gating_status = TestGatingStatus.passed
 
             # Wipe out the tag cache so it picks up our new release
-            Release.get_tags.cache_clear()
+            Release.get_tags.invalidate()
 
             # Clear pending messages
             self.db.info['messages'] = []
@@ -1169,7 +1169,7 @@ That was the actual one'''
             update.test_gating_status = TestGatingStatus.passed
 
             # Wipe out the tag cache so it picks up our new release
-            Release.get_tags.cache_clear()
+            Release.get_tags.invalidate()
 
             # Clear pending messages
             self.db.info['messages'] = []
@@ -1476,7 +1476,7 @@ That was the actual one'''
             update.test_gating_status = TestGatingStatus.passed
 
             # Wipe out the tag cache so it picks up our new release
-            Release.get_tags.cache_clear()
+            Release.get_tags.invalidate()
 
             # Clear pending messages
             self.db.info['messages'] = []
@@ -2231,7 +2231,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         update.test_gating_status = TestGatingStatus.passed
 
         # Wipe out the tag cache so it picks up our new release
-        Release.get_tags.cache_clear()
+        Release.get_tags.invalidate()
         self.db.flush()
 
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
@@ -2387,7 +2387,7 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
         update.test_gating_status = TestGatingStatus.passed
 
         # Wipe out the tag cache so it picks up our new release
-        Release.get_tags.cache_clear()
+        Release.get_tags.invalidate()
         self.db.flush()
 
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')

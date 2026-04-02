@@ -29,7 +29,7 @@ from pyramid.view import notfound_view_config, view_config
 import cornice.errors
 import sqlalchemy as sa
 
-from bodhi.server import log, METADATA, models
+from bodhi.server import cache_region, log, METADATA, models
 from bodhi.server.config import config
 import bodhi.server.util
 
@@ -126,6 +126,7 @@ def get_testing_counts(critpath, security):
     return query.count()
 
 
+@cache_region.cache_on_arguments(expiration_time=600)
 def _generate_home_page_stats():
     """
     Generate and return a dictionary of stats for the home() function to use.
@@ -147,6 +148,7 @@ def _generate_home_page_stats():
     Returns:
         dict: A Dictionary expressing the values described above
     """
+    log.debug("Refreshing home page stats")
     top_testers = get_top_testers()
     top_packagers = get_top_packagers()
 

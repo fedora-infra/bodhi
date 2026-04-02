@@ -18,7 +18,7 @@
 
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
-from functools import lru_cache, partial
+from functools import partial
 from textwrap import wrap
 from urllib.parse import urljoin
 import hashlib
@@ -60,7 +60,7 @@ import rpm
 from bodhi.messages.schemas import buildroot_override as override_schemas
 from bodhi.messages.schemas import errata as errata_schemas
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
+from bodhi.server import bugs, buildsys, get_cache_region, log, mail, notifications, Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import (
     BodhiException,
@@ -89,6 +89,9 @@ from bodhi.server.util import (
 if typing.TYPE_CHECKING:  # pragma: no cover
     import bugzilla  # noqa: F401
     import pyramid  # noqa: F401
+
+
+cache_region = get_cache_region()
 
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
@@ -1017,7 +1020,7 @@ class Release(Base):
         return ' '.join(self.long_name.split()[:-1])
 
     @classmethod
-    @lru_cache(maxsize=1)
+    @cache_region.cache_on_arguments()
     def all_releases(cls):
         """
         Return a mapping of release states to a list of dictionaries describing the releases.
@@ -1026,13 +1029,14 @@ class Release(Base):
             defaultdict: Mapping strings of :class:`ReleaseState` names to lists of dictionaries
             that describe the releases in those states.
         """
+        log.debug("Refreshing releases cache")
         releases = defaultdict(list)
         for release in cls.query.order_by(cls.name.desc()).all():
             releases[release.state.value].append(release.__json__())
         return releases
 
     @classmethod
-    @lru_cache(maxsize=1)
+    @cache_region.cache_on_arguments()
     def get_tags(cls):
         """
         Return a 2-tuple mapping tags to releases.
@@ -1043,6 +1047,7 @@ class Release(Base):
             releases that correspond to those tag semantics. The second element maps each koji tag
             to the release's name that uses it.
         """
+        log.debug("Refreshing tags cache")
         data = {'candidate': [], 'testing': [], 'stable': [], 'override': [],
                 'pending_testing': [], 'pending_stable': []}
         tags = {}  # tag -> release lookup

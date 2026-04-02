@@ -1,0 +1,1 @@
+Bodhi now uses dogpile.cache in all places where it uses cache. When deploying Bodhi in a multi-thread/multi-process/multi-pod configuration it is highly recommended to use Redis/Valkey or Memcached as dogpile backend.
