@@ -37,3 +37,5 @@ pull_request_rules:
       - label!=WIP
       - -draft
       - label=26.4-backports
+merge_protections_settings:
+  reporting_method: check-runs
