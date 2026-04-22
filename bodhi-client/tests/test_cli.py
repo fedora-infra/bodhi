@@ -134,7 +134,8 @@ class TestDownload:
         Assert correct behavior with the --url flag.
         """
         mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
-        call = mocker.patch('bodhi.client.cli.subprocess.call', return_value=0)
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        mockrun.return_value.returncode = 0
         runner = testing.CliRunner()
 
         result = runner.invoke(
@@ -152,16 +153,17 @@ class TestDownload:
         mocked_client_class.send_request.assert_called_once_with(
             'updates/', verb='GET',
             params={'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25'})
-        call.assert_called_once_with([
+        mockrun.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
-            'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            'nodejs-grunt-wrap-0.3.0-2.fc25'], capture_output=True, text=True)
 
     def test_arch_flag(self, mocked_client_class, mocker):
         """
         Assert correct behavior with the --arch flag.
         """
         mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
-        call = mocker.patch('bodhi.client.cli.subprocess.call', return_value=0)
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        mockrun.return_value.returncode = 0
         runner = testing.CliRunner()
 
         result = runner.invoke(
@@ -170,16 +172,17 @@ class TestDownload:
 
         assert result.exit_code == 0
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
-        call.assert_called_once_with([
+        mockrun.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch=x86_64',
-            'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            'nodejs-grunt-wrap-0.3.0-2.fc25'], capture_output=True, text=True)
 
     def test_arch_all_flag(self, mocked_client_class, mocker):
         """
         Assert correct behavior with --arch all flag.
         """
         mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
-        call = mocker.patch('bodhi.client.cli.subprocess.call', return_value=0)
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        mockrun.return_value.returncode = 0
         runner = testing.CliRunner()
 
         result = runner.invoke(
@@ -188,15 +191,17 @@ class TestDownload:
 
         assert result.exit_code == 0
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
-        call.assert_called_once_with([
-            'koji', 'download-build', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+        mockrun.assert_called_once_with([
+            'koji', 'download-build', 'nodejs-grunt-wrap-0.3.0-2.fc25'],
+            capture_output=True, text=True)
 
     def test_debuginfo_flag(self, mocked_client_class, mocker):
         """
         Assert correct behavior with --debuginfo flag.
         """
         mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
-        call = mocker.patch('bodhi.client.cli.subprocess.call', return_value=0)
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        mockrun.return_value.returncode = 0
         runner = testing.CliRunner()
 
         result = runner.invoke(
@@ -213,15 +218,17 @@ class TestDownload:
 
         assert result.exit_code == 0
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
-        call.assert_called_once_with([
-            'koji', 'download-build', '--debuginfo', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+        mockrun.assert_called_once_with([
+            'koji', 'download-build', '--debuginfo', 'nodejs-grunt-wrap-0.3.0-2.fc25'],
+            capture_output=True, text=True)
 
     def test_multiple_builds(self, mocked_client_class, mocker):
         """
         Assert correct behavior with multiple builds.
         """
         mocked_client_class.send_request.return_value = EXAMPLE_QUERY_MUNCH_MULTI_BUILDS
-        call = mocker.patch('bodhi.client.cli.subprocess.call', return_value=0)
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        mockrun.return_value.returncode = 0
         runner = testing.CliRunner()
 
         result = runner.invoke(
@@ -237,10 +244,11 @@ class TestDownload:
 
         assert result.exit_code == 0
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
-        call.assert_any_call([
-            'koji', 'download-build', 'nodejs-pants-0.3.0-2.fc25'])
-        call.assert_any_call([
-            'koji', 'download-build', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+        mockrun.assert_any_call([
+            'koji', 'download-build', 'nodejs-pants-0.3.0-2.fc25'], capture_output=True, text=True)
+        mockrun.assert_any_call([
+            'koji', 'download-build', 'nodejs-grunt-wrap-0.3.0-2.fc25'],
+            capture_output=True, text=True)
 
     def test_empty_options(self, mocked_client_class):
         """Assert we return an error if either --updateid or --builds are not used."""
@@ -255,7 +263,8 @@ class TestDownload:
         """
         Test the download() no builds found warning.
         """
-        call = mocker.patch('bodhi.client.cli.subprocess.call', return_value=0)
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        mockrun.return_value.returncode = 0
         runner = testing.CliRunner()
         no_builds_response = copy.copy(client_test_data.EXAMPLE_QUERY_MUNCH)
         no_builds_response.updates = []
@@ -266,14 +275,15 @@ class TestDownload:
 
         assert result.exit_code == 0
         assert result.output == 'WARNING: No builds found!\n'
-        call.assert_not_called()
+        mockrun.assert_not_called()
 
     def test_some_builds_warning(self, mocked_client_class, mocker):
         """
         Test the download() some builds not found warning.
         """
         mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
-        call = mocker.patch('bodhi.client.cli.subprocess.call', return_value=0)
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        mockrun.return_value.returncode = 0
 
         runner = testing.CliRunner()
 
@@ -284,9 +294,9 @@ class TestDownload:
         assert result.exit_code == 0
         assert result.output == ('WARNING: Some builds not found!\nDownloading packages '
                                  'from FEDORA-2017-c95b33872d\n')
-        call.assert_called_once_with([
+        mockrun.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
-            'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            'nodejs-grunt-wrap-0.3.0-2.fc25'], capture_output=True, text=True)
 
     def test_failed_warning(self, mocked_client_class, mocker):
         """
@@ -294,7 +304,8 @@ class TestDownload:
         i.e. the subprocess call calling koji returns something.
         """
         mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
-        call = mocker.patch('bodhi.client.cli.subprocess.call', return_value="Failure")
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        mockrun.return_value.returncode = 1
         runner = testing.CliRunner()
 
         result = runner.invoke(
@@ -304,16 +315,17 @@ class TestDownload:
         assert result.exit_code == 0
         assert result.output == ('Downloading packages from FEDORA-2017-c95b33872d\n'
                                  'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n')
-        call.assert_called_once_with([
+        mockrun.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
-            'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            'nodejs-grunt-wrap-0.3.0-2.fc25'], capture_output=True, text=True)
 
     def test_updateid(self, mocked_client_class, mocker):
         """
         Assert correct behavior with the --updateid flag.
         """
         mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
-        call = mocker.patch('bodhi.client.cli.subprocess.call', return_value=0)
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        mockrun.return_value.returncode = 0
         runner = testing.CliRunner()
 
         result = runner.invoke(
@@ -324,9 +336,150 @@ class TestDownload:
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
         mocked_client_class.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'updateid': 'FEDORA-2017-c95b33872d'})
-        call.assert_called_once_with([
+        mockrun.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
-            'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            'nodejs-grunt-wrap-0.3.0-2.fc25'], capture_output=True, text=True)
+
+    def test_retries_success(self, mocked_client_class, mocker):
+        """
+        Test that we retry 502 errors, and succeed if we *only* see
+        502s, and fewer than 5 of them.
+        """
+        mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
+        mocker.patch('time.sleep')
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        fiveohtwo = mock.MagicMock()
+        fiveohtwo.returncode = 1
+        fiveohtwo.stdout = "[ERROR] koji: HTTPError: 502 Server Error: Bad Gateway for url:"
+        allgood = mock.MagicMock()
+        allgood.returncode = 0
+        mockrun.side_effect = [
+            fiveohtwo,
+            fiveohtwo,
+            allgood
+        ]
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            cli.download,
+            ['--no-gpg', '--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+        assert result.exit_code == 0
+        assert result.output == ('Downloading packages from FEDORA-2017-c95b33872d\n'
+                                 'WARNING: 502 error on download of nodejs-grunt-wrap-0.3.0-2.fc25,'
+                                 ' retrying in 5 seconds...\n'
+                                 'WARNING: 502 error on download of nodejs-grunt-wrap-0.3.0-2.fc25,'
+                                 ' retrying in 5 seconds...\n')
+        assert mockrun.mock_calls == [
+            mock.call(
+                [
+                    'koji',
+                    'download-build',
+                    '--arch=noarch',
+                    '--arch={}'.format(platform.machine()),
+                    'nodejs-grunt-wrap-0.3.0-2.fc25',
+                ],
+                capture_output=True,
+                text=True,
+            )
+        ] * 3
+
+    def test_retries_too_many(self, mocked_client_class, mocker):
+        """
+        Test that we retry 502 errors, and bail if we see more than 5.
+        """
+        mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
+        mocker.patch('time.sleep')
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        fiveohtwo = mock.MagicMock()
+        fiveohtwo.returncode = 1
+        fiveohtwo.stdout = "[ERROR] koji: HTTPError: 502 Server Error: Bad Gateway for url:"
+        allgood = mock.MagicMock()
+        allgood.returncode = 0
+        mockrun.side_effect = [
+            fiveohtwo,
+            fiveohtwo,
+            fiveohtwo,
+            fiveohtwo,
+            fiveohtwo,
+            fiveohtwo,
+            allgood
+        ]
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            cli.download,
+            ['--no-gpg', '--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+        assert result.exit_code == 0
+        assert result.output == ('Downloading packages from FEDORA-2017-c95b33872d\n'
+                                 'WARNING: 502 error on download of nodejs-grunt-wrap-0.3.0-2.fc25,'
+                                 ' retrying in 5 seconds...\n'
+                                 'WARNING: 502 error on download of nodejs-grunt-wrap-0.3.0-2.fc25,'
+                                 ' retrying in 5 seconds...\n'
+                                 'WARNING: 502 error on download of nodejs-grunt-wrap-0.3.0-2.fc25,'
+                                 ' retrying in 5 seconds...\n'
+                                 'WARNING: 502 error on download of nodejs-grunt-wrap-0.3.0-2.fc25,'
+                                 ' retrying in 5 seconds...\n'
+                                 'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n')
+        assert mockrun.mock_calls == [
+            mock.call(
+                [
+                    'koji',
+                    'download-build',
+                    '--arch=noarch',
+                    '--arch={}'.format(platform.machine()),
+                    'nodejs-grunt-wrap-0.3.0-2.fc25',
+                ],
+                capture_output=True,
+                text=True,
+            )
+        ] * 5
+
+    def test_retries_not502(self, mocked_client_class, mocker):
+        """
+        Test that we quit retrying if we encounter a non-502 error.
+        """
+        mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
+        mocker.patch('time.sleep')
+        mockrun = mocker.patch('bodhi.client.cli.subprocess.run')
+        fiveohtwo = mock.MagicMock()
+        fiveohtwo.returncode = 1
+        fiveohtwo.stdout = "[ERROR] koji: HTTPError: 502 Server Error: Bad Gateway for url:"
+        fourohthree = mock.MagicMock()
+        fourohthree.returncode = 1
+        fourohthree.stdout = "[ERROR] koji: HTTPError: 403 Server Error: Go away"
+        allgood = mock.MagicMock()
+        allgood.returncode = 0
+        mockrun.side_effect = [
+            fiveohtwo,
+            fourohthree,
+            allgood
+        ]
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            cli.download,
+            ['--no-gpg', '--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+        assert result.exit_code == 0
+        assert result.output == ('Downloading packages from FEDORA-2017-c95b33872d\n'
+                                 'WARNING: 502 error on download of nodejs-grunt-wrap-0.3.0-2.fc25,'
+                                 ' retrying in 5 seconds...\n'
+                                 'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n')
+        assert mockrun.mock_calls == [
+            mock.call(
+                [
+                    'koji',
+                    'download-build',
+                    '--arch=noarch',
+                    '--arch={}'.format(platform.machine()),
+                    'nodejs-grunt-wrap-0.3.0-2.fc25',
+                ],
+                capture_output=True,
+                text=True,
+            )
+        ] * 2
 
 
 class TestDownloadGPG:
@@ -337,8 +490,7 @@ class TestDownloadGPG:
         """We always use these patchers."""
         self.ep = mock.patch('bodhi.client.cli.os.path.exists', return_value=True)
         self.exists = self.ep.start()
-        self.cp = mock.patch('bodhi.client.cli.subprocess.call', return_value=0)
-        self.call = self.cp.start()
+        self.cp = mock.patch('bodhi.client.cli.subprocess.run', return_value=0)
         # this is to try and check we don't hit get when we shouldn't
         self.gp = mock.patch('bodhi.client.cli.requests.get', side_effect=Exception("yikes!"))
         self.get = self.gp.start()
@@ -375,14 +527,23 @@ class TestDownloadGPG:
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
         mocked_client_class.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'updateid': 'FEDORA-2017-c95b33872d'})
-        self.run.assert_called_once_with(
-            ('gpg', '--list-packets', '/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-primary'),
-            capture_output=True,
-            text=True
-        )
-        self.call.assert_called_once_with([
-            'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+        assert self.run.mock_calls == [
+            mock.call(
+                ('gpg', '--list-packets', '/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-primary'),
+                capture_output=True,
+                text=True,
+            ),
+            mock.call().__bool__(),
+            mock.call(
+                [
+                    'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned',
+                    '--arch=noarch', '--arch={}'.format(platform.machine()),
+                    'nodejs-grunt-wrap-0.3.0-2.fc25'
+                ],
+                capture_output=True,
+                text=True,
+            )
+        ]
 
     def test_epel_good(self, mocked_client_class):
         """Success path for EPEL update."""
@@ -395,20 +556,33 @@ class TestDownloadGPG:
 
         assert result.exit_code == 0
         assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
-        self.run.assert_called_once_with(
-            ('gpg', '--list-packets', '/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7'),
-            capture_output=True,
-            text=True
-        )
-        self.call.assert_called_once_with([
-            'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+        assert self.run.mock_calls == [
+            mock.call(
+                ('gpg', '--list-packets', '/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7'),
+                capture_output=True,
+                text=True,
+            ),
+            mock.call().__bool__(),
+            mock.call(
+                [
+                    'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned',
+                    '--arch=noarch', '--arch={}'.format(platform.machine()),
+                    'nodejs-grunt-wrap-0.3.0-2.fc25'
+                ],
+                capture_output=True,
+                text=True,
+            )
+        ]
 
     def test_gpg_fails(self, mocked_client_class):
         """Handle gpg command failing."""
         mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
         runner = testing.CliRunner()
-        self.run.return_value.returncode = 1
+        nogood = mock.MagicMock()
+        nogood.returncode = 1
+        good = mock.MagicMock()
+        good.returncode = 0
+        self.run.side_effect = [nogood, good]
         result = runner.invoke(
             cli.download,
             ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
@@ -417,15 +591,29 @@ class TestDownloadGPG:
 WARNING: gpg failed
 WARNING: could not find GPG key, packages will be unsigned
 '''
-        self.call.assert_called_once_with([
-            'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+        assert self.run.mock_calls == [
+            mock.call(
+                ('gpg', '--list-packets', '/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-primary'),
+                capture_output=True,
+                text=True,
+            ),
+            mock.call(
+                [
+                    'koji', 'download-build', '--arch=noarch',
+                    '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'
+                ],
+                capture_output=True,
+                text=True,
+            )
+        ]
 
     def test_gpg_noexist(self, mocked_client_class):
         """Handle gpg command not existing."""
         mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
         runner = testing.CliRunner()
-        self.run.side_effect = FileNotFoundError('gpg')
+        good = mock.MagicMock()
+        good.returncode = 0
+        self.run.side_effect = [FileNotFoundError('gpg'), good, good]
         result = runner.invoke(
             cli.download,
             ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
@@ -434,15 +622,32 @@ WARNING: could not find GPG key, packages will be unsigned
 WARNING: could not run gpg
 WARNING: could not find GPG key, packages will be unsigned
 '''
-        self.call.assert_called_once_with([
-            'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+        assert self.run.mock_calls == [
+            mock.call(
+                ('gpg', '--list-packets', '/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-primary'),
+                capture_output=True,
+                text=True,
+            ),
+            mock.call(
+                [
+                    'koji', 'download-build', '--arch=noarch',
+                    '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'
+                ],
+                capture_output=True,
+                text=True,
+            )
+        ]
 
     def test_no_key_id(self, mocked_client_class):
         """Handle key file existing but not showing a key ID."""
         mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
         runner = testing.CliRunner()
-        self.run.return_value.stdout = "A fish!"
+        fish = mock.MagicMock()
+        fish.returncode = 0
+        fish.stdout = "A fish!"
+        # this is OK for the later call too as it doesn't care about
+        # stdout if returncode is 0
+        self.run.return_value = fish
         result = runner.invoke(
             cli.download,
             ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
@@ -450,9 +655,22 @@ WARNING: could not find GPG key, packages will be unsigned
         assert result.output == '''Downloading packages from FEDORA-2017-c95b33872d
 WARNING: could not find GPG key, packages will be unsigned
 '''
-        self.call.assert_called_once_with([
-            'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+        assert self.run.mock_calls == [
+            mock.call(
+                ('gpg', '--list-packets', '/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-25-primary'),
+                capture_output=True,
+                text=True,
+            ),
+            mock.call().__bool__(),
+            mock.call(
+                [
+                    'koji', 'download-build', '--arch=noarch',
+                    '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'
+                ],
+                capture_output=True,
+                text=True,
+            )
+        ]
 
 
 class TestDownloadGPGRemote:
@@ -464,8 +682,7 @@ class TestDownloadGPGRemote:
         """We always use these patchers."""
         self.ep = mock.patch('bodhi.client.cli.os.path.exists', return_value=False)
         self.exists = self.ep.start()
-        self.cp = mock.patch('bodhi.client.cli.subprocess.call', return_value=0)
-        self.call = self.cp.start()
+        self.cp = mock.patch('bodhi.client.cli.subprocess.run', return_value=0)
         self.gp = mock.patch('bodhi.client.cli.requests.get')
         self.get = self.gp.start()
         self.get.return_value.status_code = 200
@@ -532,15 +749,24 @@ kRFmBygMR6M/
         url = 'https://src.fedoraproject.org/rpms/fedora-repos'
         url += '/raw/rawhide/f/RPM-GPG-KEY-fedora-25-primary'
         self.get.assert_called_once_with(url)
-        self.run.assert_called_once_with(
-            ('gpg', '--list-packets', '-'),
-            input=self.get.return_value.text,
-            capture_output=True,
-            text=True
-        )
-        self.call.assert_called_once_with([
-            'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+        assert self.run.mock_calls == [
+            mock.call(
+                ('gpg', '--list-packets', '-'),
+                input=self.get.return_value.text,
+                capture_output=True,
+                text=True
+            ),
+            mock.call().__bool__(),
+            mock.call(
+                [
+                    'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned',
+                    '--arch=noarch', '--arch={}'.format(platform.machine()),
+                    'nodejs-grunt-wrap-0.3.0-2.fc25'
+                ],
+                capture_output=True,
+                text=True,
+            )
+        ]
 
     def test_epel_good_remote(self, mocked_client_class):
         """Success path for EPEL update."""
@@ -555,15 +781,32 @@ kRFmBygMR6M/
         url = 'https://src.fedoraproject.org/rpms/epel-release'
         url += '/raw/epel7/f/RPM-GPG-KEY-EPEL-7'
         self.get.assert_called_once_with(url)
-        self.call.assert_called_once_with([
-            'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+        assert self.run.mock_calls == [
+            mock.call(
+                ('gpg', '--list-packets', '-'),
+                input=self.get.return_value.text,
+                capture_output=True,
+                text=True
+            ),
+            mock.call().__bool__(),
+            mock.call(
+                [
+                    'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned',
+                    '--arch=noarch', '--arch={}'.format(platform.machine()),
+                    'nodejs-grunt-wrap-0.3.0-2.fc25'
+                ],
+                capture_output=True,
+                text=True,
+            )
+        ]
 
     def test_gpg_noexist_remote(self, mocked_client_class):
         """Handle gpg command not existing."""
         mocked_client_class.send_request.return_value = client_test_data.EXAMPLE_QUERY_MUNCH
         runner = testing.CliRunner()
-        self.run.side_effect = FileNotFoundError('gpg')
+        good = mock.MagicMock()
+        good.returncode = 0
+        self.run.side_effect = [FileNotFoundError('gpg'), good, good]
         result = runner.invoke(
             cli.download,
             ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
@@ -572,9 +815,22 @@ kRFmBygMR6M/
 WARNING: could not run gpg
 WARNING: could not find GPG key, packages will be unsigned
 '''
-        self.call.assert_called_once_with([
-            'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+        assert self.run.mock_calls == [
+            mock.call(
+                ('gpg', '--list-packets', '-'),
+                input=self.get.return_value.text,
+                capture_output=True,
+                text=True
+            ),
+            mock.call(
+                [
+                    'koji', 'download-build', '--arch=noarch',
+                    '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'
+                ],
+                capture_output=True,
+                text=True,
+            )
+        ]
 
     def test_bad_status(self, mocked_client_class):
         """We get a bad status code from requests."""
@@ -589,9 +845,10 @@ WARNING: could not find GPG key, packages will be unsigned
 WARNING: Tried https://src.fedoraproject.org/rpms/fedora-repos/raw/rawhide/f/RPM-GPG-KEY-fedora-25-primary to get key, got 404
 WARNING: could not find GPG key, packages will be unsigned
 '''     # noqa: E501
-        self.call.assert_called_once_with([
+        self.run.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'],
+            capture_output=True, text=True)
 
     def test_request_exception(self, mocked_client_class):
         """We get an exception from requests."""
@@ -606,9 +863,10 @@ WARNING: could not find GPG key, packages will be unsigned
 WARNING: Tried https://src.fedoraproject.org/rpms/fedora-repos/raw/rawhide/f/RPM-GPG-KEY-fedora-25-primary to get key, failed with foo
 WARNING: could not find GPG key, packages will be unsigned
 '''     # noqa: E501
-        self.call.assert_called_once_with([
+        self.run.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'],
+            capture_output=True, text=True)
 
 
 class TestComposeInfo:
