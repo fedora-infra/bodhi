@@ -3139,6 +3139,11 @@ class TestUpdate(ModelTest):
             ]
         )
 
+    def test_product_version_eln(self):
+        """Check the special product_version for ELN works."""
+        self.obj.release.long_name = "Fedora ELN"
+        assert self.obj.product_version == "eln"
+
     def test_mandatory_days_in_testing_critpath(self):
         """
         The Update.mandatory_days_in_testing method should be the configured value

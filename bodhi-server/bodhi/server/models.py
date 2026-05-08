@@ -3874,7 +3874,12 @@ class Update(Base):
         Returns:
             str: The product version associated with this Update's Release.
         """
-        return self.release.long_name.lower().replace(' ', '-')
+        ret = self.release.long_name.lower().replace(' ', '-')
+        if ret == "fedora-eln":
+            # We call ELN something else so that "fedora-*" policies
+            # do not apply to it
+            ret = "eln"
+        return ret
 
     def check_requirements(self, session, settings):
         """
