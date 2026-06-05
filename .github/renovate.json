@@ -4,4 +4,5 @@
   "ignorePaths": [
       "**/devel/ci/**"
   ],
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
 }
