@@ -44,7 +44,7 @@ jobs:
         run: pip install click conu pytest pytest-cov munch psycopg2 fedora-messaging koji
 
       - name: Get Fedora Project IPA CA
-        run: sudo curl https://pagure.io/fedora-packager/raw/main/f/ipa_ca/fedoraproject_ipa_ca.crt -o /usr/local/share/ca-certificates/fedoraproject_ipa_ca.crt
+        run: sudo curl https://src.fedoraproject.org/rpms/fedora-packager/raw/rawhide/f/fedoraproject_ipa_ca.crt -o /usr/local/share/ca-certificates/fedoraproject_ipa_ca.crt
 
       - name: Update CA Certificates
         run:  sudo update-ca-certificates

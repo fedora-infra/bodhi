@@ -7,10 +7,10 @@ ARG clienturi=http://bodhi.ci:8080/oidc/
 # to listen on a non-standard port, specify this too, it's dumb but you can't do
 # conditionals or string parsing in dockerfiles...only used for EXPOSE anyway
 ARG listen=80
-RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/main/f/files/common/fedora-infra-tags.repo
+RUN curl -o /etc/yum.repos.d/infra-tags.repo https://forge.fedoraproject.org/infra/ansible/raw/branch/main/files/common/fedora-infra-tags.repo
 
 RUN dnf install -y ipsilon ipsilon-openid ipsilon-openidc patch git sed systemd procps-ng elinks
-RUN git clone https://pagure.io/fedora-infra/ipsilon-fedora.git /opt/ipsilon-fedora \
+RUN git clone https://forge.fedoraproject.org/infra/ipsilon-fedora.git /opt/ipsilon-fedora \
     && cd /opt/ipsilon-fedora \
     && ./install.sh
 RUN ipsilon-server-install --root-instance --secure no --testauth yes --testauth-groups "fedora-contributors,packager" --openid yes --openidc yes --hostname $hostname --openid-extensions "insecureAPI,Teams,CLAs,Simple Registration" --openidc-extensions "fedora-account,waiverdb" --openidc-default-attribute-mapping '[["*", "*"], ["_groups", "groups"], [["_extras", "cla"], "cla"], ["fullname", "name"], ["_username", "nickname"], ["_username", "preferred_username"], ["fasIRCNick", "ircnick"], ["fasLocale", "locale"], ["fasTimeZone", "zoneinfo"], ["fasTimeZone", "timezone"], ["fasWebsiteURL", "website"], ["fasGPGKeyId", "gpg_keyid"], ["ipaSshPubKey", "ssh_key"], ["fasIsPrivate", "privacy"], ["fullname", "human_name"]]'
