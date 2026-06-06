@@ -380,7 +380,9 @@ def test_oidcclient_clear_auth(mocker, client):
     client.ensure_auth()
     login.assert_called
     assert client.username != "NICKNAME"
-    request.assert_called_with("GET", "http://id.example.com/user", allow_redirects=True)
+    call_args = request.call_args
+    assert call_args.args == ("GET", "http://id.example.com/user")
+    assert call_args.kwargs.get("allow_redirects") is True
 
 
 def test_oidcclient_has_cookie(client):

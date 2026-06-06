@@ -1,0 +1,2 @@
+Fix ``test_oidcclient_clear_auth`` compatibility with ``requests`` 2.34 by using flexible
+``call_args`` assertion instead of the exact-match ``assert_called_with``
