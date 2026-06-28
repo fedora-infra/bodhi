@@ -74,7 +74,6 @@ def query_packages(request):
     search = data.get('search')
     if search is not None:
         query = query.filter(Package.name.ilike('%%%s%%' % search))
-        query = query.order_by(case((Package.name == search, Package.name)))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
@@ -82,6 +81,21 @@ def query_packages(request):
         .with_only_columns(func.count(distinct(Package.name)))\
         .order_by(None)
     total = db.execute(count_query).scalar()
+
+    if search is not None:
+        # We will first group by name, take a package id and then search for
+        # that package.This avoids duplicate results which differ on other parameters such as type
+        min_id_subq = (
+            query
+            .with_entities(func.min(Package.id).label('id'))
+            .group_by(Package.name)
+            .subquery()
+        )
+        query = (
+            db.query(Package)
+            .join(min_id_subq, Package.id == min_id_subq.c.id)
+            .order_by(case((Package.name == search, Package.name)))
+        )
 
     page = data.get('page')
     rows_per_page = data.get('rows_per_page')

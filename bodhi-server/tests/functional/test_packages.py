@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from bodhi.server.models import (
+    ModulePackage,
     RpmPackage,
 )
 from .. import base
@@ -68,3 +69,27 @@ class TestRpmPackagesService(base.BasePyTestCase):
         resp = self.app.get('/packages/', dict(search='corebird'))
         body = resp.json_body
         assert len(body['packages']) == 0
+
+    def test_search_deduplicates_by_name(self):
+        """Packages with the same name but different types should appear only once."""
+        self.db.add(ModulePackage(name='bodhi'))
+        self.db.commit()
+
+        resp = self.app.get('/packages/', dict(search='bodhi'))
+        body = resp.json_body
+        assert body['total'] == 1
+        assert len(body['packages']) == 1
+        assert body['packages'][0]['name'] == 'bodhi'
+
+    def test_search_deduplicates_count_is_accurate(self):
+        """total should reflect distinct names, not total rows."""
+        self.db.add(ModulePackage(name='bodhi'))
+        self.db.add(RpmPackage(name='python'))
+        self.db.add(ModulePackage(name='python'))
+        self.db.commit()
+
+        resp = self.app.get('/packages/', dict(search='o'))
+        body = resp.json_body
+        # 'bodhi' and 'python' both contain 'o' — 2 distinct names despite 4 rows
+        assert body['total'] == 2
+        assert len(body['packages']) == 2
