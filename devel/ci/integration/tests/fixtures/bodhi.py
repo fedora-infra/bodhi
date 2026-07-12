@@ -27,6 +27,7 @@ from .utils import make_db_and_user, stop_and_delete
 def bodhi_container(
     docker_backend, docker_network, db_container, resultsdb_container,
     waiverdb_container, greenwave_container, rabbitmq_container, ipsilon_container,
+    valkey_container,
 ):
     """Fixture preparing and yielding a Bodhi container to test against.
 
@@ -41,6 +42,8 @@ def bodhi_container(
         greenwave_container (conu.DockerContainer): The Greenwave container
             (fixture).
         rabbitmq_container (conu.DockerContainer): The RabbitMQ container
+            (fixture).
+        valkey_container (conu.DockerContainer): The ValKey container
             (fixture).
 
     Yields:

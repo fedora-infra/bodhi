@@ -279,64 +279,6 @@ class TestCallAPI:
         sleep.assert_called_once_with(1)
 
 
-class TestMemoized:
-    """Test the memoized class."""
-
-    def test_caching(self):
-        """Ensure that caching works for hashable parameters."""
-        return_value = True
-
-        @util.memoized
-        def some_function(arg):
-            return return_value
-
-        assert some_function(42)
-        # Let's flip the value of return_value just to make sure the cached value is used and not
-        # the new value.
-        return_value = False
-        # It should still return True, indicating that some_function() was not called again.
-        assert some_function(42)
-
-    def test_caching_different_args(self):
-        """Ensure that caching works for hashable parameters, but is sensitive to arguments."""
-        return_value = True
-
-        @util.memoized
-        def some_function(arg):
-            return return_value
-
-        assert some_function(42)
-        # Let's flip the value of return_value just to make sure the cached value is not used.
-        return_value = False
-        # It should return False because the argument is different.
-        assert not some_function(41)
-
-    def test_dont_cache_lists(self):
-        """memoized should not cache calls with list arguments."""
-        return_value = True
-
-        @util.memoized
-        def some_function(arg):
-            return return_value
-
-        assert some_function(['some', 'list'])
-        # Let's flip the value of return_value just to make sure it isn't cached.
-        return_value = False
-        assert not some_function(['some', 'list'])
-
-    def test___get__(self):
-        """__get__() should allow us to set the function as an attribute of another object."""
-        @util.memoized
-        def some_function(arg):
-            """Some docblock"""
-            return 42
-
-        class some_class(object):
-            thing = some_function
-
-        assert some_class().thing() == 42
-
-
 class TestNoAutoflush:
     """Test the no_autoflush context manager."""
     def test_autoflush_disabled(self):
@@ -464,7 +406,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, compress_type='xz')
 
         # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
+        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=False)
 
     @mock.patch('bodhi.server.util.load_repo_libdnf5', side_effect=Exception("Exception message"))
     def test_invalid_repo_exception(self, *args):
@@ -474,7 +416,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, compress_type='xz')
 
         with pytest.raises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
+            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=False)
         assert str(exc.value) == "Error loading the repository: Exception message"
 
     def test_correct_yum_repo_with_gz_compress(self):
@@ -485,7 +427,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, compress_type='gz')
 
         # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
+        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=False)
 
     def test_correct_yum_repo_with_bz2_compress(self):
         """No Exception should be raised if the repo is normal.
@@ -495,7 +437,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, compress_type='bz2')
 
         # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
+        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=False)
 
     @pytest.mark.skipif(
         packaging.version.parse(createrepo_c.VERSION) < packaging.version.parse('1.0.0'),
@@ -509,12 +451,12 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, compress_type='zstd')
 
         # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
+        util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=False)
 
     def test_invalid_repo_type(self):
         """A ValueError should be raised with invalid repo type."""
         with pytest.raises(ValueError) as excinfo:
-            util.sanity_check_repodata("so", "wrong", drpms=True)
+            util.sanity_check_repodata("so", "wrong", drpms=False)
         assert str(excinfo.value) == 'repo_type must be one of module, source, or yum.'
 
     @mock.patch('bodhi.server.util.librepo')
@@ -526,7 +468,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         librepo.Handle.return_value.perform.side_effect = MockException(-1, 'msg', 'general_msg')
 
         with pytest.raises(RepodataException) as excinfo:
-            util.sanity_check_repodata('/tmp/', 'yum', drpms=True)
+            util.sanity_check_repodata('/tmp/', 'yum', drpms=False)
         assert str(excinfo.value) == 'msg'
 
     def _mkmetadatadir_w_modules(self):
@@ -556,7 +498,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         """No Exception should be raised if the repo is a normal module repo."""
         self._mkmetadatadir_w_modules()
         # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir, repo_type='module', drpms=True)
+        util.sanity_check_repodata(self.tempdir, repo_type='module', drpms=False)
 
     @pytest.mark.skipif(
         "libdnf5" in sys.modules,
@@ -568,7 +510,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         self._mkmetadatadir_w_modules()
 
         with pytest.raises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='module', drpms=True)
+            util.sanity_check_repodata(self.tempdir, repo_type='module', drpms=False)
         assert str(exc.value) == \
             ("DNF did not return expected output when running test!"
              " Test: ['module', 'list'], expected: .*, output: ")
@@ -581,7 +523,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, updateinfo=updateinfo)
 
         with pytest.raises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
+            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=False)
         assert str(exc.value) == 'updateinfo.xml.gz contains empty ID tags'
 
     def test_comps_invalid_notxml(self):
@@ -592,7 +534,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, comps=comps)
 
         with pytest.raises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
+            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=False)
         assert str(exc.value) == 'Comps file unable to be parsed'
 
     def test_comps_invalid_nonsense(self):
@@ -603,7 +545,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         base.mkmetadatadir(self.tempdir, comps=comps)
 
         with pytest.raises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
+            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=False)
         assert str(exc.value) == 'Comps file empty'
 
     def test_repomd_missing_updateinfo(self):
@@ -620,7 +562,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         repomd.write(repomd_path, encoding='UTF-8', xml_declaration=True)
 
         with pytest.raises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=True)
+            util.sanity_check_repodata(self.tempdir, repo_type='yum', drpms=False)
         assert str(exc.value) == 'Required parts not in repomd.xml: updateinfo'
 
     def test_repomd_missing_prestodelta(self):

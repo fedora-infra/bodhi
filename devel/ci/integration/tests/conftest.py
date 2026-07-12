@@ -24,5 +24,6 @@ from .fixtures.rabbitmq import rabbitmq_container
 from .fixtures.resultsdb import resultsdb_container
 from .fixtures.waiverdb import waiverdb_container
 from .fixtures.greenwave import greenwave_container
-from .fixtures.bodhi import bodhi_container
 from .fixtures.ipsilon import ipsilon_container
+from .fixtures.valkey import valkey_container
+from .fixtures.bodhi import bodhi_container

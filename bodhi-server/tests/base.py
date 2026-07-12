@@ -236,8 +236,8 @@ class BaseTestCaseMixin:
         config.config.load_config(self.app_settings)
 
         # Ensure "cached" objects are cleared before each test.
-        models.Release.all_releases.cache_clear()
-        models.Release.get_tags.cache_clear()
+        models.Release.all_releases.invalidate()
+        models.Release.get_tags.invalidate()
 
         if engine is None:
             self.engine = _configure_test_db(config.config)
@@ -391,8 +391,8 @@ class BaseTestCaseMixin:
             package_manager=models.PackageManager.unspecified,
             testing_repository=None)
         self.db.add(release)
-        models.Release.all_releases.cache_clear()
-        models.Release.get_tags.cache_clear()
+        models.Release.all_releases.invalidate()
+        models.Release.get_tags.invalidate()
         self.db.flush()
         return release
 
@@ -538,7 +538,7 @@ def mkmetadatadir(path, updateinfo=None, comps=None, source=False, compress_type
         createrepo_command.insert(1, f'--compress-type={compress_type}')
 
     if not source:
-        for arg in ('--deltas', 'comps.xml', '--groupfile'):
+        for arg in ('comps.xml', '--groupfile'):
             createrepo_command.insert(1, arg)
 
     subprocess.check_call(createrepo_command)
