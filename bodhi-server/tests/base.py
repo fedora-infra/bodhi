@@ -538,7 +538,7 @@ def mkmetadatadir(path, updateinfo=None, comps=None, source=False, compress_type
         createrepo_command.insert(1, f'--compress-type={compress_type}')
 
     if not source:
-        for arg in ('--deltas', 'comps.xml', '--groupfile'):
+        for arg in ('comps.xml', '--groupfile'):
             createrepo_command.insert(1, arg)
 
     subprocess.check_call(createrepo_command)
