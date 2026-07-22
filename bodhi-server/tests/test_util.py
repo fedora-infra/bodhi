@@ -804,6 +804,55 @@ class TestUtils(base.BasePyTestCase):
         grouped = util.get_grouped_critpath_components('f35')
         assert grouped == {}
 
+    @mock.patch('bodhi.server.util.log')
+    def test_get_ccp_components_json_no_file(self, mock_log, ccp_json_config):
+        """Ensure we log a warning and return an empty list when
+        trying to retrieve ccp info from a non-existent JSON
+        file (from get_ccp_components).
+        """
+        pkgs = util.get_ccp_components('f34')
+        assert pkgs == {}
+        warning = 'No JSON file found for collection f34'
+        mock_log.warning.assert_called_once_with(warning)
+
+    @mock.patch('bodhi.server.util.log')
+    def test_get_ccp_components_json_bad_file(self, mock_log, ccp_json_config):
+        """Ensure we log a warning and return an empty list when
+        trying to retrieve ccp info from an invalid JSON
+        file (from get_ccp_components).
+        """
+        (tempdir, _) = ccp_json_config
+        config.update({
+            'critpath.jsonpath': tempdir
+        })
+        pkgs = util.get_ccp_components('f35')
+        assert pkgs == {}
+        warning = 'JSON file for collection f35 is invalid'
+        mock_log.warning.assert_called_once_with(warning)
+
+    def test_get_ccp_components_success(self, ccp_json_config):
+        """Ensure that get_ccp_components works when
+        using JSON files.
+        """
+        (tempdir, testdata) = ccp_json_config
+        config.update({
+            'critpath.jsonpath': tempdir
+        })
+        grouped = util.get_ccp_components('f36')
+        assert grouped == testdata['rpm']
+        # now test with components arg
+        filtered = util.get_ccp_components(
+            'f36', components=['ModemManager'])
+        assert filtered == {
+            'Everything': {
+                'aarch64': {
+                    'image': [
+                        'ModemManager',
+                    ],
+                },
+            },
+        }
+
     @mock.patch('bodhi.server.util.http_session')
     def test_pagure_api_get(self, session):
         """ Ensure that an API request to Pagure works as expected.

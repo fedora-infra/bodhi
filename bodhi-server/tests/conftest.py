@@ -85,3 +85,48 @@ def critpath_json_config(request):
         json.dump(testdata, f36filefh)
     yield (tempdir.name, testdata)
     tempdir.cleanup()
+
+
+@pytest.fixture(scope="session")
+def ccp_json_config(request):
+    """
+    Compose-critical package JSON configuration fixture.
+
+    Set up one valid (f36) and one invalid (f35) configuration file
+    and yield the path, file names, and sample data.
+    """
+    tempdir = tempfile.TemporaryDirectory(suffix='bodhi')
+    f35file = os.path.join(tempdir.name, 'f35-ccp-source.json')
+    with open(f35file, 'w', encoding='utf-8') as f35filefh:
+        f35filefh.write("This is not JSON")
+    f36file = os.path.join(tempdir.name, 'f36-ccp-source.json')
+    testdata = {
+        'rpm': {
+            'Everything': {
+                'aarch64': {
+                    'buildroot': [
+                        'acl',
+                        'attr',
+                    ],
+                    'image': [
+                        'ModemManager',
+                        'NetworkManager',
+                    ],
+                },
+                'x86_64': {
+                    'buildroot': [
+                        'authselect',
+                        'bash',
+                    ],
+                    'image': [
+                        'abseil-cpp',
+                        'accountsservice'
+                    ],
+                },
+            },
+        },
+    }
+    with open(f36file, 'w', encoding='utf-8') as f36filefh:
+        json.dump(testdata, f36filefh)
+    yield (tempdir.name, testdata)
+    tempdir.cleanup()

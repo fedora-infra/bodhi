@@ -603,3 +603,54 @@ class TestCritpathEndpoint(base.BasePyTestCase):
                 "errors": [{"location": "body", "name": "ValueError",
                             "description": "critpath.type (default) does not support groups"}]
             }
+
+
+class TestCcpEndpoint(base.BasePyTestCase):
+    """Test the ccp (compose-critical package) endpoint."""
+    @mock.patch('bodhi.server.util.get_ccp_components')
+    def test_defaults(self, mocked_get_ccp):
+        """Defaults should return rpms for rawhide."""
+        mocked_get_ccp.return_value = {}
+        self.app.get('/get_ccp_components')
+        mocked_get_ccp.assert_called_once_with('rawhide', 'rpm', None)
+
+    def test_collection(self, ccp_json_config):
+        """Collection parameter should look into the proper json file."""
+        (tempdir, testdata) = ccp_json_config
+        config.update({
+            'critpath.type': 'json',
+            'critpath.jsonpath': tempdir
+        })
+        res = self.app.get('/get_ccp_components', {'collection': 'f36'})
+        body = res.json_body
+        assert body == testdata['rpm']
+
+    def test_component_list(self, ccp_json_config):
+        """Components parameter is a comma separated values list."""
+        (tempdir, testdata) = ccp_json_config
+        config.update({
+            'critpath.type': 'json',
+            'critpath.jsonpath': tempdir
+        })
+        res = self.app.get('/get_ccp_components',
+                           {'collection': 'f36',
+                            'components': 'acl,attr,ModemManager,accountsservice'})
+        body = res.json_body
+        assert body == {
+            'Everything': {
+                'aarch64': {
+                    'buildroot': [
+                        'acl',
+                        'attr',
+                    ],
+                    'image': [
+                        'ModemManager',
+                    ],
+                },
+                'x86_64': {
+                    'image': [
+                        'accountsservice'
+                    ],
+                },
+            }
+        }
