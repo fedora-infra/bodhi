@@ -205,6 +205,46 @@ def get_critpath_components(collection='master', component_type='rpm', component
     return critpath_components
 
 
+def get_ccp_components(collection='rawhide', component_type='rpm', components=None):
+    """
+    Return a dictionary of compose-critical packages for a given collection.
+
+    Args:
+        collection (str): The collection/branch to search. Defaults to 'rawhide'.
+        component_type (str): The component type to search for. Defaults to 'rpm'. Only
+            has any effect when critpath_type is json.
+        components (frozenset or None): The list of components we are interested in. If None (the
+            default), all components for the given collection are returned.
+    Returns:
+        dict: The compose-critical components for the given collection and type, by variant, arch
+            and type ('buildroot' or 'image'). If components is specified, only elements of the
+            dict that contain any of the specified components will be present. Will be empty
+            if the underlying metadata is not available.
+    """
+    ccp_components = {}
+    try:
+        ccp_components = read_ccp_json(collection).get(component_type, {})
+    except FileNotFoundError:
+        log.warning(f'No JSON file found for collection {collection}')
+    except json.JSONDecodeError:
+        log.warning(f'JSON file for collection {collection} is invalid')
+    if components and ccp_components:
+        filtered_dict = {}
+        for variant in ccp_components:
+            for arch in ccp_components[variant]:
+                for (typ, packages) in ccp_components[variant][arch].items():
+                    filtered = [pkg for pkg in packages if pkg in components]
+                    if filtered:
+                        if variant not in filtered_dict:
+                            filtered_dict[variant] = {arch: {typ: filtered}}
+                        elif arch not in filtered_dict[variant]:
+                            filtered_dict[variant][arch] = {typ: filtered}
+                        else:
+                            filtered_dict[variant][arch][typ] = filtered
+        return filtered_dict
+    return ccp_components
+
+
 def sanity_check_repodata(myurl, repo_type, drpms=True):
     """
     Sanity check the repodata for a given repository.
@@ -910,6 +950,27 @@ def read_critpath_json(collection):
     """
     jsonpath = config.get('critpath.jsonpath')
     jsonfile = os.path.join(jsonpath, f'{collection}.json')
+    with open(jsonfile, 'r', encoding='utf-8') as jsonfh:
+        return json.load(jsonfh)
+
+
+def read_ccp_json(collection):
+    """
+    Read the JSON format compose critical package information for the collection.
+
+    Args:
+        collection (str): The collection to read information for.
+    Returns:
+        dict: A dict with variants as keys. The values are themselves dicts, with arches as
+            keys. The values are again dicts, each with two keys - "buildroot" and "image" -
+            and values as lists, containing the compose critical source package names of that
+            type, for that arch, for that variant.
+    Raises:
+        FileNotFoundError: If there is no file for the requested collection.
+        json.JSONDecodeError: If the file is not valid JSON.
+    """
+    jsonpath = config.get('critpath.jsonpath')
+    jsonfile = os.path.join(jsonpath, f'{collection}-ccp-source.json')
     with open(jsonfile, 'r', encoding='utf-8') as jsonfh:
         return json.load(jsonfh)
 

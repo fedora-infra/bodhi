@@ -645,3 +645,24 @@ def get_critpath_components(request):
         components = components.split(',')
     return bodhi.server.util.get_grouped_critpath_components(collection, component_type,
                                                              components)
+
+
+@view_config(route_name='get_ccp_components', renderer='json')
+def get_ccp_components(request):
+    """
+    Return compose-critical components configured in bodhi.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+    Returns:
+        dict: The compose-critical components for the given collection and component type, by
+            variant, arch and type ('buildroot' or 'image'). If components is specified, only
+            elements of the dict that contain any of the specified components will be present.
+            Will be empty if the underlying metadata is not available.
+    """
+    collection = request.params.get('collection', 'rawhide')
+    component_type = request.params.get('component_type', 'rpm')
+    components = request.params.get('components')
+    if components is not None:
+        components = components.split(',')
+    return bodhi.server.util.get_ccp_components(collection, component_type, components)
