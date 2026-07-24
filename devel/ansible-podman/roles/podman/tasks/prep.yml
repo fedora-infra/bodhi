@@ -1,6 +1,6 @@
-- name: Create temp dir
+- name: Create temp dirs
   ansible.builtin.file:
-    path: /tmp/bodhi-dev
+    path: /tmp/bodhi-dev/vars
     state: directory
     mode: '0755'
 
@@ -34,6 +34,30 @@
   loop:
     - https://infrastructure.fedoraproject.org/infra/db-dumps/waiverdb.dump.xz
     - https://forge.fedoraproject.org/infra/ansible/raw/branch/main/roles/openshift-apps/greenwave/templates/fedora.yaml.j2
+
+- name: Retrieve Fedora release variable files (needed for templating)
+  ansible.builtin.get_url:
+    url: "{{ item }}"
+    dest: "/tmp/bodhi-dev/vars/{{ item | basename }}"
+    force: yes
+  loop:
+    - https://forge.fedoraproject.org/infra/ansible/raw/branch/main/vars/all/00-FedoraCycleNumber.yaml
+    - https://forge.fedoraproject.org/infra/ansible/raw/branch/main/vars/all/FedoraBranched.yaml
+    - https://forge.fedoraproject.org/infra/ansible/raw/branch/main/vars/all/FedoraBranchedNumber.yaml
+    - https://forge.fedoraproject.org/infra/ansible/raw/branch/main/vars/all/FedoraPreviousCycleNumber.yaml
+    - https://forge.fedoraproject.org/infra/ansible/raw/branch/main/vars/all/FedoraPreviousPrevious.yaml
+    - https://forge.fedoraproject.org/infra/ansible/raw/branch/main/vars/all/FedoraPreviousPreviousCycleNumber.yaml
+    - https://forge.fedoraproject.org/infra/ansible/raw/branch/main/vars/all/FedoraRawhideNumber.yaml
+
+- name: Load the Fedora number vars
+  ansible.builtin.include_vars:
+    dir: /tmp/bodhi-dev/vars
+    extensions: ["yaml"]
+
+- name: Template greenwave policy
+  ansible.builtin.template:
+    src: /tmp/bodhi-dev/fedora.yaml.j2
+    dest: /tmp/bodhi-dev/fedora.yaml
 
 - name: Copy various required files into place
   ansible.builtin.copy:
