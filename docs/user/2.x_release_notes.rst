@@ -187,7 +187,7 @@ Features
   (:commit:`431b9078`).
 * The graphs on the metrics page now have mouse hovers to indicate numerical values
   (:issue:`209`).
-* Bodhi now has support for using `Greenwave <https://pagure.io/greenwave/>`_ to gate updates based
+* Bodhi now has support for using `Greenwave <https://github.com/release-engineering/greenwave>`_ to gate updates based
   on test results. See the new ``test_gating.required``, ``test_gating.url``, and
   ``greenwave_api_url`` settings in ``production.ini`` for details on how to enable it. Note also
   that this feature introduces a new server CLI tool, ``bodhi-check-policies``, which is intended to

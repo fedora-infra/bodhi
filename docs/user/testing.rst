@@ -62,4 +62,4 @@ of 7 days and 3 karma respectively, it will be pushed stable as soon as it reach
 if 7 days have not yet passed; or it will be pushed stable after 7 days have passed, even if it
 has not yet reached +3 karma.
 
-.. _Greenwave: https://pagure.io/greenwave
+.. _Greenwave: https://github.com/release-engineering/greenwave

@@ -154,7 +154,7 @@ class AutomaticUpdateHandler:
                 changelog = build.get_changelog(lastupdate=True)
             except ValueError as e:
                 # Often due to bot-generated builds
-                # https://pagure.io/koji/issue/3178
+                # https://forge.fedoraproject.org/koji/koji/issues/3178
                 log.warning(str(e))
                 sleep(5)
                 # Re-raise exception, so that the message can be re-queued
