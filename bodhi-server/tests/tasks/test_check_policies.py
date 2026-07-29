@@ -374,7 +374,7 @@ class TestCheckPolicies(BaseTaskTestCase):
         itemname = f'FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2'
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             # here, we're approximately mocking the scenario from
-            # https://pagure.io/fedora-ci/general/issue/263 , where
+            # https://forge.fedoraproject.org/ci/tickets/issues/263 , where
             # openQA tests passed, but a package in the update had a
             # local gating config that only specified the context
             # bodhi_update_push_stable (not _push_stable_critpath),

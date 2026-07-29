@@ -1,5 +1,5 @@
 # Copyright (C) 2015 Patrick Uiterwijk, for license see Ipsilon's COPYING:
-# https://pagure.io/ipsilon/blob/main/f/COPYING
+# https://forge.fedoraproject.org/apps/ipsilon/src/branch/master/COPYING
 
 from __future__ import absolute_import
 
