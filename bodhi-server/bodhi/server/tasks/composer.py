@@ -897,6 +897,8 @@ class PungiComposerThread(ComposerThread):
     """Compose update with Pungi."""
 
     pungi_template_config_key = None
+    #: Seconds to wait for an aborted Pungi to exit after SIGTERM before killing it.
+    pungi_abort_timeout = 60
 
     def __init__(self, max_concur_sem, compose, agent, db_factory, compose_dir, resume=False):
         """
@@ -951,29 +953,75 @@ class PungiComposerThread(ComposerThread):
 
         composedone = self._checkpoints.get('compose_done')
 
-        if not self.skip_compose and not composedone:
-            pungi_process = self._punge()
+        pungi_process = None
+        try:
+            if not self.skip_compose and not composedone:
+                pungi_process = self._punge()
 
-        # Things we can do while Pungi is running
-        self.generate_testing_digest()
+            # Things we can do while Pungi is running
+            self.generate_testing_digest()
 
-        if not self.skip_compose and not composedone:
-            uinfo = self._generate_updateinfo()
+            if not self.skip_compose and not composedone:
+                uinfo = self._generate_updateinfo()
 
-            self._wait_for_pungi(pungi_process)
+                self._wait_for_pungi(pungi_process)
+                pungi_process = None
 
-            uinfo.insert_updateinfo(self.path)
+                uinfo.insert_updateinfo(self.path)
 
-            self._sanity_check_repo()
-            self._wait_for_repo_signature()
-            self._stage_repo()
+                self._sanity_check_repo()
+                self._wait_for_repo_signature()
+                self._stage_repo()
 
-            self._checkpoints['compose_done'] = True
-            self.save_state()
+                self._checkpoints['compose_done'] = True
+                self.save_state()
 
-        if not self.skip_compose:
-            # Wait for the repo to hit the master mirror
-            self._wait_for_sync()
+            if not self.skip_compose:
+                # Wait for the repo to hit the master mirror
+                self._wait_for_sync()
+        finally:
+            # If we are leaving this method without having reaped Pungi (because
+            # something in between raised), we must not leak its stdout/stderr
+            # pipes. CPython keeps a still-running child alive in
+            # subprocess._active, which holds those file descriptors open. If
+            # Pungi has filled the 64kB pipe buffer it is blocked in write() and
+            # will never exit on its own, so the descriptors would be leaked for
+            # the lifetime of the worker process.
+            self._abandon_pungi(pungi_process)
+
+    def _abandon_pungi(self, pungi_process):
+        """
+        Terminate an unreaped Pungi child process and close its pipes.
+
+        This is a no-op if there is no process, or if it has already been reaped
+        by :meth:`_wait_for_pungi`.
+
+        Args:
+            pungi_process (subprocess.Popen or None): The Pungi process handle.
+        """
+        if pungi_process is None or pungi_process.returncode is not None:
+            return
+
+        log.warning('Compose aborted while Pungi (PID %s) was still running; '
+                    'terminating it and closing its pipes.', pungi_process.pid)
+        try:
+            pungi_process.terminate()
+        except OSError:
+            log.exception('Could not terminate Pungi process %s', pungi_process.pid)
+        try:
+            # Draining with a timeout both unblocks a Pungi that is stuck writing
+            # to a full pipe and reaps the child, so it cannot linger in
+            # subprocess._active.
+            pungi_process.communicate(timeout=self.pungi_abort_timeout)
+        except subprocess.TimeoutExpired:
+            log.error('Pungi process %s did not exit after SIGTERM; killing it.',
+                      pungi_process.pid)
+            pungi_process.kill()
+            pungi_process.communicate()
+        finally:
+            for stream in (pungi_process.stdout, pungi_process.stderr):
+                if stream is not None and not stream.closed:
+                    stream.close()
 
     def _copy_additional_pungi_files(self, pungi_conf_dir, template_env):
         """
