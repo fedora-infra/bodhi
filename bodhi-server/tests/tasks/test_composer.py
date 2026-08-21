@@ -24,6 +24,7 @@ import errno
 import json
 import os
 import shutil
+import subprocess
 import tempfile
 import time
 import urllib.parse as urlparse
@@ -2349,6 +2350,58 @@ class TestPungiComposerThread__compose_updates(ComposerThreadBaseTestCase):
 
         assert os.path.exists(compose_dir)
 
+    def test_pungi_cleaned_up_on_exception(self):
+        """
+        Pungi must not be left unreaped if an exception is raised before it is waited on.
+
+        generate_testing_digest() talks to Koji and can raise, which used to leave the
+        Pungi Popen object -- and its two pipes -- referenced by subprocess._active for
+        as long as the child stayed alive.
+        """
+        task = self._make_task()
+        t = PungiComposerThread(self.semmock, task['composes'][0],
+                                'bowlofeggs', self.Session, self.tempdir)
+        t._checkpoints = {}
+        t.compose = Compose.from_dict(self.db, task['composes'][0])
+        t.skip_compose = False
+        pungi_process = mock.MagicMock()
+        pungi_process.returncode = None
+
+        with mock.patch.object(t, '_punge', return_value=pungi_process), \
+                mock.patch.object(t, 'generate_testing_digest',
+                                  side_effect=Exception('koji is sad')), \
+                mock.patch.object(t, '_abandon_pungi') as abandon:
+            with pytest.raises(Exception, match='koji is sad'):
+                t._compose_updates()
+
+        abandon.assert_called_once_with(pungi_process)
+
+    def test_pungi_not_cleaned_up_after_successful_wait(self):
+        """After _wait_for_pungi() succeeds, the cleanup must be a no-op."""
+        task = self._make_task()
+        t = PungiComposerThread(self.semmock, task['composes'][0],
+                                'bowlofeggs', self.Session, self.tempdir)
+        t._checkpoints = {}
+        t.compose = Compose.from_dict(self.db, task['composes'][0])
+        t.skip_compose = False
+        pungi_process = mock.MagicMock()
+
+        with mock.patch.object(t, '_punge', return_value=pungi_process), \
+                mock.patch.object(t, 'generate_testing_digest'), \
+                mock.patch.object(t, '_generate_updateinfo'), \
+                mock.patch.object(t, '_wait_for_pungi'), \
+                mock.patch.object(t, '_sanity_check_repo'), \
+                mock.patch.object(t, '_wait_for_repo_signature'), \
+                mock.patch.object(t, '_stage_repo'), \
+                mock.patch.object(t, 'save_state'), \
+                mock.patch.object(t, '_wait_for_sync'), \
+                mock.patch.object(t, '_abandon_pungi') as abandon:
+            t._compose_updates()
+
+        # pungi_process is cleared after a successful wait, so the finally block
+        # must be handed None rather than the live process.
+        abandon.assert_called_once_with(None)
+
 
 class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
     """Test FlatpakComposerThread._compose_update()."""
@@ -2417,6 +2470,107 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
                     expected_mock_calls.append(mock_call)
                     expected_mock_calls.append(mock.call().communicate())
         assert Popen.mock_calls == expected_mock_calls
+
+
+class TestPungiComposerThread__abandon_pungi(ComposerThreadBaseTestCase):
+    """This class contains tests for the PungiComposerThread._abandon_pungi() method."""
+
+    def _make_thread(self):
+        task = self._make_task()
+        t = PungiComposerThread(self.semmock, task['composes'][0],
+                                'bowlofeggs', self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, task['composes'][0])
+        return t
+
+    def test_no_process(self):
+        """The method should do nothing if there is no Pungi process."""
+        t = self._make_thread()
+
+        # This should not raise.
+        t._abandon_pungi(None)
+
+    def test_already_reaped(self):
+        """The method should not touch a process that has already exited."""
+        t = self._make_thread()
+        pungi_process = mock.MagicMock()
+        pungi_process.returncode = 0
+
+        t._abandon_pungi(pungi_process)
+
+        pungi_process.terminate.assert_not_called()
+        pungi_process.communicate.assert_not_called()
+
+    def test_terminates_and_drains(self):
+        """An unreaped Pungi should be terminated, drained, and its pipes closed."""
+        t = self._make_thread()
+        pungi_process = mock.MagicMock()
+        pungi_process.returncode = None
+        pungi_process.pid = 1234
+
+        t._abandon_pungi(pungi_process)
+
+        pungi_process.terminate.assert_called_once_with()
+        pungi_process.communicate.assert_called_once_with(timeout=t.pungi_abort_timeout)
+        pungi_process.kill.assert_not_called()
+        pungi_process.stdout.close.assert_called_once_with()
+        pungi_process.stderr.close.assert_called_once_with()
+
+    def test_kills_when_sigterm_ignored(self):
+        """A Pungi that does not exit after SIGTERM should be killed."""
+        t = self._make_thread()
+        pungi_process = mock.MagicMock()
+        pungi_process.returncode = None
+        pungi_process.pid = 1234
+        pungi_process.communicate.side_effect = [
+            subprocess.TimeoutExpired(cmd='pungi', timeout=t.pungi_abort_timeout),
+            (b'', b''),
+        ]
+
+        t._abandon_pungi(pungi_process)
+
+        pungi_process.kill.assert_called_once_with()
+        assert pungi_process.communicate.call_count == 2
+        pungi_process.stdout.close.assert_called_once_with()
+        pungi_process.stderr.close.assert_called_once_with()
+
+    def test_terminate_raises_oserror(self):
+        """The pipes must still be closed if terminate() raises OSError."""
+        t = self._make_thread()
+        pungi_process = mock.MagicMock()
+        pungi_process.returncode = None
+        pungi_process.pid = 1234
+        pungi_process.terminate.side_effect = OSError('no such process')
+
+        t._abandon_pungi(pungi_process)
+
+        pungi_process.stdout.close.assert_called_once_with()
+        pungi_process.stderr.close.assert_called_once_with()
+
+    def test_streams_already_closed(self):
+        """Streams that are already closed should not be closed a second time."""
+        t = self._make_thread()
+        pungi_process = mock.MagicMock()
+        pungi_process.returncode = None
+        pungi_process.pid = 1234
+        pungi_process.stdout.closed = True
+        pungi_process.stderr.closed = True
+
+        t._abandon_pungi(pungi_process)
+
+        pungi_process.stdout.close.assert_not_called()
+        pungi_process.stderr.close.assert_not_called()
+
+    def test_streams_are_none(self):
+        """The method should cope with a process that has no pipes."""
+        t = self._make_thread()
+        pungi_process = mock.MagicMock()
+        pungi_process.returncode = None
+        pungi_process.pid = 1234
+        pungi_process.stdout = None
+        pungi_process.stderr = None
+
+        # This should not raise.
+        t._abandon_pungi(pungi_process)
 
 
 class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase):
