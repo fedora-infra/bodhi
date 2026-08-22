@@ -34,40 +34,40 @@
   <section id="bodhi-buildroot-override-tag">
 <h1>bodhi.buildroot_override.tag<a class="headerlink" href="#bodhi-buildroot-override-tag" title="Link to this heading">¶</a></h1>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.buildroot_override.tag#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Schema for message sent when buildroot overrides are tagged&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;override&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;nvr&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The NVR of the build that was overridden&quot;</span>
+    <span class="s2">"id"</span><span class="p">:</span> <span class="s2">"https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.buildroot_override.tag#"</span><span class="p">,</span>
+    <span class="s2">"$schema"</span><span class="p">:</span> <span class="s2">"http://json-schema.org/draft-04/schema#"</span><span class="p">,</span>
+    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Schema for message sent when buildroot overrides are tagged"</span><span class="p">,</span>
+    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+    <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"override"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+            <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"nvr"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The NVR of the build that was overridden"</span>
                 <span class="p">},</span>
-                <span class="s2">&quot;submitter&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The user that submitted the override&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
-                            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-                            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The user&#39;s account name&quot;</span>
+                <span class="s2">"submitter"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The user that submitted the override"</span><span class="p">,</span>
+                    <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">"name"</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The user's account name"</span>
                         <span class="p">}</span>
                     <span class="p">},</span>
-                    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
-                        <span class="s2">&quot;name&quot;</span>
+                    <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s2">"name"</span>
                     <span class="p">]</span>
                 <span class="p">}</span>
             <span class="p">},</span>
-            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
-                <span class="s2">&quot;nvr&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;submitter&quot;</span>
+            <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">"nvr"</span><span class="p">,</span>
+                <span class="s2">"submitter"</span>
             <span class="p">]</span>
         <span class="p">}</span>
     <span class="p">},</span>
-    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;override&quot;</span>
+    <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">"override"</span>
     <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -76,40 +76,40 @@
 <section id="bodhi-buildroot-override-untag">
 <h1>bodhi.buildroot_override.untag<a class="headerlink" href="#bodhi-buildroot-override-untag" title="Link to this heading">¶</a></h1>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.buildroot_override.untag#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Schema for message sent when buildroot overrides are untagged&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;override&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;nvr&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The NVR of the build that had been overridden&quot;</span>
+    <span class="s2">"id"</span><span class="p">:</span> <span class="s2">"https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.buildroot_override.untag#"</span><span class="p">,</span>
+    <span class="s2">"$schema"</span><span class="p">:</span> <span class="s2">"http://json-schema.org/draft-04/schema#"</span><span class="p">,</span>
+    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Schema for message sent when buildroot overrides are untagged"</span><span class="p">,</span>
+    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+    <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"override"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+            <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"nvr"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The NVR of the build that had been overridden"</span>
                 <span class="p">},</span>
-                <span class="s2">&quot;submitter&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The user that submitted the override&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
-                            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-                            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The user&#39;s account name&quot;</span>
+                <span class="s2">"submitter"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The user that submitted the override"</span><span class="p">,</span>
+                    <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">"name"</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The user's account name"</span>
                         <span class="p">}</span>
                     <span class="p">},</span>
-                    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
-                        <span class="s2">&quot;name&quot;</span>
+                    <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s2">"name"</span>
                     <span class="p">]</span>
                 <span class="p">}</span>
             <span class="p">},</span>
-            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
-                <span class="s2">&quot;nvr&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;submitter&quot;</span>
+            <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">"nvr"</span><span class="p">,</span>
+                <span class="s2">"submitter"</span>
             <span class="p">]</span>
         <span class="p">}</span>
     <span class="p">},</span>
-    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;override&quot;</span>
+    <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">"override"</span>
     <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>

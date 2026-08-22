@@ -133,117 +133,117 @@ of an email.</p>
 <section id="bodhi-errata-publish">
 <h3>bodhi.errata.publish<a class="headerlink" href="#bodhi-errata-publish" title="Link to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.errata.publish#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;$schema&quot;</span><span class="p">:</span> <span class="s2">&quot;http://json-schema.org/draft-04/schema#&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Schema for message sent when an update is pushed to stable&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The body of an human readable message about the update&quot;</span>
+    <span class="s2">"id"</span><span class="p">:</span> <span class="s2">"https://bodhi.fedoraproject.org/message-schemas/v1/bodhi.errata.publish#"</span><span class="p">,</span>
+    <span class="s2">"$schema"</span><span class="p">:</span> <span class="s2">"http://json-schema.org/draft-04/schema#"</span><span class="p">,</span>
+    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Schema for message sent when an update is pushed to stable"</span><span class="p">,</span>
+    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+    <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"body"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The body of an human readable message about the update"</span>
         <span class="p">},</span>
-        <span class="s2">&quot;subject&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A short summary of the update&quot;</span>
+        <span class="s2">"subject"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"A short summary of the update"</span>
         <span class="p">},</span>
-        <span class="s2">&quot;update&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;An update&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;alias&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The alias of the update&quot;</span>
+        <span class="s2">"update"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"An update"</span><span class="p">,</span>
+            <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"alias"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The alias of the update"</span>
                 <span class="p">},</span>
-                <span class="s2">&quot;builds&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;array&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A list of builds included in this update&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">&quot;$ref&quot;</span><span class="p">:</span> <span class="s2">&quot;#/definitions/build&quot;</span>
+                <span class="s2">"builds"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"array"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"A list of builds included in this update"</span><span class="p">,</span>
+                    <span class="s2">"items"</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">"$ref"</span><span class="p">:</span> <span class="s2">"#/definitions/build"</span>
                     <span class="p">}</span>
                 <span class="p">},</span>
-                <span class="s2">&quot;release&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A release&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
-                            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-                            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The name of the release e.g. F32&quot;</span>
+                <span class="s2">"release"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"A release"</span><span class="p">,</span>
+                    <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">"name"</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the release e.g. F32"</span>
                         <span class="p">}</span>
                     <span class="p">},</span>
-                    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
-                        <span class="s2">&quot;name&quot;</span>
+                    <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s2">"name"</span>
                     <span class="p">]</span>
                 <span class="p">},</span>
-                <span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="p">[</span>
-                        <span class="s2">&quot;null&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;string&quot;</span>
+                <span class="s2">"request"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s2">"null"</span><span class="p">,</span>
+                        <span class="s2">"string"</span>
                     <span class="p">],</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The request of the update, if any&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;enum&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The request of the update, if any"</span><span class="p">,</span>
+                    <span class="s2">"enum"</span><span class="p">:</span> <span class="p">[</span>
                         <span class="n">null</span><span class="p">,</span>
-                        <span class="s2">&quot;testing&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;obsolete&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;unpush&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;revoke&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;stable&quot;</span>
+                        <span class="s2">"testing"</span><span class="p">,</span>
+                        <span class="s2">"obsolete"</span><span class="p">,</span>
+                        <span class="s2">"unpush"</span><span class="p">,</span>
+                        <span class="s2">"revoke"</span><span class="p">,</span>
+                        <span class="s2">"stable"</span>
                     <span class="p">]</span>
                 <span class="p">},</span>
-                <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The current status of the update&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;enum&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">"status"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The current status of the update"</span><span class="p">,</span>
+                    <span class="s2">"enum"</span><span class="p">:</span> <span class="p">[</span>
                         <span class="n">null</span><span class="p">,</span>
-                        <span class="s2">&quot;pending&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;testing&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;stable&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;unpushed&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;obsolete&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;side_tag_active&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;side_tag_expired&quot;</span>
+                        <span class="s2">"pending"</span><span class="p">,</span>
+                        <span class="s2">"testing"</span><span class="p">,</span>
+                        <span class="s2">"stable"</span><span class="p">,</span>
+                        <span class="s2">"unpushed"</span><span class="p">,</span>
+                        <span class="s2">"obsolete"</span><span class="p">,</span>
+                        <span class="s2">"side_tag_active"</span><span class="p">,</span>
+                        <span class="s2">"side_tag_expired"</span>
                     <span class="p">]</span>
                 <span class="p">},</span>
-                <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The user that submitted the override&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">{</span>
-                            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-                            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The user&#39;s account name&quot;</span>
+                <span class="s2">"user"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The user that submitted the override"</span><span class="p">,</span>
+                    <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">"name"</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The user's account name"</span>
                         <span class="p">}</span>
                     <span class="p">},</span>
-                    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
-                        <span class="s2">&quot;name&quot;</span>
+                    <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="s2">"name"</span>
                     <span class="p">]</span>
                 <span class="p">}</span>
             <span class="p">},</span>
-            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
-                <span class="s2">&quot;alias&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;builds&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;release&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;request&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;status&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;user&quot;</span>
+            <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">"alias"</span><span class="p">,</span>
+                <span class="s2">"builds"</span><span class="p">,</span>
+                <span class="s2">"release"</span><span class="p">,</span>
+                <span class="s2">"request"</span><span class="p">,</span>
+                <span class="s2">"status"</span><span class="p">,</span>
+                <span class="s2">"user"</span>
             <span class="p">]</span>
         <span class="p">}</span>
     <span class="p">},</span>
-    <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;body&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;subject&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;update&quot;</span>
+    <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">"body"</span><span class="p">,</span>
+        <span class="s2">"subject"</span><span class="p">,</span>
+        <span class="s2">"update"</span>
     <span class="p">],</span>
-    <span class="s2">&quot;definitions&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;build&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;A build&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;nvr&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;The nvr the identifies the build in koji&quot;</span>
+    <span class="s2">"definitions"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"build"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"A build"</span><span class="p">,</span>
+            <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"nvr"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The nvr the identifies the build in koji"</span>
                 <span class="p">}</span>
             <span class="p">},</span>
-            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span>
-                <span class="s2">&quot;nvr&quot;</span>
+            <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">"nvr"</span>
             <span class="p">]</span>
         <span class="p">}</span>
     <span class="p">}</span>

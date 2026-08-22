@@ -211,7 +211,7 @@ insensitive searching. Bodhi’s web interface now uses these endpoints
 (<a class="extlink-commit reference external" href="https://github.com/fedora-infra/bodhi/commit/431b9078">431b9078</a>).</p></li>
 <li><p>The graphs on the metrics page now have mouse hovers to indicate numerical values
 (<a class="extlink-issue reference external" href="https://github.com/fedora-infra/bodhi/issues/209">#209</a>).</p></li>
-<li><p>Bodhi now has support for using <a class="reference external" href="https://pagure.io/greenwave/">Greenwave</a> to gate updates based
+<li><p>Bodhi now has support for using <a class="reference external" href="https://github.com/release-engineering/greenwave">Greenwave</a> to gate updates based
 on test results. See the new <code class="docutils literal notranslate"><span class="pre">test_gating.required</span></code>, <code class="docutils literal notranslate"><span class="pre">test_gating.url</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">greenwave_api_url</span></code> settings in <code class="docutils literal notranslate"><span class="pre">production.ini</span></code> for details on how to enable it. Note also
 that this feature introduces a new server CLI tool, <code class="docutils literal notranslate"><span class="pre">bodhi-check-policies</span></code>, which is intended to

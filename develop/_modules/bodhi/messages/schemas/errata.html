@@ -46,13 +46,13 @@
 <span class="c1"># You should have received a copy of the GNU General Public License along</span>
 <span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
 <span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Message schema for Errata.</span>
 
 <span class="sd">Each message is defined as a Python class. For details, see `fedora-messaging</span>
 <span class="sd">&lt;https://fedora-messaging.readthedocs.io/en/stable/&gt;`_ documentation on</span>
 <span class="sd">messages.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
 
@@ -62,92 +62,92 @@
 <div class="viewcode-block" id="ErrataPublishV1">
 <a class="viewcode-back" href="../../../../server_api/messages/errata.html#bodhi.messages.schemas.errata.ErrataPublishV1">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ErrataPublishV1</span><span class="p">(</span><span class="n">BodhiMessage</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when an errata is published.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Sent when an errata is published."""</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.errata.publish#&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;$schema&#39;</span><span class="p">:</span> <span class="s1">&#39;http://json-schema.org/draft-04/schema#&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Schema for message sent when an update is pushed to stable&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;object&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;properties&#39;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">&#39;body&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;The body of an human readable message about the update&#39;</span><span class="p">,</span>
+        <span class="s1">'id'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.errata.publish#'</span><span class="p">,</span>
+        <span class="s1">'$schema'</span><span class="p">:</span> <span class="s1">'http://json-schema.org/draft-04/schema#'</span><span class="p">,</span>
+        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Schema for message sent when an update is pushed to stable'</span><span class="p">,</span>
+        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
+        <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">'body'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The body of an human readable message about the update'</span><span class="p">,</span>
             <span class="p">},</span>
-            <span class="s1">&#39;subject&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;A short summary of the update&#39;</span>
+            <span class="s1">'subject'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'A short summary of the update'</span>
             <span class="p">},</span>
-            <span class="s1">&#39;update&#39;</span><span class="p">:</span> <span class="n">UpdateV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
+            <span class="s1">'update'</span><span class="p">:</span> <span class="n">UpdateV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
         <span class="p">},</span>
-        <span class="s1">&#39;required&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;body&#39;</span><span class="p">,</span> <span class="s1">&#39;subject&#39;</span><span class="p">,</span> <span class="s1">&#39;update&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;definitions&#39;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">&#39;build&#39;</span><span class="p">:</span> <span class="n">BuildV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
+        <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'body'</span><span class="p">,</span> <span class="s1">'subject'</span><span class="p">,</span> <span class="s1">'update'</span><span class="p">],</span>
+        <span class="s1">'definitions'</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">'build'</span><span class="p">:</span> <span class="n">BuildV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
         <span class="p">}</span>
     <span class="p">}</span>
 
-    <span class="n">topic</span> <span class="o">=</span> <span class="s2">&quot;bodhi.errata.publish&quot;</span>
+    <span class="n">topic</span> <span class="o">=</span> <span class="s2">"bodhi.errata.publish"</span>
 
 <div class="viewcode-block" id="ErrataPublishV1.__str__">
 <a class="viewcode-back" href="../../../../server_api/messages/errata.html#bodhi.messages.schemas.errata.ErrataPublishV1.__str__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
 <span class="sd">        This should provide a detailed representation of the message, much like the body</span>
 <span class="sd">        of an email.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;body&#39;</span><span class="p">]</span></div>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">'body'</span><span class="p">]</span></div>
 
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">agent_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the agent&#39;s username for this message.</span>
+<span class="w">        </span><span class="sd">"""Return the agent's username for this message.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            The agent&#39;s username.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            The agent's username.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">name</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">packages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;List of package names affected by the action that generated this message.</span>
+<span class="w">        </span><span class="sd">"""List of package names affected by the action that generated this message.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A list of affected package names.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">packages</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return a short, human-readable representation of this message.</span>
 
 <span class="sd">        This should provide a short summary of the message, much like the subject line</span>
 <span class="sd">        of an email.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;subject&#39;</span><span class="p">]</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">'subject'</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return a URL to the action that caused this message to be emitted.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A relevant URL.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;https://bodhi.fedoraproject.org/updates/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s1">&#39;</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'https://bodhi.fedoraproject.org/updates/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="o">.</span><span class="n">alias</span><span class="si">}</span><span class="s1">'</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UpdateV1</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the Update from this errata.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_update&#39;</span><span class="p">):</span>
-            <span class="c1"># Let&#39;s cache the Update since a few different methods use it.</span>
+<span class="w">        </span><span class="sd">"""Return the Update from this errata."""</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">'_update'</span><span class="p">):</span>
+            <span class="c1"># Let's cache the Update since a few different methods use it.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_update</span> <span class="o">=</span> <span class="n">UpdateV1</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;update&#39;</span><span class="p">][</span><span class="s1">&#39;alias&#39;</span><span class="p">],</span>
-                <span class="p">[</span><span class="n">BuildV1</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s1">&#39;nvr&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;update&#39;</span><span class="p">][</span><span class="s1">&#39;builds&#39;</span><span class="p">]],</span>
-                <span class="n">UserV1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;update&#39;</span><span class="p">][</span><span class="s1">&#39;user&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;update&#39;</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">],</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;update&#39;</span><span class="p">][</span><span class="s1">&#39;request&#39;</span><span class="p">],</span> <span class="n">ReleaseV1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;update&#39;</span><span class="p">][</span><span class="s1">&#39;release&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">'update'</span><span class="p">][</span><span class="s1">'alias'</span><span class="p">],</span>
+                <span class="p">[</span><span class="n">BuildV1</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s1">'nvr'</span><span class="p">])</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">'update'</span><span class="p">][</span><span class="s1">'builds'</span><span class="p">]],</span>
+                <span class="n">UserV1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">'update'</span><span class="p">][</span><span class="s1">'user'</span><span class="p">][</span><span class="s1">'name'</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">'update'</span><span class="p">][</span><span class="s1">'status'</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">'update'</span><span class="p">][</span><span class="s1">'request'</span><span class="p">],</span> <span class="n">ReleaseV1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">'update'</span><span class="p">][</span><span class="s1">'release'</span><span class="p">][</span><span class="s1">'name'</span><span class="p">]))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update</span></div>
 
 </pre></div>

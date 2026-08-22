@@ -46,13 +46,13 @@
 <span class="c1"># You should have received a copy of the GNU General Public License along</span>
 <span class="c1"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
 <span class="c1"># 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">Message schema for Buildroot Overrides.</span>
 
 <span class="sd">Each message is defined as a Python class. For details, see `fedora-messaging</span>
 <span class="sd">&lt;https://fedora-messaging.readthedocs.io/en/stable/&gt;`_ documentation on</span>
 <span class="sd">messages.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
 
@@ -62,32 +62,32 @@
 <div class="viewcode-block" id="BuildrootOverrideMessage">
 <a class="viewcode-back" href="../../../../server_api/messages/buildroot_override.html#bodhi.messages.schemas.buildroot_override.BuildrootOverrideMessage">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BuildrootOverrideMessage</span><span class="p">(</span><span class="n">BodhiMessage</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for the buildroot_override messages.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Base class for the buildroot_override messages."""</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BuildV1</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the build that was overridden.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">BuildV1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;override&#39;</span><span class="p">][</span><span class="s1">&#39;nvr&#39;</span><span class="p">])</span>
+<span class="w">        </span><span class="sd">"""Return the build that was overridden."""</span>
+        <span class="k">return</span> <span class="n">BuildV1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">'override'</span><span class="p">][</span><span class="s1">'nvr'</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">submitter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UserV1</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the name of the submitter for the override.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">UserV1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">&#39;override&#39;</span><span class="p">][</span><span class="s1">&#39;submitter&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+<span class="w">        </span><span class="sd">"""Return the name of the submitter for the override."""</span>
+        <span class="k">return</span> <span class="n">UserV1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">'override'</span><span class="p">][</span><span class="s1">'submitter'</span><span class="p">][</span><span class="s1">'name'</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return a short, human-readable representation of this message.</span>
 
 <span class="sd">        This should provide a short summary of the message, much like the subject line</span>
 <span class="sd">        of an email.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary_tmpl</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">submitter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">submitter</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">build</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BuildrootOverrideMessage.__str__">
 <a class="viewcode-back" href="../../../../server_api/messages/buildroot_override.html#bodhi.messages.schemas.buildroot_override.BuildrootOverrideMessage.__str__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return a human-readable representation of this message.</span>
 
 <span class="sd">        This should provide a detailed representation of the message, much like the body</span>
@@ -95,46 +95,46 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A human readable representation of this message.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary</span></div>
 
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return a URL to the action that caused this message to be emitted.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A relevant URL.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;https://bodhi.fedoraproject.org/overrides/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"https://bodhi.fedoraproject.org/overrides/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="si">}</span><span class="s2">"</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">packages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;List of packages affected by the action that generated this message.</span>
+<span class="w">        </span><span class="sd">"""List of packages affected by the action that generated this message.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A list of affected package names.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">package</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">agent_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the agent&#39;s username for this message.</span>
+<span class="w">        </span><span class="sd">"""Return the agent's username for this message.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            The agent&#39;s username.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            The agent's username.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">submitter</span><span class="o">.</span><span class="n">name</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">usernames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        List of users affected by the action that generated this message.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A list of affected usernames.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_name</span><span class="p">]</span></div>
 
 
@@ -142,62 +142,62 @@
 <div class="viewcode-block" id="BuildrootOverrideTagV1">
 <a class="viewcode-back" href="../../../../server_api/messages/buildroot_override.html#bodhi.messages.schemas.buildroot_override.BuildrootOverrideTagV1">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BuildrootOverrideTagV1</span><span class="p">(</span><span class="n">BuildrootOverrideMessage</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when a buildroot override is added and tagged into the build root.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Sent when a buildroot override is added and tagged into the build root."""</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.buildroot_override.tag#&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;$schema&#39;</span><span class="p">:</span> <span class="s1">&#39;http://json-schema.org/draft-04/schema#&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Schema for message sent when buildroot overrides are tagged&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;object&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;properties&#39;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">&#39;override&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;object&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;properties&#39;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s1">&#39;nvr&#39;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
-                        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;The NVR of the build that was overridden&#39;</span>
+        <span class="s1">'id'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.buildroot_override.tag#'</span><span class="p">,</span>
+        <span class="s1">'$schema'</span><span class="p">:</span> <span class="s1">'http://json-schema.org/draft-04/schema#'</span><span class="p">,</span>
+        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Schema for message sent when buildroot overrides are tagged'</span><span class="p">,</span>
+        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
+        <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">'override'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
+                <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">'nvr'</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+                        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The NVR of the build that was overridden'</span>
                     <span class="p">},</span>
-                    <span class="s1">&#39;submitter&#39;</span><span class="p">:</span> <span class="n">UserV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
+                    <span class="s1">'submitter'</span><span class="p">:</span> <span class="n">UserV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
                 <span class="p">},</span>
-                <span class="s1">&#39;required&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;nvr&#39;</span><span class="p">,</span> <span class="s1">&#39;submitter&#39;</span><span class="p">]</span>
+                <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'nvr'</span><span class="p">,</span> <span class="s1">'submitter'</span><span class="p">]</span>
             <span class="p">}</span>
         <span class="p">},</span>
-        <span class="s1">&#39;required&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;override&#39;</span><span class="p">],</span>
+        <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'override'</span><span class="p">],</span>
     <span class="p">}</span>
 
-    <span class="n">topic</span> <span class="o">=</span> <span class="s2">&quot;bodhi.buildroot_override.tag&quot;</span>
-    <span class="n">_summary_tmpl</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{submitter}</span><span class="s2"> submitted a buildroot override for </span><span class="si">{build}</span><span class="s2">&quot;</span></div>
+    <span class="n">topic</span> <span class="o">=</span> <span class="s2">"bodhi.buildroot_override.tag"</span>
+    <span class="n">_summary_tmpl</span> <span class="o">=</span> <span class="s2">"</span><span class="si">{submitter}</span><span class="s2"> submitted a buildroot override for </span><span class="si">{build}</span><span class="s2">"</span></div>
 
 
 
 <div class="viewcode-block" id="BuildrootOverrideUntagV1">
 <a class="viewcode-back" href="../../../../server_api/messages/buildroot_override.html#bodhi.messages.schemas.buildroot_override.BuildrootOverrideUntagV1">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BuildrootOverrideUntagV1</span><span class="p">(</span><span class="n">BuildrootOverrideMessage</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sent when a buildroot override is untagged from the build root.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Sent when a buildroot override is untagged from the build root."""</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.buildroot_override.untag#&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;$schema&#39;</span><span class="p">:</span> <span class="s1">&#39;http://json-schema.org/draft-04/schema#&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Schema for message sent when buildroot overrides are untagged&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;object&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;properties&#39;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">&#39;override&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;object&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;properties&#39;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s1">&#39;nvr&#39;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
-                        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;The NVR of the build that had been overridden&#39;</span>
+        <span class="s1">'id'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.buildroot_override.untag#'</span><span class="p">,</span>
+        <span class="s1">'$schema'</span><span class="p">:</span> <span class="s1">'http://json-schema.org/draft-04/schema#'</span><span class="p">,</span>
+        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Schema for message sent when buildroot overrides are untagged'</span><span class="p">,</span>
+        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
+        <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">'override'</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
+                <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">'nvr'</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+                        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The NVR of the build that had been overridden'</span>
                     <span class="p">},</span>
-                    <span class="s1">&#39;submitter&#39;</span><span class="p">:</span> <span class="n">UserV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
+                    <span class="s1">'submitter'</span><span class="p">:</span> <span class="n">UserV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
                 <span class="p">},</span>
-                <span class="s1">&#39;required&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;nvr&#39;</span><span class="p">,</span> <span class="s1">&#39;submitter&#39;</span><span class="p">]</span>
+                <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'nvr'</span><span class="p">,</span> <span class="s1">'submitter'</span><span class="p">]</span>
             <span class="p">}</span>
         <span class="p">},</span>
-        <span class="s1">&#39;required&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;override&#39;</span><span class="p">],</span>
+        <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'override'</span><span class="p">],</span>
     <span class="p">}</span>
 
-    <span class="n">topic</span> <span class="o">=</span> <span class="s2">&quot;bodhi.buildroot_override.untag&quot;</span>
-    <span class="n">_summary_tmpl</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{submitter}</span><span class="s2"> expired a buildroot override for </span><span class="si">{build}</span><span class="s2">&quot;</span></div>
+    <span class="n">topic</span> <span class="o">=</span> <span class="s2">"bodhi.buildroot_override.untag"</span>
+    <span class="n">_summary_tmpl</span> <span class="o">=</span> <span class="s2">"</span><span class="si">{submitter}</span><span class="s2"> expired a buildroot override for </span><span class="si">{build}</span><span class="s2">"</span></div>
 
 </pre></div>
 

@@ -121,7 +121,7 @@ containers to get back to a clean state.</p>
 <section id="quick-tips-about-the-bcd-environment">
 <h2>Quick tips about the BCD environment<a class="headerlink" href="#quick-tips-about-the-bcd-environment" title="Link to this heading">¶</a></h2>
 <p>You can shell into the running Bodhi container like this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Make sure your bodhi checkout is your shell&#39;s cwd
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Make sure your bodhi checkout is your shell's cwd
 $ ./bcd shell
 </pre></div>
 </div>
@@ -131,11 +131,11 @@ screen via the <code class="docutils literal notranslate"><span class="pre">/etc
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
 Welcome to the Bodhi development environment! Here are some helpful commands:
 
-bdocs:       Build Bodhi&#39;s documentation.
+bdocs:       Build Bodhi's documentation.
 blint:       Run a series of linter checks.
-btest:       Run Bodhi&#39;s test suite (includes blint and bdocs).
-bmessages:   Display the log of Bodhi&#39;s messages on the bus.
-blog:        View Bodhi&#39;s log. (Support all the systemctl options, such as -lf).
+btest:       Run Bodhi's test suite (includes blint and bdocs).
+bmessages:   Display the log of Bodhi's messages on the bus.
+blog:        View Bodhi's log. (Support all the systemctl options, such as -lf).
 bresetdb:    Drop and reimport the database.
 brestart:    Restart the Bodhi service.
 bodhi-shell: Get a handy python shell initialized with Bodhi models.
@@ -161,7 +161,7 @@ You can use <code class="docutils literal notranslate"><span class="pre">bodhi-s
 in. Here’s an example where we use <code class="docutils literal notranslate"><span class="pre">bodhi-shell</span></code> to set an update’s request to stable:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [root@bodhi-dev bodhi]# bodhi-shell
 Python 3.12.0 (main, Oct  2 2023, 00:00:00) [GCC 13.2.1 20230918 (Red Hat 13.2.1-3)] on linux
-Type &quot;help&quot; for more information.
+Type "help" for more information.
 
 Environment:
   app          The WSGI application.
@@ -174,7 +174,7 @@ Custom Variables:
   m            bodhi.server.models
   s            bodhi.server.Session
 
-&gt;&gt;&gt; u = m.Update.query.filter_by(alias=&#39;FEDORA-2016-840ff89708&#39;).one()
+&gt;&gt;&gt; u = m.Update.query.filter_by(alias='FEDORA-2016-840ff89708').one()
 &gt;&gt;&gt; u.request = m.UpdateRequest.stable
 &gt;&gt;&gt; s().commit()
 </pre></div>

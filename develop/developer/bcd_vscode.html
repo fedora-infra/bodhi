@@ -56,18 +56,18 @@ from when this page documented using VS Code with Vagrant. They’re probably st
 <h2>Debugging application running in BCD<a class="headerlink" href="#debugging-application-running-in-bcd" title="Link to this heading">¶</a></h2>
 <p>When inside the container set the debug configuration in <cite>launch.json</cite> for Pyramid (you should get the pyramid conf as a suggestion):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.2.0&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;configurations&quot;</span><span class="p">:</span> <span class="p">[</span>
+  <span class="s2">"version"</span><span class="p">:</span> <span class="s2">"0.2.0"</span><span class="p">,</span>
+  <span class="s2">"configurations"</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Python: Pyramid Application&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;python&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="s2">&quot;launch&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;module&quot;</span><span class="p">:</span> <span class="s2">&quot;pyramid.scripts.pserve&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="s2">&quot;/home/vagrant/development.ini&quot;</span>
+        <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"Python: Pyramid Application"</span><span class="p">,</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"python"</span><span class="p">,</span>
+        <span class="s2">"request"</span><span class="p">:</span> <span class="s2">"launch"</span><span class="p">,</span>
+        <span class="s2">"module"</span><span class="p">:</span> <span class="s2">"pyramid.scripts.pserve"</span><span class="p">,</span>
+        <span class="s2">"args"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">"/home/vagrant/development.ini"</span>
         <span class="p">],</span>
-        <span class="s2">&quot;pyramid&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-        <span class="s2">&quot;jinja&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+        <span class="s2">"pyramid"</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+        <span class="s2">"jinja"</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
     <span class="p">},</span>
 </pre></div>
 </div>
@@ -81,11 +81,11 @@ the application will stop on breakpoints.</p>
 <p>For running unit-tests install <cite>Python Test Explorer for Visual Studio Code &lt;https://marketplace.visualstudio.com/items?itemName=littlefoxteam.vscode-python-test-adapter&gt;</cite> extension
 Open settings (CTRL+Comma), and in the settings for the container, swith to JSON view and make the following configuration changes:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;python.testing.pytestEnabled&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-  <span class="s2">&quot;python.testing.pytestPath&quot;</span><span class="p">:</span> <span class="s2">&quot;py.test-3&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;pythonTestExplorer.testFramework&quot;</span><span class="p">:</span> <span class="s2">&quot;pytest&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;python.pythonPath&quot;</span><span class="p">:</span> <span class="s2">&quot;python3&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;python.testing.pytestArgs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;--no-cov&quot;</span><span class="p">]</span>
+  <span class="s2">"python.testing.pytestEnabled"</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+  <span class="s2">"python.testing.pytestPath"</span><span class="p">:</span> <span class="s2">"py.test-3"</span><span class="p">,</span>
+  <span class="s2">"pythonTestExplorer.testFramework"</span><span class="p">:</span> <span class="s2">"pytest"</span><span class="p">,</span>
+  <span class="s2">"python.pythonPath"</span><span class="p">:</span> <span class="s2">"python3"</span><span class="p">,</span>
+        <span class="s2">"python.testing.pytestArgs"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"--no-cov"</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>

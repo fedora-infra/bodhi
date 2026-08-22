@@ -63,16 +63,16 @@ use = egg:bodhi-server
 # update.
 # testing_approval_msg = This update can be pushed to stable now if the maintainer wishes
 
-# not_yet_tested_msg = This update has not yet met the minimum testing requirements defined in the &lt;a href=&quot;https://fedoraproject.org/wiki/Package_update_acceptance_criteria&quot;&gt;Package Update Acceptance Criteria&lt;/a&gt;
+# not_yet_tested_msg = This update has not yet met the minimum testing requirements defined in the &lt;a href="https://fedoraproject.org/wiki/Package_update_acceptance_criteria"&gt;Package Update Acceptance Criteria&lt;/a&gt;
 
-# not_yet_tested_epel_msg = This update has not yet met the minimum testing requirements defined in the &lt;a href=&quot;https://fedoraproject.org/wiki/EPEL_Updates_Policy&quot;&gt;EPEL Update Policy&lt;/a&gt;
+# not_yet_tested_epel_msg = This update has not yet met the minimum testing requirements defined in the &lt;a href="https://fedoraproject.org/wiki/EPEL_Updates_Policy"&gt;EPEL Update Policy&lt;/a&gt;
 
 # The comment that Bodhi will post on updates when a user posts negative karma.
 # disable_automatic_push_to_stable = Bodhi is disabling automatic push to stable due to negative karma. The maintainer may push manually if they determine that the issue is not severe.
 
 
 # Libravatar - If this is true libravatar will work as normal. Otherwise, all
-# libravatar links will be replaced with the string &quot;libravatar.org&quot; so that
+# libravatar links will be replaced with the string "libravatar.org" so that
 # the tests can still pass.
 # libravatar_enabled = True
 
@@ -80,7 +80,7 @@ use = egg:bodhi-server
 # libravatar_dns = False
 
 # If libravatar_dns is True, libravatar_prefer_tls will define what gets handed to
-# libravatar.libravatar_url()&#39;s https setting. It may be set to True or False, but defaults to None,
+# libravatar.libravatar_url()'s https setting. It may be set to True or False, but defaults to None,
 # which is effectively False.
 # libravatar_prefer_tls = True
 
@@ -88,10 +88,10 @@ use = egg:bodhi-server
 ## Legal
 ##
 
-# If you set this, Bodhi will display a link in the footer called &quot;Legal&quot; that points to the
+# If you set this, Bodhi will display a link in the footer called "Legal" that points to the
 # supplied link.
 # legal_link =
-# If you set this, Bodhi will display a link in the footer called &quot;Privacy policy&quot; that points to
+# If you set this, Bodhi will display a link in the footer called "Privacy policy" that points to
 # the supplied link. It will also link the privacy policy under the comment box.
 # privacy_link =
 
@@ -114,14 +114,14 @@ use = egg:bodhi-server
 # True, be sure to add a cron job to run the bodhi-check-policies CLI periodically.
 # test_gating.required = False
 
-# If this is set to a URL, a &quot;More information about test gating&quot; link will appear on update pages for users
+# If this is set to a URL, a "More information about test gating" link will appear on update pages for users
 # to click and learn more.
 # test_gating.url =
 
 # The API url of Greenwave.
 # greenwave_api_url = https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0
 
-# The URL for waiverdb&#39;s API
+# The URL for waiverdb's API
 # waiverdb_api_url = https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0
 
 # An access token used to authenticate to waiverdb
@@ -162,13 +162,13 @@ use = egg:bodhi-server
 # The following jinja2 template variables are available for use to customize the Pungi configs and
 # variants files to the Release and Updates:
 #
-#  * &#39;id&#39;: The id of the Release being composed.
-#  * &#39;release&#39;: The Release being composed.
-#  * &#39;request&#39;: The request being composed.
-#  * &#39;updates&#39;: The Updates being composed.
-#  * &#39;cr_config&#39;: The createrepo_c settings loaded from config file.
+#  * 'id': The id of the Release being composed.
+#  * 'release': The Release being composed.
+#  * 'request': The request being composed.
+#  * 'updates': The Updates being composed.
+#  * 'cr_config': The createrepo_c settings loaded from config file.
 #
-# NOTE: The jinja2 configuration for these templates replaces the {&#39;s and }&#39;s with [&#39;s and ]&#39;.
+# NOTE: The jinja2 configuration for these templates replaces the {'s and }'s with ['s and ]'.
 # e.g.: a block becomes [% if &lt;something %], and a variable is [[ varname ]].
 
 # The base path where pungi configs will be stored. You will need to put variants.xml templates
@@ -188,7 +188,7 @@ use = egg:bodhi-server
 # A space separated list of extra arguments to be passed on to Pungi during composing.
 # pungi.extracmdline =
 
-# What to pass to Pungi&#39;s --label flag, which is metadata included in its composeinfo.json.
+# What to pass to Pungi's --label flag, which is metadata included in its composeinfo.json.
 # pungi.labeltype = Update
 
 # Path to the file with createrepo_c settings
@@ -218,9 +218,9 @@ use = egg:bodhi-server
 #     primary architecture push has been synchronized to the master mirror for a given release and
 #     request. The composer will verify that the checksum of repomd.xml at the master URL matches the
 #     expected value, and will poll the URL until this test passes. Substitute release and request
-#     for each release id (replacing -&#39;s with _&#39;s) and request (stable, testing). Used for the
+#     for each release id (replacing -'s with _'s) and request (stable, testing). Used for the
 #     arches listed in {release}_{version}_primary_arches when it is defined, else used for all
-#     arches. You must put two %%s&#39;s in this setting - the first will be replaced with the release
+#     arches. You must put two %%s's in this setting - the first will be replaced with the release
 #     version and the second will be replaced with the architecture.
 # If a version of the option exists with a matching version, it has priority over one without.
 # examples (these settings do not have defaults):
@@ -234,9 +234,9 @@ use = egg:bodhi-server
 #     secondary architecture push has been synchronized to the master mirror for a given release and
 #     request. The composer will verify that the checksum of repomd.xml at the master URL matches the
 #     expected value, and will poll the URL until this test passes. Substitute release and request
-#     for each release id (replacing -&#39;s with _&#39;s) and request (stable, testing). Used for the
+#     for each release id (replacing -'s with _'s) and request (stable, testing). Used for the
 #     arches not listed in {release}_{version}_primary_arches if it is defined. You must put two
-#     %%s&#39;s in this setting - the first will be replaced with the release version and the second will
+#     %%s's in this setting - the first will be replaced with the release version and the second will
 #     be replaced with the architecture.
 # If a version of the option exists with a matching version, it has priority over one without.
 # examples (these settings do not have defaults):
@@ -276,7 +276,7 @@ use = egg:bodhi-server
 # ignored.
 # bugzilla_api_key =
 
-# This is the password used to access Bodhi&#39;s bugzilla account. Ignored if bugzilla_api_key is set.
+# This is the password used to access Bodhi's bugzilla account. Ignored if bugzilla_api_key is set.
 # bodhi_password =
 
 # The address that gets the requests
@@ -294,19 +294,39 @@ use = egg:bodhi-server
 # Defined in and tied to the Fedora Account System (limited to 16 characters)
 # admin_groups = proventesters security_respons bodhiadmin sysadmin-main
 
-# Users that we don&#39;t want to show up in the &quot;leaderboard(s)&quot;
+# Users that we don't want to show up in the "leaderboard(s)"
 # stats_blacklist = bodhi anonymous
 
 # A list of non-person users
 # system_users = bodhi
 
-# The number of days used for calculating the &#39;top testers&#39; metric
+# The number of days used for calculating the 'top testers' metric
 # top_testers_timeframe = 7
 
 # Cache settings
 # dogpile.cache.backend = dogpile.cache.dbm
 # dogpile.cache.expiration_time = 100
 # dogpile.cache.arguments.filename = /var/cache/bodhi-dogpile-cache.dbm
+#
+# dogpile.cache.backend = dogpile.cache.redis
+# Set expiration_time to one week
+# dogpile.cache.expiration_time = 604800
+# dogpile.cache.dogpile_expire_time = 10
+# dogpile.cache.arguments.url = redis://localhost:6379/0
+# dogpile.cache.arguments.host =
+# dogpile.cache.arguments.port = 6379
+# dogpile.cache.arguments.db =
+# dogpile.cache.arguments.username =
+# dogpile.cache.arguments.password =
+# dogpile.cache.arguments.distributed_lock = True
+# dogpile.cache.arguments.thread_local_lock = False
+# dogpile.cache.arguments.lock_timeout = 5
+# dogpile.cache.arguments.lock_sleep = 0.1
+# dogpile.cache.arguments.lock_prefix = bodhi:dlk
+# Set redis expiration_time to one week + 1 hour
+# dogpile.cache.arguments.redis_expiration_time = 608400
+# dogpile.cache.arguments.connection_pool_kwargs.max_connections = 20
+# dogpile.cache.arguments.connection_pool_kwargs.socket_keepalive = True
 
 # If True (the default), warm up caches when the Bodhi process starts up. Otherwise, they will get warmed
 # on first use.
@@ -322,9 +342,9 @@ use = egg:bodhi-server
 ## Buildsystem settings
 ##
 
-# What buildsystem do we want to use?  For development, we&#39;ll use a fake
-# buildsystem that always does what we tell it to do.  For production, we&#39;ll
-# want to use &#39;koji&#39;.
+# What buildsystem do we want to use?  For development, we'll use a fake
+# buildsystem that always does what we tell it to do.  For production, we'll
+# want to use 'koji'.
 # buildsystem = dev
 
 # trusted_build_sources = git+https://src.fedoraproject.org/,https://src.fedoraproject.org/
@@ -332,7 +352,7 @@ use = egg:bodhi-server
 # The base URL to Koji, used to construct HTML links to Koji builds in the web UI
 # koji_web_url = https://koji.fedoraproject.org/koji/
 
-# Koji&#39;s XML-RPC hub
+# Koji's XML-RPC hub
 # koji_hub = https://koji.stg.fedoraproject.org/kojihub
 
 
@@ -347,7 +367,7 @@ use = egg:bodhi-server
 
 ##
 ## ACL system
-## Choices are &#39;pagure&#39;, which will query the pagure_url below, or &#39;dummy&#39;, which will
+## Choices are 'pagure', which will query the pagure_url below, or 'dummy', which will
 ## always return guest credentials (used for local development).
 ##
 # acl_system = dummy
@@ -391,7 +411,7 @@ use = egg:bodhi-server
 # stable_bug_msg = {update_alias} ({update_beauty_title}) has been pushed to the {repo} repository.\n. If problems still persists, please make note of it in this bug report.
 
 # The following two templates are used to comment on Bugzilla tickets. %%s will be substituted with
-# the update&#39;s URL. The first is used for all updates, unless the epel setting in defined, which
+# the update's URL. The first is used for all updates, unless the epel setting in defined, which
 # will be used for all Updates on Releases that have an id_prefix of FEDORA-EPEL.
 # testing_bug_msg =
 #     See https://fedoraproject.org/wiki/QA:Updates_Testing for
@@ -410,14 +430,14 @@ use = egg:bodhi-server
 # The username/password for our bugzilla account comes
 # from the bodhi_{email,password} fields.
 
-# A URL to a Bugzilla instance&#39;s xmlrpc.cgi script for Bodhi to use.
+# A URL to a Bugzilla instance's xmlrpc.cgi script for Bodhi to use.
 # bz_server = https://bugzilla.redhat.com/xmlrpc.cgi
 
-# A URL to a Bugzilla instance&#39;s REST api for Bodhi to use.
+# A URL to a Bugzilla instance's REST api for Bodhi to use.
 # bz_server_rest = https://bugzilla.redhat.com/rest/
 
 # Bodhi will avoid touching bugs that are not against the following comma-separated products.
-# Fedora&#39;s production Bodhi instance sets this to Fedora,Fedora EPEL
+# Fedora's production Bodhi instance sets this to Fedora,Fedora EPEL
 # bz_products =
 
 # Exclude some Releases where Updates are created automatically to touch bugs.
@@ -439,13 +459,13 @@ use = egg:bodhi-server
 
 # You can allow Bodhi to read critpath packages from JSON files (expected to
 # be generated by the `critpath.py` script from the releng repo) by setting
-# this value to `json`. If it isn&#39;t set, it&#39;ll just use the hardcoded list
+# this value to `json`. If it isn't set, it'll just use the hardcoded list
 # below.
 # critpath.type =
 
 # If critpath.type is set to `json`, this value sets the directory where Bodhi
 # will look for the JSON files. The filenames should match Bodhi release
-# &#39;branch&#39; values, which should be the name of the git branch for the release.
+# 'branch' values, which should be the name of the git branch for the release.
 # critpath.jsonpath = /etc/bodhi/critpath
 
 # You can hardcode a list of critical path packages instead of using JSON
@@ -472,7 +492,7 @@ fedora_epel.mandatory_days_in_testing = 14
 ##
 
 # You can define alternative policies than the defaults for specific Releases by defining a setting
-# of the form Release.name.status (with -&#39;s removed from the name). You can set the status to any
+# of the form Release.name.status (with -'s removed from the name). You can set the status to any
 # string you like, and then for each status, you can override the mandatory days in testing, the
 # critpath number of admin approvals, and the critpath minimum karma. For example, if we want to set
 # Fedora 28 as a pre-beta, and we want it to have different rules in pre-beta and post-beta, we
@@ -511,7 +531,7 @@ fedora_epel.mandatory_days_in_testing = 14
 # FAS Groups that we want to pay attention to
 # When a user logs in, bodhi will look for any of these groups and associate
 # them with the user. They will then appear as the users effective principals in
-# the format &quot;group:groupname&quot; and can be used in Pyramid ACE&#39;s.
+# the format "group:groupname" and can be used in Pyramid ACE's.
 #
 # Defined in and tied to the Fedora Account System (limited to 16 characters)
 # important_groups = proventesters provenpackager releng security_respons packager bodhiadmin
@@ -541,7 +561,7 @@ oidc.fedora.server_metadata_url = http://id.dev.fedoraproject.org/openidc/.well-
 
 
 # CORS allowed origins for cornice services
-# This can be wide-open.  read-only, we don&#39;t care as much about.
+# This can be wide-open.  read-only, we don't care as much about.
 cors_origins_ro = *
 # This should be more locked down to avoid cross-site request forgery.
 cors_origins_rw = https://bodhi.fedoraproject.org
@@ -571,7 +591,7 @@ debugtoolbar.hosts = 127.0.0.1 ::1
 ##
 ## Templates
 ##
-# Where Bodhi&#39;s templates are stored. You likely don&#39;t want or need to adjust this setting.
+# Where Bodhi's templates are stored. You likely don't want or need to adjust this setting.
 # mako.directories = bodhi.server:templates
 
 ##
@@ -642,9 +662,9 @@ qualname = bodhi
 level = INFO
 handlers =
 qualname = sqlalchemy.engine
-# &quot;level = INFO&quot; logs SQL queries.
-# &quot;level = DEBUG&quot; logs SQL queries and results.
-# &quot;level = WARN&quot; logs neither.  (Recommended for production systems.)
+# "level = INFO" logs SQL queries.
+# "level = DEBUG" logs SQL queries and results.
+# "level = WARN" logs neither.  (Recommended for production systems.)
 
 [logger_celery]
 level = INFO
@@ -692,7 +712,7 @@ per process per spot in the code that logs errors:</p>
 
 <span class="n">formatters</span><span class="p">:</span>
   <span class="n">generic</span><span class="p">:</span>
-    <span class="nb">format</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)-5.5s</span><span class="s1"> [</span><span class="si">%(name)s</span><span class="s1">][</span><span class="si">%(threadName)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+    <span class="nb">format</span><span class="p">:</span> <span class="s1">'</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)-5.5s</span><span class="s1"> [</span><span class="si">%(name)s</span><span class="s1">][</span><span class="si">%(threadName)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">'</span>
 <span class="n">filters</span><span class="p">:</span>
   <span class="n">rate_limit</span><span class="p">:</span>
     <span class="p">():</span> <span class="n">bodhi</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">RateLimiter</span>
@@ -700,11 +720,11 @@ per process per spot in the code that logs errors:</p>
 <span class="n">handlers</span><span class="p">:</span>
   <span class="n">smtp</span><span class="p">:</span>
     <span class="n">class</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">SMTPHandler</span>
-    <span class="n">mailhost</span><span class="p">:</span> <span class="s2">&quot;smtp.example.com&quot;</span>
-    <span class="n">fromaddr</span><span class="p">:</span> <span class="s2">&quot;bodhi@example.com&quot;</span>
+    <span class="n">mailhost</span><span class="p">:</span> <span class="s2">"smtp.example.com"</span>
+    <span class="n">fromaddr</span><span class="p">:</span> <span class="s2">"bodhi@example.com"</span>
     <span class="n">toaddrs</span><span class="p">:</span>
-        <span class="o">-</span> <span class="s2">&quot;admin@example.com&quot;</span>
-    <span class="n">subject</span><span class="p">:</span> <span class="s2">&quot;Bodhi had a sad&quot;</span>
+        <span class="o">-</span> <span class="s2">"admin@example.com"</span>
+    <span class="n">subject</span><span class="p">:</span> <span class="s2">"Bodhi had a sad"</span>
     <span class="n">level</span><span class="p">:</span> <span class="n">ERROR</span>
     <span class="n">formatter</span><span class="p">:</span> <span class="n">generic</span>
     <span class="n">filters</span><span class="p">:</span> <span class="p">[</span><span class="n">rate_limit</span><span class="p">]</span>
@@ -728,21 +748,21 @@ per process per spot in the code that logs errors:</p>
 <p>Filters can be applied to handlers and loggers. Configuring this via
 dictConfig is possible, but has somewhat odd syntax:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">log_config</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;60_second_filter&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;()&quot;</span><span class="p">:</span> <span class="s2">&quot;fedmsg_migration_tools.filters.RateLimiter&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;rate&quot;</span><span class="p">:</span> <span class="s2">&quot;60&quot;</span>
+    <span class="s2">"filters"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"60_second_filter"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"()"</span><span class="p">:</span> <span class="s2">"fedmsg_migration_tools.filters.RateLimiter"</span><span class="p">,</span>
+            <span class="s2">"rate"</span><span class="p">:</span> <span class="s2">"60"</span>
         <span class="p">}</span>
     <span class="p">}</span>
-    <span class="s2">&quot;handlers&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;rate_limited&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;60_second_filter&quot;</span><span class="p">],</span>
+    <span class="s2">"handlers"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"rate_limited"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"filters"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"60_second_filter"</span><span class="p">],</span>
             <span class="o">...</span>
         <span class="p">}</span>
     <span class="p">}</span>
-    <span class="s2">&quot;loggers&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;fedmsg_migration_tools&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;60_second_filter&quot;</span><span class="p">],</span>
+    <span class="s2">"loggers"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"fedmsg_migration_tools"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"filters"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"60_second_filter"</span><span class="p">],</span>
             <span class="o">...</span>
         <span class="p">}</span>
     <span class="p">}</span>
