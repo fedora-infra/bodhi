@@ -32,6 +32,6 @@ DEFAULT_OPTIONS = dict(
     buffer_output=True,
 )
 
-RELEASES = ('f42', 'f43', 'f44', 'rawhide', 'pip')
+RELEASES = ('f43', 'f44', 'f45', 'rawhide', 'pip')
 INTEGRATION_APPS = ("valkey", "resultsdb", "waiverdb", "greenwave", "rabbitmq", "ipsilon")
 MODULES = ("bodhi-client", "bodhi-messages", "bodhi-server")
