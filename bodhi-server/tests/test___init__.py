@@ -18,6 +18,7 @@
 """This test suite contains tests for bodhi.server.__init__."""
 from unittest import mock
 import collections
+import resource
 
 from pyramid import authentication, testing
 
@@ -193,3 +194,21 @@ class TestMain(base.BasePyTestCase):
             server.main({}, **self.app_settings)
 
         init_db.assert_called_once()
+
+
+class TestRaiseOpenFileLimit(base.BasePyTestCase):
+    @mock.patch('bodhi.server.log.info')
+    def test_raises_limit(self, info):
+        """The limit should be set to the hard limit."""
+        (original_soft, original_hard) = resource.getrlimit(resource.RLIMIT_NOFILE)
+        soft_limit = original_hard - 1
+        try:
+            resource.setrlimit(resource.RLIMIT_NOFILE, (soft_limit, original_hard))
+
+            server.raise_open_file_limit()
+
+            assert resource.getrlimit(resource.RLIMIT_NOFILE) == (original_hard, original_hard)
+            info.assert_called_once_with(
+                f'Raised open file limit from {soft_limit} to {original_hard}')
+        finally:
+            resource.setrlimit(resource.RLIMIT_NOFILE, (original_soft, original_hard))
