@@ -25,6 +25,7 @@ import platform
 import re
 import subprocess
 import sys
+import time
 import traceback
 import typing
 
@@ -914,9 +915,26 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
                         if 'all' not in requested_arch:
                             args.extend(['--arch=noarch',
                                          f'--arch={requested_arch}', build['nvr']])
-                    ret = subprocess.call(args)
-                    if ret:
-                        click.echo(f"WARNING: download of {build['nvr']} failed!", err=True)
+                    tries = 5
+                    while True:
+                        ret = subprocess.run(
+                            args,
+                            capture_output=True,
+                            text=True,
+                        )
+                        if ret.returncode:
+                            if "502 Server Error" in ret.stdout:
+                                tries -= 1
+                                if tries:
+                                    click.echo(
+                                        f"WARNING: 502 error on download of {build['nvr']}, "
+                                        "retrying in 5 seconds..."
+                                    )
+                                    time.sleep(5)
+                                    continue
+                            click.echo(f"WARNING: download of {build['nvr']} failed!", err=True)
+                            break
+                        break
 
 
 def _get_notes(**kwargs) -> str:
