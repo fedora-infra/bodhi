@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """The bodhi CLI client."""
 
+from ast import literal_eval
 from datetime import datetime
 import functools
 import logging
@@ -331,6 +332,37 @@ def cli():
 def composes():
     """Create the composes group."""
     pass  # pragma: no cover
+
+
+@cli.command()
+@handle_errors
+@click.argument('set_status', type=click.Choice(['on', 'off']))
+@url_option
+@add_options(openid_options)
+@debug_option
+@staging_option
+def set_email_preference(set_status: str, url: str, id_provider: str, client_id: str, **kwargs):
+    """
+    Set user's email preference.
+
+    When emails are on, Bodhi will send you a direct email for each new comment on any
+    update you had previously interacted (commented or gave karma).
+    If you don't want to receive such notifications from Bodhi, set the option off.
+    """
+    client = bindings.BodhiClient(
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+    )
+
+    try:
+        resp = client.send_request('/set_emails_pref', verb='POST', auth=True,
+                                   data={'csrf_token': client.csrf(),
+                                         'emails_preference': set_status})
+    except bindings.BodhiClientException as e:
+        data = literal_eval(str(e))
+        print_errors(data)
+
+    data = munch.unmunchify(resp)
+    print(data['description'])
 
 
 @composes.command(name='info')

@@ -19,11 +19,15 @@
 import math
 
 from cornice import Service
-from cornice.validators import colander_querystring_validator
+from cornice.validators import (
+    colander_body_validator,
+    colander_querystring_validator
+)
 from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
 from sqlalchemy.sql import or_
 
+from bodhi.server import log
 from bodhi.server.models import Group, Update, User
 from bodhi.server.validators import (validate_updates, validate_groups)
 import bodhi.server.schemas
@@ -44,6 +48,12 @@ users = Service(name='users', path='/users/',
 
 users_rss = Service(name='users_rss', path='/rss/users/', description='Bodhi users RSS feed',
                     cors_origins=bodhi.server.security.cors_origins_ro)
+
+user_email_pref = Service(name='user_email_pref',
+                          path=r'/set_emails_pref',
+                          description='Change user\'s email preferences',
+                          factory=bodhi.server.security.AuthenticatedACLFactory,
+                          cors_origins=bodhi.server.security.cors_origins_rw)
 
 
 @user.get(accept=("application/json", "text/json"), renderer="json",
@@ -173,3 +183,37 @@ def query_users(request):
         rows_per_page=rows_per_page,
         total=total,
     )
+
+
+@user_email_pref.post(schema=bodhi.server.schemas.UserEmailPrefSchema(),
+                      validators=(colander_body_validator),
+                      permission='edit', renderer='json',
+                      error_handler=bodhi.server.services.errors.json_handler)
+def set_emails_pref(request):
+    """
+    Set email sending preference on the currently authenticated user.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary with the follow key mappings:
+            emails_preference: on or off.
+    """
+    data = request.validated
+    user = User.get(request.identity.name)
+    pref = data.get('emails_preference')
+    set_status = True if pref == 'on' else False
+
+    if user.receive_emails is set_status:
+        log.warning(f"User {request.identity.name} email preference already set to {pref}")
+        request.errors.add(
+            'body', 'user',
+            f"User's email preference already set to {pref}"
+        )
+        return {}
+
+    user.receive_emails = set_status
+    request.db.commit()
+    log.info(f"User {request.identity.name} set their email preference to {pref}")
+    return {'status': 'success',
+            'description': f"User's email preference set to {pref}"}
