@@ -860,6 +860,29 @@ class ComposerThread(threading.Thread):
         updates.sort(key=lambda update: update.days_in_testing, reverse=True)
         return updates
 
+    def _release_db_connection(self):
+        """
+        Release connection to db before a long running operation to avoid timeout.
+
+        This is a no-op if self.db is not set (e.g. when this method is exercised in a
+        unit test that calls a method directly, without going through run()).
+        """
+        if getattr(self, 'db', None) is None:
+            return
+        log.debug('Releasing DB connection before a long-running operation')
+        self.db.close()
+
+    def _reacquire_compose(self):
+        """
+        Re-attach previous db session.
+
+        This is a no-op if self.db is not set, mirroring _release_db_connection().
+        """
+        if getattr(self, 'db', None) is None:
+            return
+        log.debug('Reacquiring compose object after long-running operation')
+        self.compose = Compose.from_dict(self.db, self._compose)
+
 
 class ContainerComposerThread(ComposerThread):
     """Use skopeo to copy and tag container images."""
@@ -873,18 +896,22 @@ class ContainerComposerThread(ComposerThread):
         Raises:
             RuntimeError: If skopeo returns a non-0 exit code during copy_container.
         """
-        for update in self.compose.updates:
+        self._release_db_connection()
+        try:
+            for update in self.compose.updates:
 
-            if update.request is UpdateRequest.stable:
-                destination_tag = 'latest'
-            else:
-                destination_tag = 'testing'
+                if update.request is UpdateRequest.stable:
+                    destination_tag = 'latest'
+                else:
+                    destination_tag = 'testing'
 
-            for build in update.builds:
-                # Using None as the destination tag on the first one will default to the
-                # version-release string.
-                for dtag in [None, build.nvr_version, destination_tag]:
-                    copy_container(build, destination_tag=dtag)
+                for build in update.builds:
+                    # Using None as the destination tag on the first one will default to the
+                    # version-release string.
+                    for dtag in [None, build.nvr_version, destination_tag]:
+                        copy_container(build, destination_tag=dtag)
+        finally:
+            self._reacquire_compose()
 
 
 class FlatpakComposerThread(ContainerComposerThread):
@@ -1287,7 +1314,12 @@ class PungiComposerThread(ComposerThread):
             log.info('Not waiting for pungi process, as there was no pungi')
             return
         log.info('Waiting for pungi process to finish')
-        out, err = pungi_process.communicate()
+
+        self._release_db_connection()
+        try:
+            out, err = pungi_process.communicate()
+        finally:
+            self._reacquire_compose()
         out = out.decode()
         err = err.decode()
         if pungi_process.returncode != 0:
@@ -1331,17 +1363,21 @@ class PungiComposerThread(ComposerThread):
                                                  'repomd.xml.asc'))
 
             log.info('Waiting for signatures in %s', ', '.join(sigpaths))
-            while True:
-                missing = []
-                for path in sigpaths:
-                    if not os.path.exists(path):
-                        missing.append(path)
-                if len(missing) == 0:
-                    log.info('All signatures were created')
-                    break
-                else:
-                    log.info('Waiting on %s', ', '.join(missing))
-                    time.sleep(300)
+            self._release_db_connection()
+            try:
+                while True:
+                    missing = []
+                    for path in sigpaths:
+                        if not os.path.exists(path):
+                            missing.append(path)
+                    if len(missing) == 0:
+                        log.info('All signatures were created')
+                        break
+                    else:
+                        log.info('Waiting on %s', ', '.join(missing))
+                        time.sleep(300)
+            finally:
+                self._reacquire_compose()
         else:
             log.info('Not waiting for a repo signature')
 
@@ -1377,25 +1413,30 @@ class PungiComposerThread(ComposerThread):
 
         with open(repomd) as repomdf:
             checksum = hashlib.sha1(repomdf.read().encode('utf-8')).hexdigest()
-        while True:
-            try:
-                log.info('Polling %s' % master_repomd_url)
-                masterrepomd = urlopen(master_repomd_url)
-                newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
-            except (ConnectionResetError, IncompleteRead, URLError, HTTPError):
-                log.exception('Error fetching repomd.xml')
-                time.sleep(200)
-                continue
-            if newsum == checksum:
-                log.info("master repomd.xml matches!")
-                notifications.publish(compose_schemas.ComposeSyncDoneV1.from_dict(
-                    dict(repo=self.id, agent=self.agent)),
-                    force=True)
-                return
 
-            log.debug("master repomd.xml doesn't match! %s != %s for %r",
-                      checksum, newsum, self.id)
-            time.sleep(200)
+        self._release_db_connection()
+        try:
+            while True:
+                try:
+                    log.info('Polling %s' % master_repomd_url)
+                    masterrepomd = urlopen(master_repomd_url)
+                    newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
+                except (ConnectionResetError, IncompleteRead, URLError, HTTPError):
+                    log.exception('Error fetching repomd.xml')
+                    time.sleep(200)
+                    continue
+                if newsum == checksum:
+                    log.info("master repomd.xml matches!")
+                    break
+
+                log.debug("master repomd.xml doesn't match! %s != %s for %r",
+                          checksum, newsum, self.id)
+                time.sleep(200)
+        finally:
+            self._reacquire_compose()
+        notifications.publish(compose_schemas.ComposeSyncDoneV1.from_dict(
+            dict(repo=self.id, agent=self.agent)),
+            force=True)
 
 
 class RPMComposerThread(PungiComposerThread):

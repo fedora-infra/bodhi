@@ -1,0 +1,1 @@
+bodhi-composer: release and reacquire DB session around long standing operations to avoid connection timeouts
