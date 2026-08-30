@@ -108,6 +108,7 @@ def push(username, yes, **kwargs):
             resume_all = True
 
         # If we're resuming a push
+        existing_lanes = set()
         if resume:
             for compose in session.query(Compose).all():
                 if len(compose.updates) == 0:
@@ -131,7 +132,17 @@ def push(username, yes, **kwargs):
                 compose.error_message = ''
 
                 composes.append(compose)
-        else:
+                existing_lanes.add((compose.release_id, compose.request))
+
+            # Flush so that any Composes deleted above are removed from the database before we
+            # potentially create new Composes with the same compound primary key below.
+            session.flush()
+
+        # Queue up any other releases that do not already have a Compose in flight. A Compose that
+        # is being resumed owns its (release, request) lane until it succeeds, but it should not
+        # prevent unrelated lanes from being composed. An explicit --resume is left alone, since
+        # the operator asked for a resume and nothing else.
+        if not resume or resume_all:
             updates = []
             # Accept both comma and space separated request list
             requests = kwargs['request'].replace(',', ' ').split(' ')
@@ -175,7 +186,16 @@ def push(username, yes, **kwargs):
             if kwargs.get('updates'):
                 query = query.filter(Update.alias.in_(kwargs['updates'].split(',')))
 
+            skipped_lanes = set()
             for update in query.all():
+                # Updates in a lane that already has a Compose belong to that Compose. Adding them
+                # here would either collide with its compound primary key or silently attach them
+                # to a Compose that has already passed the checkpoints that would have tagged them.
+                lane = (update.release_id, update.request)
+                if lane in existing_lanes:
+                    skipped_lanes.add(lane)
+                    continue
+
                 # Skip unsigned updates (this checks that all builds in the update are signed)
                 update_sig_status(update)
 
@@ -187,9 +207,15 @@ def push(username, yes, **kwargs):
 
                 updates.append(update)
 
-            composes = Compose.from_updates(updates)
-            for c in composes:
+            if skipped_lanes:
+                click.echo(
+                    '\nSkipping {:d} release(s) with a Compose already in flight.'.format(
+                        len(skipped_lanes)))
+
+            new_composes = Compose.from_updates(updates)
+            for c in new_composes:
                 session.add(c)
+            composes.extend(new_composes)
 
             # We need to flush so the database knows about the new Compose objects, so the
             # Compose.updates relationship will work properly. This is due to us overriding the
@@ -197,7 +223,7 @@ def push(username, yes, **kwargs):
             session.flush()
 
             # Now we need to refresh the composes so their updates property will not be empty.
-            for compose in composes:
+            for compose in new_composes:
                 session.refresh(compose)
 
         # Now we need to sort the composes so their security property can be used to prioritize

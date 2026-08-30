@@ -263,6 +263,8 @@ Requesting a compose
 TEST_LOCKED_UPDATES_EXPECTED_OUTPUT = (
     """Existing composes detected: <Compose: F17 testing>. Do you wish to resume them all? [y/N]: y
 
+Skipping 1 release(s) with a Compose already in flight.
+
 
 ===== <Compose: F17 testing> =====
 
@@ -279,6 +281,8 @@ Requesting a compose
 TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT = (
     """Existing composes detected: <Compose: F17 testing>. Resuming all.
 
+Skipping 1 release(s) with a Compose already in flight.
+
 
 ===== <Compose: F17 testing> =====
 
@@ -286,6 +290,29 @@ ejabberd-16.09-4.fc17
 
 
 Pushing 1 updates.
+
+Locking updates...
+
+Requesting a compose
+""")
+
+TEST_STUCK_LANE_EXPECTED_OUTPUT = (
+    """Existing composes detected: <Compose: F17 testing>. Resuming all.
+
+Skipping 1 release(s) with a Compose already in flight.
+
+
+===== <Compose: F25 testing> =====
+
+python-nose-1.3.7-11.fc25
+
+
+===== <Compose: F17 testing> =====
+
+ejabberd-16.09-4.fc17
+
+
+Pushing 2 updates.
 
 Locking updates...
 
@@ -824,6 +851,76 @@ class TestPush(base.BasePyTestCase):
         for u in [python_nose, python_paste_deploy]:
             assert not u.locked
             assert u.date_locked is None
+
+    def test_stuck_compose_does_not_block_other_releases(self):
+        """
+        Assert that a stuck Compose only holds up its own (release, request) lane.
+
+        A failed Compose keeps ownership of its lane until it succeeds, but it should be resumed
+        alongside newly created Composes for the other lanes rather than instead of them.
+        """
+        cli = CliRunner()
+        f25 = models.Release(
+            name='F25', long_name='Fedora 25',
+            id_prefix='FEDORA', version='25',
+            dist_tag='f25', stable_tag='f25-updates',
+            testing_tag='f25-updates-testing',
+            candidate_tag='f25-updates-candidate',
+            pending_signing_tag='f25-updates-testing-signing',
+            pending_testing_tag='f25-updates-testing-pending',
+            pending_stable_tag='f25-updates-pending',
+            override_tag='f25-override',
+            branch='f25', state=models.ReleaseState.current)
+        self.db.add(f25)
+        self.db.commit()
+        # ejabberd is stuck in a failed F17 testing compose.
+        ejabberd = self.create_update(['ejabberd-16.09-4.fc17'])
+        ejabberd.builds[0].signed = True
+        ejabberd.locked = True
+        compose = models.Compose(
+            release=ejabberd.release, request=ejabberd.request, state=models.ComposeState.failed,
+            error_message='y r u so mean nfs')
+        self.db.add(compose)
+        # python-nose is waiting on F25, which has no Compose of its own. It is a security update
+        # so we can also assert that it sorts ahead of the resumed Compose.
+        python_nose = self.create_update(['python-nose-1.3.7-11.fc25'], 'F25')
+        python_nose.type = models.UpdateType.security
+        python_nose.builds[0].signed = True
+        self.db.commit()
+
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=base.TransactionalSessionMaker(self.Session)):
+            with mock.patch('bodhi.server.push.compose_task') as compose_task:
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--yes'])
+                compose_task.delay.assert_called_with(
+                    api_version=2, agent="bowlofeggs", resume=True,
+                    composes=[python_nose.compose.__json__(composer=True),
+                              ejabberd.compose.__json__(composer=True)],
+                )
+
+        assert result.exit_code == 0
+        assert result.output == TEST_STUCK_LANE_EXPECTED_OUTPUT
+        # The stuck lane is resumed, still holding exactly the update it started with.
+        ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
+        assert ejabberd.locked
+        assert ejabberd.compose.state == models.ComposeState.requested
+        assert ejabberd.compose.error_message == ''
+        assert [u.alias for u in ejabberd.compose.updates] == [ejabberd.alias]
+        # F25 got a Compose of its own even though F17 is stuck.
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc25').one().update
+        assert python_nose.locked
+        assert python_nose.date_locked <= datetime.now(timezone.utc)
+        assert python_nose.compose.release_id == f25.id
+        assert python_nose.compose.request == models.UpdateRequest.testing
+        assert python_nose.compose.state == models.ComposeState.requested
+        # The other F17 updates are left alone: their lane belongs to the stuck Compose, and
+        # quietly folding them into it would skip the tagging it has already checkpointed past.
+        for nvr in ('python-nose-1.3.7-11.fc17', 'python-paste-deploy-1.5.2-8.fc17'):
+            update = self.db.query(models.Build).filter_by(nvr=nvr).one().update
+            assert not update.locked
+            assert update.date_locked is None
+        assert self.db.query(models.Compose).count() == 2
 
     def test_no_updates_to_push(self):
         """
