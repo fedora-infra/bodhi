@@ -2506,6 +2506,8 @@ class TestPungiComposerThread__abandon_pungi(ComposerThreadBaseTestCase):
         pungi_process = mock.MagicMock()
         pungi_process.returncode = None
         pungi_process.pid = 1234
+        pungi_process.stdout.closed = False
+        pungi_process.stderr.closed = False
 
         t._abandon_pungi(pungi_process)
 
@@ -2521,6 +2523,8 @@ class TestPungiComposerThread__abandon_pungi(ComposerThreadBaseTestCase):
         pungi_process = mock.MagicMock()
         pungi_process.returncode = None
         pungi_process.pid = 1234
+        pungi_process.stdout.closed = False
+        pungi_process.stderr.closed = False
         pungi_process.communicate.side_effect = [
             subprocess.TimeoutExpired(cmd='pungi', timeout=t.pungi_abort_timeout),
             (b'', b''),
@@ -2539,6 +2543,8 @@ class TestPungiComposerThread__abandon_pungi(ComposerThreadBaseTestCase):
         pungi_process = mock.MagicMock()
         pungi_process.returncode = None
         pungi_process.pid = 1234
+        pungi_process.stdout.closed = False
+        pungi_process.stderr.closed = False
         pungi_process.terminate.side_effect = OSError('no such process')
 
         t._abandon_pungi(pungi_process)
