@@ -1,0 +1,3 @@
+bodhi-push no longer treats any existing compose as evidence that a push is
+already running, so a single stuck compose can no longer block updates for
+every other release and content type
