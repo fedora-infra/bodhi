@@ -22,7 +22,7 @@ $(document).ready(function() {
         dropdownFilter: true,
         source: {
             packages: {
-                display: 'name',
+                display: ['name', 'type'],
                 ajax: {
                     url: 'packages/',
                     timeout: 10000,
@@ -31,9 +31,9 @@ $(document).ready(function() {
                     },
                     path: 'packages'
                 },
-                template: '{{name}}',
+                template: '<span class="badge text-bg-light border">{{type}}</span>&nbsp;{{name}}',
                 href: function (item) {
-                    return 'updates/?packages=' + encodeURIComponent(item.name)
+                    return 'updates/?packages=' + encodeURIComponent(item.name) + '&content_type=' +  encodeURIComponent(item.type)
                 }
             },
             updates: {
