@@ -814,6 +814,7 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
     # As the query method doesn't let us construct OR queries, we're
     # gonna run one query for each option that was passed. The syntax
     # for this is a bit ugly, sorry.
+    success = True
     for (attr, value) in kwargs.items():
         if value:
             expecteds = len(value.split(','))
@@ -917,6 +918,9 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
                     ret = subprocess.call(args)
                     if ret:
                         click.echo(f"WARNING: download of {build['nvr']} failed!", err=True)
+                        success = False
+    if not success:
+        sys.exit(1)
 
 
 def _get_notes(**kwargs) -> str:
