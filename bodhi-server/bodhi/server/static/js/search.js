@@ -31,9 +31,9 @@ $(document).ready(function() {
                     },
                     path: 'packages'
                 },
-                template: '{{name}}',
+                template: '{{name}} <span class="text-muted font-size-09">({{type}})</span>',
                 href: function (item) {
-                    return 'updates/?packages=' + encodeURIComponent(item.name)
+                    return 'updates/?packages=' + encodeURIComponent(item.name)+ '&content_type=' + encodeURIComponent(item.type)
                 }
             },
             updates: {
