@@ -313,6 +313,7 @@ def main(global_config, testing=None, session=None, **settings):
     # service endpoints
     config.add_route('get_critpath_components', '/get_critpath_components')
     config.add_route('get_ccp_components', '/get_ccp_components')
+    config.add_route('csrf', '/csrf')
 
     # Legacy: Redirect the previously self-hosted documentation
     # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hybrid.html#using-subpath-in-a-route-pattern
