@@ -456,17 +456,20 @@ def test_updates_download(bodhi_container, db_container):
         "--updateid", ",".join([u.alias for u in updates]),
     ]
     # The bodhi CLI will execute the koji CLI. Replace that executable with
-    # something we can track.
-    koji_mock = "#!/bin/sh\necho TESTING CALL $0 $@\n"
+    # something we can track
+    koji_mock = "#!/bin/sh\necho TESTING CALL $0 $@ >> /tmp/koji.log\n"
     with replace_file(bodhi_container, "/usr/bin/koji", koji_mock):
         result = run_cli(bodhi_container, cmd)
+    rawout = bodhi_container.execute(["cat", "/tmp/koji.log"])
+    output = "".join(line.decode("utf-8") for line in rawout)
     assert result.exit_code == 0
     for update in updates:
         assert "Downloading packages from {}".format(update['alias']) in result.output
+
     for build_id in builds:
         assert re.search(
             f"TESTING CALL .*koji download-build.*{re.escape(build_id)}",
-            result.output
+            output
         )
 
 
