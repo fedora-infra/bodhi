@@ -16,6 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Create metadata files when composing repositories."""
+
 import logging
 import os
 import shelve
@@ -23,14 +24,12 @@ import shutil
 import tempfile
 
 import createrepo_c as cr
-
 from bodhi.server import util
 from bodhi.server.buildsys import get_session
 from bodhi.server.config import config
-from bodhi.server.models import Build, UpdateStatus, UpdateRequest, UpdateSuggestion
+from bodhi.server.models import Build, UpdateRequest, UpdateStatus, UpdateSuggestion
 
-
-__version__ = '2.0'
+__version__ = "2.0"
 log = logging.getLogger(__name__)
 
 
@@ -49,15 +48,15 @@ def insert_in_repo(comp_type, repodata, filetype, extension, source, zchunk):
             copied to the repodata folder.
         zchunk (bool): Whether zchunk data is supported for clients of this repo.
     """
-    log.info('Inserting %s.%s into %s', filetype, extension, repodata)
-    target_fname = os.path.join(repodata, '%s.%s' % (filetype, extension))
+    log.info("Inserting %s.%s into %s", filetype, extension, repodata)
+    target_fname = os.path.join(repodata, f"{filetype}.{extension}")
     shutil.copyfile(source, target_fname)
-    repomd_xml = os.path.join(repodata, 'repomd.xml')
+    repomd_xml = os.path.join(repodata, "repomd.xml")
     repomd = cr.Repomd(repomd_xml)
     add_list = [(filetype, comp_type)]
-    if zchunk and hasattr(cr, 'ZCK_COMPRESSION') and comp_type != cr.ZCK_COMPRESSION:
+    if zchunk and hasattr(cr, "ZCK_COMPRESSION") and comp_type != cr.ZCK_COMPRESSION:
         add_list.append((filetype + "_zck", cr.ZCK_COMPRESSION))
-    for (ft, ct) in add_list:
+    for ft, ct in add_list:
         # create a new record for our repomd.xml
         rec = cr.RepomdRecord(ft, target_fname)
         # compress our metadata file with the comp_type
@@ -68,7 +67,7 @@ def insert_in_repo(comp_type, repodata, filetype, extension, source, zchunk):
         rec_comp.type = ft
         # insert metadata about our metadata in repomd.xml
         repomd.set_record(rec_comp)
-    with open(repomd_xml, 'w') as repomd_file:
+    with open(repomd_xml, "w") as repomd_file:
         repomd_file.write(repomd.xml_dump())
     os.unlink(target_fname)
 
@@ -87,16 +86,16 @@ def modifyrepo(comp_type, compose_path, filetype, extension, source, zchunk):
             copied to the repodata folder.
         zchunk (bool): Whether zchunk data is supported for clients of this repo.
     """
-    repo_path = os.path.join(compose_path, 'compose', 'Everything')
+    repo_path = os.path.join(compose_path, "compose", "Everything")
     for arch in os.listdir(repo_path):
-        if arch == 'source':
-            repodata = os.path.join(repo_path, arch, 'tree', 'repodata')
+        if arch == "source":
+            repodata = os.path.join(repo_path, arch, "tree", "repodata")
         else:
-            repodata = os.path.join(repo_path, arch, 'os', 'repodata')
+            repodata = os.path.join(repo_path, arch, "os", "repodata")
         insert_in_repo(comp_type, repodata, filetype, extension, source, zchunk)
 
 
-class UpdateInfoMetadata(object):
+class UpdateInfoMetadata:
     """
     This class represents the updateinfo.xml yum metadata.
 
@@ -126,9 +125,10 @@ class UpdateInfoMetadata(object):
         self.db = db
         self.updates = set()
         self.builds = {}
-        self._from = config.get('bodhi_email')
-        if config.get('cache_dir'):
-            self.shelf = shelve.open(os.path.join(config.get('cache_dir'), '%s.shelve' % self.tag))
+        self._from = config.get("bodhi_email")
+        cache_dir = config.get("cache_dir")
+        if cache_dir:
+            self.shelf = shelve.open(os.path.join(cache_dir, f"{self.tag}.shelve"))  # noqa: SIM115
         else:
             # If we have no cache dir, let's at least cache in-memory.
             self.shelf = {}
@@ -149,23 +149,26 @@ class UpdateInfoMetadata(object):
 
     def _fetch_updates(self):
         """Based on our given koji tag, populate a list of Update objects."""
-        log.debug("Fetching builds tagged with '%s'" % self.tag)
+        log.debug("Fetching builds tagged with '%s'", self.tag)
         kojiBuilds = get_session().listTagged(self.tag, latest=True)
         nonexistent = []
-        log.debug("%d builds found" % len(kojiBuilds))
+        log.debug("%d builds found", len(kojiBuilds))
         for build in kojiBuilds:
-            self.builds[build['nvr']] = build
-            build_obj = self.db.query(Build).filter_by(nvr=str(build['nvr'])).first()
+            self.builds[build["nvr"]] = build
+            build_obj = self.db.query(Build).filter_by(nvr=str(build["nvr"])).first()
             if build_obj:
                 if build_obj.update:
                     self.updates.add(build_obj.update)
                 else:
-                    log.warning('%s does not have a corresponding update' % build['nvr'])
+                    log.warning("%s does not have a corresponding update", build["nvr"])
             else:
-                nonexistent.append(build['nvr'])
+                nonexistent.append(build["nvr"])
         if nonexistent:
-            log.warning("Couldn't find the following koji builds tagged as "
-                        "%s in bodhi: %s" % (self.tag, nonexistent))
+            log.warning(
+                "Couldn't find the following koji builds tagged as %s in bodhi: %s",
+                self.tag,
+                nonexistent,
+            )
 
     def get_rpms(self, koji, nvr):
         """
@@ -182,9 +185,9 @@ class UpdateInfoMetadata(object):
             return self.shelf[str(nvr)]
 
         if nvr in self.builds:
-            buildid = self.builds[nvr]['id']
+            buildid = self.builds[nvr]["id"]
         else:
-            buildid = koji.getBuild(nvr)['id']
+            buildid = koji.getBuild(nvr)["id"]
 
         rpms = koji.listBuildRPMs(buildid)
         self.shelf[str(nvr)] = rpms
@@ -199,7 +202,7 @@ class UpdateInfoMetadata(object):
         """
         rec = cr.UpdateRecord()
         rec.version = __version__
-        rec.fromstr = config.get('bodhi_email')
+        rec.fromstr = config.get("bodhi_email")
         # Metadata is generated before the Update status is saved, therefore
         # we have to check the request status
         if update.request is None:
@@ -209,14 +212,13 @@ class UpdateInfoMetadata(object):
         else:
             rec.status = UpdateStatus.testing.value
         rec.type = update.type.value
-        rec.id = update.alias.encode('utf-8')
-        rec.title = update.title.encode('utf-8')
+        rec.id = update.alias.encode("utf-8")
+        rec.title = update.title.encode("utf-8")
         rec.severity = util.severity_updateinfo_str(update.severity.value)
-        rec.summary = ('%s %s update' % (update.get_title(),
-                                         update.type.value)).encode('utf-8')
-        rec.description = update.notes.encode('utf-8')
-        rec.release = update.release.long_name.encode('utf-8')
-        rec.rights = config.get('updateinfo_rights')
+        rec.summary = f"{update.get_title()} {update.type.value} update".encode()
+        rec.description = update.notes.encode("utf-8")
+        rec.release = update.release.long_name.encode("utf-8")
+        rec.rights = config.get("updateinfo_rights")
 
         # date_pushed is not yet saved for updates which are being pushed now
         # moreover issued_date is supposed to be immutable for the same id
@@ -237,41 +239,45 @@ class UpdateInfoMetadata(object):
             rec.updated_date = update.date_submitted
 
         col = cr.UpdateCollection()
-        col.name = update.release.long_name.encode('utf-8')
-        col.shortname = update.release.name.encode('utf-8')
+        col.name = update.release.long_name.encode("utf-8")
+        col.shortname = update.release.name.encode("utf-8")
 
         koji = get_session()
         for build in update.builds:
             rpms = self.get_rpms(koji, build.nvr)
             for rpm in rpms:
                 pkg = cr.UpdateCollectionPackage()
-                pkg.name = rpm['name']
-                pkg.version = rpm['version']
-                pkg.release = rpm['release']
-                if rpm['epoch'] is not None:
-                    pkg.epoch = str(rpm['epoch'])
+                pkg.name = rpm["name"]
+                pkg.version = rpm["version"]
+                pkg.release = rpm["release"]
+                if rpm["epoch"] is not None:
+                    pkg.epoch = str(rpm["epoch"])
                 else:
-                    pkg.epoch = '0'
-                pkg.arch = rpm['arch']
+                    pkg.epoch = "0"
+                pkg.arch = rpm["arch"]
 
                 pkg.reboot_suggested = update.suggest == UpdateSuggestion.reboot
                 pkg.relogin_suggested = update.suggest == UpdateSuggestion.logout
 
-                filename = '%s.%s.rpm' % (rpm['nvr'], rpm['arch'])
+                filename = f"{rpm['nvr']}.{rpm['arch']}.rpm"
                 pkg.filename = filename
 
                 # Build the URL
-                if rpm['arch'] == 'src':
-                    arch = 'SRPMS'
-                elif rpm['arch'] in ('noarch', 'i686'):
-                    arch = 'i386'
+                if rpm["arch"] == "src":
+                    arch = "SRPMS"
+                elif rpm["arch"] in ("noarch", "i686"):
+                    arch = "i386"
                 else:
-                    arch = rpm['arch']
+                    arch = rpm["arch"]
 
                 pkg.src = os.path.join(
-                    config.get('file_url'),
-                    update.status is UpdateStatus.testing and 'testing' or '',
-                    str(update.release.version), arch, filename[0], filename)
+                    config.get("file_url"),
+                    update.status is UpdateStatus.testing and "testing" or "",
+                    str(update.release.version),
+                    arch,
+                    filename[0],
+                    filename,
+                )
 
                 col.append(pkg)
 
@@ -280,10 +286,10 @@ class UpdateInfoMetadata(object):
         # Create references for each bug
         for bug in update.bugs:
             ref = cr.UpdateReference()
-            ref.type = 'bugzilla'
-            ref.id = str(bug.bug_id).encode('utf-8')
-            ref.href = bug.url.encode('utf-8')
-            ref.title = bug.title.encode('utf-8') if bug.title else ''
+            ref.type = "bugzilla"
+            ref.id = str(bug.bug_id).encode("utf-8")
+            ref.href = bug.url.encode("utf-8")
+            ref.title = bug.title.encode("utf-8") if bug.title else ""
             rec.append_reference(ref)
 
         self.uinfo.append(rec)
@@ -296,12 +302,7 @@ class UpdateInfoMetadata(object):
             compose_path (str): The path to the compose where the metadata will be inserted.
         """
         fd, tmp_file_path = tempfile.mkstemp()
-        os.write(fd, self.uinfo.xml_dump().encode('utf-8'))
+        os.write(fd, self.uinfo.xml_dump().encode("utf-8"))
         os.close(fd)
-        modifyrepo(self.comp_type,
-                   compose_path,
-                   'updateinfo',
-                   'xml',
-                   tmp_file_path,
-                   self.zchunk)
+        modifyrepo(self.comp_type, compose_path, "updateinfo", "xml", tmp_file_path, self.zchunk)
         os.unlink(tmp_file_path)

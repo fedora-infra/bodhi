@@ -17,19 +17,19 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Generates console scripts for former cron jobs that have been replaced by celery-beat."""
 
-import sys
 import logging
+import sys
 
 import click
-from pyramid.paster import get_appsettings
-
 from bodhi.server.config import config
-
+from pyramid.paster import get_appsettings
 
 logger = logging.getLogger(__name__)
 
 config_uri_argument = click.argument(
-    'config_uri', required=False, default=None,
+    "config_uri",
+    required=False,
+    default=None,
 )
 
 
@@ -45,6 +45,7 @@ def _trigger_task(config_uri: str, task_name: str, task_kwargs=None):
 
     # Import here or the config will be loaded too early.
     import bodhi.server.tasks
+
     task = getattr(bodhi.server.tasks, task_name)
 
     result = task.delay(**task_kwargs)
@@ -57,13 +58,13 @@ def _trigger_task(config_uri: str, task_name: str, task_kwargs=None):
         return
     try:
         result.get(propagate=True)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         click.echo(str(e))
         sys.exit(1)
 
 
 @click.command()
-@click.version_option(message='%(version)s')
+@click.version_option(message="%(version)s")
 @config_uri_argument
 def approve_testing(config_uri):
     """
@@ -84,7 +85,7 @@ def approve_testing(config_uri):
 
 @click.command()
 @config_uri_argument
-@click.version_option(message='%(version)s')
+@click.version_option(message="%(version)s")
 def check_policies(config_uri):
     """Check the enforced policies by Greenwave for each open update.
 
@@ -96,7 +97,7 @@ def check_policies(config_uri):
 
 @click.command()
 @config_uri_argument
-@click.version_option(message='%(version)s')
+@click.version_option(message="%(version)s")
 def clean_old_composes(config_uri):
     """Delete any repo composes that are older than the newest 10 from each repo series.
 
@@ -108,7 +109,7 @@ def clean_old_composes(config_uri):
 
 @click.command()
 @config_uri_argument
-@click.version_option(message='%(version)s')
+@click.version_option(message="%(version)s")
 def expire_overrides(config_uri):
     """Search for overrides that are past their expiration date and mark them expired.
 

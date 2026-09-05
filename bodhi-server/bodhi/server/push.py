@@ -16,18 +16,25 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """The CLI tool for triggering update pushes."""
+
 import sys
+from collections.abc import Sequence
 
-from sqlalchemy.sql import or_
 import click
-
-from bodhi.server import (buildsys, initialize_db, get_koji)
+from bodhi.server import buildsys, get_koji, initialize_db
 from bodhi.server.config import config
-from bodhi.server.models import (Compose, ComposeState, Release, ReleaseState, Build, Update,
-                                 UpdateRequest)
-from bodhi.server.util import transactional_session_maker
+from bodhi.server.models import (
+    Build,
+    Compose,
+    ComposeState,
+    Release,
+    ReleaseState,
+    Update,
+    UpdateRequest,
+)
 from bodhi.server.tasks import compose as compose_task
-
+from bodhi.server.util import transactional_session_maker
+from sqlalchemy.sql import or_
 
 _koji = None
 
@@ -45,14 +52,15 @@ def update_sig_status(update):
         if not build.signed:
             build_tags = build.get_tags()
             if update.release.pending_signing_tag not in build_tags:
-                click.echo('Build %s was refreshed as signed' % build.nvr)
+                click.echo(f"Build {build.nvr} was refreshed as signed")
                 build.signed = True
             else:
-                click.echo('Build %s still unsigned' % build.nvr)
+                click.echo(f"Build {build.nvr} still unsigned")
 
 
 def check_if_updates_and_builds_set(
-        ctx: click.core.Context, param: click.core.Option, value: str) -> str:
+    ctx: click.core.Context, param: click.core.Option, value: str
+) -> str:
     """
     Print an error to stderr if the user has set both the --updates and --builds flags.
 
@@ -63,31 +71,49 @@ def check_if_updates_and_builds_set(
     Returns:
         The value of the param flag.
     """
-    if value is not None and ((param.name == 'builds' and ctx.params.get('updates', False))
-                              or (param.name == 'updates' and ctx.params.get('builds', False))):
-        click.echo('ERROR: Must specify only one of --updates or --builds', err=True)
+    if value is not None and (
+        (param.name == "builds" and ctx.params.get("updates", False))
+        or (param.name == "updates" and ctx.params.get("builds", False))
+    ):
+        click.echo("ERROR: Must specify only one of --updates or --builds", err=True)
         sys.exit(1)
     return value
 
 
 @click.command()
-@click.option('--builds', help='Push updates for a comma-separated list of builds',
-              callback=check_if_updates_and_builds_set)
-@click.option('--updates', help='Push updates for a comma-separated list of update aliases',
-              callback=check_if_updates_and_builds_set)
-@click.option('--releases', help=('Push updates for a comma-separated list of releases (default: '
-                                  'current, pending and frozen releases)'))
-@click.option('--request', default='testing,stable',
-              help='Push updates with a specific request (default: testing,stable)')
-@click.option('--resume', help='Resume one or more previously failed pushes',
-              is_flag=True, default=False)
-@click.option('--username', prompt=True)
-@click.option('--yes', '-y', is_flag=True, default=False,
-              help='Answers yes to the various questions')
-@click.version_option(message='%(version)s')
+@click.option(
+    "--builds",
+    help="Push updates for a comma-separated list of builds",
+    callback=check_if_updates_and_builds_set,
+)
+@click.option(
+    "--updates",
+    help="Push updates for a comma-separated list of update aliases",
+    callback=check_if_updates_and_builds_set,
+)
+@click.option(
+    "--releases",
+    help=(
+        "Push updates for a comma-separated list of releases (default: "
+        "current, pending and frozen releases)"
+    ),
+)
+@click.option(
+    "--request",
+    default="testing,stable",
+    help="Push updates with a specific request (default: testing,stable)",
+)
+@click.option(
+    "--resume", help="Resume one or more previously failed pushes", is_flag=True, default=False
+)
+@click.option("--username", prompt=True)
+@click.option(
+    "--yes", "-y", is_flag=True, default=False, help="Answers yes to the various questions"
+)
+@click.version_option(message="%(version)s")
 def push(username, yes, **kwargs):
     """Push builds out to the repositories."""
-    resume = kwargs.pop('resume')
+    resume = kwargs.pop("resume")
     resume_all = False
 
     initialize_db(config)
@@ -97,13 +123,18 @@ def push(username, yes, **kwargs):
     with db_factory() as session:
         if not resume and session.query(Compose).count():
             if yes:
-                click.echo('Existing composes detected: {}. Resuming all.'.format(
-                    ', '.join([str(c) for c in session.query(Compose).all()])))
+                click.echo(
+                    "Existing composes detected: {}. Resuming all.".format(
+                        ", ".join([str(c) for c in session.query(Compose).all()])
+                    )
+                )
             else:
                 click.confirm(
-                    'Existing composes detected: {}. Do you wish to resume them all?'.format(
-                        ', '.join([str(c) for c in session.query(Compose).all()])),
-                    abort=True)
+                    "Existing composes detected: {}. Do you wish to resume them all?".format(
+                        ", ".join([str(c) for c in session.query(Compose).all()])
+                    ),
+                    abort=True,
+                )
             resume = True
             resume_all = True
 
@@ -117,19 +148,19 @@ def push(username, yes, **kwargs):
                     # serialized because their content_type property uses the content_type of the
                     # first update in the Compose. Additionally, it doesn't really make sense to go
                     # forward with running an empty Compose. It makes the most sense to delete them.
-                    click.echo("{} has no updates. It is being removed.".format(compose))
+                    click.echo(f"{compose} has no updates. It is being removed.")
                     session.delete(compose)
                     continue
 
                 if not resume_all:
                     if yes:
-                        click.echo('Resuming {}.'.format(compose))
-                    elif not click.confirm('Resume {}?'.format(compose)):
+                        click.echo(f"Resuming {compose}.")
+                    elif not click.confirm(f"Resume {compose}?"):
                         continue
 
                 # Reset the Compose's state and error message.
                 compose.state = ComposeState.requested
-                compose.error_message = ''
+                compose.error_message = ""
 
                 composes.append(compose)
                 existing_lanes.add((compose.release_id, compose.request))
@@ -145,7 +176,7 @@ def push(username, yes, **kwargs):
         if not resume or resume_all:
             updates = []
             # Accept both comma and space separated request list
-            requests = kwargs['request'].replace(',', ' ').split(' ')
+            requests = kwargs["request"].replace(",", " ").split(" ")
             requests = [UpdateRequest.from_string(val) for val in requests]
             compose_testing = False
             compose_stable = False
@@ -153,24 +184,28 @@ def push(username, yes, **kwargs):
             if UpdateRequest.testing in requests:
                 compose_testing = True
                 query_testing = session.query(Update).filter(
-                    Update.request == UpdateRequest.testing)
-                query_testing = _filter_releases(session, query_testing, kwargs.get('releases'),
-                                                 states=[ReleaseState.current,
-                                                         ReleaseState.pending,
-                                                         ReleaseState.frozen])
+                    Update.request == UpdateRequest.testing
+                )
+                query_testing = _filter_releases(
+                    session,
+                    query_testing,
+                    kwargs.get("releases"),
+                    states=[ReleaseState.current, ReleaseState.pending, ReleaseState.frozen],
+                )
 
             if UpdateRequest.stable in requests:
                 compose_stable = True
-                query_stable = session.query(Update).filter(
-                    Update.request == UpdateRequest.stable)
-                if not kwargs.get('builds') and not kwargs.get('updates'):
-                    query_stable = _filter_releases(session, query_stable, kwargs.get('releases'))
+                query_stable = session.query(Update).filter(Update.request == UpdateRequest.stable)
+                if not kwargs.get("builds") and not kwargs.get("updates"):
+                    query_stable = _filter_releases(session, query_stable, kwargs.get("releases"))
                 else:
                     # Compose stable request for frozen release too for specific builds/updates
-                    query_stable = _filter_releases(session, query_stable, kwargs.get('releases'),
-                                                    states=[ReleaseState.current,
-                                                            ReleaseState.pending,
-                                                            ReleaseState.frozen])
+                    query_stable = _filter_releases(
+                        session,
+                        query_stable,
+                        kwargs.get("releases"),
+                        states=[ReleaseState.current, ReleaseState.pending, ReleaseState.frozen],
+                    )
 
             if all([compose_testing, compose_stable]):
                 query = query_testing.union(query_stable)
@@ -179,12 +214,12 @@ def push(username, yes, **kwargs):
             elif compose_stable:
                 query = query_stable
 
-            if kwargs.get('builds'):
+            if kwargs.get("builds"):
                 query = query.join(Update.builds)
-                query = query.filter(Build.nvr.in_(kwargs['builds'].split(',')))
+                query = query.filter(Build.nvr.in_(kwargs["builds"].split(",")))
 
-            if kwargs.get('updates'):
-                query = query.filter(Update.alias.in_(kwargs['updates'].split(',')))
+            if kwargs.get("updates"):
+                query = query.filter(Update.alias.in_(kwargs["updates"].split(",")))
 
             skipped_lanes = set()
             for update in query.all():
@@ -201,16 +236,18 @@ def push(username, yes, **kwargs):
 
                 if not update.signed:
                     click.echo(
-                        f'Warning: {update.get_title()} has unsigned builds and has been skipped',
-                        err=True)
+                        f"Warning: {update.get_title()} has unsigned builds and has been skipped",
+                        err=True,
+                    )
                     continue
 
                 updates.append(update)
 
             if skipped_lanes:
                 click.echo(
-                    '\nSkipping {:d} release(s) with a Compose already in flight.'.format(
-                        len(skipped_lanes)))
+                    f"\nSkipping {len(skipped_lanes):d} release(s) with a Compose already "
+                    "in flight."
+                )
 
             new_composes = Compose.from_updates(updates)
             for c in new_composes:
@@ -232,30 +269,35 @@ def push(username, yes, **kwargs):
         composes = sorted(composes)
 
         for compose in composes:
-            click.echo('\n\n===== {} =====\n'.format(compose))
+            click.echo(f"\n\n===== {compose} =====\n")
             for update in compose.updates:
                 click.echo(update.get_title())
 
         if composes:
             if yes:
-                click.echo('\n\nPushing {:d} updates.'.format(
-                    sum([len(c.updates) for c in composes])))
+                click.echo(f"\n\nPushing {sum([len(c.updates) for c in composes]):d} updates.")
             else:
-                click.confirm('\n\nPush these {:d} updates?'.format(
-                    sum([len(c.updates) for c in composes])), abort=True)
-            click.echo('\nLocking updates...')
+                click.confirm(
+                    f"\n\nPush these {sum([len(c.updates) for c in composes]):d} updates?",
+                    abort=True,
+                )
+            click.echo("\nLocking updates...")
         else:
-            click.echo('\nThere are no updates to push.')
+            click.echo("\nThere are no updates to push.")
 
         composes = [c.__json__(composer=True) for c in composes]
 
     if composes:
-        click.echo('\nRequesting a compose')
+        click.echo("\nRequesting a compose")
         compose_task.delay(api_version=2, composes=composes, resume=resume, agent=username)
 
 
-def _filter_releases(session, query, releases=None,
-                     states=[ReleaseState.current, ReleaseState.pending]):
+def _filter_releases(
+    session,
+    query,
+    releases=None,
+    states: Sequence[ReleaseState] = (ReleaseState.current, ReleaseState.pending),
+):
     """
     Filter the given query by releases.
 
@@ -278,14 +320,13 @@ def _filter_releases(session, query, releases=None,
     releases_query = releases_query.filter(Release.state.in_(states))
 
     if releases:
-        for r in releases.split(','):
+        for r in releases.split(","):
             release = releases_query.filter(
-                or_(Release.name == r,
-                    Release.name == r.upper(),
-                    Release.version == r)).first()
+                or_(Release.name == r, Release.name == r.upper(), Release.version == r)
+            ).first()
             if not release:
                 raise click.BadParameter(
-                    'Unknown release, or release not allowed to be composed: %s' % r
+                    f"Unknown release, or release not allowed to be composed: {r}"
                 )
             else:
                 _releases.append(release.name)
@@ -295,5 +336,5 @@ def _filter_releases(session, query, releases=None,
     return query.join(Update.release).filter(Release.name.in_(_releases))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     push()

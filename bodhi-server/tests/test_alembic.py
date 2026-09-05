@@ -24,9 +24,7 @@ import os
 import subprocess
 import sys
 
-
-REPO_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+REPO_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 
 class TestAlembic:
@@ -41,23 +39,19 @@ class TestAlembic:
         alembic = None
         # Fedora calls the executable alembic-3, but the pip installed alembic will be alembic.
         for executable in (
-            '/usr/local/bin/alembic',
-            '/usr/bin/alembic-3',
-            os.path.join(os.path.dirname(sys.executable), 'alembic')
+            "/usr/local/bin/alembic",
+            "/usr/bin/alembic-3",
+            os.path.join(os.path.dirname(sys.executable), "alembic"),
         ):
             if os.path.exists(executable):
                 alembic = executable
                 break
         assert alembic is not None, "Couldn't find the alembic executable"
 
-        proc1 = subprocess.Popen(
-            [alembic, 'history'],
-            cwd=REPO_PATH, stdout=subprocess.PIPE)
-        proc2 = subprocess.Popen(
-            ['grep', ' (head), '],
-            stdin=proc1.stdout, stdout=subprocess.PIPE)
+        proc1 = subprocess.Popen([alembic, "history"], cwd=REPO_PATH, stdout=subprocess.PIPE)
+        proc2 = subprocess.Popen(["grep", " (head), "], stdin=proc1.stdout, stdout=subprocess.PIPE)
 
         stdout = proc2.communicate()[0]
-        stdout = stdout.strip().split(b'\n')
+        stdout = stdout.strip().split(b"\n")
         assert len(stdout) == 1
         proc1.communicate()

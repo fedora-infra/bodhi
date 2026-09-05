@@ -18,6 +18,8 @@
 
 """Linting jobs."""
 
+from typing import ClassVar
+
 from .job import BuildJob, Job
 
 
@@ -28,10 +30,9 @@ class PreCommitJob(Job):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _label = 'pre-commit'
-    _command = ["/usr/bin/pre-commit", "run", "-a"]
-    _dependencies = [BuildJob]
-    only_releases = ["pip"]
+    _label = "pre-commit"
+    only_releases: ClassVar[list[str] | None] = ["pip"]
+    _dependencies: ClassVar[list] = [BuildJob]
 
     def __init__(self, *args, **kwargs):
         """
@@ -40,5 +41,7 @@ class PreCommitJob(Job):
         See the superclass's docblock for details about accepted parameters.
         """
         super().__init__(*args, **kwargs)
+
+        self._command = ["/usr/bin/pre-commit", "run", "-a"]
         # Pre-commit requires a git repo and network access
         self._convert_command_for_container(include_git=True, network="bridge")

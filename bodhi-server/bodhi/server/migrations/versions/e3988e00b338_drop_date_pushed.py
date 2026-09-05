@@ -22,14 +22,14 @@ Revision ID: e3988e00b338
 Revises: 499ac8bbe09a
 Create Date: 2022-11-23 17:59:20.906216
 """
-from alembic import op
+
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
-
 # revision identifiers, used by Alembic.
-revision = 'e3988e00b338'
-down_revision = '499ac8bbe09a'
+revision = "e3988e00b338"
+down_revision = "499ac8bbe09a"
 
 
 def upgrade():
@@ -38,7 +38,7 @@ def upgrade():
     date_pushed is either date_stable, date_testing or None, so we will just replace it
     with a Python property.
     """
-    op.drop_column('updates', 'date_pushed')
+    op.drop_column("updates", "date_pushed")
 
 
 def downgrade():
@@ -46,6 +46,8 @@ def downgrade():
 
     date_pushed will be re-set to date_stable or date_testing.
     """
-    op.add_column('updates', sa.Column('date_pushed', postgresql.TIMESTAMP(),
-                                       autoincrement=False, nullable=True))
+    op.add_column(
+        "updates",
+        sa.Column("date_pushed", postgresql.TIMESTAMP(), autoincrement=False, nullable=True),
+    )
     op.execute("UPDATE updates SET date_pushed = GREATEST(date_stable,date_testing)")

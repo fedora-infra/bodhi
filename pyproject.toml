@@ -61,6 +61,10 @@ extend-exclude = [
 ]
 line-length = 100
 
+[tool.ruff.lint.per-file-ignores]
+"bodhi-messages/bodhi/messages/schemas/**.py" = ["RUF012"]
+"bodhi-server/bodhi/server/services/**.py" = ["C408"]
+
 [tool.towncrier]
 package = "bodhi"
 package_dir = "./bodhi-server"

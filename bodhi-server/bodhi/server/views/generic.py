@@ -17,21 +17,22 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A collection of views that don't fit in any other common category."""
 
+# ruff: noqa: C408
+
 import datetime
 
+import bodhi.server.util
+import cornice.errors
+import sqlalchemy as sa
+from bodhi.server import METADATA, cache_region, log, models
+from bodhi.server.config import config
 from koji import GenericError
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest, REGISTRY
+from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
 from pyramid.exceptions import HTTPBadRequest, HTTPForbidden
 from pyramid.httpexceptions import HTTPMovedPermanently, HTTPUnauthorized
 from pyramid.response import Response
 from pyramid.settings import asbool
 from pyramid.view import notfound_view_config, view_config
-import cornice.errors
-import sqlalchemy as sa
-
-from bodhi.server import cache_region, log, METADATA, models
-from bodhi.server.config import config
-import bodhi.server.util
 
 
 def get_top_testers():
@@ -44,26 +45,22 @@ def get_top_testers():
                                   in the last 7 days, and their total number of
                                   comments in bodhi.
     """
-    blacklist = config.get('stats_blacklist')
-    days = config.get('top_testers_timeframe')
+    blacklist = config.get("stats_blacklist")
+    days = config.get("top_testers_timeframe")
     start_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
-    top_limit = config.get('homepage_stats_num_users')
+    top_limit = config.get("homepage_stats_num_users")
 
-    query = models.Session().query(
-        models.User,
-        sa.func.count(models.User.comments).label('count_1')
-    ).join(models.Comment)
-    query = query\
-        .order_by(sa.text('count_1 desc'))\
-        .filter(models.Comment.timestamp > start_time)
+    query = (
+        models.Session()
+        .query(models.User, sa.func.count(models.User.comments).label("count_1"))
+        .join(models.Comment)
+    )
+    query = query.order_by(sa.text("count_1 desc")).filter(models.Comment.timestamp > start_time)
 
     for user in blacklist:
         query = query.filter(models.User.name != str(user))
 
-    return query\
-        .group_by(models.User)\
-        .limit(top_limit)\
-        .all()
+    return query.group_by(models.User).limit(top_limit).all()
 
 
 def get_top_packagers():
@@ -76,26 +73,24 @@ def get_top_packagers():
                                   in the last 7 days, and their total number of
                                   updates in bodhi.
     """
-    blacklist = config.get('stats_blacklist')
-    days = config.get('top_testers_timeframe')
+    blacklist = config.get("stats_blacklist")
+    days = config.get("top_testers_timeframe")
     start_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
-    top_limit = config.get('homepage_stats_num_users')
+    top_limit = config.get("homepage_stats_num_users")
 
-    query = models.Session().query(
-        models.User,
-        sa.func.count(models.User.updates).label('count_1')
-    ).join(models.Update)
-    query = query\
-        .order_by(sa.text('count_1 desc'))\
-        .filter(models.Update.date_submitted > start_time)
+    query = (
+        models.Session()
+        .query(models.User, sa.func.count(models.User.updates).label("count_1"))
+        .join(models.Update)
+    )
+    query = query.order_by(sa.text("count_1 desc")).filter(
+        models.Update.date_submitted > start_time
+    )
 
     for user in blacklist:
         query = query.filter(models.User.name != str(user))
 
-    return query\
-        .group_by(models.User)\
-        .limit(top_limit)\
-        .all()
+    return query.group_by(models.User).limit(top_limit).all()
 
 
 def get_testing_counts(critpath, security):
@@ -113,14 +108,11 @@ def get_testing_counts(critpath, security):
     query = models.Update.query
 
     if critpath:
-        query = query.filter(
-            models.Update.critpath.is_(True))
+        query = query.filter(models.Update.critpath.is_(True))
     if security:
-        query = query.filter(
-            models.Update.type == models.UpdateType.security)
+        query = query.filter(models.Update.type == models.UpdateType.security)
 
-    query = query.filter(
-        models.Update.status == models.UpdateStatus.testing)
+    query = query.filter(models.Update.status == models.UpdateStatus.testing)
 
     query = query.order_by(models.Update.date_submitted.desc())
     return query.count()
@@ -180,25 +172,27 @@ def _get_sidetags(koji, user=None, contains_builds=False):
 
     koji.multicall = True
     for tag in sidetags:
-        koji.getTag(tag['name'])
+        koji.getTag(tag["name"])
     sidetags_info = koji.multiCall()
 
     koji.multicall = True
     for tag in sidetags_info:
-        koji.listTagged(tag[0]['name'], latest=True)
+        koji.listTagged(tag[0]["name"], latest=True)
     builds = koji.multiCall()
 
     result = []
     for i, tag in enumerate(sidetags_info):
         if (contains_builds and builds[i][0]) or not contains_builds:
-            result.append({
-                'id': tag[0]['id'],
-                'name': tag[0]['name'],
-                'sidetag_user': tag[0]['extra']['sidetag_user'],
-                'builds': builds[i][0]
-            })
+            result.append(
+                {
+                    "id": tag[0]["id"],
+                    "name": tag[0]["name"],
+                    "sidetag_user": tag[0]["extra"]["sidetag_user"],
+                    "builds": builds[i][0],
+                }
+            )
 
-    return sorted(result, key=lambda d: d['name'])
+    return sorted(result, key=lambda d: d["name"])
 
 
 def _get_active_updates(request):
@@ -229,7 +223,7 @@ def _get_active_overrides(request):
     return query.all()
 
 
-@view_config(route_name='prometheus_metric')
+@view_config(route_name="prometheus_metric")
 def get_metrics(request):
     """
     Provide the metrics to be consumed by prometheus.
@@ -251,7 +245,7 @@ def get_metrics(request):
     return resp
 
 
-@view_config(route_name='home', renderer='home.html')
+@view_config(route_name="home", renderer="home.html")
 def home(request):
     """
     Provide the data required to present the Bodhi frontpage.
@@ -266,12 +260,12 @@ def home(request):
     """
     data = _generate_home_page_stats()
     if request.identity:
-        data['active_updates'] = _get_active_updates(request)
-        data['active_overrides'] = _get_active_overrides(request)
+        data["active_updates"] = _get_active_updates(request)
+        data["active_overrides"] = _get_active_overrides(request)
     return data
 
 
-@view_config(route_name='new_update', renderer='new_update.html')
+@view_config(route_name="new_update", renderer="new_update.html")
 def new_update(request):
     """
     Return the new update form.
@@ -292,14 +286,13 @@ def new_update(request):
     return dict(
         update=None,
         types=reversed(list(models.UpdateType.values())),
-        severities=sorted(list(models.UpdateSeverity.values()),
-                          key=bodhi.server.util.sort_severity),
+        severities=sorted(models.UpdateSeverity.values(), key=bodhi.server.util.sort_severity),
         suggestions=suggestions,
-        sidetags=_get_sidetags(request.koji, user=user, contains_builds=True)
+        sidetags=_get_sidetags(request.koji, user=user, contains_builds=True),
     )
 
 
-@view_config(route_name='latest_candidates', renderer='json')
+@view_config(route_name="latest_candidates", renderer="json")
 def latest_candidates(request):
     """
     Return the most recent candidate builds for a given package name.
@@ -324,12 +317,15 @@ def latest_candidates(request):
         result = []
         koji.multicall = True
 
-        releases = db.query(models.Release) \
-                     .filter(
-                         models.Release.state.in_(
-                             (models.ReleaseState.pending,
-                              models.ReleaseState.frozen,
-                              models.ReleaseState.current)))
+        releases = db.query(models.Release).filter(
+            models.Release.state.in_(
+                (
+                    models.ReleaseState.pending,
+                    models.ReleaseState.frozen,
+                    models.ReleaseState.current,
+                )
+            )
+        )
 
         if hide_existing:
             # We want to filter out builds associated with an update.
@@ -341,12 +337,14 @@ def latest_candidates(request):
             # might be archived but the build might be inherited into an active
             # release. If this gives performance troubles later on, caching
             # this set should be easy enough.
-            associated_build_nvrs = set(
-                row[0] for row in
-                db.query(models.Build.nvr).
-                join(models.Update).
-                filter(models.Update.status == models.UpdateStatus.pending)
-            )
+            associated_build_nvrs = {
+                nvr
+                for (nvr,) in (
+                    db.query(models.Build.nvr)
+                    .join(models.Update)
+                    .filter(models.Update.status == models.UpdateStatus.pending)
+                )
+            }
 
         kwargs = dict(package=pkg, prefix=prefix, latest=True)
         tag_release = dict()
@@ -368,25 +366,25 @@ def latest_candidates(request):
             # in the reponse as dicts. Here we detect these, and log
             # the errors
             if isinstance(taglist, dict):
-                log.error('latest_candidates endpoint asked Koji about a non-existent tag:')
+                log.error("latest_candidates endpoint asked Koji about a non-existent tag:")
                 log.error(taglist)
             else:
                 for build in taglist[0]:
-                    if hide_existing and build['nvr'] in associated_build_nvrs:
+                    if hide_existing and build["nvr"] in associated_build_nvrs:
                         continue
 
                     item = {
-                        'nvr': build['nvr'],
-                        'id': build['id'],
-                        'package_name': build['package_name'],
-                        'owner_name': build['owner_name'],
+                        "nvr": build["nvr"],
+                        "id": build["id"],
+                        "package_name": build["package_name"],
+                        "owner_name": build["owner_name"],
                     }
 
                     # The build's tag might not be present in tag_release
                     # because its associated release is archived and therefore
                     # filtered out in the query above.
-                    if build['tag_name'] in tag_release:
-                        item['release_name'] = tag_release[build['tag_name']]
+                    if build["tag_name"] in tag_release:
+                        item["release_name"] = tag_release[build["tag_name"]]
 
                     # Prune duplicates
                     # https://github.com/fedora-infra/bodhi/issues/450
@@ -394,11 +392,11 @@ def latest_candidates(request):
                         result.append(item)
         return result
 
-    pkg = request.params.get('package')
-    prefix = request.params.get('prefix')
-    testing = asbool(request.params.get('testing'))
-    hide_existing = asbool(request.params.get('hide_existing'))
-    log.debug('latest_candidate(%r, %r, %r)' % (pkg, testing, hide_existing))
+    pkg = request.params.get("package")
+    prefix = request.params.get("prefix")
+    testing = asbool(request.params.get("testing"))
+    hide_existing = asbool(request.params.get("hide_existing"))
+    log.debug("latest_candidate(%r, %r, %r)", pkg, testing, hide_existing)
 
     if pkg:
         result = work(testing, hide_existing, pkg=pkg)
@@ -407,7 +405,7 @@ def latest_candidates(request):
     return result
 
 
-@view_config(route_name='latest_builds', renderer='json')
+@view_config(route_name="latest_builds", renderer="json")
 def latest_builds(request):
     """
     Return a list of the latest builds for a given package.
@@ -420,18 +418,19 @@ def latest_builds(request):
     """
     builds = {}
     koji = request.koji
-    package = request.params.get('package')
-    for tag_type, tags in models.Release.get_tags()[0].items():
+    package = request.params.get("package")
+    for tags in models.Release.get_tags()[0].values():
         for tag in tags:
             try:
                 for build in koji.getLatestBuilds(tag, package=package):
-                    builds[tag] = build['nvr']
-            except Exception:  # Things like EPEL don't have pending tags
+                    builds[tag] = build["nvr"]
+            except Exception:  # noqa: BLE001 S110
+                # Things like EPEL don't have pending tags
                 pass
     return builds
 
 
-@view_config(route_name='get_sidetags', renderer='json')
+@view_config(route_name="get_sidetags", renderer="json")
 def get_sidetags(request):
     """
     Return a list of koji sidetags based on query arguments.
@@ -444,14 +443,14 @@ def get_sidetags(request):
     """
     koji = request.koji
     # 'user': a FAS username, used to only return sidetags from that user
-    user = request.params.get('user')
+    user = request.params.get("user")
     # 'contains_builds': a boolean to only return sidetags with that contain builds
-    contains_builds = asbool(request.params.get('contains_builds'))
+    contains_builds = asbool(request.params.get("contains_builds"))
 
     return _get_sidetags(koji, user=user, contains_builds=contains_builds)
 
 
-@view_config(route_name='latest_builds_in_tag', renderer='json')
+@view_config(route_name="latest_builds_in_tag", renderer="json")
 def latest_builds_in_tag(request):
     """
     Return a list of the latest builds for a given tag.
@@ -463,14 +462,14 @@ def latest_builds_in_tag(request):
         dict: A dictionary of the release dist tag to the latest build.
     """
     koji = request.koji
-    tag = request.params.get('tag')
+    tag = request.params.get("tag")
     if not tag:
         raise HTTPBadRequest("tag parameter is required")
     else:
         return koji.listTagged(tag, latest=True)
 
 
-@view_config(route_name='new_override', renderer='override.html')
+@view_config(route_name="new_override", renderer="override.html")
 def new_override(request):
     """
     Return the new buildroot override form.
@@ -482,14 +481,14 @@ def new_override(request):
     Raises:
         pyramid.exceptions.HTTPForbidden: If the user is not logged in.
     """
-    nvr = request.params.get('nvr')
+    nvr = request.params.get("nvr")
     user = request.authenticated_userid
     if not user:
         raise HTTPForbidden("You must be logged in.")
     return dict(nvr=nvr)
 
 
-@view_config(route_name='api_version', renderer='json')
+@view_config(route_name="api_version", renderer="json")
 def api_version(request):
     """
     Return the Bodhi API version.
@@ -502,7 +501,7 @@ def api_version(request):
     return dict(version=bodhi.server.util.version())
 
 
-@view_config(route_name='liveness', renderer='json')
+@view_config(route_name="liveness", renderer="json")
 def liveness(request):
     """
     Return 'ok' as a sign of being alive.
@@ -512,10 +511,10 @@ def liveness(request):
     Returns:
         str: 'ok'
     """
-    return 'ok'
+    return "ok"
 
 
-@view_config(route_name='readyness', renderer='json')
+@view_config(route_name="readyness", renderer="json")
 def readyness(request):
     """
     Return 200 if the app can query the db, to signify being ready.
@@ -528,8 +527,8 @@ def readyness(request):
     try:
         request.db.execute(sa.text("SELECT 1"))
         return dict(db_session=True)
-    except Exception:
-        raise Exception("App not ready, is unable to execute a trivial select.")
+    except Exception:  # noqa: BLE001
+        raise Exception("App not ready, is unable to execute a trivial select.")  # noqa: TRY002
 
 
 @notfound_view_config(append_slash=True)
@@ -550,9 +549,9 @@ def notfound_view(context, request):
     return exception_html_view(context, request)
 
 
-@view_config(context=HTTPForbidden, accept='text/html')
-@view_config(context=HTTPUnauthorized, accept='text/html')
-@view_config(context=Exception, accept='text/html')
+@view_config(context=HTTPForbidden, accept="text/html")
+@view_config(context=HTTPUnauthorized, accept="text/html")
+@view_config(context=Exception, accept="text/html")
 def exception_html_view(exc, request):
     """
     Return a html error response upon generic errors (404s, 403s, 500s, etc..).
@@ -569,8 +568,8 @@ def exception_html_view(exc, request):
         bodhi.server.services.errors.html_handler: A pyramid.httpexceptions.HTTPError to be rendered
             to the user for the given exception.
     """
-    errors = getattr(request, 'errors', [])
-    status = getattr(exc, 'status_code', 500)
+    errors = getattr(request, "errors", [])
+    status = getattr(exc, "status_code", 500)
 
     if status not in (404, 403, 401):
         log.exception("Error caught.  Handling HTML response.")
@@ -579,14 +578,14 @@ def exception_html_view(exc, request):
 
     if not len(errors):
         errors = cornice.errors.Errors(status=status)
-        errors.add('body', description=str(exc))
+        errors.add("body", description=str(exc))
         request.errors = errors
 
     return bodhi.server.services.errors.html_handler(request)
 
 
-@view_config(context=HTTPForbidden, accept='application/json')
-@view_config(context=Exception, accept='application/json')
+@view_config(context=HTTPForbidden, accept="application/json")
+@view_config(context=Exception, accept="application/json")
 def exception_json_view(exc, request):
     """
     Return a json error response upon generic errors (404s, 403s, 500s, etc..).
@@ -603,8 +602,8 @@ def exception_json_view(exc, request):
         bodhi.server.services.errors.json_handler: A pyramid.httpexceptions.HTTPError to be rendered
             to the user for the given exception.
     """
-    errors = getattr(request, 'errors', [])
-    status = getattr(exc, 'status_code', 500)
+    errors = getattr(request, "errors", [])
+    status = getattr(exc, "status_code", 500)
 
     if status not in (404, 403):
         log.exception("Error caught.  Handling JSON response.")
@@ -613,13 +612,13 @@ def exception_json_view(exc, request):
 
     if not len(errors):
         errors = cornice.errors.Errors(status=status)
-        errors.add('body', description=str(exc), name=exc.__class__.__name__)
+        errors.add("body", description=str(exc), name=exc.__class__.__name__)
         request.errors = errors
 
     return bodhi.server.services.errors.json_handler(request)
 
 
-@view_config(route_name='docs')
+@view_config(route_name="docs")
 def docs(request):
     """Legacy: Redirect the previously self-hosted documentation."""
     major_minor_version = ".".join(METADATA["version"].split(".")[:2])
@@ -628,7 +627,7 @@ def docs(request):
     raise HTTPMovedPermanently(url)
 
 
-@view_config(route_name='get_critpath_components', renderer='json')
+@view_config(route_name="get_critpath_components", renderer="json")
 def get_critpath_components(request):
     """
     Return critical path components configured in bodhi.
@@ -638,16 +637,15 @@ def get_critpath_components(request):
     Returns:
         dict: A dictionary with a "version" key indexing a string of the Bodhi version.
     """
-    collection = request.params.get('collection', 'rawhide')
-    component_type = request.params.get('component_type', 'rpm')
-    components = request.params.get('components')
+    collection = request.params.get("collection", "rawhide")
+    component_type = request.params.get("component_type", "rpm")
+    components = request.params.get("components")
     if components is not None:
-        components = components.split(',')
-    return bodhi.server.util.get_grouped_critpath_components(collection, component_type,
-                                                             components)
+        components = components.split(",")
+    return bodhi.server.util.get_grouped_critpath_components(collection, component_type, components)
 
 
-@view_config(route_name='get_ccp_components', renderer='json')
+@view_config(route_name="get_ccp_components", renderer="json")
 def get_ccp_components(request):
     """
     Return compose-critical components configured in bodhi.
@@ -660,9 +658,9 @@ def get_ccp_components(request):
             elements of the dict that contain any of the specified components will be present.
             Will be empty if the underlying metadata is not available.
     """
-    collection = request.params.get('collection', 'rawhide')
-    component_type = request.params.get('component_type', 'rpm')
-    components = request.params.get('components')
+    collection = request.params.get("collection", "rawhide")
+    component_type = request.params.get("component_type", "rpm")
+    components = request.params.get("components")
     if components is not None:
-        components = components.split(',')
+        components = components.split(",")
     return bodhi.server.util.get_ccp_components(collection, component_type, components)

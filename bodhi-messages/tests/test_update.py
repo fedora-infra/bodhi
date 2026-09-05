@@ -15,7 +15,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Unit tests for the update message schemas."""
 
-
 from bodhi.messages.schemas.base import BuildV1, ReleaseV1, UpdateV1, UserV1
 from bodhi.messages.schemas.update import (
     UpdateCommentV1,
@@ -47,11 +46,11 @@ class TestUpdateMessage:
             "topic": "bodhi.update.eject",
             "summary": (
                 "mbooth's xstream-1.4.11.1-2.fc30 bodhi update "
-                "was ejected from the test_repo mash. Reason: \"some reason\""
+                'was ejected from the test_repo mash. Reason: "some reason"'
             ),
             "__str__": (
                 "mbooth's xstream-1.4.11.1-2.fc30 bodhi update "
-                "was ejected from the test_repo mash. Reason: \"some reason\""
+                'was ejected from the test_repo mash. Reason: "some reason"'
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
@@ -61,26 +60,39 @@ class TestUpdateMessage:
                 "20652954adacfd9f6e26536bbcf3b5fbc850dc61f8a2e67c5bfbc6e345032976"
                 "?s=64&d=retro"
             ),
-            "usernames": ["mbooth", 'mohanboddu'],
+            "usernames": ["mbooth", "mohanboddu"],
             "packages": ["xstream"],
-            'repo': 'test_repo',
-            'update': UpdateV1('FEDORA-2019-2b055f8870', [BuildV1('xstream-1.4.11.1-2.fc30')],
-                               UserV1('mbooth'), 'testing', None, ReleaseV1('F30'))
+            "repo": "test_repo",
+            "update": UpdateV1(
+                "FEDORA-2019-2b055f8870",
+                [BuildV1("xstream-1.4.11.1-2.fc30")],
+                UserV1("mbooth"),
+                "testing",
+                None,
+                ReleaseV1("F30"),
+            ),
         }
         msg = UpdateEjectV1(
             body={
                 "agent": "mohanboddu",
                 "update": {
                     "alias": "FEDORA-2019-2b055f8870",
-                    "builds": [{
-                        "release_id": 28, "nvr": "xstream-1.4.11.1-2.fc30", "signed": True,
-                        "epoch": 0, "ci_url": None, "type": "rpm"}],
+                    "builds": [
+                        {
+                            "release_id": 28,
+                            "nvr": "xstream-1.4.11.1-2.fc30",
+                            "signed": True,
+                            "epoch": 0,
+                            "ci_url": None,
+                            "type": "rpm",
+                        }
+                    ],
                     "locked": True,
                     "title": "xstream-1.4.11.1-2.fc30",
                     "release": {"name": "F30"},
-                    'request': None,
+                    "request": None,
                     "status": "testing",
-                    'user': {'name': 'mbooth'}
+                    "user": {"name": "mbooth"},
                 },
                 "reason": "some reason",
                 "release": {
@@ -113,27 +125,35 @@ class TestUpdateMessage:
                 "20652954adacfd9f6e26536bbcf3b5fbc850dc61f8a2e67c5bfbc6e345032976"
                 "?s=64&d=retro"
             ),
-            "usernames": ["eclipseo", 'mohanboddu'],
-            "packages": ["golang-github-SAP-go-hdb", 'texworks'],
-            'update': UpdateV1(
-                'FEDORA-2019-d64d0caab3',
-                [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29'),
-                 BuildV1('texworks-0.6.3-1.fc29')],
-                UserV1('eclipseo'), 'stable', None, ReleaseV1('F29'))
+            "usernames": ["eclipseo", "mohanboddu"],
+            "packages": ["golang-github-SAP-go-hdb", "texworks"],
+            "update": UpdateV1(
+                "FEDORA-2019-d64d0caab3",
+                [
+                    BuildV1("golang-github-SAP-go-hdb-0.14.1-1.fc29"),
+                    BuildV1("texworks-0.6.3-1.fc29"),
+                ],
+                UserV1("eclipseo"),
+                "stable",
+                None,
+                ReleaseV1("F29"),
+            ),
         }
         msg = UpdateCompleteStableV1(
             body={
                 "update": {
                     "alias": "FEDORA-2019-d64d0caab3",
-                    "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
-                               {'nvr': 'texworks-0.6.3-1.fc29'}],
+                    "builds": [
+                        {"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
+                        {"nvr": "texworks-0.6.3-1.fc29"},
+                    ],
                     "title": "fedmsg-0.2.7-2.el6",
-                    'release': {"name": "F29"},
-                    'request': None,
+                    "release": {"name": "F29"},
+                    "request": None,
                     "status": "stable",
-                    "user": {"name": "eclipseo"}
+                    "user": {"name": "eclipseo"},
                 },
-                'agent': 'mohanboddu'
+                "agent": "mohanboddu",
             }
         )
         check_message(msg, expected)
@@ -157,27 +177,35 @@ class TestUpdateMessage:
                 "20652954adacfd9f6e26536bbcf3b5fbc850dc61f8a2e67c5bfbc6e345032976"
                 "?s=64&d=retro"
             ),
-            "usernames": ["eclipseo", 'mohanboddu'],
-            "packages": ["golang-github-SAP-go-hdb", 'texworks'],
-            'update': UpdateV1(
-                'FEDORA-2019-d64d0caab3',
-                [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29'),
-                 BuildV1('texworks-0.6.3-1.fc29')],
-                UserV1('eclipseo'), 'testing', None, ReleaseV1('F29'))
+            "usernames": ["eclipseo", "mohanboddu"],
+            "packages": ["golang-github-SAP-go-hdb", "texworks"],
+            "update": UpdateV1(
+                "FEDORA-2019-d64d0caab3",
+                [
+                    BuildV1("golang-github-SAP-go-hdb-0.14.1-1.fc29"),
+                    BuildV1("texworks-0.6.3-1.fc29"),
+                ],
+                UserV1("eclipseo"),
+                "testing",
+                None,
+                ReleaseV1("F29"),
+            ),
         }
         msg = UpdateCompleteTestingV1(
             body={
                 "update": {
                     "alias": "FEDORA-2019-d64d0caab3",
-                    "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
-                               {'nvr': 'texworks-0.6.3-1.fc29'}],
+                    "builds": [
+                        {"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
+                        {"nvr": "texworks-0.6.3-1.fc29"},
+                    ],
                     "title": "fedmsg-0.2.7-2.el6",
-                    'release': {"name": "F29"},
-                    'request': None,
+                    "release": {"name": "F29"},
+                    "request": None,
                     "status": "testing",
-                    "user": {"name": "eclipseo"}
+                    "user": {"name": "eclipseo"},
                 },
-                'agent': 'mohanboddu'
+                "agent": "mohanboddu",
             }
         )
         check_message(msg, expected)
@@ -212,14 +240,14 @@ class TestUpdateMessage:
                     "url": "https://somewhere.com",
                     "docs": "https://somewhere.com/user-documentation",
                     "irc": "#baseosci",
-                    "email": "baseos-ci@somewhere.com"
+                    "email": "baseos-ci@somewhere.com",
                 },
                 "artifact": {
                     "type": "koji-build-group",
                     "id": "FEDORA-2019-d64d0caab3",
                     "repository": "https://bodhi.fp.o/updates/FEDORA-2019-d64d0caab3",
-                    "builds":
-                        [{
+                    "builds": [
+                        {
                             "type": "koji-build",
                             "id": 14546275,
                             "task_id": 14546276,
@@ -227,7 +255,8 @@ class TestUpdateMessage:
                             "component": "libselinux",
                             "nvr": "libselinux-2.8-6.fc29.x86_64",
                             "scratch": False,
-                        }, {
+                        },
+                        {
                             "type": "koji-build",
                             "id": 14546278,
                             "task_id": None,
@@ -235,7 +264,8 @@ class TestUpdateMessage:
                             "component": "libsepol",
                             "nvr": "libsepol-2.8-3.fc29.x86_64",
                             "scratch": False,
-                        }],
+                        },
+                    ],
                     "release": "f29",
                 },
                 "generated_at": "2019-10-22 13:08:10.222602",
@@ -275,14 +305,14 @@ class TestUpdateMessage:
                     "url": "https://somewhere.com",
                     "docs": "https://somewhere.com/user-documentation",
                     "irc": "#baseosci",
-                    "email": "baseos-ci@somewhere.com"
+                    "email": "baseos-ci@somewhere.com",
                 },
                 "artifact": {
                     "type": "koji-build-group",
                     "id": "FEDORA-2019-d64d0caab3",
                     "repository": "https://bodhi.fp.o/updates/FEDORA-2019-d64d0caab3",
-                    "builds":
-                        [{
+                    "builds": [
+                        {
                             "type": "koji-build",
                             "id": 14546275,
                             "task_id": 14546276,
@@ -290,7 +320,8 @@ class TestUpdateMessage:
                             "component": "libselinux",
                             "nvr": "libselinux-2.8-6.fc29.x86_64",
                             "scratch": False,
-                        }, {
+                        },
+                        {
                             "type": "koji-build",
                             "id": 14546278,
                             "task_id": None,
@@ -298,18 +329,21 @@ class TestUpdateMessage:
                             "component": "libsepol",
                             "nvr": "libsepol-2.8-3.fc29.x86_64",
                             "scratch": False,
-                        }],
+                        },
+                    ],
                     "release": "f29",
                 },
                 "update": {
                     "alias": "FEDORA-2019-d64d0caab3",
-                    "builds": [{"nvr": "libselinux-2.8-6.fc29.x86_64"},
-                               {"nvr": "libsepol-2.8-3.fc29.x86_64"}],
+                    "builds": [
+                        {"nvr": "libselinux-2.8-6.fc29.x86_64"},
+                        {"nvr": "libsepol-2.8-3.fc29.x86_64"},
+                    ],
                     "title": "flibselinux-2.8-6.fc29",
-                    'release': {"name": "F29"},
-                    'request': None,
+                    "release": {"name": "F29"},
+                    "request": None,
                     "status": "testing",
-                    "user": {"name": "plautrba"}
+                    "user": {"name": "plautrba"},
                 },
                 "generated_at": "2019-10-22 13:08:10.222602",
                 "version": "0.2.2",
@@ -344,28 +378,32 @@ class TestUpdateMessage:
             body={
                 "artifact": {
                     "type": "koji-build-group",
-                    "builds":
-                        [{
+                    "builds": [
+                        {
                             "type": "koji-build",
                             "id": 14546275,
                             "task_id": 14546276,
                             "nvr": "libselinux-2.8-6.fc29.x86_64",
-                        }, {
+                        },
+                        {
                             "type": "koji-build",
                             "id": 14546278,
                             "task_id": None,
                             "nvr": "libsepol-2.8-3.fc29.x86_64",
-                        }],
+                        },
+                    ],
                 },
                 "update": {
                     "alias": "FEDORA-2019-d64d0caab3",
-                    "builds": [{"nvr": "libselinux-2.8-6.fc29.x86_64"},
-                               {"nvr": "libsepol-2.8-3.fc29.x86_64"}],
+                    "builds": [
+                        {"nvr": "libselinux-2.8-6.fc29.x86_64"},
+                        {"nvr": "libsepol-2.8-3.fc29.x86_64"},
+                    ],
                     "title": "flibselinux-2.8-6.fc29",
-                    'release': {"name": "F29"},
-                    'request': None,
+                    "release": {"name": "F29"},
+                    "request": None,
                     "status": "testing",
-                    "user": {"name": "plautrba"}
+                    "user": {"name": "plautrba"},
                 },
                 "agent": "mohanboddu",
             }
@@ -376,9 +414,9 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.testing",
             "summary": "lmacken submitted hadess's update FEDORA-2019-f1ca3c00e5 "
-                       "(gnome-settings-daemon-3.6.1-1.fc18 contr…) to testing",
+            "(gnome-settings-daemon-3.6.1-1.fc18 contr…) to testing",
             "__str__": "lmacken submitted hadess's update FEDORA-2019-f1ca3c00e5 to testing.\n"
-                       "Builds:\ngnome-settings-daemon-3.6.1-1.fc18\ncontrol-center-3.6.1-1.fc18",
+            "Builds:\ngnome-settings-daemon-3.6.1-1.fc18\ncontrol-center-3.6.1-1.fc18",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-f1ca3c00e5",
@@ -389,39 +427,40 @@ class TestUpdateMessage:
             ),
             "usernames": ["hadess", "lmacken"],
             "packages": ["gnome-settings-daemon", "control-center"],
-            'update': UpdateV1(
-                'FEDORA-2019-f1ca3c00e5',
-                [BuildV1('gnome-settings-daemon-3.6.1-1.fc18'),
-                 BuildV1('control-center-3.6.1-1.fc18')],
-                UserV1('hadess'), 'pending', 'testing', ReleaseV1('F18'))
+            "update": UpdateV1(
+                "FEDORA-2019-f1ca3c00e5",
+                [
+                    BuildV1("gnome-settings-daemon-3.6.1-1.fc18"),
+                    BuildV1("control-center-3.6.1-1.fc18"),
+                ],
+                UserV1("hadess"),
+                "pending",
+                "testing",
+                ReleaseV1("F18"),
+            ),
         }
         msg = UpdateRequestTestingV1(
             body={
-                'agent': 'lmacken',
+                "agent": "lmacken",
                 "update": {
-                    'alias': 'FEDORA-2019-f1ca3c00e5',
+                    "alias": "FEDORA-2019-f1ca3c00e5",
                     "status": "pending",
                     "critpath": False,
                     "stable_karma": 3,
                     "date_pushed": None,
-                    'user': {'name': 'hadess'},
-                    "title": (
-                        "gnome-settings-daemon-3.6.1-1.fc18,"
-                        "control-center-3.6.1-1.fc18"
-                    ),
+                    "user": {"name": "hadess"},
+                    "title": ("gnome-settings-daemon-3.6.1-1.fc18,control-center-3.6.1-1.fc18"),
                     "comments": [
                         {
                             "group": None,
                             "author": "bodhi",
-                            "text": "This update has been submitted for "
-                            "testing by hadess. ",
+                            "text": "This update has been submitted for testing by hadess. ",
                             "karma": 0,
                             "anonymous": False,
                             "timestamp": 1349718539.0,
                             "update_title": (
-                                "gnome-settings-daemon-3.6.1-1.fc18,"
-                                "control-center-3.6.1-1.fc18"
-                            )
+                                "gnome-settings-daemon-3.6.1-1.fc18,control-center-3.6.1-1.fc18"
+                            ),
                         }
                     ],
                     "type": "bugfix",
@@ -433,22 +472,18 @@ class TestUpdateMessage:
                         "locked": True,
                         "long_name": "Fedora 18",
                         "name": "F18",
-                        "id_prefix": "FEDORA"
+                        "id_prefix": "FEDORA",
                     },
                     "builds": [
                         {
                             "nvr": "gnome-settings-daemon-3.6.1-1.fc18",
                             "package": {
                                 "suggest_reboot": False,
-                                "committers": [
-                                    "hadess",
-                                    "ofourdan",
-                                    "mkasik",
-                                    "cosimoc"
-                                ],
-                                "name": "gnome-settings-daemon"
-                            }
-                        }, {
+                                "committers": ["hadess", "ofourdan", "mkasik", "cosimoc"],
+                                "name": "gnome-settings-daemon",
+                            },
+                        },
+                        {
                             "nvr": "control-center-3.6.1-1.fc18",
                             "package": {
                                 "suggest_reboot": False,
@@ -468,11 +503,11 @@ class TestUpdateMessage:
                                     "johnp",
                                     "caillon",
                                     "whot",
-                                    "rstrode"
+                                    "rstrode",
                                 ],
-                                "name": "control-center"
-                            }
-                        }
+                                "name": "control-center",
+                            },
+                        },
                     ],
                     "date_modified": None,
                     "notes": (
@@ -484,7 +519,7 @@ class TestUpdateMessage:
                     "bugs": [],
                     "critpath_approved": False,
                     "karma": 0,
-                }
+                },
             }
         )
         check_message(msg, expected)
@@ -494,9 +529,9 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.unpush",
             "summary": "ralph unpushed their update FEDORA-2019-8da6360454 "
-                       "(python-operator-courier-1.2.0-1.fc28)",
+            "(python-operator-courier-1.2.0-1.fc28)",
             "__str__": "ralph unpushed their update FEDORA-2019-8da6360454.\n"
-                       "Builds:\npython-operator-courier-1.2.0-1.fc28",
+            "Builds:\npython-operator-courier-1.2.0-1.fc28",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-8da6360454",
@@ -507,20 +542,25 @@ class TestUpdateMessage:
             ),
             "usernames": ["ralph"],
             "packages": ["python-operator-courier"],
-            'update': UpdateV1(
-                'FEDORA-2019-8da6360454', [BuildV1('python-operator-courier-1.2.0-1.fc28')],
-                UserV1('ralph'), 'unpushed', None, ReleaseV1('F28'))
+            "update": UpdateV1(
+                "FEDORA-2019-8da6360454",
+                [BuildV1("python-operator-courier-1.2.0-1.fc28")],
+                UserV1("ralph"),
+                "unpushed",
+                None,
+                ReleaseV1("F28"),
+            ),
         }
         msg = UpdateRequestUnpushV1(
             body={
-                'agent': 'ralph',
-                'update': {
+                "agent": "ralph",
+                "update": {
                     "alias": "FEDORA-2019-8da6360454",
-                    "builds": [{'nvr': 'python-operator-courier-1.2.0-1.fc28'}],
+                    "builds": [{"nvr": "python-operator-courier-1.2.0-1.fc28"}],
                     "release": {"name": "F28"},
-                    'request': None,
+                    "request": None,
                     "status": "unpushed",
-                    "user": {"name": "ralph"}
+                    "user": {"name": "ralph"},
                 },
             }
         )
@@ -530,9 +570,9 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.obsolete",
             "summary": "lmacken obsoleted eclipseo's update FEDORA-2019-d64d0caab3 "
-                       "(golang-github-SAP-go-hdb-0.14.1-1.fc29)",
+            "(golang-github-SAP-go-hdb-0.14.1-1.fc29)",
             "__str__": "lmacken obsoleted eclipseo's update FEDORA-2019-d64d0caab3.\n"
-                       "Builds:\ngolang-github-SAP-go-hdb-0.14.1-1.fc29",
+            "Builds:\ngolang-github-SAP-go-hdb-0.14.1-1.fc29",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
@@ -541,23 +581,28 @@ class TestUpdateMessage:
                 "203f6cb95b44b5d38aa21425b066dd522d3e19d8919cf4b339f29e0ea7f03e9b"
                 "?s=64&d=retro"
             ),
-            "usernames": ['eclipseo', "lmacken"],
+            "usernames": ["eclipseo", "lmacken"],
             "packages": ["golang-github-SAP-go-hdb"],
-            'update': UpdateV1(
-                'FEDORA-2019-d64d0caab3', [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29')],
-                UserV1('eclipseo'), 'testing', None, ReleaseV1('F29'))
+            "update": UpdateV1(
+                "FEDORA-2019-d64d0caab3",
+                [BuildV1("golang-github-SAP-go-hdb-0.14.1-1.fc29")],
+                UserV1("eclipseo"),
+                "testing",
+                None,
+                ReleaseV1("F29"),
+            ),
         }
         msg = UpdateRequestObsoleteV1(
             body={
-                'agent': 'lmacken',
-                'update': {
+                "agent": "lmacken",
+                "update": {
                     "alias": "FEDORA-2019-d64d0caab3",
                     "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"}],
                     "title": "golang-github-SAP-go-hdb-0.14.1-1.fc29",
-                    'release': {"name": "F29"},
-                    'request': None,
+                    "release": {"name": "F29"},
+                    "request": None,
                     "status": "testing",
-                    "user": {"name": "eclipseo"}
+                    "user": {"name": "eclipseo"},
                 },
             }
         )
@@ -567,9 +612,9 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.stable",
             "summary": "lmacken submitted eclipseo's update FEDORA-2019-d64d0caab3 "
-                       "(golang-github-SAP-go-hdb-0.14.1-1.fc29) to stable",
+            "(golang-github-SAP-go-hdb-0.14.1-1.fc29) to stable",
             "__str__": "lmacken submitted eclipseo's update FEDORA-2019-d64d0caab3 to stable.\n"
-                       "Builds:\ngolang-github-SAP-go-hdb-0.14.1-1.fc29",
+            "Builds:\ngolang-github-SAP-go-hdb-0.14.1-1.fc29",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
@@ -578,22 +623,27 @@ class TestUpdateMessage:
                 "203f6cb95b44b5d38aa21425b066dd522d3e19d8919cf4b339f29e0ea7f03e9b"
                 "?s=64&d=retro"
             ),
-            "usernames": ['eclipseo', "lmacken"],
+            "usernames": ["eclipseo", "lmacken"],
             "packages": ["golang-github-SAP-go-hdb"],
-            'update': UpdateV1(
-                'FEDORA-2019-d64d0caab3', [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29')],
-                UserV1('eclipseo'), 'testing', 'stable', ReleaseV1('F29'))
+            "update": UpdateV1(
+                "FEDORA-2019-d64d0caab3",
+                [BuildV1("golang-github-SAP-go-hdb-0.14.1-1.fc29")],
+                UserV1("eclipseo"),
+                "testing",
+                "stable",
+                ReleaseV1("F29"),
+            ),
         }
         msg = UpdateRequestStableV1(
             body={
-                'agent': 'lmacken',
-                'update': {
+                "agent": "lmacken",
+                "update": {
                     "alias": "FEDORA-2019-d64d0caab3",
                     "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"}],
                     "release": {"name": "F29"},
-                    'request': 'stable',
+                    "request": "stable",
                     "status": "testing",
-                    "user": {"name": "eclipseo"}
+                    "user": {"name": "eclipseo"},
                 },
             }
         )
@@ -603,9 +653,9 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.revoke",
             "summary": "lmacken revoked eclipseo's update FEDORA-2019-d64d0caab3 "
-                       "(golang-github-SAP-go-hdb-0.14.1-1.fc29)",
+            "(golang-github-SAP-go-hdb-0.14.1-1.fc29)",
             "__str__": "lmacken revoked eclipseo's update FEDORA-2019-d64d0caab3.\nBuilds:\n"
-                       "golang-github-SAP-go-hdb-0.14.1-1.fc29",
+            "golang-github-SAP-go-hdb-0.14.1-1.fc29",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
@@ -614,22 +664,27 @@ class TestUpdateMessage:
                 "203f6cb95b44b5d38aa21425b066dd522d3e19d8919cf4b339f29e0ea7f03e9b"
                 "?s=64&d=retro"
             ),
-            "usernames": ['eclipseo', "lmacken"],
+            "usernames": ["eclipseo", "lmacken"],
             "packages": ["golang-github-SAP-go-hdb"],
-            'update': UpdateV1(
-                'FEDORA-2019-d64d0caab3', [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29')],
-                UserV1('eclipseo'), 'testing', None, ReleaseV1('F29'))
+            "update": UpdateV1(
+                "FEDORA-2019-d64d0caab3",
+                [BuildV1("golang-github-SAP-go-hdb-0.14.1-1.fc29")],
+                UserV1("eclipseo"),
+                "testing",
+                None,
+                ReleaseV1("F29"),
+            ),
         }
         msg = UpdateRequestRevokeV1(
             body={
-                'agent': 'lmacken',
-                'update': {
+                "agent": "lmacken",
+                "update": {
                     "alias": "FEDORA-2019-d64d0caab3",
                     "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"}],
                     "release": {"name": "F29"},
-                    'request': None,
+                    "request": None,
                     "status": "testing",
-                    "user": {"name": "eclipseo"}
+                    "user": {"name": "eclipseo"},
                 },
             }
         )
@@ -639,10 +694,10 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.request.testing",
             "summary": "eclipseo submitted their update FEDORA-2019-f1ca3c00e5 "
-                       "(golang-github-Masterminds-semver-2.0.0-0…) to testing",
+            "(golang-github-Masterminds-semver-2.0.0-0…) to testing",
             "__str__": "eclipseo submitted their update FEDORA-2019-f1ca3c00e5 to testing.\n"
-                       "Builds:\n"
-                       "golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29",
+            "Builds:\n"
+            "golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-f1ca3c00e5",
@@ -653,23 +708,31 @@ class TestUpdateMessage:
             ),
             "usernames": ["eclipseo"],
             "packages": ["golang-github-Masterminds-semver"],
-            'update': UpdateV1(
-                'FEDORA-2019-f1ca3c00e5',
-                [BuildV1('golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29')],
-                UserV1('eclipseo'), 'pending', 'testing', ReleaseV1('F29'))
+            "update": UpdateV1(
+                "FEDORA-2019-f1ca3c00e5",
+                [BuildV1("golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29")],
+                UserV1("eclipseo"),
+                "pending",
+                "testing",
+                ReleaseV1("F29"),
+            ),
         }
         msg = UpdateRequestTestingV1(
             body={
-                'agent': 'eclipseo',
-                'update': {
+                "agent": "eclipseo",
+                "update": {
                     "alias": "FEDORA-2019-f1ca3c00e5",
-                    "builds": [{
-                        "nvr": "golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29"
-                    }],
+                    "builds": [
+                        {
+                            "nvr": (
+                                "golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29"
+                            )
+                        }
+                    ],
                     "release": {"name": "F29"},
-                    'request': 'testing',
+                    "request": "testing",
                     "status": "pending",
-                    "user": {"name": "eclipseo"}
+                    "user": {"name": "eclipseo"},
                 },
             }
         )
@@ -693,22 +756,30 @@ class TestUpdateMessage:
             "agent_avatar": None,
             "usernames": ["eclipseo"],
             "packages": ["golang-github-Masterminds-semver"],
-            'update': UpdateV1(
-                'FEDORA-2019-f1ca3c00e5',
-                [BuildV1('golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29')],
-                UserV1('eclipseo'), 'pending', 'testing', ReleaseV1('F29'))
+            "update": UpdateV1(
+                "FEDORA-2019-f1ca3c00e5",
+                [BuildV1("golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29")],
+                UserV1("eclipseo"),
+                "pending",
+                "testing",
+                ReleaseV1("F29"),
+            ),
         }
         msg = UpdateRequirementsMetStableV1(
             body={
-                'update': {
+                "update": {
                     "alias": "FEDORA-2019-f1ca3c00e5",
-                    "builds": [{
-                        "nvr": "golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29"
-                    }],
+                    "builds": [
+                        {
+                            "nvr": (
+                                "golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29"
+                            )
+                        }
+                    ],
                     "release": {"name": "F29"},
-                    'request': 'testing',
+                    "request": "testing",
                     "status": "pending",
-                    "user": {"name": "eclipseo"}
+                    "user": {"name": "eclipseo"},
                 },
             }
         )
@@ -718,8 +789,7 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.comment",
             "summary": (
-                "ralph commented on update abrt-addon-python3-2.1.11-50.el7 "
-                "asciine… (karma: -1)"
+                "ralph commented on update abrt-addon-python3-2.1.11-50.el7 asciine… (karma: -1)"
             ),
             "__str__": (
                 "ralph commented on tdawson's update FEDORA-EPEL-2019-f2d195dada with karma -1:\n\n"
@@ -737,32 +807,39 @@ class TestUpdateMessage:
                 "?s=64&d=retro"
             ),
             "usernames": ["codeblock", "ralph", "tdawson"],
-            "packages": ['abrt-addon-python3', 'asciinema'],
-            'karma': -1,
-            'user': UserV1('ralph'),
-            'update': UpdateV1(
-                'FEDORA-EPEL-2019-f2d195dada',
+            "packages": ["abrt-addon-python3", "asciinema"],
+            "karma": -1,
+            "user": UserV1("ralph"),
+            "update": UpdateV1(
+                "FEDORA-EPEL-2019-f2d195dada",
                 [BuildV1("abrt-addon-python3-2.1.11-50.el7"), BuildV1("asciinema-1.4.0-2.el7")],
-                UserV1('tdawson'), 'pending', 'testing', ReleaseV1('F29')),
-            'agent_name': 'ralph',
+                UserV1("tdawson"),
+                "pending",
+                "testing",
+                ReleaseV1("F29"),
+            ),
+            "agent_name": "ralph",
         }
         msg = UpdateCommentV1(
             body={
                 "comment": {
                     "karma": -1,
                     "text": "Can you believe how much testing we're doing?"
-                            " /cc @codeblock.\n"
-                            "Nothing from this e-mail should match the regex: test@example.com",
+                    " /cc @codeblock.\n"
+                    "Nothing from this e-mail should match the regex: test@example.com",
                     "timestamp": "2019-03-18 16:54:48",
                     "update": {
                         "alias": "FEDORA-EPEL-2019-f2d195dada",
-                        'builds': [{'nvr': 'abrt-addon-python3-2.1.11-50.el7'},
-                                   {'nvr': 'asciinema-1.4.0-2.el7'}],
-                        'status': 'pending',
+                        "builds": [
+                            {"nvr": "abrt-addon-python3-2.1.11-50.el7"},
+                            {"nvr": "asciinema-1.4.0-2.el7"},
+                        ],
+                        "status": "pending",
                         "release": {"name": "F29"},
-                        'request': 'testing',
-                        'user': {"name": "tdawson"}},
-                    'user': {'name': 'ralph'}
+                        "request": "testing",
+                        "user": {"name": "tdawson"},
+                    },
+                    "user": {"name": "ralph"},
                 }
             }
         )
@@ -784,8 +861,14 @@ class TestUpdateMessage:
             "new_bugs": [1708925, 1706626],
             "usernames": ["ralph"],
             "packages": ["tzdata"],
-            'update': UpdateV1('FEDORA-2019-7dbbb74a13', [BuildV1('tzdata-2014i-1.fc19')],
-                               UserV1('ralph'), 'pending', 'testing', ReleaseV1('F19'))
+            "update": UpdateV1(
+                "FEDORA-2019-7dbbb74a13",
+                [BuildV1("tzdata-2014i-1.fc19")],
+                UserV1("ralph"),
+                "pending",
+                "testing",
+                ReleaseV1("F19"),
+            ),
         }
         msg = UpdateEditV1(
             body={
@@ -815,11 +898,7 @@ class TestUpdateMessage:
                             "anonymous": False,
                             "text": "ralph edited this update. ",
                             "id": 484236,
-                            "user": {
-                                "buildroot_overrides": [],
-                                "name": "bodhi",
-                                "avatar": None
-                            }
+                            "user": {"buildroot_overrides": [], "name": "bodhi", "avatar": None},
                         }
                     ],
                     "date_approved": None,
@@ -827,23 +906,14 @@ class TestUpdateMessage:
                     "status": "pending",
                     "date_submitted": "2014-10-29 20:02:57",
                     "unstable_karma": -3,
-                    "user": {
-                        "buildroot_overrides": [],
-                        "name": "ralph",
-                        "avatar": None
-                    },
+                    "user": {"buildroot_overrides": [], "name": "ralph", "avatar": None},
                     "locked": False,
-                    "builds": [
-                        {
-                            "override": None,
-                            "nvr": "tzdata-2014i-1.fc19"
-                        }
-                    ],
+                    "builds": [{"override": None, "nvr": "tzdata-2014i-1.fc19"}],
                     "date_modified": "2015-01-28 03:02:55",
                     "notes": "the update notes go here...",
                     "request": "testing",
                     "bugs": [],
-                    "alias": 'FEDORA-2019-7dbbb74a13',
+                    "alias": "FEDORA-2019-7dbbb74a13",
                     "karma": 0,
                     "release": {
                         "dist_tag": "f19",
@@ -858,10 +928,10 @@ class TestUpdateMessage:
                         "id_prefix": "FEDORA",
                         "pending_testing_tag": "f19-updates-testing-pending",
                         "stable_tag": "f19-updates",
-                        "candidate_tag": "f19-updates-candidate"
-                    }
+                        "candidate_tag": "f19-updates-candidate",
+                    },
                 },
-                "agent": "ralph"
+                "agent": "ralph",
             }
         )
         check_message(msg, expected)
@@ -870,8 +940,10 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.edit",
             "summary": "ralph edited their update FEDORA-2019-7dbbb74a13 (tzdata-2014i-1.fc19)",
-            "__str__": ("ralph edited FEDORA-2019-7dbbb74a13 adding 2 new bug(s), "
-                        "adding 1 build(s), and removing 1 build(s)"),
+            "__str__": (
+                "ralph edited FEDORA-2019-7dbbb74a13 adding 2 new bug(s), "
+                "adding 1 build(s), and removing 1 build(s)"
+            ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-7dbbb74a13",
@@ -883,8 +955,14 @@ class TestUpdateMessage:
             "new_bugs": [1708925, 1706626],
             "usernames": ["ralph"],
             "packages": ["tzdata"],
-            'update': UpdateV1('FEDORA-2019-7dbbb74a13', [BuildV1('tzdata-2014i-1.fc19')],
-                               UserV1('ralph'), 'pending', 'testing', ReleaseV1('F19'))
+            "update": UpdateV1(
+                "FEDORA-2019-7dbbb74a13",
+                [BuildV1("tzdata-2014i-1.fc19")],
+                UserV1("ralph"),
+                "pending",
+                "testing",
+                ReleaseV1("F19"),
+            ),
         }
         msg = UpdateEditV2(
             body={
@@ -916,11 +994,7 @@ class TestUpdateMessage:
                             "anonymous": False,
                             "text": "ralph edited this update. ",
                             "id": 484236,
-                            "user": {
-                                "buildroot_overrides": [],
-                                "name": "bodhi",
-                                "avatar": None
-                            }
+                            "user": {"buildroot_overrides": [], "name": "bodhi", "avatar": None},
                         }
                     ],
                     "date_approved": None,
@@ -928,23 +1002,14 @@ class TestUpdateMessage:
                     "status": "pending",
                     "date_submitted": "2014-10-29 20:02:57",
                     "unstable_karma": -3,
-                    "user": {
-                        "buildroot_overrides": [],
-                        "name": "ralph",
-                        "avatar": None
-                    },
+                    "user": {"buildroot_overrides": [], "name": "ralph", "avatar": None},
                     "locked": False,
-                    "builds": [
-                        {
-                            "override": None,
-                            "nvr": "tzdata-2014i-1.fc19"
-                        }
-                    ],
+                    "builds": [{"override": None, "nvr": "tzdata-2014i-1.fc19"}],
                     "date_modified": "2015-01-28 03:02:55",
                     "notes": "the update notes go here...",
                     "request": "testing",
                     "bugs": [],
-                    "alias": 'FEDORA-2019-7dbbb74a13',
+                    "alias": "FEDORA-2019-7dbbb74a13",
                     "karma": 0,
                     "release": {
                         "dist_tag": "f19",
@@ -959,10 +1024,10 @@ class TestUpdateMessage:
                         "id_prefix": "FEDORA",
                         "pending_testing_tag": "f19-updates-testing-pending",
                         "stable_tag": "f19-updates",
-                        "candidate_tag": "f19-updates-candidate"
-                    }
+                        "candidate_tag": "f19-updates-candidate",
+                    },
                 },
-                "agent": "ralph"
+                "agent": "ralph",
             }
         )
         check_message(msg, expected)
@@ -971,18 +1036,24 @@ class TestUpdateMessage:
         expected = {
             "topic": "bodhi.update.karma.threshold.reach",
             "summary": "ralph's tzdata-2014i-1.fc19 bodhi update has reached "
-                       "the stable karma threshold",
+            "the stable karma threshold",
             "__str__": "ralph's bodhi update FEDORA-EPEL-2015-0238 has reached the stable "
-                       "karma threshold.\nBuilds:\ntzdata-2014i-1.fc19",
+            "karma threshold.\nBuilds:\ntzdata-2014i-1.fc19",
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2015-0238",
             "agent_avatar": None,
-            "usernames": ['ralph'],
+            "usernames": ["ralph"],
             "packages": ["tzdata"],
-            'update': UpdateV1('FEDORA-EPEL-2015-0238', [BuildV1('tzdata-2014i-1.fc19')],
-                               UserV1('ralph'), 'pending', 'testing', ReleaseV1('F19')),
-            'status': 'stable'
+            "update": UpdateV1(
+                "FEDORA-EPEL-2015-0238",
+                [BuildV1("tzdata-2014i-1.fc19")],
+                UserV1("ralph"),
+                "pending",
+                "testing",
+                ReleaseV1("F19"),
+            ),
+            "status": "stable",
         }
         msg = UpdateKarmaThresholdV1(
             body={
@@ -1012,11 +1083,7 @@ class TestUpdateMessage:
                             "anonymous": False,
                             "text": "ralph edited this update. ",
                             "id": 484236,
-                            "user": {
-                                "buildroot_overrides": [],
-                                "name": "bodhi",
-                                "avatar": None
-                            }
+                            "user": {"buildroot_overrides": [], "name": "bodhi", "avatar": None},
                         }
                     ],
                     "date_approved": None,
@@ -1024,18 +1091,9 @@ class TestUpdateMessage:
                     "status": "pending",
                     "date_submitted": "2014-10-29 20:02:57",
                     "unstable_karma": -3,
-                    "user": {
-                        "buildroot_overrides": [],
-                        "name": "ralph",
-                        "avatar": None
-                    },
+                    "user": {"buildroot_overrides": [], "name": "ralph", "avatar": None},
                     "locked": False,
-                    "builds": [
-                        {
-                            "override": None,
-                            "nvr": "tzdata-2014i-1.fc19"
-                        }
-                    ],
+                    "builds": [{"override": None, "nvr": "tzdata-2014i-1.fc19"}],
                     "date_modified": "2015-01-28 03:02:55",
                     "notes": "the update notes go here...",
                     "request": "testing",
@@ -1055,9 +1113,9 @@ class TestUpdateMessage:
                         "id_prefix": "FEDORA",
                         "pending_testing_tag": "f19-updates-testing-pending",
                         "stable_tag": "f19-updates",
-                        "candidate_tag": "f19-updates-candidate"
-                    }
-                }
+                        "candidate_tag": "f19-updates-candidate",
+                    },
+                },
             }
         )
         check_message(msg, expected)

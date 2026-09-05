@@ -26,7 +26,6 @@ build from an update, we re-check the gating decision for that update.
 import logging
 
 import fedora_messaging
-
 from bodhi.server.consumers.util import update_from_db_message
 from bodhi.server.models import TestGatingStatus
 from bodhi.server.util import transactional_session_maker

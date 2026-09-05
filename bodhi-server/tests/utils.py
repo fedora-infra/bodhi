@@ -1,10 +1,9 @@
 """Some utilities for bodhi-server's unit tests."""
 
-from unittest import mock, TestCase
 import time
+from unittest import TestCase, mock
 
 import requests
-
 
 _dummy = TestCase()
 assert_multiline_equal = _dummy.assertMultiLineEqual
@@ -33,9 +32,9 @@ def mock_send_value(body, status_code=200):
 def get_bearer_token():
     """Get a Bearer token that expires in one hour."""
     return {
-        'token_type': 'Bearer',
-        'access_token': 'a',
-        'refresh_token': 'b',
-        'expires_in': '3600',
-        'expires_at': int(time.time()) + 3600,
+        "token_type": "Bearer",
+        "access_token": "a",
+        "refresh_token": "b",
+        "expires_in": "3600",
+        "expires_at": int(time.time()) + 3600,
     }

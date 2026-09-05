@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 """Documentation build job."""
+
+from typing import ClassVar
+
 from .constants import MODULES
 from .job import BuildJob, Job
 
@@ -28,21 +31,8 @@ class DocsJob(Job):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _command = [
-        '/usr/bin/bash', '-cx',
-        (
-            'for submodule in ' + ' '.join(MODULES) + '; do '
-            '  pushd $submodule; '
-            '  poetry install --only-root; '
-            '  popd; '
-            'done;'
-            'make -C docs clean && '
-            'make -C docs html PYTHON=/usr/bin/python3 && '
-            'make -C docs man PYTHON=/usr/bin/python3 && '
-            'cp -rv docs/_build/* /results/'
-        )]
-    _label = 'docs'
-    _dependencies = [BuildJob]
+    _label = "docs"
+    _dependencies: ClassVar[list] = [BuildJob]
 
     def __init__(self, *args, **kwargs):
         """
@@ -58,6 +48,21 @@ class DocsJob(Job):
         """
         super().__init__(*args, **kwargs)
 
+        self._command = [
+            "/usr/bin/bash",
+            "-cx",
+            (
+                "for submodule in " + " ".join(MODULES) + "; do "
+                "  pushd $submodule; "
+                "  poetry install --only-root; "
+                "  popd; "
+                "done;"
+                "make -C docs clean && "
+                "make -C docs html PYTHON=/usr/bin/python3 && "
+                "make -C docs man PYTHON=/usr/bin/python3 && "
+                "cp -rv docs/_build/* /results/"
+            ),
+        ]
         self._convert_command_for_container()
 
 
@@ -68,25 +73,34 @@ class DocsOldJob(DocsJob):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _command = [
-        '/usr/bin/bash', '-cx',
-        (
-            'for submodule in ' + ' '.join(MODULES) + '; do '
-            '  pushd $submodule; '
-            '  VERSION=( $(poetry version) ); '
-            '  poetry build -f sdist; '
-            '  FILENAME=( $(find dist/ -type f) ); '
-            '  FILENAME=${FILENAME##*/}; '
-            '  FILENAME=${FILENAME%-*}; '
-            '  tar -xzvf "dist/$FILENAME-${VERSION[1]}.tar.gz" -C /tmp/; '
-            '  pushd "/tmp/$FILENAME-${VERSION[1]}"; '
-            '  python setup.py develop; '
-            '  popd; '
-            '  popd; '
-            'done;'
-            'make -C docs clean && '
-            'make -C docs html PYTHON=/usr/bin/python3 && '
-            'make -C docs man PYTHON=/usr/bin/python3 && '
-            'cp -rv docs/_build/* /results/'
-        )]
-    only_releases = ['f42']
+    only_releases: ClassVar[list[str] | None] = ["f42"]
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the DocsJob.
+        """
+        super().__init__(*args, **kwargs)
+
+        self._command = [
+            "/usr/bin/bash",
+            "-cx",
+            (
+                "for submodule in " + " ".join(MODULES) + "; do "
+                "  pushd $submodule; "
+                "  VERSION=( $(poetry version) ); "
+                "  poetry build -f sdist; "
+                "  FILENAME=( $(find dist/ -type f) ); "
+                "  FILENAME=${FILENAME##*/}; "
+                "  FILENAME=${FILENAME%-*}; "
+                '  tar -xzvf "dist/$FILENAME-${VERSION[1]}.tar.gz" -C /tmp/; '
+                '  pushd "/tmp/$FILENAME-${VERSION[1]}"; '
+                "  python setup.py develop; "
+                "  popd; "
+                "  popd; "
+                "done;"
+                "make -C docs clean && "
+                "make -C docs html PYTHON=/usr/bin/python3 && "
+                "make -C docs man PYTHON=/usr/bin/python3 && "
+                "cp -rv docs/_build/* /results/"
+            ),
+        ]
