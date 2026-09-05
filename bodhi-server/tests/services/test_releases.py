@@ -15,13 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+import os
 from datetime import date, datetime, timezone
 from unittest import mock
-import os
 
-from fedora_messaging import testing as fml_testing
 import webtest
-
 from bodhi import server
 from bodhi.server.config import config
 from bodhi.server.models import (
@@ -37,6 +35,7 @@ from bodhi.server.models import (
 )
 from bodhi.server.util import get_absolute_path
 from bodhi.server.views import generic
+from fedora_messaging import testing as fml_testing
 
 from .. import base
 
@@ -302,7 +301,7 @@ class TestReleasesService(base.BasePyTestCase):
         assert len(body['releases']) == 2
         assert {r['name'] for r in body['releases']} == {'F17', 'F22'}
 
-    @mock.patch('bodhi.server.services.releases.log.info', side_effect=IOError('BOOM!'))
+    @mock.patch('bodhi.server.services.releases.log.info', side_effect=OSError('BOOM!'))
     def test_save_release_exception_handler(self, info):
         """Test the exception handler in save_release()."""
         attrs = {"name": "F42", "long_name": "Fedora 42", "version": "42",
@@ -326,7 +325,7 @@ class TestReleasesService(base.BasePyTestCase):
         assert self.db.query(Release).filter(Release.name == attrs["name"]).count() == 0
         info.assert_called_once_with('Creating a new release: F42')
 
-    @mock.patch('bodhi.server.services.releases.log.info', side_effect=IOError('BOOM!'))
+    @mock.patch('bodhi.server.services.releases.log.info', side_effect=OSError('BOOM!'))
     def test_save_release_exception_handler_with_eol(self, info):
         """Test the exception handler in save_release()."""
         attrs = {"name": "F42", "long_name": "Fedora 42", "version": "42",
@@ -580,7 +579,7 @@ class TestReleasesHTML(base.BasePyTestCase):
             count = 0
             for i in updateslist:
                 for j in i[1]:
-                    for k in range(0, j[1]):
+                    for k in range(j[1]):
                         update = Update(
                             user=user,
                             status=i[0],

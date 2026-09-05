@@ -17,20 +17,19 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define tools for interacting with the build system and a fake build system for development."""
 
-from functools import wraps
 import hashlib
-from threading import Lock
 import logging
 import os
 import time
 import typing
+from functools import wraps
+from threading import Lock
 
 import backoff
 import koji
 
-
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.server.config import BodhiConfig  # noqa: F401
+    from bodhi.server.config import BodhiConfig
 
 
 log = logging.getLogger('bodhi')
@@ -152,7 +151,7 @@ class DevBuildsys:
     def moveBuild(self, from_tag: str, to_tag: str, build: str, *args, **kw):
         """Emulate Koji's moveBuild."""
         if to_tag is None:
-            raise RuntimeError('Attempt to tag {} with None.'.format(build))
+            raise RuntimeError(f'Attempt to tag {build} with None.')
         log.debug("moveBuild(%s, %s, %s)" % (from_tag, to_tag, build))
         DevBuildsys.__moved__.append((from_tag, to_tag, build))
 
@@ -160,7 +159,7 @@ class DevBuildsys:
     def tagBuild(self, tag: str, build: str, *args, **kw):
         """Emulate Koji's tagBuild."""
         if tag is None:
-            raise RuntimeError('Attempt to tag {} with None.'.format(build))
+            raise RuntimeError(f'Attempt to tag {build} with None.')
         log.debug("tagBuild(%s, %s)" % (tag, build))
         DevBuildsys.__added__.append((tag, build))
 
@@ -168,7 +167,7 @@ class DevBuildsys:
     def untagBuild(self, tag: str, build: str, *args, **kw):
         """Emulate Koji's untagBuild."""
         if tag is None:
-            raise RuntimeError('Attempt to untag {} with None.'.format(build))
+            raise RuntimeError(f'Attempt to untag {build} with None.')
         log.debug("untagBuild(%s, %s)" % (tag, build))
         DevBuildsys.__untag__.append((tag, build))
 
@@ -184,13 +183,13 @@ class DevBuildsys:
         """Emulate Koji's getTaskInfo."""
         return {'state': koji.TASK_STATES['CLOSED']}
 
-    def getTaskRequest(self, task_id: int) -> typing.List[typing.Union[str, typing.Mapping]]:
+    def getTaskRequest(self, task_id: int) -> list[str | typing.Mapping]:
         """Emulate Koji's getTaskRequest."""
         return [
             'git://pkgs.fedoraproject.org/rpms/bodhi?#2e994ca8b3296e62e8b0aadee1c5c0649559625a',
             'f17-candidate', {}]
 
-    def listPackages(self) -> typing.List[typing.Mapping[str, typing.Union[int, str]]]:
+    def listPackages(self) -> list[typing.Mapping[str, int | str]]:
         """Emulate Koji's listPackages."""
         return [
             {'package_id': 2625, 'package_name': 'nethack'},
@@ -243,7 +242,7 @@ class DevBuildsys:
                     'registry': 'candidate-registry.fedoraproject.org',
                     # We make up a fake digest for the image manifest using a
                     # digest of the version-release string
-                    'hash': hashlib.sha256(f"{version}-{release}".encode("UTF-8")).hexdigest(),
+                    'hash': hashlib.sha256(f"{version}-{release}".encode()).hexdigest(),
                     'version': version,
                     'release': release
                 }
@@ -253,7 +252,7 @@ class DevBuildsys:
                     data['source'] = f'git+https://src.fedoraproject.org/flatpaks/{name}.git#abc'
                 else:
                     tag = "f%s-updates-testing" % token.replace("fc", "").replace("container", "")
-                    format_data['repository'] = "{}/{}".format(fedora_release, name)
+                    format_data['repository'] = f"{fedora_release}/{name}"
                     data['source'] = f'https://src.fedoraproject.org/container/{name}.git#abc'
 
                 data['extra'] = {
@@ -325,7 +324,7 @@ class DevBuildsys:
 
         return data
 
-    def listBuildRPMs(self, id: int, *args, **kw) -> typing.List[typing.Dict[str, object]]:
+    def listBuildRPMs(self, id: int, *args, **kw) -> list[dict[str, object]]:
         """Emulate Koji's listBuildRPMs."""
         rpms = [{'arch': 'src',
                  'build_id': 6475,
@@ -358,7 +357,7 @@ class DevBuildsys:
         rpms += DevBuildsys.__rpms__
         return rpms
 
-    def listTags(self, build: str, *args, **kw) -> typing.List[typing.Dict[str, object]]:
+    def listTags(self, build: str, *args, **kw) -> list[dict[str, object]]:
         """Emulate Koji's listTags."""
         if 'el5' in build or 'el6' in build:
             release = build.split('.')[-1].replace('el', '')
@@ -431,7 +430,7 @@ class DevBuildsys:
         return result
 
     @multicall_enabled
-    def listTagged(self, tag: str, *args, **kw) -> typing.List[typing.Any]:
+    def listTagged(self, tag: str, *args, **kw) -> list[typing.Any]:
         """List updates tagged with the given tag."""
         latest = kw.get('latest', False)
         if tag in self._side_tag_ids_names:
@@ -459,7 +458,7 @@ class DevBuildsys:
                     builds.append(self.getBuild(build))
         return builds
 
-    def getLatestBuilds(self, *args, **kw) -> typing.List[typing.Any]:
+    def getLatestBuilds(self, *args, **kw) -> list[typing.Any]:
         """
         Return a list of the output from self.getBuild().
 
@@ -562,9 +561,8 @@ class DevBuildsys:
 
     def editTag2(self, *args, **kw):
         """Edit a tag."""
-        pass
 
-    def deleteTag(self, tagid: typing.Union[str, int]):
+    def deleteTag(self, tagid: str | int):
         """Emulate tag deletion."""
         if isinstance(tagid, str):
             for tid, tinfo in self.__tags__:
@@ -575,7 +573,7 @@ class DevBuildsys:
             del self.__tags__[tagid]
 
     def getRPMHeaders(self, rpmID: str,
-                      headers: typing.Any) -> typing.Union[typing.Mapping[str, str], None]:
+                      headers: typing.Any) -> typing.Mapping[str, str] | None:
         """
         Return headers for the given RPM.
 
@@ -693,7 +691,7 @@ def get_krb_conf(config: 'BodhiConfig') -> typing.Mapping[str, str]:
     return args
 
 
-def get_session() -> typing.Union[koji.ClientSession, DevBuildsys]:
+def get_session() -> koji.ClientSession | DevBuildsys:
     """
     Get a new buildsystem instance.
 
@@ -748,9 +746,9 @@ def setup_buildsystem(settings: 'BodhiConfig', authenticate: bool = True):
 
 
 def wait_for_tasks(
-        tasks: typing.List[typing.Any],
-        session: typing.Union[koji.ClientSession, None] = None,
-        sleep: int = 300) -> typing.List[typing.Any]:
+        tasks: list[typing.Any],
+        session: koji.ClientSession | None = None,
+        sleep: int = 300) -> list[typing.Any]:
     """
     Wait for a list of koji tasks to complete.
 

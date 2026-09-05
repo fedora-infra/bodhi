@@ -17,14 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """These are tests for the bodhi.server.consumers.automatic_updates module."""
 
+import logging
 from copy import deepcopy
 from unittest import mock
-import logging
 
-from fedora_messaging.api import Message
-from fedora_messaging.testing import mock_sends
 import pytest
-
 from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.models import (
@@ -37,6 +34,8 @@ from bodhi.server.models import (
     UpdateType,
     User,
 )
+from fedora_messaging.api import Message
+from fedora_messaging.testing import mock_sends
 
 from .. import base
 

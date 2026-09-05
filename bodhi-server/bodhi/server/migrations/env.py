@@ -17,15 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define the environment for Alembic migrations to run in."""
 
-from logging.config import fileConfig
 import logging
+from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
-
 from bodhi.server.config import config as bodhi_config
 from bodhi.server.models import Base
-
+from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

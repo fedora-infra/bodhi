@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import time
 import sys
+import time
 from argparse import ArgumentParser
-
 
 DEFAULT_TIMEOUT = 120
 

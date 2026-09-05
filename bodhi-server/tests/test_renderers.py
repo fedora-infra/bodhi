@@ -17,11 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test bodhi.server.renderers."""
 
+import pytest
+from bodhi.server import models, renderers
 from pyramid.exceptions import HTTPBadRequest
 from pyramid.testing import DummyRequest
-import pytest
-
-from bodhi.server import models, renderers
 
 from .base import BasePyTestCase
 

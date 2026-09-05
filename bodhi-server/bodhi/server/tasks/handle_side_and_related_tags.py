@@ -18,19 +18,17 @@
 """Handle side-tags and related tags for updates in Koji."""
 
 import logging
-import typing
 
 from bodhi.server import buildsys
-
 
 log = logging.getLogger(__name__)
 
 
-def main(builds: typing.List[str],
+def main(builds: list[str],
          pending_signing_tag: str,
          from_tag: str,
-         pending_testing_tag: typing.Optional[str],
-         candidate_tag: typing.Optional[str]):
+         pending_testing_tag: str | None,
+         candidate_tag: str | None):
     """Handle side-tags and related tags for updates in Koji.
 
     Args:

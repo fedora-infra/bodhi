@@ -23,7 +23,7 @@ messages.
 
 import typing
 
-from .base import BodhiMessage, BuildV1, ReleaseV1, SCHEMA_URL, UpdateV1, UserV1
+from .base import SCHEMA_URL, BodhiMessage, BuildV1, ReleaseV1, UpdateV1, UserV1
 
 
 class ErrataPublishV1(BodhiMessage):

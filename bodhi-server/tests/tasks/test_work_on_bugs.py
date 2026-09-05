@@ -22,11 +22,11 @@ This module contains tests for the bodhi.server.work_on_bugs module.
 from unittest.mock import patch
 
 import pytest
-
 from bodhi.server import config, models
 from bodhi.server.exceptions import BodhiException, ExternalCallException
 from bodhi.server.tasks import work_on_bugs_task
 from bodhi.server.tasks.work_on_bugs import main as work_on_bugs_main
+
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
 
@@ -86,9 +86,8 @@ class TestWorkOnBugs(BaseTaskTestCase):
         bug_ids = [bug.bug_id for bug in bugs]
 
         with patch('bodhi.server.tasks.work_on_bugs.bug_module.bugtracker.getbug',
-                   side_effect=RuntimeError("oh no!")):
-            with pytest.raises(ExternalCallException):
-                work_on_bugs_main(update.alias, bug_ids)
+                   side_effect=RuntimeError("oh no!")), pytest.raises(ExternalCallException):
+            work_on_bugs_main(update.alias, bug_ids)
 
         warning.assert_called_once_with('Error occurred during updating single bug', exc_info=True)
 

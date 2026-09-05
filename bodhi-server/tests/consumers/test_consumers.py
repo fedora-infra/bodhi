@@ -18,11 +18,10 @@
 from unittest import mock
 
 import pytest
-from fedora_messaging.api import Message
-from fedora_messaging.exceptions import Nack
-
 from bodhi.server import config
 from bodhi.server.consumers import Consumer, HandlerInfo, signed
+from fedora_messaging.api import Message
+from fedora_messaging.exceptions import Nack
 
 
 @mock.patch.dict(

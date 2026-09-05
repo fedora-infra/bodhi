@@ -20,42 +20,41 @@
 from datetime import date, datetime, timedelta, timezone
 from functools import wraps
 
-from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
-from pyramid.httpexceptions import HTTPFound, HTTPNotImplemented
-from sqlalchemy.sql import or_, and_
 import colander
 import koji
 import pyramid.threadlocal
 import rpm
-
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
+from pyramid.exceptions import HTTPBadRequest, HTTPNotFound
+from pyramid.httpexceptions import HTTPFound, HTTPNotImplemented
+from sqlalchemy.sql import and_, or_
+
 from . import buildsys, log
 from .models import (
-    Build,
     Bug,
+    Build,
     Comment,
     ContentType,
     Group,
     Package,
     PackageManager,
     Release,
-    RpmBuild,
     ReleaseState,
+    RpmBuild,
     TestCase,
     TestGatingStatus,
     Update,
-    UpdateStatus,
     UpdateRequest,
     UpdateSeverity,
-    UpdateType,
+    UpdateStatus,
     UpdateSuggestion,
+    UpdateType,
     User,
 )
 from .util import (
     splitter,
 )
-
 
 csrf_error_message = """CSRF tokens do not match.  This happens if you have
 the page open for a long time. Please reload the page and try to submit your
@@ -154,7 +153,7 @@ def cache_release(request, build):
     build_rel = Release.from_tags(tags, request.db)
     if not build_rel:
         msg = 'Cannot find release associated with ' + \
-            'build: {}, tags: {}'.format(build, tags)
+            f'build: {build}, tags: {tags}'
         log.warning(msg)
         request.errors.add('body', 'builds', msg)
     # This might end up setting build_rel to None. That is expected, and indicates it failed.
@@ -285,7 +284,7 @@ def validate_builds(request, **kwargs):
             if (build and build.update is not None and up.alias != build.update.alias
                     and build.update.status != UpdateStatus.unpushed):
                 request.errors.add('body', 'builds',
-                                   "Update for {} already exists".format(nvr))
+                                   f"Update for {nvr} already exists")
                 return
 
         return
@@ -295,7 +294,7 @@ def validate_builds(request, **kwargs):
         if (build and build.update is not None
                 and build.update.status != UpdateStatus.unpushed):
             request.errors.add('body', 'builds',
-                               "Update for {} already exists".format(nvr))
+                               f"Update for {nvr} already exists")
             return
 
 
@@ -350,8 +349,7 @@ def validate_build_tags(request, **kwargs):
         if not valid:
             request.errors.add(
                 'body', 'builds',
-                'Invalid tag: {} not tagged with any of the following tags {}'.format(
-                    build, valid_tags))
+                f'Invalid tag: {build} not tagged with any of the following tags {valid_tags}')
         if from_tag:
             # The build MUST be tagged in the side tag
             if from_tag not in tags:
@@ -809,7 +807,7 @@ def validate_release(request, **kwargs):
         request.validated["release"] = release
     else:
         request.errors.add("querystring", "release",
-                           "Invalid release specified: {}".format(releasename))
+                           f"Invalid release specified: {releasename}")
 
 
 @postschema_validator
@@ -880,7 +878,7 @@ def validate_bugs(request, **kwargs):
             request.validated['bugs'] = list(map(int, bugs))
         except ValueError:
             request.errors.add("querystring", "bugs",
-                               "Invalid bug ID specified: {}".format(bugs))
+                               f"Invalid bug ID specified: {bugs}")
 
 
 @postschema_validator

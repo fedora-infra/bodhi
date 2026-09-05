@@ -19,20 +19,18 @@
 
 from unittest import mock
 
+from bodhi.server import security
 from cornice import errors
 from pyramid import testing
 
-from bodhi.server import security
-
 from . import base
-
 
 try:
     # Pyramid >= 2.0
-    from pyramid.authorization import ALL_PERMISSIONS, Allow, DENY_ALL
+    from pyramid.authorization import ALL_PERMISSIONS, DENY_ALL, Allow
 except ImportError:
     # Pyramid < 2.0
-    from pyramid.security import ALL_PERMISSIONS, Allow, DENY_ALL
+    from pyramid.security import ALL_PERMISSIONS, DENY_ALL, Allow
 
 
 class TestACLFactory:
@@ -83,7 +81,7 @@ class TestQAACLFactory(base.BaseTestCase):
         )
 
 
-class FakeRegistry(object):
+class FakeRegistry:
     def __init__(self):
         self.settings = {'cors_origins_ro': 'origin_1,origin_2'}
 

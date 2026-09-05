@@ -18,17 +18,16 @@
 
 """This module contains tests for bodhi.client.bindings."""
 
-from datetime import datetime, timedelta, timezone
-from unittest import mock
 import copy
 import os
+from datetime import datetime, timedelta, timezone
+from unittest import mock
 
-from requests import HTTPError
 import munch
 import pytest
-
 from bodhi.client import bindings, constants
 from bodhi.client.oidcclient import OIDCClientError
+from requests import HTTPError
 
 from . import fixtures as client_test_data
 from .utils import build_response, compare_output
@@ -1444,7 +1443,7 @@ class TestCandidates(BodhiClientTestCase):
                 {'name': 'ipsilon', 'version': '2.0.2', 'release': '1.fc25',
                  'nvr': 'ipsilon-2.0.2-1.fc25', 'owner_name': 'puiterwijk'}
             ],
-            IOError("Bet you didn't expect this.")
+            OSError("Bet you didn't expect this.")
         ]
         mocker.patch.object(client, "send_request", return_value={
             'releases': [

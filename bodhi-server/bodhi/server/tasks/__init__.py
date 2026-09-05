@@ -22,16 +22,15 @@ import sys
 import typing
 
 import celery
-
 from bodhi.server import bugs, buildsys, initialize_db, raise_open_file_limit
 from bodhi.server.config import config
 from bodhi.server.exceptions import ExternalCallException
 from bodhi.server.util import pyfile_to_module
 
-
 # Workaround https://github.com/celery/celery/issues/5416
 if celery.version_info < (4, 3) and sys.version_info >= (3, 7):  # pragma: no cover
     from re import Pattern
+
     from celery.app.routes import re as routes_re
     routes_re._pattern_type = Pattern
 
@@ -135,11 +134,11 @@ def expire_overrides_task(**kwargs):
 
 @app.task(name="handle_side_and_related_tags", ignore_result=True)
 def handle_side_and_related_tags_task(
-        builds: typing.List[str],
+        builds: list[str],
         pending_signing_tag: str,
         from_tag: str,
-        pending_testing_tag: typing.Optional[str] = None,
-        candidate_tag: typing.Optional[str] = None):
+        pending_testing_tag: str | None = None,
+        candidate_tag: str | None = None):
     """Handle side-tags and related tags for updates in Koji."""
     from .handle_side_and_related_tags import main
     log.info("Received an order for handling update tags")
@@ -148,7 +147,7 @@ def handle_side_and_related_tags_task(
 
 
 @app.task(name="tag_update_builds", ignore_result=True)
-def tag_update_builds_task(tag: str, builds: typing.List[str]):
+def tag_update_builds_task(tag: str, builds: list[str]):
     """Handle tagging builds for an update in Koji."""
     from .tag_update_builds import main
     log.info("Received an order to tag builds for an update")
@@ -158,7 +157,7 @@ def tag_update_builds_task(tag: str, builds: typing.List[str]):
 
 @app.task(name="bodhi.server.tasks.work_on_bugs", autoretry_for=(ExternalCallException,),
           retry_kwargs={'max_retries': 5}, retry_backoff=True)
-def work_on_bugs_task(update: str, bugs: typing.List[int]):
+def work_on_bugs_task(update: str, bugs: list[int]):
     """Iterate the list of bugs, retrieving information from Bugzilla and modifying them."""
     from .work_on_bugs import main
     log.info("Received an order to fetch bugs and update their details")

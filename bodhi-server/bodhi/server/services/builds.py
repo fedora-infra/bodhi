@@ -18,19 +18,16 @@
 """Define service endpoint for retrieving Builds."""
 import math
 
-from cornice import Service
-from cornice.validators import colander_querystring_validator
-from pyramid.exceptions import HTTPNotFound
-from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
-from sqlalchemy.sql import or_
-
-from bodhi.server.models import Update, Build, Package, Release
-from bodhi.server.validators import (validate_updates,
-                                     validate_packages, validate_releases)
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
-
+from bodhi.server.models import Build, Package, Release, Update
+from bodhi.server.validators import validate_packages, validate_releases, validate_updates
+from cornice import Service
+from cornice.validators import colander_querystring_validator
+from pyramid.exceptions import HTTPNotFound
+from sqlalchemy import LABEL_STYLE_TABLENAME_PLUS_COL, distinct, func
+from sqlalchemy.sql import or_
 
 build = Service(name='build', path='/builds/{nvr}', description='Koji builds',
                 cors_origins=bodhi.server.security.cors_origins_ro)

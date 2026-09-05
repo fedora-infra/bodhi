@@ -22,9 +22,8 @@ Revision ID: a418acf470f8
 Revises: a3580bdf5129
 Create Date: 2019-01-15 18:48:12.236486
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'a418acf470f8'

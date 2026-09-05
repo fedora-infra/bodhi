@@ -16,17 +16,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for bodhi.server.__init__."""
-from unittest import mock
 import collections
 import resource
-
-from pyramid import authentication, testing
+from unittest import mock
 
 from bodhi import server
 from bodhi.server import models
 from bodhi.server.config import config
 from bodhi.server.security import BodhiSecurityPolicy
 from bodhi.server.views import generic
+from pyramid import authentication, testing
 
 from . import base
 
@@ -43,7 +42,7 @@ class TestExceptionFilter:
 
         assert response == request_response
         exception.assert_called_once_with(
-            "Unhandled exception raised:  {}".format(repr(request_response)))
+            f"Unhandled exception raised:  {request_response!r}")
 
     @mock.patch('bodhi.server.log.exception')
     def test_no_exception(self, exception):

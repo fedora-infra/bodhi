@@ -17,17 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines utilities for accessing Bugzilla."""
 
-from collections import namedtuple
-from xmlrpc import client as xmlrpc_client
 import logging
 import typing
+from collections import namedtuple
+from xmlrpc import client as xmlrpc_client
 
 import bugzilla
-
 from bodhi.server.config import config
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.server import models  # noqa: F401
+    from bodhi.server import models
 
 
 bugtracker: typing.Union['Bugzilla', 'FakeBugTracker', None] = None
@@ -35,10 +34,10 @@ log = logging.getLogger('bodhi')
 FakeBug = namedtuple('FakeBug', ['bug_id'])
 
 
-class FakeBugTracker(object):
+class FakeBugTracker:
     """Provide an API similar to bugzilla.base.Bugzilla without doing anything."""
 
-    def getbug(self, bug_id: typing.Union[str, int], *args, **kw) -> FakeBug:
+    def getbug(self, bug_id: str | int, *args, **kw) -> FakeBug:
         """
         Return a FakeBug representing the requested bug id.
 
@@ -66,7 +65,7 @@ class InvalidComment(Exception):
     """Exception thrown when the comment posted is invalid (for example too long)."""
 
 
-class Bugzilla(object):
+class Bugzilla:
     """Provide methods for Bodhi's frequent Bugzilla operations."""
 
     def __init__(self) -> None:
@@ -166,7 +165,7 @@ class Bugzilla(object):
         try:
             bug = self.bz.getbug(bug_id)
             if bug.product not in config.get('bz_products'):
-                log.info("Skipping set on_qa on {0!r} bug #{1}".format(bug.product, bug_id))
+                log.info(f"Skipping set on_qa on {bug.product!r} bug #{bug_id}")
                 return
             if bug.bug_status not in ('ON_QA', 'VERIFIED', 'CLOSED'):
                 log.debug("Setting Bug #%d to ON_QA" % bug_id)
@@ -199,7 +198,7 @@ class Bugzilla(object):
         try:
             bug = self.bz.getbug(bug_id)
             if bug.product not in config.get('bz_products'):
-                log.info("Skipping set closed on {0!r} bug #{1}".format(bug.product, bug_id))
+                log.info(f"Skipping set closed on {bug.product!r} bug #{bug_id}")
                 return
             # If this bug is for one of these builds...
             if bug.component in versions:
@@ -266,7 +265,7 @@ class Bugzilla(object):
         if 'security' in [keyword.lower() for keyword in keywords]:
             bug_entity.security = True
 
-    def modified(self, bug_id: typing.Union[int, str], comment: str) -> None:
+    def modified(self, bug_id: int | str, comment: str) -> None:
         """
         Change the status of this bug to MODIFIED if not already MODIFIED, VERIFIED, or CLOSED.
 
@@ -282,7 +281,7 @@ class Bugzilla(object):
         try:
             bug = self.bz.getbug(bug_id)
             if bug.product not in config.get('bz_products'):
-                log.info("Skipping set modified on {0!r} bug #{1}".format(bug.product, bug_id))
+                log.info(f"Skipping set modified on {bug.product!r} bug #{bug_id}")
                 return
             if bug.bug_status not in ('MODIFIED', 'VERIFIED', 'CLOSED'):
                 log.info('Setting bug #%s status to MODIFIED' % bug_id)

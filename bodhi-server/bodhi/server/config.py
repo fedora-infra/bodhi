@@ -16,19 +16,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Bodhi's configuration and configuration loading and validation mechanisms."""
-from datetime import datetime
 import logging
 import os
 import typing
+from datetime import datetime
 
 from pyramid import settings
 from pyramid.paster import get_appsettings
 
-
 log = logging.getLogger('bodhi')
 
 
-def get_configfile() -> typing.Optional[str]:
+def get_configfile() -> str | None:
     """
     Return a path to a config file, if found.
 
@@ -86,7 +85,7 @@ def _generate_dict_validator(value: str) -> dict:
 
 def _generate_list_validator(
         splitter: str = ' ', validator: typing.Callable[[typing.Any], typing.Any] = str) \
-        -> typing.Callable[[typing.Union[str, typing.List]], typing.Any]:
+        -> typing.Callable[[str | list], typing.Any]:
     """Return a function that takes a value and interprets it to be a list with the given splitter.
 
     This function generates a function that can take a string and interpret it as a list by
@@ -99,7 +98,7 @@ def _generate_list_validator(
     Returns:
         A validator function that accepts an argument to be validated.
     """
-    def _validate_list(value: typing.Union[str, typing.List]) -> typing.List:
+    def _validate_list(value: str | list) -> list:
         """Validate that the value is a list or can be split into a list, and validate its elements.
 
         This function will validate that the given value is a list, or it will use the splitter to
@@ -117,7 +116,7 @@ def _generate_list_validator(
             value = [idx.strip() for idx in value.split(splitter) if idx.strip()]
 
         if not isinstance(value, list):
-            raise ValueError('"{}" cannot be interpreted as a list.'.format(value))
+            raise ValueError(f'"{value}" cannot be interpreted as a list.')
 
         # Run the validator on each element of the list.
         value = [validator(v) for v in value]
@@ -127,7 +126,7 @@ def _generate_list_validator(
     return _validate_list
 
 
-def _validate_bool(value: typing.Union[str, bool]) -> bool:
+def _validate_bool(value: str | bool) -> bool:
     """Return a bool version of value.
 
     This function will ensure that value is a bool, or that it is a string that can be interpreted
@@ -150,10 +149,10 @@ def _validate_bool(value: typing.Union[str, bool]) -> bool:
         elif value.lower().strip() in ('f', 'false', 'n', 'no', 'off', '0'):
             return False
         else:
-            raise ValueError('"{}" cannot be interpreted as a boolean value.'.format(value))
+            raise ValueError(f'"{value}" cannot be interpreted as a boolean value.')
 
     if not isinstance(value, bool):
-        raise ValueError('"{}" is not a bool or a string.'.format(value))
+        raise ValueError(f'"{value}" is not a bool or a string.')
 
     return value
 
@@ -619,7 +618,7 @@ class BodhiConfig(dict):
             'value': 10000,
             'validator': int},
         'updateinfo_rights': {
-            'value': 'Copyright (C) {} Red Hat, Inc. and others.'.format(datetime.now().year),
+            'value': f'Copyright (C) {datetime.now().year} Red Hat, Inc. and others.',
             'validator': str},
         'wait_for_repo_sig': {
             'value': False,
@@ -639,25 +638,25 @@ class BodhiConfig(dict):
         """Ensure the config is loaded, and then call the superclass __getitem__."""
         if not self.loaded:
             self.load_config()
-        return super(BodhiConfig, self).__getitem__(key)
+        return super().__getitem__(key)
 
     def get(self, *args, **kw) -> typing.Any:
         """Ensure the config is loaded, and then call the superclass get."""
         if not self.loaded:
             self.load_config()
-        return super(BodhiConfig, self).get(*args, **kw)
+        return super().get(*args, **kw)
 
     def pop(self, *args, **kw) -> typing.Any:
         """Ensure the config is loaded, and then call the superclass pop."""
         if not self.loaded:
             self.load_config()
-        return super(BodhiConfig, self).pop(*args, **kw)
+        return super().pop(*args, **kw)
 
     def copy(self) -> typing.Any:
         """Ensure the config is loaded, and then call the superclass copy."""
         if not self.loaded:
             self.load_config()
-        return super(BodhiConfig, self).copy()
+        return super().copy()
 
     def load_config(self, settings: typing.Mapping = None):
         """
@@ -693,7 +692,7 @@ class BodhiConfig(dict):
             try:
                 self[k] = self._defaults[k]['validator'](self[k])
             except ValueError as e:
-                errors.append('\t{}: {}'.format(k, str(e)))
+                errors.append(f'\t{k}: {e!s}')
 
         if errors:
             raise ValueError(

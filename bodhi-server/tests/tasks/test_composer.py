@@ -15,12 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-import hashlib
-from http.client import IncompleteRead
-from unittest import mock
-from urllib.error import HTTPError, URLError
-from datetime import datetime, timedelta, timezone
 import errno
+import hashlib
 import json
 import os
 import shutil
@@ -28,12 +24,12 @@ import subprocess
 import tempfile
 import time
 import urllib.parse as urlparse
+from datetime import datetime, timedelta, timezone
+from http.client import IncompleteRead
+from unittest import mock
+from urllib.error import HTTPError, URLError
 
-from click import testing
-from fedora_messaging import api
-from fedora_messaging.testing import mock_sends
 import pytest
-
 from bodhi.messages.schemas import base as base_schemas
 from bodhi.messages.schemas import buildroot_override as override_schemas
 from bodhi.messages.schemas import compose as compose_schemas
@@ -65,7 +61,6 @@ from bodhi.server.models import (
 )
 from bodhi.server.tasks import compose as compose_task
 from bodhi.server.tasks.composer import (
-    checkpoint,
     ComposerHandler,
     ComposerThread,
     ContainerComposerThread,
@@ -73,10 +68,13 @@ from bodhi.server.tasks.composer import (
     ModuleComposerThread,
     PungiComposerThread,
     RPMComposerThread,
+    checkpoint,
 )
+from click import testing
+from fedora_messaging import api
+from fedora_messaging.testing import mock_sends
 
 from .. import base
-
 
 mock_exc = mock.Mock()
 mock_exc.side_effect = Exception
@@ -90,7 +88,7 @@ def _expected_skopeo_args(config, source, destination, dtag, extra_args=[]):
     return [config['skopeo.cmd'], 'copy'] + extra_args + [
         'docker://{}/{}@sha256:{}'.format(config['container.source_registry'],
                                           source_repository, source_digest),
-        'docker://{}/{}:{}'.format(destination, source_repository, dtag)
+        f'docker://{destination}/{source_repository}:{dtag}'
     ]
 
 
@@ -121,7 +119,7 @@ class TestCheckpoint:
     """Test the checkpoint() decorator."""
     def test_with_return(self):
         """checkpoint() should raise a ValueError if the wrapped function returns anything."""
-        class TestClass(object):
+        class TestClass:
             def __init__(self):
                 self.resume = False
 
@@ -162,7 +160,7 @@ class TestComposer(base.BasePyTestCase):
     """Test the Handler class."""
 
     def setup_method(self, method):
-        super(TestComposer, self).setup_method(method)
+        super().setup_method(method)
         self._new_compose_stage_dir = tempfile.mkdtemp()
 
         # We don't want the test suite to launch real Threads. Threads cannot
@@ -205,7 +203,7 @@ class TestComposer(base.BasePyTestCase):
 
     def teardown_method(self, method):
         """Call assert_sems and remove temporary files."""
-        super(TestComposer, self).teardown_method(method)
+        super().teardown_method(method)
 
         self.assert_sems(self.expected_sems)
 
@@ -407,7 +405,7 @@ That was the actual one''' % compose_dir
         expected_messages = (
             compose_schemas.ComposeStartV1,
             compose_schemas.ComposeComposingV1.from_dict({
-                'repo': u'f17-updates-testing',
+                'repo': 'f17-updates-testing',
                 'ctype': 'rpm',
                 'updates': ['bodhi-2.0-1.fc17'],
                 'agent': 'bowlofeggs'}),
@@ -443,7 +441,7 @@ That was the actual one''' % compose_dir
         expected_messages = (
             compose_schemas.ComposeStartV1,
             compose_schemas.ComposeComposingV1.from_dict({
-                'repo': u'f17-updates-testing',
+                'repo': 'f17-updates-testing',
                 'ctype': 'rpm',
                 'updates': ['bodhi-2.0-1.fc17'],
                 'agent': 'bowlofeggs'}),
@@ -499,7 +497,7 @@ That was the actual one''' % compose_dir
         expected_messages = (
             compose_schemas.ComposeStartV1,
             compose_schemas.ComposeComposingV1.from_dict({
-                'repo': u'f17-updates',
+                'repo': 'f17-updates',
                 'ctype': 'rpm',
                 'updates': ['bodhi-2.0-1.fc17'],
                 'agent': 'bowlofeggs'}),
@@ -555,18 +553,17 @@ That was the actual one''' % compose_dir
             compose_schemas.ComposeCompleteV1.from_dict(dict(
                 success=True, repo='f17-updates-testing', ctype='rpm', agent='bowlofeggs')))
 
-        with self.db_factory() as session:
-            with mock.patch('bodhi.server.models.notifications'):
-                firstupdate = session.query(Update).one()
-                build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package,
-                                 release=firstupdate.release, signed=True)
-                session.add(build)
-                update = Update(
-                    builds=[build], type=UpdateType.bugfix,
-                    request=UpdateRequest.testing, notes='second update', user=firstupdate.user,
-                    stable_karma=3, unstable_karma=-3, release=firstupdate.release)
-                session.add(update)
-                session.flush()
+        with self.db_factory() as session, mock.patch('bodhi.server.models.notifications'):
+            firstupdate = session.query(Update).one()
+            build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package,
+                             release=firstupdate.release, signed=True)
+            session.add(build)
+            update = Update(
+                builds=[build], type=UpdateType.bugfix,
+                request=UpdateRequest.testing, notes='second update', user=firstupdate.user,
+                stable_karma=3, unstable_karma=-3, release=firstupdate.release)
+            session.add(update)
+            session.flush()
 
         with mock_sends(*expected_messages):
             # Start the push
@@ -933,18 +930,18 @@ That was the actual one'''
         expected_messages = (
             compose_schemas.ComposeStartV1,
             compose_schemas.ComposeComposingV1.from_dict({
-                'repo': u'f18-updates',
+                'repo': 'f18-updates',
                 'ctype': 'rpm',
-                'updates': [u'bodhi-2.0-1.fc18'],
+                'updates': ['bodhi-2.0-1.fc18'],
                 'agent': 'bowlofeggs'}),
             update_schemas.UpdateCompleteStableV1,
             errata_schemas.ErrataPublishV1,
             compose_schemas.ComposeCompleteV1.from_dict(dict(
                 success=True, repo='f18-updates', ctype='rpm', agent='bowlofeggs')),
             compose_schemas.ComposeComposingV1.from_dict({
-                'repo': u'f17-updates-testing',
+                'repo': 'f17-updates-testing',
                 'ctype': 'rpm',
-                'updates': [u'bodhi-2.0-1.fc17'],
+                'updates': ['bodhi-2.0-1.fc17'],
                 'agent': 'bowlofeggs'}),
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(
@@ -1021,9 +1018,9 @@ That was the actual one'''
         expected_messages = (
             compose_schemas.ComposeStartV1,
             compose_schemas.ComposeComposingV1.from_dict({
-                'repo': u'f17-updates-testing',
+                'repo': 'f17-updates-testing',
                 'ctype': 'rpm',
-                'updates': [u'bodhi-2.0-1.fc17'],
+                'updates': ['bodhi-2.0-1.fc17'],
                 'agent': 'bowlofeggs'}),
             update_schemas.UpdateCompleteTestingV1,
             compose_schemas.ComposeCompleteV1.from_dict(
@@ -1032,9 +1029,9 @@ That was the actual one'''
                  'repo': 'f17-updates-testing',
                  'agent': 'bowlofeggs'}),
             compose_schemas.ComposeComposingV1.from_dict({
-                'repo': u'f18-updates',
+                'repo': 'f18-updates',
                 'ctype': 'rpm',
-                'updates': [u'bodhi-2.0-1.fc18'],
+                'updates': ['bodhi-2.0-1.fc18'],
                 'agent': 'bowlofeggs'}),
             update_schemas.UpdateCompleteStableV1,
             errata_schemas.ErrataPublishV1,
@@ -1357,7 +1354,7 @@ That was the actual one'''
 
         assert Popen.mock_calls == \
             [mock.call(
-                [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
+                [config['pungi.cmd'], '--config', f'{t._pungi_conf_dir}/pungi.conf',
                  '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
                  t.compose_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.compose_dir, shell=False, stderr=-1,
@@ -1366,7 +1363,7 @@ That was the actual one'''
         d = datetime.now(timezone.utc)
         assert t._checkpoints == \
             {'completed_repo': os.path.join(
-                compose_dir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
+                compose_dir, f'Fedora-17-updates-{d.year}{d.month:02}{d.day:02}.0'),
              'compose_done': True,
              'determine_and_perform_tag_actions': True,
              'modify_bugs': True,
@@ -1416,7 +1413,7 @@ That was the actual one'''
 
         assert Popen.mock_calls == \
             [mock.call(
-                [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
+                [config['pungi.cmd'], '--config', f'{t._pungi_conf_dir}/pungi.conf',
                  '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
                  t.compose_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.compose_dir, shell=False, stderr=-1,
@@ -1425,7 +1422,7 @@ That was the actual one'''
         d = datetime.now(timezone.utc)
         assert t._checkpoints == \
             {'completed_repo': os.path.join(
-                compose_dir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
+                compose_dir, f'Fedora-17-updates-{d.year}{d.month:02}{d.day:02}.0'),
              'compose_done': True,
              'determine_and_perform_tag_actions': True,
              'modify_bugs': True,
@@ -1515,7 +1512,7 @@ testmodule:master:20172:2
 
         assert Popen.mock_calls == \
             [mock.call(
-                [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
+                [config['pungi.cmd'], '--config', f'{t._pungi_conf_dir}/pungi.conf',
                  '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
                  t.compose_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.compose_dir, shell=False, stderr=-1,
@@ -1525,7 +1522,7 @@ testmodule:master:20172:2
         assert t._checkpoints == \
             {'completed_repo': os.path.join(
                 self.tempdir,
-                'Fedora-27-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
+                f'Fedora-27-updates-{d.year}{d.month:02}{d.day:02}.0'),
              'compose_done': True,
              'determine_and_perform_tag_actions': True,
              'modify_bugs': True,
@@ -1588,7 +1585,7 @@ testmodule:master:20172:2
         expected_messages = (
             update_schemas.UpdateCommentV1,
             compose_schemas.ComposeComposingV1.from_dict({
-                'repo': u'f17-updates',
+                'repo': 'f17-updates',
                 'ctype': 'rpm',
                 'updates': ['bodhi-2.0-1.fc17'],
                 'agent': 'ralph'}),
@@ -1971,26 +1968,25 @@ testmodule:master:20172:2
                 api_version = task.pop("api_version")
                 self.handler.run(api_version, task)
 
-        with mock_sends(*[base_schemas.BodhiMessage] * 3):
-            with self.db_factory() as session:
-                up = session.query(Update).one()
+        with mock_sends(*[base_schemas.BodhiMessage] * 3), self.db_factory() as session:
+            up = session.query(Update).one()
 
-                # Ensure the update is still locked and in testing
-                assert up.locked
-                assert up.status == UpdateStatus.pending
-                assert up.request == UpdateRequest.testing
+            # Ensure the update is still locked and in testing
+            assert up.locked
+            assert up.status == UpdateStatus.pending
+            assert up.request == UpdateRequest.testing
 
-                # Have the update reach the stable karma threshold
-                assert up.karma == 1
-                up.comment(session, "foo", 1, 'foo')
-                assert up.karma == 2
-                assert up.request == UpdateRequest.testing
-                up.comment(session, "foo", 1, 'bar')
-                assert up.karma == 3
-                assert up.request == UpdateRequest.testing
-                up.comment(session, "foo", 1, 'biz')
-                assert up.request == UpdateRequest.testing
-                assert up.karma == 4
+            # Have the update reach the stable karma threshold
+            assert up.karma == 1
+            up.comment(session, "foo", 1, 'foo')
+            assert up.karma == 2
+            assert up.request == UpdateRequest.testing
+            up.comment(session, "foo", 1, 'bar')
+            assert up.karma == 3
+            assert up.request == UpdateRequest.testing
+            up.comment(session, "foo", 1, 'biz')
+            assert up.request == UpdateRequest.testing
+            assert up.karma == 4
 
         # finish push and unlock updates
         task = self._make_task()
@@ -1999,15 +1995,14 @@ testmodule:master:20172:2
         with mock_sends(*[base_schemas.BodhiMessage] * 6):
             self.handler.run(api_version, task)
 
-        with mock_sends(*[base_schemas.BodhiMessage] * 2):
-            with self.db_factory() as session:
-                up = session.query(Update).one()
-                up.comment(session, "foo", 1, 'baz')
-                assert up.karma == 5
+        with mock_sends(*[base_schemas.BodhiMessage] * 2), self.db_factory() as session:
+            up = session.query(Update).one()
+            up.comment(session, "foo", 1, 'baz')
+            assert up.karma == 5
 
-                # Ensure the composer set the autokarma once the push is done
-                assert not up.locked
-                assert up.request == UpdateRequest.stable
+            # Ensure the composer set the autokarma once the push is done
+            assert not up.locked
+            assert up.request == UpdateRequest.stable
 
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
@@ -2161,7 +2156,7 @@ class ComposerThreadBaseTestCase(base.BasePyTestCase):
         """
         Set up the test conditions.
         """
-        super(ComposerThreadBaseTestCase, self).setup_method(method)
+        super().setup_method(method)
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
         self.tempdir = tempfile.mkdtemp()
         self.semmock = mock.MagicMock()
@@ -2170,7 +2165,7 @@ class ComposerThreadBaseTestCase(base.BasePyTestCase):
         """
         Clean up after the tests.
         """
-        super(ComposerThreadBaseTestCase, self).teardown_method(method)
+        super().teardown_method(method)
         shutil.rmtree(self.tempdir)
         buildsys.teardown_buildsystem()
 
@@ -2199,7 +2194,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
     """Test ContainerComposerThread._compose_update()."""
 
     def setup_method(self, method):
-        super(TestContainerComposerThread__compose_updates, self).setup_method(method)
+        super().setup_method(method)
 
         user = self.db.query(User).first()
         release = self.create_release('28C')
@@ -2407,7 +2402,7 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
     """Test FlatpakComposerThread._compose_update()."""
 
     def setup_method(self, method):
-        super(TestFlatpakComposerThread__compose_updates, self).setup_method(method)
+        super().setup_method(method)
 
         user = self.db.query(User).first()
         release = self.create_release('28F')
@@ -3083,9 +3078,8 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             os.makedirs(repodata)
             with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                 repomd.write('---\nyaml: rules')
-        with pytest.raises(Exception) as exc:
-            with mock_sends(*[base_schemas.BodhiMessage] * 5):
-                t._wait_for_sync()
+        with pytest.raises(Exception) as exc, mock_sends(*[base_schemas.BodhiMessage] * 5):
+            t._wait_for_sync()
 
         assert "Not found an arch to _wait_for_sync with" in str(exc.value)
         save.assert_not_called()
@@ -3125,7 +3119,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
         expected_calls = [
             mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
-                      '{}/repodata.repomd.xml'.format(arch)),
+                      f'{arch}/repodata.repomd.xml'),
             mock.call().read()]
         expected_calls = expected_calls * 3
         urlopen.assert_has_calls(expected_calls)
@@ -3171,7 +3165,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
         expected_calls = [
             mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
-                      '{}/repodata.repomd.xml'.format(arch))
+                      f'{arch}/repodata.repomd.xml')
             for i in range(2)]
         urlopen.assert_has_calls(expected_calls)
         mocked_log.exception.assert_called_once_with('Error fetching repomd.xml')
@@ -3218,7 +3212,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
         expected_calls = [
             mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
-                      '{}/repodata.repomd.xml'.format(arch))
+                      f'{arch}/repodata.repomd.xml')
             for i in range(2)]
         urlopen.assert_has_calls(expected_calls)
         mocked_log.exception.assert_called_once_with('Error fetching repomd.xml')
@@ -3264,7 +3258,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         for i in range(2):
             expected_calls.append(
                 mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
-                          '{}/repodata.repomd.xml'.format(arch)))
+                          f'{arch}/repodata.repomd.xml'))
             expected_calls.append(mock.call().read())
         urlopen.assert_has_calls(expected_calls)
         mocked_log.exception.assert_called_once_with('Error fetching repomd.xml')
@@ -3372,7 +3366,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
         expected_calls = [
             mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
-                      '{}/repodata.repomd.xml'.format(arch))
+                      f'{arch}/repodata.repomd.xml')
             for i in range(2)]
         urlopen.assert_has_calls(expected_calls)
         mocked_log.exception.assert_called_once_with('Error fetching repomd.xml')
@@ -3676,16 +3670,15 @@ class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCas
         config["wait_for_repo_sig"] = True
         with mock_sends(compose_schemas.RepoDoneV1.from_dict({
             'repo': t.id, 'path': t.path, 'agent': 'ralph'})
-        ):
-            with mock.patch('os.path.exists', side_effect=[
-                # First time, none of the signatures exist
-                False, False, False,
-                # Second time, we have two sets of signatures
-                True, False, True,
-                # Third time, we get all signatures and proceed
-                True, True, True
-            ]) as exists:
-                t._wait_for_repo_signature()
+        ), mock.patch('os.path.exists', side_effect=[
+            # First time, none of the signatures exist
+            False, False, False,
+            # Second time, we have two sets of signatures
+            True, False, True,
+            # Third time, we get all signatures and proceed
+            True, True, True
+        ]) as exists:
+            t._wait_for_repo_signature()
 
         assert len(sleep.mock_calls) == 2
         assert mocked_log.info.mock_calls == \

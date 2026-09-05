@@ -21,13 +21,12 @@ This module contains tests for the bodhi.server.fetch_test_cases module.
 
 from unittest.mock import patch
 
-from mediawiki.exceptions import HTTPTimeoutError
 import pytest
-
 from bodhi.server import config, models
 from bodhi.server.exceptions import BodhiException, ExternalCallException
 from bodhi.server.tasks import fetch_test_cases_task
 from bodhi.server.tasks.fetch_test_cases import main as fetch_test_cases_main
+from mediawiki.exceptions import HTTPTimeoutError
 
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase

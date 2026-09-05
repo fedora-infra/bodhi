@@ -17,13 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for the bodhi.server.buildsys module."""
 
+import os
 from threading import Lock
 from unittest import mock
-import os
 
 import koji
 import pytest
-
 from bodhi.server import buildsys
 
 

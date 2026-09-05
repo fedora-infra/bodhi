@@ -21,10 +21,10 @@ import json
 import re
 import textwrap
 
-from munch import Munch
 import psycopg2
 import pytest
 import requests
+from munch import Munch
 
 from .utils import read_file, replace_file, run_cli
 
@@ -79,25 +79,24 @@ def test_composes_info(bodhi_container, db_container):
     """
 
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_composes)
-            row = curs.fetchone()
-            if row is None:
-                pytest.skip("No compose in the database")
-            for column, value in zip(curs.description, row):
-                compose[column.name] = value
-            curs.execute(query_updates, (compose['release'], compose['request'], ))
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_composes)
+        row = curs.fetchone()
+        if row is None:
+            pytest.skip("No compose in the database")
+        for column, value in zip(curs.description, row):
+            compose[column.name] = value
+        curs.execute(query_updates, (compose['release'], compose['request'], ))
+        for row in curs.fetchall():
+            updates.append({
+                'alias': row[0], 'id': row[1], 'type': row[2], 'display_name': row[3],
+                'builds': []
+            })
+        for update in updates:
+            curs.execute(query_builds, (update['id'], ))
             for row in curs.fetchall():
-                updates.append({
-                    'alias': row[0], 'id': row[1], 'type': row[2], 'display_name': row[3],
-                    'builds': []
-                })
-            for update in updates:
-                curs.execute(query_builds, (update['id'], ))
-                for row in curs.fetchall():
-                    update['builds'].append({'nvr': row[0], 'content_type': row[1]})
+                update['builds'].append({'nvr': row[0], 'content_type': row[1]})
     conn.close()
 
     result = run_cli(bodhi_container, ["composes", "info", compose['release'], compose['request']])
@@ -167,13 +166,12 @@ def test_composes_list(bodhi_container, db_container):
     GROUP BY r.name, c.request, c.state
     """
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query)
-            for record in curs:
-                compose = "{}-{}".format(record[0], record[1])
-                expected[compose] = (record[2], record[3])
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query)
+        for record in curs:
+            compose = f"{record[0]}-{record[1]}"
+            expected[compose] = (record[2], record[3])
     conn.close()
     assert updates_by_compose == expected
 
@@ -184,12 +182,11 @@ def test_releases_info(bodhi_container, db_container):
     db_ip = db_container.get_IPv4s()[0]
     query = "SELECT * FROM releases"
     releases = []
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query)
-            for record in curs:
-                releases.append(_db_record_to_munch(curs, record))
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query)
+        for record in curs:
+            releases.append(_db_record_to_munch(curs, record))
     conn.close()
     for release in releases:
         # Run the command for each release
@@ -236,21 +233,20 @@ def test_releases_list(bodhi_container, db_container):
     archived_releases = []
     current_releases = []
     frozen_releases = []
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_pending_releases + order_by)
-            for record in curs:
-                pending_releases.append(record[0])
-            curs.execute(query_archived_releases + order_by)
-            for record in curs:
-                archived_releases.append(record[0])
-            curs.execute(query_current_releases + order_by)
-            for record in curs:
-                current_releases.append(record[0])
-            curs.execute(query_frozen_releases + order_by)
-            for record in curs:
-                frozen_releases.append(record[0])
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_pending_releases + order_by)
+        for record in curs:
+            pending_releases.append(record[0])
+        curs.execute(query_archived_releases + order_by)
+        for record in curs:
+            archived_releases.append(record[0])
+        curs.execute(query_current_releases + order_by)
+        for record in curs:
+            current_releases.append(record[0])
+        curs.execute(query_frozen_releases + order_by)
+        for record in curs:
+            frozen_releases.append(record[0])
     conn.close()
 
     # Run the command
@@ -284,17 +280,16 @@ def test_overrides_query(bodhi_container, db_container):
     # Fetch the number of overrides from the DB
     db_ip = db_container.get_IPv4s()[0]
     query = "SELECT COUNT(*) FROM buildroot_overrides"
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query)
-            total = curs.fetchone()[0]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query)
+        total = curs.fetchone()[0]
     conn.close()
     # Run the command
     result = run_cli(bodhi_container, ["overrides", "query"])
     assert result.exit_code == 0
     last_line = result.output.split("\n")[-2]
-    assert last_line == "{} overrides found ({} shown)".format(total, min(total, 20))
+    assert last_line == f"{total} overrides found ({min(total, 20)} shown)"
 
 
 def test_updates_query_total(bodhi_container, db_container):
@@ -302,17 +297,16 @@ def test_updates_query_total(bodhi_container, db_container):
     # Fetch the number of updates from the DB
     db_ip = db_container.get_IPv4s()[0]
     query = "SELECT COUNT(*) FROM updates"
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query)
-            total = curs.fetchone()[0]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query)
+        total = curs.fetchone()[0]
     conn.close()
     # Run the command
     result = run_cli(bodhi_container, ["updates", "query"])
     assert result.exit_code == 0
     last_line = result.output.split("\n")[-2]
-    assert last_line == "{} updates found ({} shown)".format(total, min(total, 20))
+    assert last_line == f"{total} updates found ({min(total, 20)} shown)"
 
 
 def test_updates_query_details(bodhi_container, db_container, greenwave_container):
@@ -347,42 +341,41 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
         "WHERE update_id = %s LIMIT 1"
     )
     query_builds = "SELECT nvr FROM builds WHERE update_id = %s ORDER BY nvr"
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_update)
-            result = curs.fetchone()
-            if result is None:
-                pytest.skip("No update in the database")
-            update = _db_record_to_munch(curs, result)
-            update.comments = []
-            curs.execute(query_comments, (update.id, ))
-            for record in curs:
-                update.comments.append(_db_record_to_munch(curs, record))
-            curs.execute(query_karma, (update.id, ))
-            update.karma = _db_record_to_munch(curs, curs.fetchone()).karma or 0
-            curs.execute(query_ct, (update.id, ))
-            update.content_type = _db_record_to_munch(curs, curs.fetchone()).type
-            curs.execute(query_builds, (update.id, ))
-            update.builds = [r[0] for r in curs]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_update)
+        result = curs.fetchone()
+        if result is None:
+            pytest.skip("No update in the database")
+        update = _db_record_to_munch(curs, result)
+        update.comments = []
+        curs.execute(query_comments, (update.id, ))
+        for record in curs:
+            update.comments.append(_db_record_to_munch(curs, record))
+        curs.execute(query_karma, (update.id, ))
+        update.karma = _db_record_to_munch(curs, curs.fetchone()).karma or 0
+        curs.execute(query_ct, (update.id, ))
+        update.content_type = _db_record_to_munch(curs, curs.fetchone()).type
+        curs.execute(query_builds, (update.id, ))
+        update.builds = [r[0] for r in curs]
     conn.close()
     # Run the command
     result = run_cli(bodhi_container, ["updates", "query", "--updateid", update.alias])
     assert result.exit_code == 0
-    assert "Update ID: {}".format(update.alias) in result.output
-    assert "Content Type: {}".format(update.content_type) in result.output
-    assert "Release: {}".format(update.release) in result.output
-    assert "Status: {}".format(update.status) in result.output
-    assert "Type: {}".format(update.type) in result.output
-    assert "Severity: {}".format(update.severity) in result.output
-    assert "Karma: {}".format(update.karma) in result.output
+    assert f"Update ID: {update.alias}" in result.output
+    assert f"Content Type: {update.content_type}" in result.output
+    assert f"Release: {update.release}" in result.output
+    assert f"Status: {update.status}" in result.output
+    assert f"Type: {update.type}" in result.output
+    assert f"Severity: {update.severity}" in result.output
+    assert f"Karma: {update.karma}" in result.output
     expected_autokarma = (
-        "Autokarma: {u.autokarma}  [{u.unstable_karma}, {u.stable_karma}]"
-    ).format(u=update)
+        f"Autokarma: {update.autokarma}  [{update.unstable_karma}, {update.stable_karma}]"
+    )
     assert expected_autokarma in result.output
     # If the update doesn't have a request, the CLI does not render the Request: line.
     if update.request:
-        assert "Request: {}".format(update.request) in result.output
+        assert f"Request: {update.request}" in result.output
     # Notes are formatted
     formatted_notes = list(itertools.chain(*[
         textwrap.wrap(line, width=66)
@@ -390,10 +383,10 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
     ]))
     for index, notes_line in enumerate(formatted_notes):
         if index == 0:
-            assert "Notes: {}".format(notes_line) in result.output
+            assert f"Notes: {notes_line}" in result.output
         else:
-            assert "     : {}".format(notes_line) in result.output
-    assert "Submitter: {}".format(update.username) in result.output
+            assert f"     : {notes_line}" in result.output
+    assert f"Submitter: {update.username}" in result.output
     expected_submitted = "Submitted: {}".format(
         update.date_submitted.strftime("%Y-%m-%d %H:%M:%S")
     )
@@ -411,7 +404,7 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
     # CI Status
     gw_ip = greenwave_container.get_IPv4s()[0]
     greenwave_result = requests.post(
-        "http://{}:8080/api/v1.0/decision".format(gw_ip),
+        f"http://{gw_ip}:8080/api/v1.0/decision",
         headers={"content-type": "application/json"},
         data=json.dumps({
             "product_version": update.release.lower().replace(' ', '-'),
@@ -440,15 +433,14 @@ def test_updates_download(bodhi_container, db_container):
     db_ip = db_container.get_IPv4s()[0]
     query_updates = "SELECT id, alias FROM updates ORDER BY date_submitted DESC LIMIT 3"
     query_builds = "SELECT nvr FROM builds WHERE update_id = %s ORDER BY nvr"
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            updates = [_db_record_to_munch(curs, record) for record in curs]
-            assert len(updates) > 0
-            for update in updates:
-                curs.execute(query_builds, (update.id, ))
-                builds.extend([r[0] for r in curs])
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        updates = [_db_record_to_munch(curs, record) for record in curs]
+        assert len(updates) > 0
+        for update in updates:
+            curs.execute(query_builds, (update.id, ))
+            builds.extend([r[0] for r in curs])
     conn.close()
     # Prepare the command to run
     cmd = [
@@ -481,29 +473,28 @@ def test_updates_request(bodhi_container, ipsilon_container, db_container):
             "ORDER BY u.date_submitted DESC LIMIT 1"
         ]
         db_ip = db_container.get_IPv4s()[0]
-        conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-        with conn:
-            with conn.cursor() as curs:
-                # First try to find an update that we can use.
-                query = base_query[:]
-                query.insert(
-                    4,
-                    "AND u.status = 'testing' AND u.request IS NULL and u.critpath = FALSE"
-                )
-                query.insert(
-                    5,
-                    "AND u.test_gating_status IN ('ignored', 'passed', 'greenwave_failed')"
-                )
-                curs.execute(" ".join(query))
-                result = curs.fetchone()
-                assert result is not None
-                update_alias = result[0]
-                # Now let's make sure the update is pushable to stable
-                curs.execute(
-                    "UPDATE updates SET stable_karma = 0, stable_days = 0 "
-                    "WHERE alias = %s",
-                    (update_alias,)
-                )
+        conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+        with conn, conn.cursor() as curs:
+            # First try to find an update that we can use.
+            query = base_query[:]
+            query.insert(
+                4,
+                "AND u.status = 'testing' AND u.request IS NULL and u.critpath = FALSE"
+            )
+            query.insert(
+                5,
+                "AND u.test_gating_status IN ('ignored', 'passed', 'greenwave_failed')"
+            )
+            curs.execute(" ".join(query))
+            result = curs.fetchone()
+            assert result is not None
+            update_alias = result[0]
+            # Now let's make sure the update is pushable to stable
+            curs.execute(
+                "UPDATE updates SET stable_karma = 0, stable_days = 0 "
+                "WHERE alias = %s",
+                (update_alias,)
+            )
         conn.close()
         return update_alias
 

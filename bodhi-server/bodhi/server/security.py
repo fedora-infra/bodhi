@@ -22,13 +22,18 @@ from cornice.errors import Errors
 from munch import munchify
 from pyramid.authentication import AuthTktCookieHelper
 from pyramid.authorization import (
-    ALL_PERMISSIONS, DENY_ALL, ACLHelper, Allow, Authenticated, Everyone
+    ALL_PERMISSIONS,
+    DENY_ALL,
+    ACLHelper,
+    Allow,
+    Authenticated,
+    Everyone,
 )
 from pyramid.request import RequestLocalCache
 from pyramid.threadlocal import get_current_registry
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import pyramid.request.Request  # noqa: F401
+    import pyramid.request.Request
 
 
 class BodhiSecurityPolicy:  # pragma: no cover
@@ -90,7 +95,7 @@ class BodhiSecurityPolicy:  # pragma: no cover
 #
 # Pyramid ACL factories
 #
-class ACLFactory(object):
+class ACLFactory:
     """Define an ACL factory base class to share the __init__()."""
 
     def __init__(self, request: 'pyramid.request.Request', context: None = None):
@@ -165,7 +170,7 @@ class QAACLFactory(ACLFactory):
         ] + [DENY_ALL]
 
 
-class CorsOrigins(object):
+class CorsOrigins:
     """
     Proxy-list class to load CORS config after scan-time.
 
@@ -253,7 +258,7 @@ cors_origins_ro = CorsOrigins('cors_origins_ro')
 cors_origins_rw = CorsOrigins('cors_origins_rw')
 
 
-class ProtectedRequest(object):
+class ProtectedRequest:
     """
     A proxy to the request object.
 

@@ -17,14 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Generates console scripts for former cron jobs that have been replaced by celery-beat."""
 
-import sys
 import logging
+import sys
 
 import click
-from pyramid.paster import get_appsettings
-
 from bodhi.server.config import config
-
+from pyramid.paster import get_appsettings
 
 logger = logging.getLogger(__name__)
 

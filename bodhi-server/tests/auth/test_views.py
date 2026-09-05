@@ -1,16 +1,15 @@
 from unittest import mock
 from urllib.parse import urlparse
 
-from authlib.common.urls import url_decode
-from pyramid import testing
-from pyramid.httpexceptions import HTTPUnauthorized
 import pytest
-
+from authlib.common.urls import url_decode
 from bodhi.server import models
 from bodhi.server.auth.views import authorize_oidc, login_with_token
+from pyramid import testing
+from pyramid.httpexceptions import HTTPUnauthorized
 
 from .. import base
-from .utils import set_session_data, fake_send
+from .utils import fake_send, set_session_data
 
 
 class TestLogin(base.BasePyTestCase):

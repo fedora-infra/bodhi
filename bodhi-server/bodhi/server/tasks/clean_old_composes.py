@@ -17,13 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Cleans up old composes that are left over in compose_dir."""
 
-import logging
 import collections
+import logging
 import os
 import shutil
 
 from bodhi.server import config
-
 
 log = logging.getLogger(__name__)
 

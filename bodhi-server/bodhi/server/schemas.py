@@ -19,7 +19,6 @@
 import os
 
 import colander
-
 from bodhi.server import util
 from bodhi.server.config import config
 from bodhi.server.models import (
@@ -34,7 +33,6 @@ from bodhi.server.models import (
     UpdateType,
 )
 from bodhi.server.validators import validate_csrf_token
-
 
 # Retrieving list of templates from filesystem for `mail_template` validation in SaveReleaseSchema
 template_directory = util.get_absolute_path(config.get('mail.templates_basepath'))
@@ -166,7 +164,7 @@ class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
     def deserialize(self, cstruct):
         """Unflatten comment before parsing into Schema."""
         appstruct = SaveCommentSchema().unflatten(cstruct)
-        return super(SaveCommentSchema, self).deserialize(appstruct)
+        return super().deserialize(appstruct)
 
     update = colander.SchemaNode(colander.String())
     text = colander.SchemaNode(
@@ -861,4 +859,3 @@ class GetTestResultsSchema(CSRFProtectedSchema, colander.MappingSchema):
 class TriggerTestsSchema(CSRFProtectedSchema, colander.MappingSchema):
     """An API schema for bodhi.server.services.updates.trigger_tests()."""
 
-    pass

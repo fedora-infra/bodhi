@@ -24,7 +24,6 @@ import os
 import subprocess
 import sys
 
-
 REPO_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 

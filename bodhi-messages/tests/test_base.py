@@ -20,7 +20,6 @@
 import json
 
 import pytest
-
 from bodhi.messages.schemas import base
 from bodhi.messages.schemas.update import UpdateCompleteStableV1
 
@@ -37,7 +36,7 @@ class TestFedMsgEncoder:
     def test_default_obj_with_json(self):
         """Assert classes with a ``__json__`` function encode as the return of ``__json__``."""
 
-        class JsonClass(object):
+        class JsonClass:
             def __json__(self):
                 return {'my': 'json'}
 

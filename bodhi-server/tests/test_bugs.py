@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for bodhi.server.bugs."""
 
-from unittest import mock
 import xmlrpc.client
+from unittest import mock
 
 from bodhi.server import bugs, models
 
@@ -182,7 +182,7 @@ class TestBugzilla:
                  'Fixed. Closing bug and adding version to fixed_in field.')
 
         bz._bz.getbug.assert_called_once_with(12345)
-        expected_fixedin = '{} bodhi-35.103.109-1.fc27'.format(fill_text)
+        expected_fixedin = f'{fill_text} bodhi-35.103.109-1.fc27'
         assert len(expected_fixedin) == 254
         bz._bz.getbug.return_value.close.assert_called_once_with(
             'ERRATA',
@@ -278,7 +278,7 @@ class TestBugzilla:
         assert bz._bz.getbug.call_count == 0
         # An exception should have been logged
         error.assert_called_once_with(
-            'Comment too long for bug #1411188:  {}'.format(long_comment))
+            f'Comment too long for bug #1411188:  {long_comment}')
 
     @mock.patch('bodhi.server.bugs.log.error')
     def test_comment_too_many_attempts(self, error):

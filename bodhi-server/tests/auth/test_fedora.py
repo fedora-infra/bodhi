@@ -1,22 +1,20 @@
-from unittest import mock
 import time
+from unittest import mock
 
+import pytest
 from authlib import __version__ as authlib_version
 from authlib.oauth2.rfc6750 import InsufficientScopeError, InvalidTokenError
-from packaging.version import parse as parse_version
-from pyramid import testing
-import pytest
-
 from bodhi.server.auth import OAuth
 from bodhi.server.auth.fedora import (
     FedoraApp,
     IntrospectionToken,
     IntrospectTokenValidator,
 )
+from packaging.version import parse as parse_version
+from pyramid import testing
 
 from .. import base
 from ..utils import mock_send_value
-
 
 SERVER_METADATA = {
     "token_endpoint": 'https://i.b/Token',

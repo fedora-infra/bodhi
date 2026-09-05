@@ -21,7 +21,7 @@ Each message is defined as a Python class. For details, see `fedora-messaging
 messages.
 """
 
-from .base import BodhiMessage, SCHEMA_URL
+from .base import SCHEMA_URL, BodhiMessage
 
 
 class ComposeCompleteV1(BodhiMessage):

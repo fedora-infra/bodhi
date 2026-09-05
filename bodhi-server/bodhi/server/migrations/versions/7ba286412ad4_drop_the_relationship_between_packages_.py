@@ -22,9 +22,8 @@ Revision ID: 7ba286412ad4
 Revises: 2fc96aa44a74
 Create Date: 2019-02-16 08:36:48.665825
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '7ba286412ad4'

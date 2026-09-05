@@ -19,14 +19,14 @@
 import logging
 import typing
 
-from sqlalchemy import event
-from fedora_messaging import api, exceptions as fml_exceptions
 import backoff
-
 from bodhi.server import Session
+from fedora_messaging import api
+from fedora_messaging import exceptions as fml_exceptions
+from sqlalchemy import event
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.messages.schemas import base  # noqa: F401
+    from bodhi.messages.schemas import base
 
 
 _log = logging.getLogger(__name__)

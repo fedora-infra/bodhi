@@ -18,7 +18,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'bodhi'
-copyright = '2007-{}, Red Hat, Inc.'.format(datetime.datetime.now(datetime.timezone.utc).year)
+copyright = f'2007-{datetime.datetime.now(datetime.timezone.utc).year}, Red Hat, Inc.'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

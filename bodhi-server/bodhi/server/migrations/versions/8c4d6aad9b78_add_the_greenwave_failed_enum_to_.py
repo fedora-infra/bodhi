@@ -25,7 +25,6 @@ Create Date: 2019-02-26 22:38:15.420477
 from alembic import op
 from sqlalchemy import exc
 
-
 # revision identifiers, used by Alembic.
 revision = '8c4d6aad9b78'
 down_revision = '9991cf10ec50'
@@ -57,8 +56,8 @@ def downgrade():
         # This server doesn't use BDR, so no problem.
         pass
     op.execute(
-        ("UPDATE updates SET test_gating_status = 'failed' "
-         "WHERE test_gating_status = 'greenwave_failed'"))
+        "UPDATE updates SET test_gating_status = 'failed' "
+         "WHERE test_gating_status = 'greenwave_failed'")
     op.execute("ALTER TYPE ck_test_gating_status RENAME TO ck_test_gating_status_old")
     op.execute(
         "CREATE TYPE ck_test_gating_status AS ENUM('ignored', 'queued', "

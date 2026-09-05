@@ -23,10 +23,10 @@ import typing
 
 from bodhi.server import log
 from bodhi.server.config import config
-from bodhi.server.util import get_rpm_header, get_absolute_path, markdown_to_text, wrap_text
+from bodhi.server.util import get_absolute_path, get_rpm_header, markdown_to_text, wrap_text
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.server.models import Update  # noqa: F401
+    from bodhi.server.models import Update
 
 
 #
@@ -259,7 +259,7 @@ def read_template(name: str) -> str:
         try:
             with open(template_path) as template_file:
                 return template_file.read()
-        except IOError as e:
+        except OSError as e:
             log.error("Unable to read template file: %s" % (template_path))
             log.error("IO Error[%s]: %s" % (e.errno, e.strerror))
     else:
@@ -371,7 +371,7 @@ def _send_mail(from_addr: str, to_addr: str, body: str) -> None:
 
 
 def send_mail(from_addr: str, to_addr: str, subject: str, body_text: str,
-              headers: typing.Optional[dict] = None) -> None:
+              headers: dict | None = None) -> None:
     """
     Send an e-mail.
 
@@ -404,7 +404,7 @@ def send_mail(from_addr: str, to_addr: str, subject: str, body_text: str,
 
 
 def send(to: typing.Iterable[str], msg_type: str, update: 'Update',
-         sender: typing.Optional[str] = None, agent: str = 'bodhi') -> None:
+         sender: str | None = None, agent: str = 'bodhi') -> None:
     """
     Send an update notification email to a given recipient.
 

@@ -21,15 +21,15 @@ This module contains tests for the bodhi.server.tasks.approve_testing module.
 from datetime import datetime, timedelta, timezone
 from unittest.mock import call, patch
 
-from fedora_messaging import testing as fml_testing
 import pytest
 import sqlalchemy.exc
-
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server.config import config
 from bodhi.server import models
+from bodhi.server.config import config
 from bodhi.server.tasks import approve_testing_task
 from bodhi.server.tasks.approve_testing import main as approve_testing_main
+from fedora_messaging import testing as fml_testing
+
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
 
@@ -61,7 +61,7 @@ class TestMain(BaseTaskTestCase):
         Get an update to work with and set some common attributes that
         make sense for all or most of the tests.
         """
-        super(TestMain, self).setup_method(self)
+        super().setup_method(self)
         # Clear pending messages
         self.db.info['messages'] = []
         # Get an update to work with
@@ -79,7 +79,7 @@ class TestMain(BaseTaskTestCase):
 
     def teardown_method(self):
         """Stop the mail patcher on teardown."""
-        super(TestMain, self).teardown_method(self)
+        super().teardown_method(self)
         self.mailpatcher.stop()
 
     def _assert_not_pushed(self):
@@ -285,7 +285,7 @@ class TestMain(BaseTaskTestCase):
             f"{self.update.release.stable_tag} tag."
 
     @pytest.mark.parametrize('composed_by_bodhi', (True, False))
-    @patch('bodhi.server.models.Update.comment', side_effect=IOError('The DB died lol'))
+    @patch('bodhi.server.models.Update.comment', side_effect=OSError('The DB died lol'))
     @patch('bodhi.server.tasks.approve_testing.log')
     @patch('bodhi.server.models.Update.meets_testing_requirements', True)
     def test_exception_handler(self, log, comment, composed_by_bodhi):
@@ -294,11 +294,10 @@ class TestMain(BaseTaskTestCase):
         self.update.release.composed_by_bodhi = composed_by_bodhi
         self.db.flush()
 
-        with patch.object(self.db, 'commit'):
-            with patch.object(self.db, 'rollback'):
-                approve_testing_main()
-                assert self.db.commit.call_count == 0
-                self.db.rollback.assert_called_once_with()
+        with patch.object(self.db, 'commit'), patch.object(self.db, 'rollback'):
+            approve_testing_main()
+            assert self.db.commit.call_count == 0
+            self.db.rollback.assert_called_once_with()
 
         comment.assert_called_once_with(
             self.db,
@@ -310,7 +309,7 @@ class TestMain(BaseTaskTestCase):
         log.exception.assert_called_with("There was an error approving testing updates.")
 
     @pytest.mark.parametrize('composed_by_bodhi', (True, False))
-    @patch('bodhi.server.models.Update.comment', side_effect=[None, IOError('The DB died lol')])
+    @patch('bodhi.server.models.Update.comment', side_effect=[None, OSError('The DB died lol')])
     @patch('bodhi.server.tasks.approve_testing.log')
     @patch('bodhi.server.models.Update.meets_testing_requirements', True)
     def test_exception_handler_on_the_second_update(self, log, comment, composed_by_bodhi):
@@ -327,11 +326,10 @@ class TestMain(BaseTaskTestCase):
         update2.status = models.UpdateStatus.testing
         self.db.flush()
 
-        with patch.object(self.db, 'commit'):
-            with patch.object(self.db, 'rollback'):
-                approve_testing_main()
-                assert self.db.commit.call_count == 1
-                self.db.rollback.assert_called_once_with()
+        with patch.object(self.db, 'commit'), patch.object(self.db, 'rollback'):
+            approve_testing_main()
+            assert self.db.commit.call_count == 1
+            self.db.rollback.assert_called_once_with()
 
         comment_expected_call = call(
             self.db,

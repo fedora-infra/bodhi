@@ -16,25 +16,23 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.client."""
-from datetime import date, datetime, timedelta, timezone
-from unittest import mock
 import copy
 import os
 import platform
 import tempfile
+from datetime import date, datetime, timedelta, timezone
+from unittest import mock
 
-from click import testing
-from requests import HTTPError
 import click
 import munch
-import requests
 import pytest
-
+import requests
 from bodhi.client import bindings, cli, constants
+from click import testing
+from requests import HTTPError
 
 from . import fixtures as client_test_data
 from .utils import build_response, compare_output
-
 
 EXPECTED_DEFAULT_BASE_URL = os.environ.get('BODHI_URL', bindings.BASE_URL)
 
@@ -153,7 +151,7 @@ class TestDownload:
             'updates/', verb='GET',
             params={'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25'})
         call.assert_called_once_with([
-            'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
+            'koji', 'download-build', '--arch=noarch', f'--arch={platform.machine()}',
             'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_arch_flag(self, mocked_client_class, mocker):
@@ -285,7 +283,7 @@ class TestDownload:
         assert result.output == ('WARNING: Some builds not found!\nDownloading packages '
                                  'from FEDORA-2017-c95b33872d\n')
         call.assert_called_once_with([
-            'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
+            'koji', 'download-build', '--arch=noarch', f'--arch={platform.machine()}',
             'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_failed_warning(self, mocked_client_class, mocker):
@@ -305,7 +303,7 @@ class TestDownload:
         assert result.output == ('Downloading packages from FEDORA-2017-c95b33872d\n'
                                  'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n')
         call.assert_called_once_with([
-            'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
+            'koji', 'download-build', '--arch=noarch', f'--arch={platform.machine()}',
             'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_updateid(self, mocked_client_class, mocker):
@@ -325,7 +323,7 @@ class TestDownload:
         mocked_client_class.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'updateid': 'FEDORA-2017-c95b33872d'})
         call.assert_called_once_with([
-            'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
+            'koji', 'download-build', '--arch=noarch', f'--arch={platform.machine()}',
             'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
 
@@ -382,7 +380,7 @@ class TestDownloadGPG:
         )
         self.call.assert_called_once_with([
             'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            f'--arch={platform.machine()}', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_epel_good(self, mocked_client_class):
         """Success path for EPEL update."""
@@ -402,7 +400,7 @@ class TestDownloadGPG:
         )
         self.call.assert_called_once_with([
             'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            f'--arch={platform.machine()}', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_gpg_fails(self, mocked_client_class):
         """Handle gpg command failing."""
@@ -419,7 +417,7 @@ WARNING: could not find GPG key, packages will be unsigned
 '''
         self.call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            f'--arch={platform.machine()}', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_gpg_noexist(self, mocked_client_class):
         """Handle gpg command not existing."""
@@ -436,7 +434,7 @@ WARNING: could not find GPG key, packages will be unsigned
 '''
         self.call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            f'--arch={platform.machine()}', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_no_key_id(self, mocked_client_class):
         """Handle key file existing but not showing a key ID."""
@@ -452,7 +450,7 @@ WARNING: could not find GPG key, packages will be unsigned
 '''
         self.call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            f'--arch={platform.machine()}', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
 
 class TestDownloadGPGRemote:
@@ -540,7 +538,7 @@ kRFmBygMR6M/
         )
         self.call.assert_called_once_with([
             'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            f'--arch={platform.machine()}', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_epel_good_remote(self, mocked_client_class):
         """Success path for EPEL update."""
@@ -557,7 +555,7 @@ kRFmBygMR6M/
         self.get.assert_called_once_with(url)
         self.call.assert_called_once_with([
             'koji', 'download-build', '--key=fdb19c98', '--fallback-unsigned', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            f'--arch={platform.machine()}', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_gpg_noexist_remote(self, mocked_client_class):
         """Handle gpg command not existing."""
@@ -574,7 +572,7 @@ WARNING: could not find GPG key, packages will be unsigned
 '''
         self.call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            f'--arch={platform.machine()}', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_bad_status(self, mocked_client_class):
         """We get a bad status code from requests."""
@@ -588,10 +586,10 @@ WARNING: could not find GPG key, packages will be unsigned
         assert result.output == '''Downloading packages from FEDORA-2017-c95b33872d
 WARNING: Tried https://src.fedoraproject.org/rpms/fedora-repos/raw/rawhide/f/RPM-GPG-KEY-fedora-25-primary to get key, got 404
 WARNING: could not find GPG key, packages will be unsigned
-'''     # noqa: E501
+'''
         self.call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            f'--arch={platform.machine()}', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     def test_request_exception(self, mocked_client_class):
         """We get an exception from requests."""
@@ -605,10 +603,10 @@ WARNING: could not find GPG key, packages will be unsigned
         assert result.output == '''Downloading packages from FEDORA-2017-c95b33872d
 WARNING: Tried https://src.fedoraproject.org/rpms/fedora-repos/raw/rawhide/f/RPM-GPG-KEY-fedora-25-primary to get key, failed with foo
 WARNING: could not find GPG key, packages will be unsigned
-'''     # noqa: E501
+'''
         self.call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch',
-            '--arch={}'.format(platform.machine()), 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+            f'--arch={platform.machine()}', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
 
 class TestComposeInfo:
@@ -1648,9 +1646,8 @@ class TestSaveBuildrootOverrides:
 
         assert result.exit_code == 0
         expected_output = (
-            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 '
-            '--request\n\n'.format(
-                client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT))
+            f'{client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 '
+            '--request\n\n')
         assert result.output == expected_output
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25', '--request'),
@@ -1678,9 +1675,8 @@ class TestSaveBuildrootOverrides:
 
         assert result.exit_code == 0
         expected_output = (
-            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 '
-            '--request\n\n'.format(
-                client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT))
+            f'{client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 '
+            '--request\n\n')
         assert result.output == expected_output
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25', '--request'),
@@ -2042,7 +2038,7 @@ class TestEdit:
                        '--url', 'http://localhost:6543'])
 
         assert result.exit_code == 0
-        mocked_client_class.query.assert_called_with(updateid=u'FEDORA-2017-c95b33872d')
+        mocked_client_class.query.assert_called_with(updateid='FEDORA-2017-c95b33872d')
         calls = [
             mock.call(
                 'updates/', auth=True, verb='POST',
@@ -2051,14 +2047,14 @@ class TestEdit:
                     'staging': False, 'display_name': None,
                     'builds': ['tar-1.29-4.fc25', 'nedit-5.7-1.fc25'],
                     'autokarma': True, 'edited': 'FEDORA-2017-c95b33872d',
-                    'suggest': u'unspecified', 'notes': u'add and remove builds',
-                    'notes_file': None, 'request': None, 'severity': u'low',
-                    'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
+                    'suggest': 'unspecified', 'notes': 'add and remove builds',
+                    'notes_file': None, 'request': None, 'severity': 'low',
+                    'bugs': '1420605', 'requirements': '', 'unstable_karma': -3,
                     'type': 'newpackage', 'autotime': True, 'stable_days': None
                 }
             ),
             mock.call(
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -2134,7 +2130,7 @@ class TestEdit:
                     'suggest': 'unspecified', 'notes': 'Updated package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
                     'bugs': '1420605', 'requirements': '', 'type': 'newpackage',
-                    'severity': u'low', 'display_name': None, 'autotime': True,
+                    'severity': 'low', 'display_name': None, 'autotime': True,
                     'stable_days': None, 'from_tag': 'fake_tag',
                     'staging': False,
                 }
@@ -2358,9 +2354,8 @@ class TestEditBuildrootOverrides:
 
         assert result.exit_code == 0
         expected_output = (
-            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 '
-            '--request\n\n'.format(
-                client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT))
+            f'{client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25 '
+            '--request\n\n')
         assert result.output == expected_output
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25', '--request'),
@@ -2900,11 +2895,7 @@ class TestListReleases:
 
         result = runner.invoke(cli.list_releases, ['--url', 'http://localhost:6543'])
 
-        expected_output = '{}\n{}\n{}'.format(
-            client_test_data.EXPECTED_PENDING_RELEASES_LIST_OUTPUT,
-            client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT,
-            client_test_data.EXPECTED_FROZEN_RELEASES_LIST_OUTPUT,
-        )
+        expected_output = f'{client_test_data.EXPECTED_PENDING_RELEASES_LIST_OUTPUT}\n{client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT}\n{client_test_data.EXPECTED_FROZEN_RELEASES_LIST_OUTPUT}'
 
         assert result.exit_code == 0
         assert result.output == expected_output
@@ -2926,11 +2917,7 @@ class TestListReleases:
             cli.list_releases, ['--url', 'http://localhost:6543', '--rows', 4, '--page', 1]
         )
 
-        expected_output = '{}\n{}\n{}'.format(
-            client_test_data.EXPECTED_PENDING_RELEASES_LIST_OUTPUT,
-            client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT,
-            client_test_data.EXPECTED_FROZEN_RELEASES_LIST_OUTPUT,
-        )
+        expected_output = f'{client_test_data.EXPECTED_PENDING_RELEASES_LIST_OUTPUT}\n{client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT}\n{client_test_data.EXPECTED_FROZEN_RELEASES_LIST_OUTPUT}'
 
         assert result.exit_code == 0
         assert result.output == expected_output
@@ -2952,11 +2939,7 @@ class TestListReleases:
             cli.list_releases, ['--url', 'http://localhost:6543', '--display-archived']
         )
 
-        expected_output = '{}\n{}\n{}'.format(
-            client_test_data.EXPECTED_PENDING_RELEASES_LIST_OUTPUT,
-            client_test_data.EXPECTED_ARCHIVED_RELEASES_LIST_OUTPUT,
-            client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT,
-        )
+        expected_output = f'{client_test_data.EXPECTED_PENDING_RELEASES_LIST_OUTPUT}\n{client_test_data.EXPECTED_ARCHIVED_RELEASES_LIST_OUTPUT}\n{client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT}'
 
         assert result.exit_code == 0
         assert result.output == expected_output

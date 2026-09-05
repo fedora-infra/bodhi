@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Pytest configuration."""
 
-from unittest import mock
 import json
 import os
 import tempfile
+from unittest import mock
 
 import pytest
 

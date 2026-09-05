@@ -22,9 +22,8 @@ Revision ID: 3b34650a0cf6
 Revises: f660455231d4
 Create Date: 2023-12-02 02:03:22.837186
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '3b34650a0cf6'

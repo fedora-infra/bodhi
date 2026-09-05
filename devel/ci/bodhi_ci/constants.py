@@ -4,11 +4,10 @@ import multiprocessing
 import os
 import uuid
 
-
 CONTAINER_NAME = 'bodhi-ci'
 # We label the containers we run so it's easy to find them when we run _stop_all_jobs() at the end.
 # UUID is used so that one bodhi-ci process does not stop jobs started by a different one.
-CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
+CONTAINER_LABEL = f'purpose=bodhi-ci-{uuid.uuid4()}'
 # This template is used to generate the summary lines that are printed out at the end.
 LABEL_TEMPLATE = '{:>8}-{:<34}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))

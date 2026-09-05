@@ -22,9 +22,8 @@ Revision ID: 559acf7e2c16
 Revises: 1c97477e38ee
 Create Date: 2020-11-17 16:25:38.464821
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '559acf7e2c16'

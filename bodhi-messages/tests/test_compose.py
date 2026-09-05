@@ -17,13 +17,14 @@
 
 
 from bodhi.messages.schemas.compose import (
+    ComposeCompleteV1,
     ComposeComposingV1,
     ComposeStartV1,
-    ComposeCompleteV1,
-    ComposeSyncWaitV1,
     ComposeSyncDoneV1,
+    ComposeSyncWaitV1,
     RepoDoneV1,
 )
+
 from .utils import check_message
 
 

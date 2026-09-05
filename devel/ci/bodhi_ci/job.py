@@ -22,12 +22,10 @@ import asyncio
 import datetime
 import os
 import subprocess
-import typing
 
 import click
 
-from .constants import (CONTAINER_LABEL, CONTAINER_NAME, LABEL_TEMPLATE,
-                        PROJECT_PATH)
+from .constants import CONTAINER_LABEL, CONTAINER_NAME, LABEL_TEMPLATE, PROJECT_PATH
 
 
 class EmptySemaphore:
@@ -41,11 +39,9 @@ class EmptySemaphore:
 
     async def __aenter__(self, *args, **kwargs):
         """Calls pass."""
-        pass
 
     async def __aexit__(self, *args, **kwargs):
         """Calls pass."""
-        pass
 
 
 class Job:
@@ -100,7 +96,7 @@ class Job:
         self.release = release
         self.options = options
 
-        self.depends_on: typing.List['Job'] = []
+        self.depends_on: list[Job] = []
         self.cancelled = False
         # Used to block dependent processes until this Job is done.
         self.complete = asyncio.Event()
@@ -114,7 +110,7 @@ class Job:
             self._popen_kwargs['stderr'] = subprocess.STDOUT
         self._stdout = b''
         self._start_time = self._finish_time = None
-        self.archive_dir: typing.Union[str, None] = None
+        self.archive_dir: str | None = None
 
     def __repr__(self):
         return f"<{self.__class__.__name__} release={self.release!r}>"
@@ -405,4 +401,3 @@ class StopJob(Job):
 
     def _pre_start_hook(self):
         """Do not announce this Job; it is noisy."""
-        pass

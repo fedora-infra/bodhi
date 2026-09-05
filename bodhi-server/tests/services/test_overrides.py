@@ -16,14 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import copy
 from datetime import datetime, timedelta, timezone
 from unittest import mock
-import copy
 
-from fedora_messaging import api
-from fedora_messaging import testing as fml_testing
 import webtest
-
 from bodhi.messages.schemas import buildroot_override as override_schemas
 from bodhi.server import main
 from bodhi.server.models import (
@@ -36,6 +33,8 @@ from bodhi.server.models import (
     Update,
     User,
 )
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
 
 from .. import base
 
@@ -52,7 +51,7 @@ class TestOverridesService(base.BasePyTestCase):
         b.override = None
         self.db.commit()
 
-        self.app.get('/overrides/{}'.format(b.nvr), status=404)
+        self.app.get(f'/overrides/{b.nvr}', status=404)
 
     def test_get_single_override(self):
         res = self.app.get('/overrides/bodhi-2.0-1.fc17', headers={'Accept': 'application/json'})
@@ -573,7 +572,7 @@ blah blah blah"""
         assert errors[0]['description'] == 'No buildroot override for this build'
 
     @mock.patch('bodhi.server.services.overrides.BuildrootOverride.edit',
-                mock.MagicMock(side_effect=IOError('no db for you!')))
+                mock.MagicMock(side_effect=OSError('no db for you!')))
     def test_edit_unexpected_error(self):
         """Validate that Exceptions are handled when editing overrides."""
         build = RpmBuild.query.first()

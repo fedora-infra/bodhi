@@ -17,13 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.services.composes."""
 
-from pyramid import testing
-
 from bodhi.server import models
 from bodhi.server.services import composes
+from pyramid import testing
 
 from .. import base
-
 
 try:
     # Pyramid >= 2.0
@@ -93,7 +91,7 @@ class TestComposeCollectionGet(base.BasePyTestCase):
 
         # The Composes header should still appear in the page
         assert '<h3 class="fw-bold m-0">Composes</h3>' in response
-        assert '/composes/{}/{}'.format(compose.release.name, compose.request.value) in response
+        assert f'/composes/{compose.release.name}/{compose.request.value}' in response
         assert compose.state.description in response
 
     def test_with_compose_json(self):
@@ -114,7 +112,7 @@ class TestComposeGet(base.BasePyTestCase):
         """Assert a 404 error code when there isn't a Compose matching the URL."""
         release = models.Release.query.first()
 
-        self.app.get('/composes/{}/testing'.format(release.name), status=404,
+        self.app.get(f'/composes/{release.name}/testing', status=404,
                      headers={'Accept': 'text/html'})
 
     def test_404_release(self):
@@ -125,7 +123,7 @@ class TestComposeGet(base.BasePyTestCase):
         """Assert a 404 error code when the request component of the URL does not exist."""
         release = models.Release.query.first()
 
-        self.app.get('/composes/{}/hahahwhatisthis'.format(release.name), status=404,
+        self.app.get(f'/composes/{release.name}/hahahwhatisthis', status=404,
                      headers={'Accept': 'text/html'})
 
     def test_with_compose_html(self):
@@ -137,11 +135,11 @@ class TestComposeGet(base.BasePyTestCase):
         self.db.flush()
 
         response = self.app.get(
-            '/composes/{}/{}'.format(compose.release.name, compose.request.value),
+            f'/composes/{compose.release.name}/{compose.request.value}',
             status=200, headers={'Accept': 'text/html'})
 
         assert compose.state.description in response
-        assert '{} {}'.format(compose.release.name, compose.request.value) in response
+        assert f'{compose.release.name} {compose.request.value}' in response
         assert update.get_title(amp=True, nvr=True, beautify=True) in response
 
     def test_with_compose_json(self):
@@ -153,7 +151,7 @@ class TestComposeGet(base.BasePyTestCase):
         self.db.flush()
 
         response = self.app.get(
-            '/composes/{}/{}'.format(compose.release.name, compose.request.value),
+            f'/composes/{compose.release.name}/{compose.request.value}',
             status=200, headers={'Accept': 'application/json'})
 
         assert response.json == {'compose': compose.__json__()}

@@ -5,7 +5,6 @@
 
 from celery.schedules import crontab
 
-
 # Broker URL
 # This might be more appropriate in prod:
 # broker_url = amqps://user:password@hostname:port//vhost

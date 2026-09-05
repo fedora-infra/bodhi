@@ -23,10 +23,6 @@ comprised of a fedora messaging consumer that launches threads for each reposito
 composed.
 """
 
-from datetime import datetime, timezone
-from http.client import IncompleteRead
-from urllib.error import HTTPError, URLError
-from urllib.request import urlopen
 import functools
 import hashlib
 import json
@@ -37,11 +33,13 @@ import subprocess
 import tempfile
 import threading
 import time
-import typing
+from datetime import datetime, timezone
+from http.client import IncompleteRead
+from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
 
 import jinja2
 import sqlalchemy.orm.exc
-
 from bodhi.messages.schemas import compose as compose_schemas
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import buildsys, mail, notifications
@@ -67,7 +65,6 @@ from bodhi.server.util import (
     sorted_updates,
     transactional_session_maker,
 )
-
 
 log = logging.getLogger('bodhi')
 
@@ -97,11 +94,10 @@ def checkpoint(method):
             # cool!  we don't need to do anything, since we ran last time
             pass
 
-        return None
     return wrapper
 
 
-class ComposerHandler(object):
+class ComposerHandler:
     """
     The Bodhi Composer.
 
@@ -150,7 +146,7 @@ class ComposerHandler(object):
     """
 
     def __init__(
-            self, db_factory: typing.Union[transactional_session_maker, None] = None,
+            self, db_factory: transactional_session_maker | None = None,
             compose_dir: str = config.get('compose_dir')):
         """
         Initialize the Composer.
@@ -178,7 +174,7 @@ class ComposerHandler(object):
             try:
                 validate_path(config[setting])
             except ValueError as e:
-                raise ValueError('{} Check the {} setting.'.format(str(e), setting))
+                raise ValueError(f'{e!s} Check the {setting} setting.')
 
     def run(self, api_version: int, data: dict):
         """
@@ -258,7 +254,7 @@ class ComposerHandler(object):
                     log.info('Ignoring a compose task that references non-existing Composes')
                     return []
             else:
-                raise ValueError('Unable to process request: {}'.format(data))
+                raise ValueError(f'Unable to process request: {data}')
 
             # Filter out composes that are pending or have started, for example in
             # case of duplicate messages.
@@ -311,7 +307,7 @@ class ComposerThread(threading.Thread):
             resume (bool): Whether or not we are resuming a previous failed compose. Defaults to
                 False.
         """
-        super(ComposerThread, self).__init__()
+        super().__init__()
         self.db_factory = db_factory
         self.agent = agent
         self.max_concur_sem = max_concur_sem
@@ -917,7 +913,7 @@ class PungiComposerThread(ComposerThread):
             resume (bool): Whether or not we are resuming a previous failed compose. Defaults to
                 False.
         """
-        super(PungiComposerThread, self).__init__(max_concur_sem, compose, agent, db_factory,
+        super().__init__(max_concur_sem, compose, agent, db_factory,
                                                   compose_dir, resume)
         self.compose_dir = compose_dir
         self.path = None
@@ -934,11 +930,11 @@ class PungiComposerThread(ComposerThread):
             shutil.rmtree(self._pungi_conf_dir)
 
         # The superclass will handle the logs and messages.
-        super(PungiComposerThread, self).finish(success)
+        super().finish(success)
 
     def load_state(self):
         """Set self.path if completed_repo is found in checkpoints."""
-        super(PungiComposerThread, self).load_state()
+        super().load_state()
         if 'completed_repo' in self._checkpoints:
             self.path = self._checkpoints['completed_repo']
             log.info('Resuming push with completed repo: %s' % self.path)
@@ -1106,8 +1102,7 @@ class PungiComposerThread(ComposerThread):
         # If the release has primary_arches defined in the config, we need to consider whether to
         # use the release's *alt_master_repomd setting.
         primary_arches = config.get(
-            '{release}_{version}_primary_arches'.format(
-                release=release, version=self.compose.release.version))
+            f'{release}_{self.compose.release.version}_primary_arches')
         if primary_arches and arch not in primary_arches.split():
             suffix = '_alt_master_repomd'
         else:
@@ -1472,7 +1467,6 @@ class ModuleComposerThread(PungiComposerThread):
         For now, let's skip this, since the current version tries to read RPM headers, which
         do not exist in the module build objects.
         """
-        pass
 
     def _raise_on_get_build_multicall_error(self, result, build):
         """

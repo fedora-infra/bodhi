@@ -27,7 +27,7 @@ class TestHTMLHandlerErrors(base.BasePyTestCase):
 
     @mock.patch('bodhi.server.services.errors.log.error')
     @mock.patch('bodhi.server.services.errors.status2summary',
-                side_effect=IOError('random error'))
+                side_effect=OSError('random error'))
     def test_template_render_exception(self, theexception, log_error):
         """
         Assert that we log an error if the error template renderer raises an exception

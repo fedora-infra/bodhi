@@ -17,12 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define an API endpoint to process text through Bodhi's markdown system."""
 
-from cornice import Service
-
-import bodhi.server.util
 import bodhi.server.security
 import bodhi.server.services.errors
-
+import bodhi.server.util
+from cornice import Service
 
 markdown = Service(name='markdowner', path='/markdown',
                    description='Markdown service',

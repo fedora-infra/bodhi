@@ -21,9 +21,8 @@ This module contains tests for the bodhi.server.scripts.bshell module.
 
 from unittest.mock import patch
 
-from click import testing
-
 from bodhi.server.scripts import bshell
+from click import testing
 
 
 class TestMain:

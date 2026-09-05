@@ -82,7 +82,7 @@ class IntegrationBodhiBuildJob(IntegrationAppBuildJob):
 
         dockerfile = os.path.join(
             PROJECT_PATH, 'devel', 'ci', 'integration', 'bodhi',
-            'Dockerfile-{}'.format(self.release),
+            f'Dockerfile-{self.release}',
         )
         self._command = [
             self.options["container_runtime"],
@@ -94,7 +94,7 @@ class IntegrationBodhiBuildJob(IntegrationAppBuildJob):
         return Job.__repr__(self)
 
     def _get_container_image(self):
-        return '{}-integration-bodhi/{}'.format(self._get_container_name(), self.release)
+        return f'{self._get_container_name()}-integration-bodhi/{self.release}'
 
 
 class IntegrationDumpDownloadJob(BuildJob):

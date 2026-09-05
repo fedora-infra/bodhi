@@ -19,7 +19,6 @@
 
 from munch import Munch
 
-
 EXAMPLE_COMMENT_MUNCH = Munch({
     'comment': Munch({
         'bug_feedback': [], 'user_id': 2897, 'author': 'bowlofeggs',

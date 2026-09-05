@@ -3,6 +3,7 @@ from unittest.mock import patch
 from bodhi.server import buildsys, models
 from bodhi.server.tasks import handle_side_and_related_tags_task
 from bodhi.server.tasks.handle_side_and_related_tags import main as handle_srtags_main
+
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
 

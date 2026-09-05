@@ -18,16 +18,21 @@
 """The CLI tool for triggering update pushes."""
 import sys
 
-from sqlalchemy.sql import or_
 import click
-
-from bodhi.server import (buildsys, initialize_db, get_koji)
+from bodhi.server import buildsys, get_koji, initialize_db
 from bodhi.server.config import config
-from bodhi.server.models import (Compose, ComposeState, Release, ReleaseState, Build, Update,
-                                 UpdateRequest)
-from bodhi.server.util import transactional_session_maker
+from bodhi.server.models import (
+    Build,
+    Compose,
+    ComposeState,
+    Release,
+    ReleaseState,
+    Update,
+    UpdateRequest,
+)
 from bodhi.server.tasks import compose as compose_task
-
+from bodhi.server.util import transactional_session_maker
+from sqlalchemy.sql import or_
 
 _koji = None
 
@@ -116,14 +121,14 @@ def push(username, yes, **kwargs):
                     # serialized because their content_type property uses the content_type of the
                     # first update in the Compose. Additionally, it doesn't really make sense to go
                     # forward with running an empty Compose. It makes the most sense to delete them.
-                    click.echo("{} has no updates. It is being removed.".format(compose))
+                    click.echo(f"{compose} has no updates. It is being removed.")
                     session.delete(compose)
                     continue
 
                 if not resume_all:
                     if yes:
-                        click.echo('Resuming {}.'.format(compose))
-                    elif not click.confirm('Resume {}?'.format(compose)):
+                        click.echo(f'Resuming {compose}.')
+                    elif not click.confirm(f'Resume {compose}?'):
                         continue
 
                 # Reset the Compose's state and error message.
@@ -206,17 +211,15 @@ def push(username, yes, **kwargs):
         composes = sorted(composes)
 
         for compose in composes:
-            click.echo('\n\n===== {} =====\n'.format(compose))
+            click.echo(f'\n\n===== {compose} =====\n')
             for update in compose.updates:
                 click.echo(update.get_title())
 
         if composes:
             if yes:
-                click.echo('\n\nPushing {:d} updates.'.format(
-                    sum([len(c.updates) for c in composes])))
+                click.echo(f'\n\nPushing {sum([len(c.updates) for c in composes]):d} updates.')
             else:
-                click.confirm('\n\nPush these {:d} updates?'.format(
-                    sum([len(c.updates) for c in composes])), abort=True)
+                click.confirm(f'\n\nPush these {sum([len(c.updates) for c in composes]):d} updates?', abort=True)
             click.echo('\nLocking updates...')
         else:
             click.echo('\nThere are no updates to push.')

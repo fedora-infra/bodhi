@@ -22,7 +22,6 @@ import logging
 from bodhi.server import models
 from bodhi.server.util import transactional_session_maker
 
-
 log = logging.getLogger(__name__)
 
 

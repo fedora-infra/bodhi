@@ -3,9 +3,8 @@
 import time
 
 from authlib import __version__ as authlib_version
-from packaging.version import parse as parse_version
-
 from bodhi.server.auth.constants import SCOPES
+from packaging.version import parse as parse_version
 
 from ..utils import get_bearer_token, mock_send_value
 

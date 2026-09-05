@@ -17,5 +17,6 @@
 
 
 import importlib.metadata
+
 METADATA = importlib.metadata.metadata('bodhi-messages')
 __version__ = METADATA['version']

@@ -16,26 +16,36 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import copy
 from datetime import datetime, timedelta, timezone
 from unittest import mock
-import copy
 
-from fedora_messaging import api, testing as fml_testing
 import webtest
-
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server.models import (Build, Comment, Release, RpmBuild, RpmPackage, Update,
-                                 UpdateRequest, UpdateStatus, UpdateType, User)
 from bodhi.server import main
-from .. import base
+from bodhi.server.models import (
+    Build,
+    Comment,
+    Release,
+    RpmBuild,
+    RpmPackage,
+    Update,
+    UpdateRequest,
+    UpdateStatus,
+    UpdateType,
+    User,
+)
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
 
+from .. import base
 
 someone_elses_update = up2 = 'bodhi-2.0-200.fc17'
 
 
 class TestCommentsService(base.BasePyTestCase):
     def setup_method(self, method):
-        super(TestCommentsService, self).setup_method(method)
+        super().setup_method(method)
 
         # Add a second update owned by somebody else so we can test karma
         # policy stuff
@@ -242,7 +252,7 @@ class TestCommentsService(base.BasePyTestCase):
             'You must provide either some text or feedback'
 
     @mock.patch('bodhi.server.services.comments.Update.comment',
-                side_effect=IOError('IOError. oops!'))
+                side_effect=OSError('IOError. oops!'))
     def test_unexpected_exception(self, exception):
         """Ensure that an unexpected Exception is handled by new_comment()."""
 
@@ -304,7 +314,7 @@ class TestCommentsService(base.BasePyTestCase):
         res = self.app.get('/rss/comments/',
                            headers=dict(accept='application/atom+xml'))
         assert 'application/rss+xml' in res.headers['Content-Type']
-        assert "{} comment #{}".format(comment.update.alias, comment.id) in res
+        assert f"{comment.update.alias} comment #{comment.id}" in res
 
     def test_list_comments_page(self):
         res = self.app.get('/comments/', headers=dict(accept='text/html'))

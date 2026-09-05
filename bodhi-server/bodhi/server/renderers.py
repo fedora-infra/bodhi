@@ -20,11 +20,9 @@ import logging
 import operator
 import re
 
+from bodhi.server.util import markup
 from feedgen.feed import FeedGenerator
 from pyramid.exceptions import HTTPBadRequest
-
-from bodhi.server.util import markup
-
 
 log = logging.getLogger(__name__)
 INVALID_CHARS_RE = re.compile(

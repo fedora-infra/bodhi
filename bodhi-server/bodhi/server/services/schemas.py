@@ -17,19 +17,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines service endpoints for our message schemas."""
 
-from importlib import metadata
 import typing
+from importlib import metadata
 
+from bodhi.server import security
+from bodhi.server.services import errors
 from cornice.resource import resource, view
 from pyramid import httpexceptions
 from pyramid.authorization import Allow, Everyone
 
-from bodhi.server import security
-from bodhi.server.services import errors
-
-
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import pyramid.request.Request  # noqa: F401
+    import pyramid.request.Request
 
 
 READ_ACL = 'view_schemas'
@@ -56,7 +54,7 @@ class MessageSchemasV1:
         self.request = request
 
     @staticmethod
-    def __acl__() -> typing.Iterable[typing.Tuple[str, str, str]]:
+    def __acl__() -> typing.Iterable[tuple[str, str, str]]:
         """
         Define ACLs for the MessageSchemas resource.
 

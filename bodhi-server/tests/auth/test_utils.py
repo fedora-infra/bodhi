@@ -1,12 +1,11 @@
 from unittest import mock
 
-from authlib.oauth2.rfc6750 import InvalidTokenError
-from pyramid import testing
-from pyramid.httpexceptions import HTTPAccepted, HTTPUnauthorized
 import pytest
-
+from authlib.oauth2.rfc6750 import InvalidTokenError
 from bodhi.server import models
 from bodhi.server.auth.utils import get_and_store_user, get_final_redirect, remember_me
+from pyramid import testing
+from pyramid.httpexceptions import HTTPAccepted, HTTPUnauthorized
 
 from .. import base
 from .utils import fake_send
@@ -141,7 +140,6 @@ class TestGetAndStoreUser(base.BasePyTestCase):
         with mock.patch(
             'requests.sessions.Session.send',
             side_effect=fake_send({"UserInfo": userinfo_response})
-        ):
-            with pytest.raises(InvalidTokenError) as exc:
-                get_and_store_user(request, "TOKEN", HTTPAccepted())
+        ), pytest.raises(InvalidTokenError) as exc:
+            get_and_store_user(request, "TOKEN", HTTPAccepted())
         assert str(exc.value) == "invalid_token: No userinfo for token"

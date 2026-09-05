@@ -22,22 +22,21 @@ Fedora-flavored Markdown.
 Author: Ralph Bean <rbean@redhat.com>
 """
 
-from re import escape
 import typing
 import xml.etree.ElementTree as etree
+from re import escape
 
-from markdown.extensions import Extension
-from markdown.postprocessors import Postprocessor
-from markdown.inlinepatterns import InlineProcessor
 import markdown.util
 import pyramid.threadlocal
-
 from bodhi.server import MENTION_RE
 from bodhi.server.config import config
+from markdown.extensions import Extension
+from markdown.inlinepatterns import InlineProcessor
+from markdown.postprocessors import Postprocessor
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import re  # noqa: F401
-    import xml  # noqa: F401
+    import re
+    import xml
 
 
 BUGZILLA_RE = r'([a-zA-Z]+)(#[0-9]{5,})'
@@ -56,7 +55,7 @@ def user_url(name: str) -> str:
     return request.route_url('user', name=name)
 
 
-def bug_url(tracker: str, idx: typing.Union[int, str]) -> typing.Optional[str]:
+def bug_url(tracker: str, idx: int | str) -> str | None:
     """
     Return the URL for the given bug.
 
@@ -106,7 +105,7 @@ class MentionProcessor(InlineProcessor):
     """Match username mentions and point to their profiles."""
 
     def handleMatch(self, m: 're.Match',
-                    data: str) -> typing.Tuple['xml.etree.ElementTree.Element', int, int]:
+                    data: str) -> tuple['xml.etree.ElementTree.Element', int, int]:
         """
         Build and return an Element that links to the matched User's profile.
 
@@ -128,7 +127,7 @@ class BugzillaProcessor(InlineProcessor):
     """Match bug tracker patterns."""
 
     def handleMatch(self, m: 're.Match',
-                    data: str) -> typing.Tuple['xml.etree.ElementTree.Element', int, int]:
+                    data: str) -> tuple['xml.etree.ElementTree.Element', int, int]:
         """
         Build and return an Element that links to the referenced bug.
 
@@ -156,7 +155,7 @@ class UpdateProcessor(InlineProcessor):
     """Match update alias pattern and link to the update."""
 
     def handleMatch(self, m: 're.Match',
-                    data: str) -> typing.Tuple['xml.etree.ElementTree.Element', int, int]:
+                    data: str) -> tuple['xml.etree.ElementTree.Element', int, int]:
         """
         Build and return an Element that links to the referenced update.
 

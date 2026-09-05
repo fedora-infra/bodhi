@@ -20,15 +20,11 @@
 import copy
 import math
 
-from cornice import Service
-from cornice.validators import colander_body_validator, colander_querystring_validator
-from requests import RequestException
-from requests import Timeout as RequestsTimeout
-from sqlalchemy import distinct, func, LABEL_STYLE_TABLENAME_PLUS_COL
-from sqlalchemy.sql import or_
-
+import bodhi.server.schemas
+import bodhi.server.services.errors
+import bodhi.server.util
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server import log, security
+from bodhi.server import log, notifications, security
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.models import (
     Bug,
@@ -43,7 +39,6 @@ from bodhi.server.models import (
 from bodhi.server.tasks import handle_side_and_related_tags_task
 from bodhi.server.validators import (
     validate_acls,
-    validate_qa_acls,
     validate_bugs,
     validate_build_nvrs,
     validate_build_tags,
@@ -52,6 +47,7 @@ from bodhi.server.validators import (
     validate_builds_or_from_tag_exist,
     validate_enums,
     validate_from_tag,
+    validate_qa_acls,
     validate_release,
     validate_releases,
     validate_request,
@@ -59,11 +55,12 @@ from bodhi.server.validators import (
     validate_update_id,
     validate_username,
 )
-import bodhi.server.notifications as notifications
-import bodhi.server.schemas
-import bodhi.server.services.errors
-import bodhi.server.util
-
+from cornice import Service
+from cornice.validators import colander_body_validator, colander_querystring_validator
+from requests import RequestException
+from requests import Timeout as RequestsTimeout
+from sqlalchemy import LABEL_STYLE_TABLENAME_PLUS_COL, distinct, func
+from sqlalchemy.sql import or_
 
 update = Service(name='update', path='/updates/{id}',
                  validators=(validate_update_id,),

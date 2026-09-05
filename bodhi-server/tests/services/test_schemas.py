@@ -17,13 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.services.schemas."""
 
-from pyramid import testing
-
 from bodhi.messages.schemas.update import UpdateCommentV1
 from bodhi.server.services import schemas
+from pyramid import testing
 
 from .. import base
-
 
 try:
     # Pyramid >= 2.0

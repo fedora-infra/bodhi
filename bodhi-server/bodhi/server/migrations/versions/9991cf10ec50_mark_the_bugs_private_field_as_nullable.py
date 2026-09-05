@@ -24,7 +24,6 @@ Create Date: 2019-02-19 15:54:53.058707
 """
 from alembic import op
 
-
 # revision identifiers, used by Alembic.
 revision = '9991cf10ec50'
 down_revision = 'd986618207bc'

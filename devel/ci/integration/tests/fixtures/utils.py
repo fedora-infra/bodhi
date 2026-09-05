@@ -33,15 +33,15 @@ def make_db_and_user(db_container, name, use_dump=False):
     """
     # Prepare the database
     db_container.execute(
-        ["/usr/bin/psql", "-q", "-U", "postgres", "-c", "CREATE USER {} CREATEDB;".format(name)]
+        ["/usr/bin/psql", "-q", "-U", "postgres", "-c", f"CREATE USER {name} CREATEDB;"]
     )
     db_container.execute(
         [
             "/usr/bin/psql", "-q", "-U", "postgres", "-c",
             (
-                "CREATE DATABASE {} WITH TEMPLATE = template0 ENCODING = 'UTF8' "
+                f"CREATE DATABASE {name} WITH TEMPLATE = template0 ENCODING = 'UTF8' "
                 "LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';"
-            ).format(name),
+            ),
         ]
     )
     if use_dump:
@@ -52,8 +52,7 @@ def make_db_and_user(db_container, name, use_dump=False):
             response = requests.get(url, stream=True)
             response.raise_for_status()
             with open(db_dump, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
+                f.writelines(response.iter_content(chunk_size=8192))
         db_container.copy_to(db_dump, "/tmp/database.dump.xz")
         db_container.execute(
             ["sh", "-c", f"xzcat /tmp/database.dump.xz | /usr/bin/psql -q -U {name}"]
@@ -72,8 +71,6 @@ def stop_and_delete(container):
         container.delete()
     except docker.errors.APIError as e:
         expected = f"removal of container {container.get_id()} is already in progress"
-        if e.response.status_code == 404:
-            return
-        elif e.response.status_code == 409 and e.explanation == expected:
+        if e.response.status_code == 404 or e.response.status_code == 409 and e.explanation == expected:
             return
         raise

@@ -21,7 +21,6 @@ from io import StringIO
 from unittest import mock
 
 import pytest
-
 from bodhi.server.scripts import initializedb
 
 

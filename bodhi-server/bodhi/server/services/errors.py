@@ -24,7 +24,6 @@ import mako.exceptions
 import mako.lookup
 import pyramid.httpexceptions
 import pyramid.response
-
 from bodhi.server.config import config
 from bodhi.server.util import get_absolute_path
 

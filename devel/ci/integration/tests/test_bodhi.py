@@ -16,16 +16,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from urllib.parse import quote, urlencode
 import hashlib
 import math
 import xml.etree.ElementTree as ET
+from urllib.parse import quote, urlencode
 
 import psycopg2
 import pytest
 
 from .utils import read_file
-
 
 content_type_mapping = {
     'base': 'Base',
@@ -104,11 +103,10 @@ def test_get_root(bodhi_container, db_container):
         "FROM updates "
         "WHERE status = 'testing' AND critpath")
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query)
-            critpath_count = len(curs.fetchall())
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query)
+        critpath_count = len(curs.fetchall())
     conn.close()
 
     # GET on /
@@ -196,11 +194,10 @@ def test_get_releases_view(bodhi_container, db_container):
         "SELECT long_name FROM releases "
         "WHERE state NOT IN ('disabled', 'archived')")
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query)
-            expected_releases = [r[0] for r in curs]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query)
+        expected_releases = [r[0] for r in curs]
     conn.close()
 
     # GET on /releases
@@ -239,11 +236,10 @@ def test_get_release_view(bodhi_container, db_container):
         "WHERE state = 'current' LIMIT 1"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query)
-            release_info = curs.fetchone()
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query)
+        release_info = curs.fetchone()
     conn.close()
 
     release_long_name = release_info[0]
@@ -283,26 +279,25 @@ def test_get_updates_view(bodhi_container, db_container):
         "ORDER BY nvr"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            expected_updates = [[row[0], row[1]] for row in curs]
-            for update in expected_updates:
-                curs.execute(query_builds, (update[0], ))
-                builds_nvrs = [row[0] for row in curs]
-                if update[1]:
-                    # if the update has the optional display_name, this is what
-                    # we show in the updates list page. So check for that.
-                    expected_updates_titles.append(update[1])
-                elif len(builds_nvrs) > 2:
-                    title = ", ".join(builds_nvrs[:2])
-                    title += ", &amp; "
-                    title += str(len(builds_nvrs) - 2)
-                    title += " more"
-                    expected_updates_titles.append(title)
-                else:
-                    expected_updates_titles.append(" and ".join(builds_nvrs))
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        expected_updates = [[row[0], row[1]] for row in curs]
+        for update in expected_updates:
+            curs.execute(query_builds, (update[0], ))
+            builds_nvrs = [row[0] for row in curs]
+            if update[1]:
+                # if the update has the optional display_name, this is what
+                # we show in the updates list page. So check for that.
+                expected_updates_titles.append(update[1])
+            elif len(builds_nvrs) > 2:
+                title = ", ".join(builds_nvrs[:2])
+                title += ", &amp; "
+                title += str(len(builds_nvrs) - 2)
+                title += " more"
+                expected_updates_titles.append(title)
+            else:
+                expected_updates_titles.append(" and ".join(builds_nvrs))
 
     conn.close()
 
@@ -354,17 +349,16 @@ def test_get_update_view(bodhi_container, db_container):
         "WHERE update_id = %s"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            update_info = {}
-            for value, description in zip(curs.fetchone(), curs.description):
-                update_info[description.name] = value
-            curs.execute(query_builds, (update_info["id"], ))
-            rows = curs.fetchall()
-            builds_nvrs = [row[0] for row in rows]
-            update_info["content_type"] = rows[0][1]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        update_info = {}
+        for value, description in zip(curs.fetchone(), curs.description):
+            update_info[description.name] = value
+        curs.execute(query_builds, (update_info["id"], ))
+        rows = curs.fetchall()
+        builds_nvrs = [row[0] for row in rows]
+        update_info["content_type"] = rows[0][1]
 
     conn.close()
 
@@ -421,11 +415,10 @@ def test_get_user_view(bodhi_container, db_container):
         "ORDER BY date_submitted DESC LIMIT 1"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_users)
-            username = curs.fetchone()[0]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_users)
+        username = curs.fetchone()[0]
     conn.close()
 
     if username.startswith('packagerbot/'):
@@ -487,24 +480,23 @@ def test_get_users_json(bodhi_container, db_container):
         "FROM users "
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            users = []
-            curs.execute(query_users)
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        users = []
+        curs.execute(query_users)
+        rows = curs.fetchall()
+        for row in rows:
+            users.append({"id": row[0], "name": row[1], "email": row[2]})
+        for user in users:
+            user_id = user["id"]
+            curs.execute(query_groups, (user_id, ))
             rows = curs.fetchall()
+            user_groups = []
             for row in rows:
-                users.append({"id": row[0], "name": row[1], "email": row[2]})
-            for user in users:
-                user_id = user["id"]
-                curs.execute(query_groups, (user_id, ))
-                rows = curs.fetchall()
-                user_groups = []
-                for row in rows:
-                    user_groups.append({"name": row[0]})
-                user["groups"] = user_groups
-            curs.execute(query_total_users)
-            total = curs.fetchone()[0]
+                user_groups.append({"name": row[0]})
+            user["groups"] = user_groups
+        curs.execute(query_total_users)
+        total = curs.fetchone()[0]
     conn.close()
 
     # GET on users
@@ -559,19 +551,18 @@ def test_get_user_json(bodhi_container, db_container):
         "WHERE user_group_table.user_id = %s"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            row = curs.fetchone()
-            user_name = row[0]
-            user_id = row[1]
-            user_email = row[2]
-            curs.execute(query_groups, (user_id, ))
-            rows = curs.fetchall()
-            user_groups = []
-            for row in rows:
-                user_groups.append({"name": row[0]})
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        row = curs.fetchone()
+        user_name = row[0]
+        user_id = row[1]
+        user_email = row[2]
+        curs.execute(query_groups, (user_id, ))
+        rows = curs.fetchall()
+        user_groups = []
+        for row in rows:
+            user_groups.append({"name": row[0]})
     conn.close()
 
     if user_name.startswith('packagerbot/'):
@@ -626,12 +617,11 @@ def test_get_users_rss(bodhi_container, db_container):
         "LIMIT 20"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_users)
-            rows = curs.fetchall()
-            usernames = [row[0] for row in rows]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_users)
+        rows = curs.fetchall()
+        usernames = [row[0] for row in rows]
     conn.close()
 
     # GET on users
@@ -700,22 +690,21 @@ def test_get_packages_json(bodhi_container, db_container):
         "WHERE name = %s"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
     packages = []
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            update_id = curs.fetchone()[0]
-            curs.execute(query_builds, (update_id, ))
-            rows = curs.fetchone()
-            package_name = rows[0]
-            curs.execute(query_packages, (package_name, ))
-            rows = curs.fetchall()
-            for row in rows:
-                package = {}
-                package['name'] = package_name
-                package['type'] = row[0]
-                packages.append(package)
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        update_id = curs.fetchone()[0]
+        curs.execute(query_builds, (update_id, ))
+        rows = curs.fetchone()
+        package_name = rows[0]
+        curs.execute(query_packages, (package_name, ))
+        rows = curs.fetchall()
+        for row in rows:
+            package = {}
+            package['name'] = package_name
+            package['type'] = row[0]
+            packages.append(package)
     conn.close()
 
     # GET on package with particular name
@@ -757,14 +746,13 @@ def test_get_override_view(bodhi_container, db_container):
         "ORDER BY submission_date DESC LIMIT 1"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_overrides)
-            row = curs.fetchone()
-            nvr = row[0]
-            expired_date = row[1]
-            username = row[2]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_overrides)
+        row = curs.fetchone()
+        nvr = row[0]
+        expired_date = row[1]
+        username = row[2]
     conn.close()
 
     # GET on latest override
@@ -803,13 +791,12 @@ def test_get_overrides_view(bodhi_container, db_container):
     )
     expected_overrides = []
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_overrides)
-            rows = curs.fetchall()
-            for row in rows:
-                expected_overrides.append({"nvr": row[0], "username": row[1]})
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_overrides)
+        rows = curs.fetchall()
+        for row in rows:
+            expected_overrides.append({"nvr": row[0], "username": row[1]})
     conn.close()
 
     # GET on latest overrides
@@ -845,17 +832,16 @@ def test_get_overrides_rss(bodhi_container, db_container):
     )
     overrides = []
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_overrides)
-            rows = curs.fetchall()
-            for row in rows:
-                overrides.append({
-                    "nvr": row[0],
-                    "notes": row[1],
-                    "submission_date": row[2].strftime("%a, %d %b %Y %H:%M:%S +0000"),
-                })
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_overrides)
+        rows = curs.fetchall()
+        for row in rows:
+            overrides.append({
+                "nvr": row[0],
+                "notes": row[1],
+                "submission_date": row[2].strftime("%a, %d %b %Y %H:%M:%S +0000"),
+            })
     conn.close()
 
     # GET on latest overrides
@@ -925,13 +911,12 @@ def test_get_build_json(bodhi_container, db_container):
         "WHERE update_id = %s LIMIT 1"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            update_id = curs.fetchone()[0]
-            curs.execute(query_builds, (update_id, ))
-            nvr, release_id, signed, build_type, epoch = curs.fetchone()
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        update_id = curs.fetchone()[0]
+        curs.execute(query_builds, (update_id, ))
+        nvr, release_id, signed, build_type, epoch = curs.fetchone()
     conn.close()
 
     # GET on build
@@ -976,22 +961,21 @@ def test_get_builds_json(bodhi_container, db_container):
         "ORDER BY nvr ASC"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            row = curs.fetchone()
-            update_id = row[0]
-            update_alias = row[1]
-            curs.execute(query_builds, (update_id, ))
-            builds = []
-            for row in curs.fetchall():
-                build = {}
-                for value, description in zip(row, curs.description):
-                    build[description.name] = value
-                if build["type"] != 'rpm':
-                    build.pop("epoch")
-                builds.append(build)
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        row = curs.fetchone()
+        update_id = row[0]
+        update_alias = row[1]
+        curs.execute(query_builds, (update_id, ))
+        builds = []
+        for row in curs.fetchall():
+            build = {}
+            for value, description in zip(row, curs.description):
+                build[description.name] = value
+            if build["type"] != 'rpm':
+                build.pop("epoch")
+            builds.append(build)
     conn.close()
 
     # GET on builds of lates update
@@ -1080,37 +1064,36 @@ def test_get_compose_json(bodhi_container, db_container):
         "ORDER BY nvr "
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_composes)
-            compose = {}
-            row = curs.fetchone()
-            if row is None:
-                pytest.skip("No composes in the database")
-            for value, description in zip(row, curs.description):
-                compose[description.name] = value
-            release = {}
-            curs.execute(query_releases, (compose['release_id'], ))
-            row = curs.fetchone()
-            for value, description in zip(row, curs.description):
-                release[description.name] = value
-            if release['released_on'] is not None:
-                release['released_on'] = release['released_on'].isoformat()
-            if release['eol'] is not None:
-                release['eol'] = release['eol'].isoformat()
-            curs.execute(query_updates, (compose['release_id'], compose['request'], ))
-            updates = []
-            rows = curs.fetchall()
-            for row in rows:
-                updates.append({
-                    'id': row[0], 'alias': row[1], 'type': row[2], 'display_name': row[3],
-                    'builds': []
-                })
-            for update in updates:
-                curs.execute(query_builds, (update['id'], ))
-                for row in curs.fetchall():
-                    update['builds'].append({'nvr': row[0], 'content_type': row[1]})
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_composes)
+        compose = {}
+        row = curs.fetchone()
+        if row is None:
+            pytest.skip("No composes in the database")
+        for value, description in zip(row, curs.description):
+            compose[description.name] = value
+        release = {}
+        curs.execute(query_releases, (compose['release_id'], ))
+        row = curs.fetchone()
+        for value, description in zip(row, curs.description):
+            release[description.name] = value
+        if release['released_on'] is not None:
+            release['released_on'] = release['released_on'].isoformat()
+        if release['eol'] is not None:
+            release['eol'] = release['eol'].isoformat()
+        curs.execute(query_updates, (compose['release_id'], compose['request'], ))
+        updates = []
+        rows = curs.fetchall()
+        for row in rows:
+            updates.append({
+                'id': row[0], 'alias': row[1], 'type': row[2], 'display_name': row[3],
+                'builds': []
+            })
+        for update in updates:
+            curs.execute(query_builds, (update['id'], ))
+            for row in curs.fetchall():
+                update['builds'].append({'nvr': row[0], 'content_type': row[1]})
     conn.close()
 
     # GET on compose
@@ -1184,17 +1167,16 @@ def test_get_composes_view(bodhi_container, db_container):
     )
     expected_composes = []
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_composes)
-            rows = curs.fetchall()
-            for row in rows:
-                compose = {'request': row[1]}
-                curs.execute(query_releases, (row[0], ))
-                row = curs.fetchone()
-                compose['release_name'] = row[0]
-                expected_composes.append(compose)
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_composes)
+        rows = curs.fetchall()
+        for row in rows:
+            compose = {'request': row[1]}
+            curs.execute(query_releases, (row[0], ))
+            row = curs.fetchone()
+            compose['release_name'] = row[0]
+            expected_composes.append(compose)
     conn.close()
 
     # GET on /composes
@@ -1256,31 +1238,30 @@ def test_get_compose_view(bodhi_container, db_container):
         "ORDER BY nvr "
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_composes)
-            compose = {}
-            row = curs.fetchone()
-            if row is None:
-                pytest.skip("No composes in the database")
-            for value, description in zip(row, curs.description):
-                compose[description.name] = value
-            release = {}
-            curs.execute(query_releases, (compose['release_id'], ))
-            row = curs.fetchone()
-            compose['release_name'] = row[0]
-            curs.execute(query_updates, (compose['release_id'], compose['request'], ))
-            updates = []
-            rows = curs.fetchall()
-            for row in rows:
-                updates.append({
-                    'id': row[0], 'type': row[1], 'display_name': row[2], 'builds': []
-                })
-            for update in updates:
-                curs.execute(query_builds, (update['id'], ))
-                for row in curs.fetchall():
-                    update['builds'].append({'nvr': row[0], 'content_type': row[1]})
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_composes)
+        compose = {}
+        row = curs.fetchone()
+        if row is None:
+            pytest.skip("No composes in the database")
+        for value, description in zip(row, curs.description):
+            compose[description.name] = value
+        release = {}
+        curs.execute(query_releases, (compose['release_id'], ))
+        row = curs.fetchone()
+        compose['release_name'] = row[0]
+        curs.execute(query_updates, (compose['release_id'], compose['request'], ))
+        updates = []
+        rows = curs.fetchall()
+        for row in rows:
+            updates.append({
+                'id': row[0], 'type': row[1], 'display_name': row[2], 'builds': []
+            })
+        for update in updates:
+            curs.execute(query_builds, (update['id'], ))
+            for row in curs.fetchall():
+                update['builds'].append({'nvr': row[0], 'content_type': row[1]})
     conn.close()
 
     # GET on compose
@@ -1356,18 +1337,17 @@ def test_get_comments_rss(bodhi_container, db_container):
     )
     comments = []
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_comments)
-            rows = curs.fetchall()
-            for row in rows:
-                comments.append({
-                    "alias": row[0],
-                    "id": row[1],
-                    "text": row[2],
-                    "timestamp": row[3].strftime("%a, %d %b %Y %H:%M:%S +0000"),
-                })
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_comments)
+        rows = curs.fetchall()
+        for row in rows:
+            comments.append({
+                "alias": row[0],
+                "id": row[1],
+                "text": row[2],
+                "timestamp": row[3].strftime("%a, %d %b %Y %H:%M:%S +0000"),
+            })
     conn.close()
 
     # GET on latest comments

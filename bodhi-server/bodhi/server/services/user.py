@@ -18,19 +18,17 @@
 """Defines API services that pertain to users."""
 import math
 
-from cornice import Service
-from cornice.validators import colander_querystring_validator
-from pyramid.exceptions import HTTPNotFound
-from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
-from sqlalchemy.sql import or_
-
-from bodhi.server.models import Group, Update, User
-from bodhi.server.validators import (validate_updates, validate_groups)
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
 import bodhi.server.services.updates
-
+from bodhi.server.models import Group, Update, User
+from bodhi.server.validators import validate_groups, validate_updates
+from cornice import Service
+from cornice.validators import colander_querystring_validator
+from pyramid.exceptions import HTTPNotFound
+from sqlalchemy import LABEL_STYLE_TABLENAME_PLUS_COL, distinct, func
+from sqlalchemy.sql import or_
 
 user = Service(name='user', path=r'/users/{name:\S+}',
                description='Bodhi users',

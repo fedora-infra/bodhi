@@ -19,9 +19,9 @@
 import json
 import time
 
-from conu import ConuException
 import psycopg2
 import pytest
+from conu import ConuException
 
 from .utils import get_task_results, read_file, run_cli
 
@@ -50,11 +50,10 @@ def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
       WHERE b.type = 'rpm' AND state <> 'failed';
     """
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query)
-            composes = curs.fetchall()
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query)
+        composes = curs.fetchall()
     valid_composes = []
     for compose in composes:
         checkpoints = json.loads(compose[2])
@@ -98,13 +97,12 @@ def test_update_edit(
             "ORDER BY u.date_submitted DESC LIMIT 1"
         )
         db_ip = db_container.get_IPv4s()[0]
-        conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-        with conn:
-            with conn.cursor() as curs:
-                curs.execute(query)
-                result = curs.fetchone()
-                assert result is not None
-                update_alias = result[0]
+        conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+        with conn, conn.cursor() as curs:
+            curs.execute(query)
+            result = curs.fetchone()
+            assert result is not None
+            update_alias = result[0]
         conn.close()
         return update_alias
 
@@ -116,13 +114,12 @@ def test_update_edit(
             "LIMIT 1"
         ]
         db_ip = db_container.get_IPv4s()[0]
-        conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-        with conn:
-            with conn.cursor() as curs:
-                curs.execute(" ".join(base_query))
-                result = curs.fetchone()
-                assert result is not None
-                bug_id = result[0]
+        conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+        with conn, conn.cursor() as curs:
+            curs.execute(" ".join(base_query))
+            result = curs.fetchone()
+            assert result is not None
+            bug_id = result[0]
         conn.close()
         return str(bug_id)
 

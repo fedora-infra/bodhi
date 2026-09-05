@@ -1,10 +1,9 @@
 """Some utilities for bodhi-server's unit tests."""
 
-from unittest import mock, TestCase
 import time
+from unittest import TestCase, mock
 
 import requests
-
 
 _dummy = TestCase()
 assert_multiline_equal = _dummy.assertMultiLineEqual

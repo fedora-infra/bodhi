@@ -17,9 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains useful functions that helps with testing."""
 
-from io import BytesIO
 import difflib
 import re
+from io import BytesIO
 
 from requests import Response
 

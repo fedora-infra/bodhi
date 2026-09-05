@@ -16,22 +16,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.services.updates."""
-from datetime import datetime, timedelta, timezone
-from html import escape
-from unittest import mock
-from urllib import parse as urlparse
 import copy
 import re
 import textwrap
 import time
+from datetime import datetime, timedelta, timezone
+from html import escape
+from unittest import mock
+from urllib import parse as urlparse
 
-from fedora_messaging import api
-from fedora_messaging import testing as fml_testing
-from webtest import TestApp
 import koji
 import pytest
 import requests
-
 from bodhi.messages.schemas import base as base_schemas
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import buildsys, main
@@ -57,10 +53,12 @@ from bodhi.server.models import (
     User,
 )
 from bodhi.server.util import call_api
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
+from webtest import TestApp
 
 from ..base import BasePyTestCase
 from ..utils import assert_multiline_equal
-
 
 YEAR = time.localtime().tm_year
 
@@ -737,7 +735,7 @@ class TestNewUpdate(BasePyTestCase):
         assert up['bugs'][1]['bug_id'] == 5678
         assert up['bugs'][2]['bug_id'] == 12345
 
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_update_with_high_stable_days(self, publish, *args):
         update = self.get_update('bodhi-2.0.0-2.fc17')
@@ -747,7 +745,7 @@ class TestNewUpdate(BasePyTestCase):
 
         assert up['stable_days'] == 10
 
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_update_with_invalid_stable_days(self, publish, *args):
         update = self.get_update('bodhi-2.0.0-2.fc17')
@@ -760,14 +758,14 @@ class TestNewUpdate(BasePyTestCase):
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_update_stable_days(self, publish, *args):
-        args = self.get_update(u'bodhi-2.0.0-2.fc17')
+        args = self.get_update('bodhi-2.0.0-2.fc17')
         args['stable_days'] = '50'
         r = self.app.post_json('/updates/', args)
         assert r.json['stable_days'] == 50
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_update_too_low_stable_days(self, publish, *args):
-        args = self.get_update(u'bodhi-2.0.0-2.fc17')
+        args = self.get_update('bodhi-2.0.0-2.fc17')
         args['stable_days'] = '1'
         args['stable_karma'] = '50'
         r = self.app.post_json('/updates/', args)
@@ -778,7 +776,7 @@ class TestNewUpdate(BasePyTestCase):
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_update_too_low_stable_karma(self, publish, *args):
-        args = self.get_update(u'bodhi-2.0.0-2.fc17')
+        args = self.get_update('bodhi-2.0.0-2.fc17')
         args['stable_days'] = '50'
         args['stable_karma'] = '1'
         r = self.app.post_json('/updates/', args)
@@ -787,7 +785,7 @@ class TestNewUpdate(BasePyTestCase):
             'The stable karma required was set to the mandatory release value of 2'
         )
 
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     def test_new_update_with_multiple_bugs_as_str(self, *args):
         update = self.get_update('bodhi-2.0.0-2.fc17')
         update['bugs'] = '1234, 5678'
@@ -932,14 +930,14 @@ class TestNewUpdate(BasePyTestCase):
             'and has inherited its bugs and notes.')
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'],
-                             '/updates/FEDORA-{}-033713b73b'.format(datetime.now().year)))
+                             f'/updates/FEDORA-{datetime.now().year}-033713b73b'))
         assert r['comments'][-1]['text'] == expected_comment
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         assert up.status == UpdateStatus.obsolete
         expected_comment = 'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'],
-                             '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
+                             f'/updates/FEDORA-{datetime.now().year}-53345602d5'))
         assert up.comments[-1].text == expected_comment
 
     def test_create_new_nonsecurity_update_when_previous_security_one_exists(self, *args):
@@ -984,14 +982,14 @@ class TestNewUpdate(BasePyTestCase):
             'and has inherited its bugs and notes.')
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'],
-                             '/updates/FEDORA-{}-033713b73b'.format(datetime.now().year)))
+                             f'/updates/FEDORA-{datetime.now().year}-033713b73b'))
         assert r['comments'][-1]['text'] == expected_comment
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         assert up.status == UpdateStatus.obsolete
         expected_comment = 'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'],
-                             '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
+                             f'/updates/FEDORA-{datetime.now().year}-53345602d5'))
         assert up.comments[-1].text == expected_comment
 
         # Assert that the type of the new update is security.
@@ -1037,17 +1035,17 @@ class TestNewUpdate(BasePyTestCase):
             'and has inherited its bugs and notes.')
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'],
-                             '/updates/FEDORA-{}-033713b73b'.format(datetime.now().year)))
+                             f'/updates/FEDORA-{datetime.now().year}-033713b73b'))
         assert r['comments'][-1]['text'] == expected_comment
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         assert up.status == UpdateStatus.obsolete
         expected_comment = 'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'],
-                             '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
+                             f'/updates/FEDORA-{datetime.now().year}-53345602d5'))
         assert up.comments[-1].text == expected_comment
 
-    @mock.patch('bodhi.server.services.updates.Update.new', side_effect=IOError('oops!'))
+    @mock.patch('bodhi.server.services.updates.Update.new', side_effect=OSError('oops!'))
     def test_unexpected_exception(self, *args):
         """Ensure that an unexpected Exception is handled by new_update()."""
         update = self.get_update('bodhi-2.3.2-1.fc17')
@@ -1258,7 +1256,7 @@ class TestSetRequest(BasePyTestCase):
         assert log_info.call_args_list[0][0][0] == "Failed to set the request: oops!"
 
     @mock.patch('bodhi.server.services.updates.Update.set_request',
-                side_effect=IOError('IOError. oops!'))
+                side_effect=OSError('IOError. oops!'))
     @mock.patch('bodhi.server.services.updates.Update.meets_requirements_why',
                 (True, "a fake reason"))
     @mock.patch('bodhi.server.services.updates.log.exception')
@@ -1586,7 +1584,7 @@ class TestUpdatesService(BasePyTestCase):
         locked_notice = locked_notice.format(update.date_locked.strftime('%Y-%m-%d %H:%M:%S'))
         assert locked_notice in resp
         assert '<span class="sr-only">Locked</span>' in resp
-        assert '/composes/{}/{}'.format(compose.release.name, compose.request.value) in resp
+        assert f'/composes/{compose.release.name}/{compose.request.value}' in resp
 
     def test_provenpackager_edit_anything(self, *args):
         "Ensure provenpackagers can edit updates for any package"
@@ -3922,7 +3920,7 @@ class TestUpdatesService(BasePyTestCase):
         expected_comment = 'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'],
-                             '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
+                             f'/updates/FEDORA-{datetime.now().year}-53345602d5'))
         assert up.comments[-1].text == expected_comment
 
         # Check Push to Stable button for obsolete update
@@ -5800,7 +5798,7 @@ class TestWaiveTestResults(BasePyTestCase):
         assert up.test_gating_status == TestGatingStatus.failed
 
     @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
-                side_effect=IOError('IOError. oops!'))
+                side_effect=OSError('IOError. oops!'))
     @mock.patch('bodhi.server.services.updates.log.exception')
     def test_unexpected_exception(self, log_exception, waive_test_results, *args):
         """Ensure that an unexpected Exception is handled by waive_test_results()."""
@@ -6304,7 +6302,7 @@ class TestGetTestResults(BasePyTestCase):
         assert log_error.call_args_list[0][0][0] == "Failed to query greenwave for test results: %s"
 
     @mock.patch('bodhi.server.services.updates.Update.get_test_gating_info',
-                side_effect=IOError('IOError. oops!'))
+                side_effect=OSError('IOError. oops!'))
     @mock.patch('bodhi.server.services.updates.log.exception')
     def test_unexpected_exception(self, log_exception, get_test_gating_info, *args):
         """Ensure that an unexpected Exception is handled by get_test_results()."""

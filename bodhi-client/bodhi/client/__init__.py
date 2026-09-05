@@ -18,5 +18,6 @@
 """The bodhi CLI client."""
 
 import importlib.metadata
+
 METADATA = importlib.metadata.metadata('bodhi-client')
 __version__ = METADATA['version']

@@ -6,6 +6,7 @@ This could be part of python-fedora for other pyramid-based apps
 
 import time
 
+import requests
 from authlib import __version__ as authlib_version
 from authlib.oauth2.rfc6750 import (
     BearerTokenValidator,
@@ -14,8 +15,6 @@ from authlib.oauth2.rfc6750 import (
 )
 from authlib.oauth2.rfc7662 import IntrospectionToken as BaseIntrospectionToken
 from packaging.version import parse as parse_version
-import requests
-
 
 if parse_version(authlib_version) >= parse_version("1.0.0"):
     from .oauth_1 import PyramidOAuth2App as PyramidApp

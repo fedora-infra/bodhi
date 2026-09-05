@@ -4,19 +4,17 @@ import typing
 
 from authlib.integrations.base_client import OAuthError
 from authlib.oauth2 import ResourceProtector
+from bodhi.server import log
 from pyramid.httpexceptions import HTTPAccepted, HTTPFound, HTTPUnauthorized
 from pyramid.security import forget
-
-from bodhi.server import log
 
 from .constants import SCOPES
 from .fedora import IntrospectTokenValidator
 from .utils import get_and_store_user, get_final_redirect
 
-
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import pyramid.request.Request  # noqa: F401
-    import pyramid.response.Response  # noqa: F401
+    import pyramid.request.Request
+    import pyramid.response.Response
 
 
 def login(request: 'pyramid.request.Request') -> HTTPFound:

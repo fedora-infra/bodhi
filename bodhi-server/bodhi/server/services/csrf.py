@@ -17,11 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define the /csrf services."""
 
-from cornice import Service
-
 import bodhi.server.security
 import bodhi.server.services.errors
-
+from cornice import Service
 
 csrf = Service(name='csrf', path='/csrf', description='CSRF Token',
                # XXX - even though this is really a read-only endpoint,

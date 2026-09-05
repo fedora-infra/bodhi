@@ -20,29 +20,27 @@
 import math
 import warnings
 
-from cornice import Service
-from cornice.validators import colander_body_validator, colander_querystring_validator
-from pyramid.httpexceptions import HTTPForbidden
-from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
-from sqlalchemy.sql import or_, and_
-
-from bodhi.server import log
-from bodhi.server.models import Comment, Build, Update, User
-from bodhi.server.validators import (
-    validate_packages,
-    validate_update,
-    validate_updates,
-    validate_update_owner,
-    validate_ignore_user,
-    validate_comment_id,
-    validate_username,
-    validate_bug_feedback,
-    validate_testcase_feedback,
-)
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
-
+from bodhi.server import log
+from bodhi.server.models import Build, Comment, Update, User
+from bodhi.server.validators import (
+    validate_bug_feedback,
+    validate_comment_id,
+    validate_ignore_user,
+    validate_packages,
+    validate_testcase_feedback,
+    validate_update,
+    validate_update_owner,
+    validate_updates,
+    validate_username,
+)
+from cornice import Service
+from cornice.validators import colander_body_validator, colander_querystring_validator
+from pyramid.httpexceptions import HTTPForbidden
+from sqlalchemy import LABEL_STYLE_TABLENAME_PLUS_COL, distinct, func
+from sqlalchemy.sql import and_, or_
 
 comment = Service(
     name='comment', path='/comments/{id}', validators=(validate_comment_id,),

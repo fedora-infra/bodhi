@@ -17,14 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This script will run a handy python shell initialized with Bodhi models."""
 
+import logging
 import sys
 from subprocess import call
-import logging
 
 import click
-
 from bodhi.server.config import get_configfile
-
 
 logger = logging.getLogger('bodhi-shell')
 logging.basicConfig(level=logging.INFO)
