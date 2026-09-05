@@ -16,11 +16,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Initialize the Bodhi server."""
-from collections import defaultdict
+
 import importlib.metadata
 import logging as python_logging
 import resource
+from collections import defaultdict
 
+from bodhi.server import bugs, buildsys
+from bodhi.server.config import config as bodhi_config
+from bodhi.server.security import BodhiSecurityPolicy
 from cornice.validators import DEFAULT_FILTERS
 from dogpile.cache import make_region
 from munch import munchify
@@ -31,17 +35,12 @@ from pyramid.tweens import EXCVIEW
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from bodhi.server import bugs, buildsys
-from bodhi.server.config import config as bodhi_config
-from bodhi.server.security import BodhiSecurityPolicy
-
-
-METADATA = importlib.metadata.metadata('bodhi-server')
-__version__ = METADATA['version']
+METADATA = importlib.metadata.metadata("bodhi-server")
+__version__ = METADATA["version"]
 
 
 # This is a regular expression used to match username mentions in comments.
-MENTION_RE = r'(?<!\S)(@[\w-]+)'
+MENTION_RE = r"(?<!\S)(@[\w-]+)"
 
 log = python_logging.getLogger(__name__)
 cache_region = None
@@ -111,7 +110,7 @@ def get_from_tag_inherited(request):
     Returns:
         list: A cache populated by the validators and used by the views.
     """
-    return list()
+    return []
 
 
 def get_releases(request):
@@ -125,6 +124,7 @@ def get_releases(request):
             that describe the Releases that are in those states.
     """
     from bodhi.server.models import Release
+
     return Release.all_releases()
 
 
@@ -137,7 +137,7 @@ def exception_filter(response, request):
         request (pyramid.request.Request): The current web request.
     """
     if isinstance(response, Exception):
-        log.exception('Unhandled exception raised:  %r' % response)
+        log.exception("Unhandled exception raised:  %r", response)
     return response
 
 
@@ -168,24 +168,22 @@ def initialize_db(config):
     # The SQLAlchemy database engine. This is constructed using the value of
     # ``DB_URL`` in :data:`config``. Note: A copy is provided since ``engine_from_config``
     # uses ``pop``.
-    if config['sqlalchemy.url'].startswith('postgresql'):  # pragma: no cover
+    if config["sqlalchemy.url"].startswith("postgresql"):  # pragma: no cover
         engine = engine_from_config(
             config.copy(),
-            'sqlalchemy.',
+            "sqlalchemy.",
             connect_args={
-                'options': f'-c statement_timeout={config["sqlalchemy_extra.statement_timeout"]}'
-            }
+                "options": f"-c statement_timeout={config['sqlalchemy_extra.statement_timeout']}"
+            },
         )
     else:
-        engine = engine_from_config(config.copy(), 'sqlalchemy.')
+        engine = engine_from_config(config.copy(), "sqlalchemy.")
 
     # When using SQLite we need to make sure foreign keys are enabled:
     # http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html#foreign-key-support
-    if config['sqlalchemy.url'].startswith('sqlite:'):
+    if config["sqlalchemy.url"].startswith("sqlite:"):
         event.listen(
-            engine,
-            'connect',
-            lambda db_con, con_record: db_con.execute('PRAGMA foreign_keys=ON')
+            engine, "connect", lambda db_con, con_record: db_con.execute("PRAGMA foreign_keys=ON")
         )
     Session.configure(bind=engine)
     return engine
@@ -215,14 +213,18 @@ def main(global_config, testing=None, session=None, **settings):
 
     # Sessions & Caching
     session_factory = SignedCookieSessionFactory(
-        bodhi_config['session.secret'],
+        bodhi_config["session.secret"],
         serializer=JSONSerializer(),
     )
 
     # Construct a list of all groups we're interested in
     default = []
-    for key in ('important_groups', 'admin_packager_groups', 'mandatory_packager_groups',
-                'admin_groups'):
+    for key in (
+        "important_groups",
+        "admin_packager_groups",
+        "mandatory_packager_groups",
+        "admin_groups",
+    ):
         default.extend(bodhi_config.get(key))
 
     config = Configurator(settings=bodhi_config, session_factory=session_factory)
@@ -231,8 +233,8 @@ def main(global_config, testing=None, session=None, **settings):
     get_cache_region()
 
     # Plugins
-    config.include('pyramid_mako')
-    config.include('cornice')
+    config.include("pyramid_mako")
+    config.include("cornice")
 
     # Lazy-loaded memoized request properties
     if session:
@@ -242,89 +244,96 @@ def main(global_config, testing=None, session=None, **settings):
         initialize_db(bodhi_config)
         config.registry.sessionmaker = Session
 
-    config.add_request_method(lambda x: Session, 'db', reify=True)
+    config.add_request_method(lambda x: Session, "db", reify=True)
 
-    config.add_request_method(get_koji, 'koji', reify=True)
-    config.add_request_method(get_cache_region, 'cache', reify=True)
-    config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
-    config.add_request_method(get_from_tag_inherited, 'from_tag_inherited', reify=True)
-    config.add_request_method(get_releases, 'releases', property=True)
+    config.add_request_method(get_koji, "koji", reify=True)
+    config.add_request_method(get_cache_region, "cache", reify=True)
+    config.add_request_method(get_buildinfo, "buildinfo", reify=True)
+    config.add_request_method(get_from_tag_inherited, "from_tag_inherited", reify=True)
+    config.add_request_method(get_releases, "releases", property=True)
 
     # Templating
-    config.add_mako_renderer('.html', settings_prefix='mako.')
-    config.add_static_view(f'static/v{__version__}',
-                           'bodhi.server:static')
+    config.add_mako_renderer(".html", settings_prefix="mako.")
+    config.add_static_view(f"static/v{__version__}", "bodhi.server:static")
 
     from bodhi.server.renderers import rss
-    config.add_renderer('rss', rss)
-    config.add_renderer('jsonp', JSONP(param_name='callback'))
+
+    config.add_renderer("rss", rss)
+    config.add_renderer("jsonp", JSONP(param_name="callback"))
 
     # i18n
-    config.add_translation_dirs('bodhi.server:locale/')
+    config.add_translation_dirs("bodhi.server:locale/")
 
     # Authentication & Authorization
     if testing:
         # use a permissive security policy while running unit tests
         fake_identity = munchify(
-            {'name': testing,
-             'email': f'{testing}@bodhi-dev.example.com',
-             'groups': [{'name': 'packager'},
-                        {'name': 'ipausers'},
-                        {'name': 'fedora-contributor'},
-                        {'name': 'signed_fpca'},
-                        {'name': 'fedorabugs'},],
-             }
+            {
+                "name": testing,
+                "email": f"{testing}@bodhi-dev.example.com",
+                "groups": [
+                    {"name": "packager"},
+                    {"name": "ipausers"},
+                    {"name": "fedora-contributor"},
+                    {"name": "signed_fpca"},
+                    {"name": "fedorabugs"},
+                ],
+            }
         )
         config.testing_securitypolicy(userid=testing, identity=fake_identity, permissive=True)
     else:
-        timeout = bodhi_config.get('authtkt.timeout')
-        config.set_security_policy(BodhiSecurityPolicy(
-            bodhi_config['authtkt.secret'], secure=bodhi_config['authtkt.secure'],
-            hashalg='sha512', timeout=timeout,
-            max_age=timeout, samesite='Strict'))
+        timeout = bodhi_config.get("authtkt.timeout")
+        config.set_security_policy(
+            BodhiSecurityPolicy(
+                bodhi_config["authtkt.secret"],
+                secure=bodhi_config["authtkt.secure"],
+                hashalg="sha512",
+                timeout=timeout,
+                max_age=timeout,
+                samesite="Strict",
+            )
+        )
 
     # Collect metrics for endpoints
-    config.add_tween(
-        'bodhi.server.services.metrics_tween.histo_tween_factory', over=EXCVIEW
-    )
+    config.add_tween("bodhi.server.services.metrics_tween.histo_tween_factory", over=EXCVIEW)
 
     # Metrics Route
-    config.add_route('prometheus_metric', '/metrics')
+    config.add_route("prometheus_metric", "/metrics")
 
     # Frontpage
-    config.add_route('home', '/')
+    config.add_route("home", "/")
 
     # Views for creating new objects
-    config.add_route('new_update', '/updates/new')
-    config.add_route('new_override', '/overrides/new')
+    config.add_route("new_update", "/updates/new")
+    config.add_route("new_override", "/overrides/new")
 
     # Auto-completion search
-    config.add_route('latest_candidates', '/latest_candidates')
-    config.add_route('latest_builds', '/latest_builds')
-    config.add_route('get_sidetags', '/get_sidetags')
-    config.add_route('latest_builds_in_tag', '/latest_builds_in_tag')
+    config.add_route("latest_candidates", "/latest_candidates")
+    config.add_route("latest_builds", "/latest_builds")
+    config.add_route("get_sidetags", "/get_sidetags")
+    config.add_route("latest_builds_in_tag", "/latest_builds_in_tag")
 
     # Include the auth system (after loading the models)
     config.include("bodhi.server.auth")
 
-    config.add_route('api_version', '/api_version')
-    config.add_route('liveness', '/healthz/live')
-    config.add_route('readyness', '/healthz/ready')
+    config.add_route("api_version", "/api_version")
+    config.add_route("liveness", "/healthz/live")
+    config.add_route("readyness", "/healthz/ready")
 
     # service endpoints
-    config.add_route('get_critpath_components', '/get_critpath_components')
-    config.add_route('get_ccp_components', '/get_ccp_components')
+    config.add_route("get_critpath_components", "/get_critpath_components")
+    config.add_route("get_ccp_components", "/get_ccp_components")
 
     # Legacy: Redirect the previously self-hosted documentation
     # https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/hybrid.html#using-subpath-in-a-route-pattern
     config.add_route("docs", "/docs/*subpath")
 
-    config.scan('bodhi.server.views')
-    config.scan('bodhi.server.services')
-    config.scan('bodhi.server.webapp')
+    config.scan("bodhi.server.views")
+    config.scan("bodhi.server.services")
+    config.scan("bodhi.server.webapp")
 
-    if bodhi_config['warm_cache_on_start']:
-        log.info('Warming up caches…')
+    if bodhi_config["warm_cache_on_start"]:
+        log.info("Warming up caches…")
 
         # Though importing in the middle of this function is the darkest of evils, we cannot do it
         # any other way without a backwards-incompatible change. See
@@ -342,7 +351,7 @@ def main(global_config, testing=None, session=None, **settings):
         generic._generate_home_page_stats()
 
     raise_open_file_limit()
-    log.info('Bodhi ready and at your service!')
+    log.info("Bodhi ready and at your service!")
     app = config.make_wsgi_app()
     return app
 
@@ -352,4 +361,4 @@ def raise_open_file_limit() -> None:
     soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
     if soft_limit < hard_limit:
         resource.setrlimit(resource.RLIMIT_NOFILE, (hard_limit, hard_limit))
-        log.info(f'Raised open file limit from {soft_limit} to {hard_limit}')
+        log.info(f"Raised open file limit from {soft_limit} to {hard_limit}")

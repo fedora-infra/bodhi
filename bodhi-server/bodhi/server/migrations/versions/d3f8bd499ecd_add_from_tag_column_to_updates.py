@@ -22,20 +22,20 @@ Revision ID: d3f8bd499ecd
 Revises: c60d95eef4f1
 Create Date: 2019-05-14 15:10:54.769789
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'd3f8bd499ecd'
-down_revision = 'c60d95eef4f1'
+revision = "d3f8bd499ecd"
+down_revision = "c60d95eef4f1"
 
 
 def upgrade():
     """Add the from_tag column to the updates table."""
-    op.add_column('updates', sa.Column('from_tag', sa.UnicodeText(), nullable=True))
+    op.add_column("updates", sa.Column("from_tag", sa.UnicodeText(), nullable=True))
 
 
 def downgrade():
     """Drop the from_tag column from the updates table."""
-    op.drop_column('updates', 'from_tag')
+    op.drop_column("updates", "from_tag")

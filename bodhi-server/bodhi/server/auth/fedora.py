@@ -6,6 +6,7 @@ This could be part of python-fedora for other pyramid-based apps
 
 import time
 
+import requests
 from authlib import __version__ as authlib_version
 from authlib.oauth2.rfc6750 import (
     BearerTokenValidator,
@@ -14,8 +15,6 @@ from authlib.oauth2.rfc6750 import (
 )
 from authlib.oauth2.rfc7662 import IntrospectionToken as BaseIntrospectionToken
 from packaging.version import parse as parse_version
-import requests
-
 
 if parse_version(authlib_version) >= parse_version("1.0.0"):
     from .oauth_1 import PyramidOAuth2App as PyramidApp
@@ -28,7 +27,7 @@ class IntrospectionToken(BaseIntrospectionToken):
 
     def is_active(self):
         """Return whether the token is active."""
-        return self['active']
+        return self["active"]
 
     def is_expired(self):
         """Return whether the token is expired."""
@@ -60,10 +59,10 @@ class FedoraApp(PyramidApp):
             IntrospectionToken: The result of the token introspection.
         """
         post_data = {
-            'token': token_string,
-            'token_type_hint': 'access_token',
-            'client_id': self.client_id,
-            "client_secret": self.client_secret
+            "token": token_string,
+            "token_type_hint": "access_token",
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
         }
         if self.access_token_url:
             access_token_url = self.access_token_url
@@ -155,11 +154,8 @@ class IntrospectTokenValidator(BearerTokenValidator):
         if parse_version(authlib_version) < parse_version("1.0.0"):
             scopes = scopes[0]
         if self.scope_insufficient(token, scopes):
-            if (
-                parse_version(authlib_version) >= parse_version("0.15.5")
-                and parse_version(authlib_version) < parse_version("1.0.0")
-            ):
-                raise InsufficientScopeError(
-                    token_scope=token["scope"], required_scope=scopes
-                )
+            if parse_version(authlib_version) >= parse_version("0.15.5") and parse_version(
+                authlib_version
+            ) < parse_version("1.0.0"):
+                raise InsufficientScopeError(token_scope=token["scope"], required_scope=scopes)
             raise InsufficientScopeError()

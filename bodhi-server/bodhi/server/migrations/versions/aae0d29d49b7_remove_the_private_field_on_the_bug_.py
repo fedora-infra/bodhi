@@ -22,20 +22,20 @@ Revision ID: aae0d29d49b7
 Revises: 190ba571c7d2
 Create Date: 2019-02-19 01:53:37.699933
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'aae0d29d49b7'
-down_revision = '190ba571c7d2'
+revision = "aae0d29d49b7"
+down_revision = "190ba571c7d2"
 
 
 def upgrade():
     """Remove the private field from the bugs table."""
-    op.drop_column('bugs', 'private')
+    op.drop_column("bugs", "private")
 
 
 def downgrade():
     """Add the private field back to the bugs table."""
-    op.add_column('bugs', sa.Column('private', sa.BOOLEAN(), autoincrement=False, nullable=True))
+    op.add_column("bugs", sa.Column("private", sa.BOOLEAN(), autoincrement=False, nullable=True))

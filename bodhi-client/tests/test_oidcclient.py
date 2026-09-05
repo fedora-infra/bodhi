@@ -1,13 +1,12 @@
 import threading
 import time
 
-from authlib.integrations.base_client.errors import OAuthError
-from click import ClickException
-from click.exceptions import Abort
 import pytest
 import requests
-
+from authlib.integrations.base_client.errors import OAuthError
 from bodhi.client.oidcclient import JSONStorage, OIDCClient, OIDCClientError
+from click import ClickException
+from click.exceptions import Abort
 
 from .utils import build_response
 
@@ -26,7 +25,7 @@ def client(mocker, storage):
     response.json.return_value = {
         "token_endpoint": "http://id.example.com/token",
         "authorization_endpoint": "http://id.example.com/auth",
-        "response_modes_supported": ["query", "none"]
+        "response_modes_supported": ["query", "none"],
     }
     requests_mock.get.return_value = response
     client = OIDCClient("client_id", "scope", "http://id.example.com", storage)
@@ -56,7 +55,7 @@ def test_oidcclient_use_oob(mocker, storage):
     # Test unsupported
     response.json.return_value = {
         "token_endpoint": "http://id.example.com/token",
-        "response_modes_supported": ["query", "none"]
+        "response_modes_supported": ["query", "none"],
     }
     client = OIDCClient("client_id", "scope", "http://id.example.com", storage)
     assert client._use_oob is False
@@ -64,7 +63,7 @@ def test_oidcclient_use_oob(mocker, storage):
     # Test supported
     response.json.return_value = {
         "token_endpoint": "http://id.example.com/token",
-        "response_modes_supported": ["query", "none", "oob"]
+        "response_modes_supported": ["query", "none", "oob"],
     }
     client = OIDCClient("client_id", "scope", "http://id.example.com", storage)
     assert client._use_oob is True
@@ -88,16 +87,16 @@ def test_oidcclient_login(mocker, client):
     client.metadata = {
         "token_endpoint": "http://id.example.com/token",
         "authorization_endpoint": "http://id.example.com/auth",
-        "response_modes_supported": ["oob"]
+        "response_modes_supported": ["oob"],
     }
     oauth2client.create_authorization_url.return_value = ("auth-url", "state")
     oauth2client.fetch_token.return_value = "result-token"
     client.login()
     oauth2client.create_authorization_url.assert_called_with("http://id.example.com/auth")
     oauth2client.fetch_token.assert_called_with(
-        'http://id.example.com/token',
+        "http://id.example.com/token",
         authorization_response="?result-code",
-        redirect_uri='urn:ietf:wg:oauth:2.0:oob',
+        redirect_uri="urn:ietf:wg:oauth:2.0:oob",
     )
     assert client.tokens == "result-token"
 
@@ -107,22 +106,20 @@ def test_oidcclient_login_with_kerberos(mocker, client):
     client.client = oauth2client
     response = mocker.Mock()
     sample_code = "code=d37deb2e-5463-1234_5EH4MhV3L&amp;state=k44Rw1"
-    response.text = (
-        '<meta charset="UTF-8">\n<title>' + sample_code + '</title>\n   '
-    )
+    response.text = '<meta charset="UTF-8">\n<title>' + sample_code + "</title>\n   "
     mocker.patch("bodhi.client.oidcclient.requests.get", return_value=response)
     # Enable OOB
     client.metadata = {
         "token_endpoint": "http://id.example.com/token",
         "authorization_endpoint": "http://id.example.com/auth",
-        "response_modes_supported": ["oob"]
+        "response_modes_supported": ["oob"],
     }
     oauth2client.fetch_token.return_value = "result-token"
     client.login_with_kerberos("auth-url")
     oauth2client.fetch_token.assert_called_with(
-        'http://id.example.com/token',
+        "http://id.example.com/token",
         authorization_response=f"?{sample_code}",
-        redirect_uri='urn:ietf:wg:oauth:2.0:oob',
+        redirect_uri="urn:ietf:wg:oauth:2.0:oob",
     )
     assert client.tokens == "result-token"
 
@@ -132,15 +129,13 @@ def test_oidcclient_login_with_kerberos_wrong_code(mocker, client):
     client.client = oauth2client
     response = mocker.Mock()
     sample_code = "code=NOT_4_VALID=STRING@#*"
-    response.text = (
-        '<meta charset="UTF-8">\n<title>' + sample_code + '</title>\n   '
-    )
+    response.text = '<meta charset="UTF-8">\n<title>' + sample_code + "</title>\n   "
     mocker.patch("bodhi.client.oidcclient.requests.get", return_value=response)
     # Enable OOB
     client.metadata = {
         "token_endpoint": "http://id.example.com/token",
         "authorization_endpoint": "http://id.example.com/auth",
-        "response_modes_supported": ["oob"]
+        "response_modes_supported": ["oob"],
     }
     oauth2client.fetch_token.return_value = "result-token"
     with pytest.raises(OIDCClientError) as exc:
@@ -157,15 +152,16 @@ def test_oidcclient_login_with_kerberos_error_during_auth(mocker, client):
     client.metadata = {
         "token_endpoint": "http://id.example.com/token",
         "authorization_endpoint": "http://id.example.com/auth",
-        "response_modes_supported": []
+        "response_modes_supported": [],
     }
 
     def raise_http_error():
         raise requests.HTTPError("error")
+
     response.raise_for_status = raise_http_error
     with pytest.raises(OIDCClientError) as exc:
         client.login_with_kerberos("auth-url")
-    assert str(exc.value) == 'There was an issue while performing Kerberos authentication: error'
+    assert str(exc.value) == "There was an issue while performing Kerberos authentication: error"
 
 
 def test_oidcclient_login_kerberos_fallback(mocker, client):
@@ -188,7 +184,7 @@ def test_oidcclient_login_no_oob(mocker, client):
     client.metadata = {
         "token_endpoint": "http://id.example.com/token",
         "authorization_endpoint": "http://id.example.com/auth",
-        "response_modes_supported": []
+        "response_modes_supported": [],
     }
     oauth2client.create_authorization_url.return_value = ("auth-url", "state")
     oauth2client.fetch_token.return_value = "result-token"
@@ -203,7 +199,7 @@ def test_oidcclient_login_no_oob(mocker, client):
     assert "You can now close this browser window" in response.text
 
     oauth2client.fetch_token.assert_called_once_with(
-        'http://id.example.com/token',
+        "http://id.example.com/token",
         authorization_response="/auth?code=CODE",
         redirect_uri=client.redirect_uri,
     )
@@ -217,7 +213,7 @@ def test_oidcclient_login_no_oob_interrupted(mocker, client):
     client.metadata = {
         "token_endpoint": "http://id.example.com/token",
         "authorization_endpoint": "http://id.example.com/auth",
-        "response_modes_supported": []
+        "response_modes_supported": [],
     }
     oauth2client.create_authorization_url.return_value = ("auth-url", "state")
     mocker.patch.object(threading.Thread, "start")
@@ -234,7 +230,7 @@ def test_oidcclient_login_no_oob_failure(mocker, client):
     client.metadata = {
         "token_endpoint": "http://id.example.com/token",
         "authorization_endpoint": "http://id.example.com/auth",
-        "response_modes_supported": []
+        "response_modes_supported": [],
     }
     oauth2client.create_authorization_url.return_value = ("auth-url", "state")
     oauth2client.fetch_token.side_effect = ValueError("not good")
@@ -256,7 +252,7 @@ def test_oidcclient_login_interrupted(mocker, client):
     client.metadata = {
         "token_endpoint": "http://id.example.com/token",
         "authorization_endpoint": "http://id.example.com/auth",
-        "response_modes_supported": ["oob"]
+        "response_modes_supported": ["oob"],
     }
     oauth2client.create_authorization_url.return_value = ("auth-url", "state")
     with pytest.raises(SystemExit) as exc:
@@ -277,7 +273,7 @@ def test_oidcclient_login_retry(mocker, client):
     client.metadata = {
         "token_endpoint": "http://id.example.com/token",
         "authorization_endpoint": "http://id.example.com/auth",
-        "response_modes_supported": ["oob"]
+        "response_modes_supported": ["oob"],
     }
     oauth2client.create_authorization_url.return_value = ("auth-url", "state")
     oauth2client.fetch_token.side_effect = [
@@ -306,7 +302,7 @@ def test_oidcclient_reuse_token(mocker, client, storage):
     assert client.tokens == {"foo": "bar"}
     login = mocker.patch.object(client, "login")
     client.ensure_auth()
-    login.assert_not_called
+    login.assert_not_called()
 
 
 def test_oidcclient_username(mocker, client):
@@ -361,7 +357,7 @@ def test_oidcclient_request_auth_error(mocker, client):
 
 def test_oidcclient_clear_auth(mocker, client):
     client._tokens = {"access_token": "TOKEN"}
-    client._username == "NICKNAME"
+    client._username = "NICKNAME"
     client.client.token_auth.set_token({"access_token": "TOKEN"})
     client.client.cookies.set("foo", "bar")
     login = mocker.patch.object(client, "login")
@@ -378,7 +374,7 @@ def test_oidcclient_clear_auth(mocker, client):
     assert not client.has_cookie("foo")
     # Now make sure we login again if asked to.
     client.ensure_auth()
-    login.assert_called
+    login.assert_called()
     assert client.username != "NICKNAME"
     call_args = request.call_args
     assert call_args.args == ("GET", "http://id.example.com/user")

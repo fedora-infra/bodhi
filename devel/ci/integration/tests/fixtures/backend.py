@@ -23,11 +23,10 @@ import uuid
 
 import pytest
 from conu import DockerBackend, PodmanBackend
-from docker import errors
 
 from .conu_ext import DockerNetwork, PodmanNetwork
 
-multiprocessing.set_start_method('fork')
+multiprocessing.set_start_method("fork")
 
 
 @pytest.fixture(scope="session")
@@ -66,7 +65,4 @@ def docker_network(docker_backend):
     """
     network = docker_backend.NetworkClass.create(f"bodhi_test-{uuid.uuid4()}", driver="bridge")
     yield network
-    try:
-        network.remove()
-    except errors.APIError as e:
-        raise e
+    network.remove()

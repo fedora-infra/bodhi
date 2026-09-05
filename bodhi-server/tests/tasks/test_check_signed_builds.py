@@ -23,10 +23,10 @@ from datetime import datetime, timezone
 from unittest.mock import call, patch
 
 import pytest
-
 from bodhi.server import models
 from bodhi.server.tasks import check_signed_builds_task
 from bodhi.server.tasks.check_signed_builds import main as check_signed_builds_main
+
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
 
@@ -49,8 +49,8 @@ class TestTask(BasePyTestCase):
 class TestCheckSignedBuilds(BaseTaskTestCase):
     """This test class contains tests for the main() function."""
 
-    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
-    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    @patch("bodhi.server.tasks.check_signed_builds.buildsys")
+    @patch("bodhi.server.tasks.check_signed_builds.log.debug")
     def test_check_signed_builds_exclude_archived(self, debug, buildsys):
         """
         The task should ignore archived releases.
@@ -62,11 +62,11 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
 
         check_signed_builds_main()
 
-        debug.assert_called_once_with('No stuck Updates found')
+        debug.assert_called_once_with("No stuck Updates found")
         buildsys.get_session.assert_not_called()
 
-    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
-    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    @patch("bodhi.server.tasks.check_signed_builds.buildsys")
+    @patch("bodhi.server.tasks.check_signed_builds.log.debug")
     def test_check_signed_builds_ignore_fresh_update(self, debug, buildsys):
         """
         The task should ignore fresh updates.
@@ -78,10 +78,23 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         self.db.commit()
 
         listTags = [
-            {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-             'name': 'f17-updates-candidate', 'perm': None, 'perm_id': None},
-            {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-             'name': 'f17-updates-pending', 'perm': None, 'perm_id': None}, ]
+            {
+                "arches": "i386 x86_64 ppc ppc64",
+                "id": 10,
+                "locked": True,
+                "name": "f17-updates-candidate",
+                "perm": None,
+                "perm_id": None,
+            },
+            {
+                "arches": "i386 x86_64 ppc ppc64",
+                "id": 10,
+                "locked": True,
+                "name": "f17-updates-pending",
+                "perm": None,
+                "perm_id": None,
+            },
+        ]
 
         buildsys.get_session.return_value.listTags.return_value = listTags
         check_signed_builds_main()
@@ -90,8 +103,8 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         buildsys.get_session.assert_called_once()
         assert update.builds[0].signed is False
 
-    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
-    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    @patch("bodhi.server.tasks.check_signed_builds.buildsys")
+    @patch("bodhi.server.tasks.check_signed_builds.log.debug")
     def test_check_signed_builds_ignore_signed_builds(self, debug, buildsys):
         """
         The task should not touch builds already marked as signed in db.
@@ -104,11 +117,11 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         check_signed_builds_main()
 
         buildsys.get_session.assert_called_once()
-        debug.assert_called_once_with('bodhi-2.0-1.fc17 already marked as signed')
+        debug.assert_called_once_with("bodhi-2.0-1.fc17 already marked as signed")
 
-    @patch('bodhi.server.models.Update.set_request')
-    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
-    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    @patch("bodhi.server.models.Update.set_request")
+    @patch("bodhi.server.tasks.check_signed_builds.buildsys")
+    @patch("bodhi.server.tasks.check_signed_builds.log.debug")
     def test_check_signed_builds_stuck_Update_with_signed_build(self, debug, buildsys, request):
         """
         The update was probably ejected from a compose and is stuck.
@@ -119,66 +132,93 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         self.db.commit()
 
         listTags = [
-            {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-             'name': 'f17-updates-testing', 'perm': None, 'perm_id': None}, ]
+            {
+                "arches": "i386 x86_64 ppc ppc64",
+                "id": 10,
+                "locked": True,
+                "name": "f17-updates-testing",
+                "perm": None,
+                "perm_id": None,
+            },
+        ]
 
         buildsys.get_session.return_value.listTags.return_value = listTags
         check_signed_builds_main()
 
         buildsys.get_session.assert_called_once()
-        calls = [call('bodhi-2.0-1.fc17 already marked as signed'),
-                 call(f'Resubmitting {update.alias} to testing')]
+        calls = [
+            call("bodhi-2.0-1.fc17 already marked as signed"),
+            call(f"Resubmitting {update.alias} to testing"),
+        ]
         debug.assert_has_calls(calls)
         request.assert_called_once()
         assert not update.builds[0].signed
 
-    @patch('bodhi.server.models.Update.untag')
-    @patch('bodhi.server.tasks.handle_side_and_related_tags_task.delay')
-    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
-    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
-    @pytest.mark.parametrize('rawhide', (False, True))
-    def test_check_signed_builds_stuck_Update_fromtag_with_signed_build(self, debug, buildsys,
-                                                                        tag, untag, rawhide):
+    @patch("bodhi.server.models.Update.untag")
+    @patch("bodhi.server.tasks.handle_side_and_related_tags_task.delay")
+    @patch("bodhi.server.tasks.check_signed_builds.buildsys")
+    @patch("bodhi.server.tasks.check_signed_builds.log.debug")
+    @pytest.mark.parametrize("rawhide", (False, True))
+    def test_check_signed_builds_stuck_Update_fromtag_with_signed_build(
+        self, debug, buildsys, tag, untag, rawhide
+    ):
         """
         The side-tag update was probably ejected from a compose and is stuck.
         """
         update = models.Update.query.first()
-        update.from_tag = 'f17-build-side-1111'
+        update.from_tag = "f17-build-side-1111"
         assert update.builds[0].signed
         update.release.composed_by_bodhi = not rawhide
 
         self.db.commit()
 
         listTags = [
-            {'arches': 'i386 x86_64 ppc ppc64', 'id': 1111, 'locked': False,
-             'name': 'f17-build-side-1111', 'perm': None, 'perm_id': None,
-             'extra': {'sidetag_user': 'guest', 'sidetag': True}},
-            {'arches': None, 'id': 10, 'locked': True,
-             'name': 'f17-updates-testing', 'perm': None, 'perm_id': None},]
+            {
+                "arches": "i386 x86_64 ppc ppc64",
+                "id": 1111,
+                "locked": False,
+                "name": "f17-build-side-1111",
+                "perm": None,
+                "perm_id": None,
+                "extra": {"sidetag_user": "guest", "sidetag": True},
+            },
+            {
+                "arches": None,
+                "id": 10,
+                "locked": True,
+                "name": "f17-updates-testing",
+                "perm": None,
+                "perm_id": None,
+            },
+        ]
 
         buildsys.get_session.return_value.listTags.return_value = listTags
         check_signed_builds_main()
 
         buildsys.get_session.assert_called_once()
-        calls = [call('bodhi-2.0-1.fc17 already marked as signed')]
+        calls = [call("bodhi-2.0-1.fc17 already marked as signed")]
         if not rawhide:
-            calls.append(call(f'Resubmitting {update.alias} to testing'))
+            calls.append(call(f"Resubmitting {update.alias} to testing"))
         debug.assert_has_calls(calls)
         untag.assert_called_once()
         if not rawhide:
-            tag.assert_called_with(builds=['bodhi-2.0-1.fc17'],
-                                   pending_signing_tag='f17-updates-signing-pending',
-                                   from_tag='f17-build-side-1111',
-                                   candidate_tag='f17-updates-candidate')
+            tag.assert_called_with(
+                builds=["bodhi-2.0-1.fc17"],
+                pending_signing_tag="f17-updates-signing-pending",
+                from_tag="f17-build-side-1111",
+                candidate_tag="f17-updates-candidate",
+            )
             assert not update.builds[0].signed
         else:
-            tag.assert_called_with(builds=['bodhi-2.0-1.fc17'],
-                                   pending_signing_tag='f17-build-side-1111-signing-pending',
-                                   from_tag='f17-build-side-1111',
-                                   pending_testing_tag='f17-build-side-1111-testing-pending')
+            tag.assert_called_with(
+                builds=["bodhi-2.0-1.fc17"],
+                pending_signing_tag="f17-build-side-1111-signing-pending",
+                from_tag="f17-build-side-1111",
+                pending_testing_tag="f17-build-side-1111-testing-pending",
+            )
 
-    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
-    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    @patch("bodhi.server.tasks.check_signed_builds.buildsys")
+    @patch("bodhi.server.tasks.check_signed_builds.log.debug")
     def test_check_signed_builds_still_not_signed(self, debug, buildsys):
         """
         The task should NOT mark signed builds if it is still pending-signing.
@@ -191,10 +231,23 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         self.db.commit()
 
         listTags = [
-            {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-             'name': 'f17-updates-candidate', 'perm': None, 'perm_id': None},
-            {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-             'name': 'f17-updates-signing-pending', 'perm': None, 'perm_id': None}, ]
+            {
+                "arches": "i386 x86_64 ppc ppc64",
+                "id": 10,
+                "locked": True,
+                "name": "f17-updates-candidate",
+                "perm": None,
+                "perm_id": None,
+            },
+            {
+                "arches": "i386 x86_64 ppc ppc64",
+                "id": 10,
+                "locked": True,
+                "name": "f17-updates-signing-pending",
+                "perm": None,
+                "perm_id": None,
+            },
+        ]
 
         buildsys.get_session.return_value.listTags.return_value = listTags
         check_signed_builds_main()
@@ -202,15 +255,18 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         update = models.Update.query.first()
         buildsys.get_session.assert_called_once()
         assert update.builds[0].signed is False
-        debug.assert_called_once_with('bodhi-2.0-1.fc17 is stuck waiting to be signed, '
-                                      'let\'s try again')
+        debug.assert_called_once_with(
+            "bodhi-2.0-1.fc17 is stuck waiting to be signed, let's try again"
+        )
         buildsys.get_session.return_value.untagBuild.assert_called_once_with(
-            'f17-updates-signing-pending', 'bodhi-2.0-1.fc17', force=True)
+            "f17-updates-signing-pending", "bodhi-2.0-1.fc17", force=True
+        )
         buildsys.get_session.return_value.tagBuild.assert_called_once_with(
-            'f17-updates-signing-pending', 'bodhi-2.0-1.fc17', force=True)
+            "f17-updates-signing-pending", "bodhi-2.0-1.fc17", force=True
+        )
 
-    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
-    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    @patch("bodhi.server.tasks.check_signed_builds.buildsys")
+    @patch("bodhi.server.tasks.check_signed_builds.log.debug")
     def test_check_signed_builds_never_sent_to_signing(self, debug, buildsys):
         """
         When an Update is created, its builds should have been sent to pending-signing.
@@ -225,8 +281,15 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         self.db.commit()
 
         listTags = [
-            {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-             'name': 'f17-updates-candidate', 'perm': None, 'perm_id': None}, ]
+            {
+                "arches": "i386 x86_64 ppc ppc64",
+                "id": 10,
+                "locked": True,
+                "name": "f17-updates-candidate",
+                "perm": None,
+                "perm_id": None,
+            },
+        ]
 
         buildsys.get_session.return_value.listTags.return_value = listTags
         check_signed_builds_main()
@@ -234,13 +297,15 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         update = models.Update.query.first()
         buildsys.get_session.assert_called_once()
         assert update.builds[0].signed is False
-        debug.assert_called_once_with('Oh, no! We\'ve never sent bodhi-2.0-1.fc17 for signing, '
-                                      'let\'s fix it')
+        debug.assert_called_once_with(
+            "Oh, no! We've never sent bodhi-2.0-1.fc17 for signing, let's fix it"
+        )
         buildsys.get_session.return_value.tagBuild.assert_called_once_with(
-            'f17-updates-signing-pending', 'bodhi-2.0-1.fc17', force=True)
+            "f17-updates-signing-pending", "bodhi-2.0-1.fc17", force=True
+        )
 
-    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
-    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    @patch("bodhi.server.tasks.check_signed_builds.buildsys")
+    @patch("bodhi.server.tasks.check_signed_builds.log.debug")
     def test_check_signed_builds_mark_signed(self, debug, buildsys):
         """
         The task should mark signed builds with correct tags.
@@ -251,21 +316,34 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         self.db.commit()
 
         listTags = [
-            {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-             'name': 'f17-updates-candidate', 'perm': None, 'perm_id': None},
-            {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-             'name': 'f17-updates-testing-pending', 'perm': None, 'perm_id': None}, ]
+            {
+                "arches": "i386 x86_64 ppc ppc64",
+                "id": 10,
+                "locked": True,
+                "name": "f17-updates-candidate",
+                "perm": None,
+                "perm_id": None,
+            },
+            {
+                "arches": "i386 x86_64 ppc ppc64",
+                "id": 10,
+                "locked": True,
+                "name": "f17-updates-testing-pending",
+                "perm": None,
+                "perm_id": None,
+            },
+        ]
 
         buildsys.get_session.return_value.listTags.return_value = listTags
         check_signed_builds_main()
 
         update = models.Update.query.first()
         buildsys.get_session.assert_called_once()
-        debug.assert_called_once_with('Changing signed status of bodhi-2.0-1.fc17')
+        debug.assert_called_once_with("Changing signed status of bodhi-2.0-1.fc17")
         assert update.builds[0].signed is True
 
-    @patch('bodhi.server.tasks.check_signed_builds.buildsys')
-    @patch('bodhi.server.tasks.check_signed_builds.log.debug')
+    @patch("bodhi.server.tasks.check_signed_builds.buildsys")
+    @patch("bodhi.server.tasks.check_signed_builds.log.debug")
     def test_check_signed_builds_obsolete_empty_update(self, debug, buildsys):
         """
         The task should obsolete an Update if there are no Builds attached to it.
@@ -279,5 +357,5 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
 
         update = models.Update.query.first()
         buildsys.get_session.assert_called_once()
-        debug.assert_called_once_with(f'Obsoleting empty update {update.alias}')
+        debug.assert_called_once_with(f"Obsoleting empty update {update.alias}")
         assert update.status == models.UpdateStatus.obsolete

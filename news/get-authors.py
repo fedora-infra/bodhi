@@ -21,7 +21,6 @@ import os
 from argparse import ArgumentParser
 from subprocess import check_output
 
-
 EXCLUDE = [
     "renovate[bot]",
 ]
@@ -47,9 +46,7 @@ args = args_parser.parse_args()
 
 authors = {}
 log_range = args.since + ".." + args.until
-output = check_output(
-    ["git", "log", log_range, "--format=%ae\t%an"], universal_newlines=True
-)
+output = check_output(["git", "log", log_range, "--format=%ae\t%an"], universal_newlines=True)
 for line in output.splitlines():
     email, fullname = line.split("\t")
     email = email.split("@")[0].replace(".", "")
