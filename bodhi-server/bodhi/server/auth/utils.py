@@ -3,23 +3,19 @@
 import typing
 
 from authlib.oauth2.rfc6750 import InvalidTokenError
+from bodhi.server import log
+from bodhi.server.models import Group, User
 from pyramid.httpexceptions import HTTPFound, HTTPUnauthorized
 from pyramid.security import remember
 
-from bodhi.server import log
-from bodhi.server.models import Group, User
-
-
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import mako.runtime.Context  # noqa: F401
-    import pyramid.request.Request  # noqa: F401
-    import pyramid.response.Response  # noqa: F401
+    import mako.runtime.Context
+    import pyramid.request.Request
+    import pyramid.response.Response
 
 
 def get_and_store_user(
-    request: 'pyramid.request.Request',
-    access_token: str,
-    response: 'pyramid.response.Response'
+    request: "pyramid.request.Request", access_token: str, response: "pyramid.response.Response"
 ):
     """Get or create the user and log them in.
 
@@ -40,13 +36,13 @@ def get_and_store_user(
     if "error" in userinfo:
         raise InvalidTokenError(description=userinfo["error_description"])
 
-    username = userinfo['nickname']
-    log.info(f'{username} successfully logged in')
+    username = userinfo["nickname"]
+    log.info(f"{username} successfully logged in")
     # Create or update the user in the database, update the groups
     user = create_or_update_user(
         request.db,
         username,
-        userinfo['email'],
+        userinfo["email"],
         userinfo.get("groups", []),
     )
     # Log the user in
@@ -55,8 +51,9 @@ def get_and_store_user(
     return user
 
 
-def remember_me(context: 'mako.runtime.Context', request: 'pyramid.request.Request',
-                info: dict, *args, **kw) -> HTTPFound:
+def remember_me(
+    context: "mako.runtime.Context", request: "pyramid.request.Request", info: dict, *args, **kw
+) -> HTTPFound:
     """
     Remember information about a newly logged in user given by the OpenID provider.
 
@@ -75,20 +72,20 @@ def remember_me(context: 'mako.runtime.Context', request: 'pyramid.request.Reque
         A 302 redirect to the URL the user was visiting before
             they clicked login, or home if they have not used a valid OpenID provider.
     """
-    log.debug('remember_me(%s)' % locals())
-    log.debug('remember_me: request.params = %r' % request.params)
-    endpoint = request.params['openid.op_endpoint']
-    if endpoint != request.registry.settings['openid.provider']:
-        log.warning('Invalid OpenID provider: %s' % endpoint)
+    log.debug(f"remember_me({locals()})")
+    log.debug(f"remember_me: request.params = {request.params!r}")
+    endpoint = request.params["openid.op_endpoint"]
+    if endpoint != request.registry.settings["openid.provider"]:
+        log.warning(f"Invalid OpenID provider: {endpoint}")
         raise HTTPUnauthorized(
-            'Invalid OpenID provider. You can only use: %s' %
-            request.registry.settings['openid.provider']
+            "Invalid OpenID provider. You can only use: "
+            f"{request.registry.settings['openid.provider']}"
         )
 
-    username = info['sreg']['nickname']
-    email = info['sreg']['email']
-    log.debug('remember_me: groups = %s' % info['groups'])
-    log.info('%s successfully logged in' % username)
+    username = info["sreg"]["nickname"]
+    email = info["sreg"]["email"]
+    log.debug(f"remember_me: groups = {info["groups"]}")
+    log.info(f"{username} successfully logged in")
 
     create_or_update_user(request.db, username, email, info["groups"])
 
@@ -135,19 +132,19 @@ def create_or_update_user(db, username, email, groups):
             db.add(group)
             db.flush()
         if group not in user.groups:
-            log.info('Adding %s to %s group', user.name, group.name)
+            log.info("Adding %s to %s group", user.name, group.name)
             user.groups.append(group)
 
     # See if the user was removed from any groups
     for group in user.groups:
         if group.name not in groups:
-            log.info('Removing %s from %s group', user.name, group.name)
+            log.info("Removing %s from %s group", user.name, group.name)
             user.groups.remove(group)
 
     return user
 
 
-def get_final_redirect(request: 'pyramid.request.Request'):
+def get_final_redirect(request: "pyramid.request.Request"):
     """Get the URL that the user should be redirected to after logging in.
 
     Args:
@@ -156,14 +153,14 @@ def get_final_redirect(request: 'pyramid.request.Request'):
     Returns:
         HTTPFound: An HTTP 302 response redirecting to the right URL.
     """
-    came_from = request.session.get('came_from', request.route_path("home"))
-    request.session.pop('came_from', None)
+    came_from = request.session.get("came_from", request.route_path("home"))
+    request.session.pop("came_from", None)
 
     # Mitigate "Covert Redirect"
     if not came_from.startswith(request.host_url):
         came_from = request.route_path("home")
     # Don't redirect endlessly to the login view
-    if came_from.startswith(request.route_url('login')):
+    if came_from.startswith(request.route_url("login")):
         came_from = request.route_path("home")
 
     return HTTPFound(location=came_from)

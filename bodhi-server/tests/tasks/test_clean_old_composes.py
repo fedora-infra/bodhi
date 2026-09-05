@@ -19,14 +19,15 @@
 This module contains tests for the bodhi.server.tasks.clean_old_composes module.
 """
 
-from unittest.mock import patch
 import os
 import shutil
 import tempfile
+from unittest.mock import patch
 
 from bodhi.server import config
 from bodhi.server.tasks import clean_old_composes_task
 from bodhi.server.tasks.clean_old_composes import main as clean_old_composes_main
+
 from ..base import BasePyTestCase
 
 
@@ -60,7 +61,7 @@ class TestMain(BasePyTestCase):
         shutil.rmtree(self.compose_dir)
         super().teardown_method(method)
 
-    @patch('bodhi.server.tasks.clean_old_composes.log')
+    @patch("bodhi.server.tasks.clean_old_composes.log")
     def test_main(self, log):
         """
         Assert that clean_up removes the correct items and leaves the rest in place.
@@ -68,51 +69,94 @@ class TestMain(BasePyTestCase):
         # Set up some directories that look similar to what might be found in production, with
         # some directories that don't match the pattern of ending in -<timestamp>.
         dirs = [
-            'dist-5E-epel-161003.0724', 'dist-5E-epel-161011.0458', 'dist-5E-epel-161012.1854',
-            'dist-5E-epel-161013.1711', 'dist-5E-epel-testing-161001.0424',
-            'dist-5E-epel-testing-161003.0856', 'dist-5E-epel-testing-161006.0053',
-            'dist-6E-epel-161002.2331', 'dist-6E-epel-161003.2046',
-            'dist-6E-epel-testing-161001.0528', 'epel7-161003.0724', 'epel7-161003.2046',
-            'epel7-161004.1423', 'epel7-161005.1122', 'epel7-testing-161001.0424',
-            'epel7-testing-161003.0621', 'epel7-testing-161003.2217', 'f23-updates-161002.2331',
-            'f23-updates-161003.1302', 'f23-updates-161004.1423', 'f23-updates-161005.0259',
-            'f23-updates-testing-161001.0424', 'f23-updates-testing-161003.0621',
-            'f23-updates-testing-161003.2217', 'f24-updates-161002.2331',
-            'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
-            'this_should_get_left_alone', 'f23-updates-should_be_untouched',
-            'f23-updates.repocache', 'f23-updates-testing-blank']
+            "dist-5E-epel-161003.0724",
+            "dist-5E-epel-161011.0458",
+            "dist-5E-epel-161012.1854",
+            "dist-5E-epel-161013.1711",
+            "dist-5E-epel-testing-161001.0424",
+            "dist-5E-epel-testing-161003.0856",
+            "dist-5E-epel-testing-161006.0053",
+            "dist-6E-epel-161002.2331",
+            "dist-6E-epel-161003.2046",
+            "dist-6E-epel-testing-161001.0528",
+            "epel7-161003.0724",
+            "epel7-161003.2046",
+            "epel7-161004.1423",
+            "epel7-161005.1122",
+            "epel7-testing-161001.0424",
+            "epel7-testing-161003.0621",
+            "epel7-testing-161003.2217",
+            "f23-updates-161002.2331",
+            "f23-updates-161003.1302",
+            "f23-updates-161004.1423",
+            "f23-updates-161005.0259",
+            "f23-updates-testing-161001.0424",
+            "f23-updates-testing-161003.0621",
+            "f23-updates-testing-161003.2217",
+            "f24-updates-161002.2331",
+            "f24-updates-161003.1302",
+            "f24-updates-testing-161001.0424",
+            "this_should_get_left_alone",
+            "f23-updates-should_be_untouched",
+            "f23-updates.repocache",
+            "f23-updates-testing-blank",
+        ]
         [os.makedirs(os.path.join(self.compose_dir, d)) for d in dirs]
         # Now let's make a few files here and there.
-        with open(os.path.join(self.compose_dir, 'dist-5E-epel-161003.0724', 'oops.txt'),
-                  'w') as oops:
-            oops.write('This compose failed to get cleaned and left this file around, oops!')
-        with open(os.path.join(self.compose_dir, 'COOL_FILE.txt'), 'w') as cool_file:
-            cool_file.write('This file should be allowed to hang out here because it\'s cool.')
-        with patch.dict(config.config, {'compose_dir': self.compose_dir}):
+        with open(
+            os.path.join(self.compose_dir, "dist-5E-epel-161003.0724", "oops.txt"), "w"
+        ) as oops:
+            oops.write("This compose failed to get cleaned and left this file around, oops!")
+        with open(os.path.join(self.compose_dir, "COOL_FILE.txt"), "w") as cool_file:
+            cool_file.write("This file should be allowed to hang out here because it's cool.")
+        with patch.dict(config.config, {"compose_dir": self.compose_dir}):
             clean_old_composes_main(2)
         # We expect these and only these directories to remain.
         expected_dirs = {
-            'dist-5E-epel-161012.1854', 'dist-5E-epel-161013.1711',
-            'dist-5E-epel-testing-161003.0856', 'dist-5E-epel-testing-161006.0053',
-            'dist-6E-epel-161002.2331', 'dist-6E-epel-161003.2046',
-            'dist-6E-epel-testing-161001.0528', 'epel7-161004.1423', 'epel7-161005.1122',
-            'epel7-testing-161003.0621', 'epel7-testing-161003.2217', 'f23-updates-161004.1423',
-            'f23-updates-161005.0259', 'f23-updates-testing-161003.0621',
-            'f23-updates-testing-161003.2217', 'f24-updates-161002.2331',
-            'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
-            'this_should_get_left_alone', 'f23-updates-should_be_untouched',
-            'f23-updates.repocache', 'f23-updates-testing-blank'}
-        actual_dirs = set([d for d in os.listdir(self.compose_dir)
-                           if os.path.isdir(os.path.join(self.compose_dir, d))])
+            "dist-5E-epel-161012.1854",
+            "dist-5E-epel-161013.1711",
+            "dist-5E-epel-testing-161003.0856",
+            "dist-5E-epel-testing-161006.0053",
+            "dist-6E-epel-161002.2331",
+            "dist-6E-epel-161003.2046",
+            "dist-6E-epel-testing-161001.0528",
+            "epel7-161004.1423",
+            "epel7-161005.1122",
+            "epel7-testing-161003.0621",
+            "epel7-testing-161003.2217",
+            "f23-updates-161004.1423",
+            "f23-updates-161005.0259",
+            "f23-updates-testing-161003.0621",
+            "f23-updates-testing-161003.2217",
+            "f24-updates-161002.2331",
+            "f24-updates-161003.1302",
+            "f24-updates-testing-161001.0424",
+            "this_should_get_left_alone",
+            "f23-updates-should_be_untouched",
+            "f23-updates.repocache",
+            "f23-updates-testing-blank",
+        }
+        actual_dirs = set(
+            [
+                d
+                for d in os.listdir(self.compose_dir)
+                if os.path.isdir(os.path.join(self.compose_dir, d))
+            ]
+        )
         assert actual_dirs == expected_dirs
         # The cool file should still be here
-        actual_files = [f for f in os.listdir(self.compose_dir)
-                        if os.path.isfile(os.path.join(self.compose_dir, f))]
-        assert actual_files == ['COOL_FILE.txt']
+        actual_files = [
+            f
+            for f in os.listdir(self.compose_dir)
+            if os.path.isfile(os.path.join(self.compose_dir, f))
+        ]
+        assert actual_files == ["COOL_FILE.txt"]
         # Make sure the logged output is correct
         expected_output = set(dirs) - expected_dirs
         expected_output = {os.path.join(self.compose_dir, d) for d in expected_output}
-        expected_output = expected_output | {'Deleting the following directories:',
-                                             f'Cleaning {self.compose_dir}...'}
+        expected_output = expected_output | {
+            "Deleting the following directories:",
+            f"Cleaning {self.compose_dir}...",
+        }
         logged = set([c[0][0] for c in log.info.call_args_list])
         assert logged == expected_output

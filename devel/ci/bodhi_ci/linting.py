@@ -28,7 +28,7 @@ class PreCommitJob(Job):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _label = 'pre-commit'
+    _label = "pre-commit"
     _command = ["/usr/bin/pre-commit", "run", "-a"]
     _dependencies = [BuildJob]
     only_releases = ["pip"]

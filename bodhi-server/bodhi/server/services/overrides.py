@@ -17,15 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define API endpoints for managing and searching buildroot overrides."""
 
-from datetime import datetime, timezone
+# ruff: noqa: C408
+
 import math
+from datetime import datetime, timezone
 
-from cornice import Service
-from cornice.validators import colander_body_validator, colander_querystring_validator
-from pyramid.exceptions import HTTPNotFound
-from sqlalchemy import distinct, func, LABEL_STYLE_TABLENAME_PLUS_COL
-from sqlalchemy.sql import or_
-
+import bodhi.server.schemas
+import bodhi.server.services.errors
 from bodhi.server import log, security
 from bodhi.server.models import Build, BuildrootOverride, Package, Release, User
 from bodhi.server.validators import (
@@ -36,32 +34,52 @@ from bodhi.server.validators import (
     validate_releases,
     validate_username,
 )
-import bodhi.server.schemas
-import bodhi.server.services.errors
+from cornice import Service
+from cornice.validators import colander_body_validator, colander_querystring_validator
+from pyramid.exceptions import HTTPNotFound
+from sqlalchemy import LABEL_STYLE_TABLENAME_PLUS_COL, distinct, func
+from sqlalchemy.sql import or_
+
+override = Service(
+    name="override",
+    path="/overrides/{nvr}",
+    description="Buildroot Overrides",
+    cors_origins=bodhi.server.security.cors_origins_ro,
+)
+
+overrides = Service(
+    name="overrides",
+    path="/overrides/",
+    description="Buildroot Overrides",
+    factory=security.PackagerACLFactory,
+    # Note, this 'rw' is not a typo.  the @comments service has
+    # a ``post`` section at the bottom.
+    cors_origins=bodhi.server.security.cors_origins_rw,
+)
+
+overrides_rss = Service(
+    name="overrides_rss",
+    path="/rss/overrides/",
+    description="Buildroot Overrides RSS Feed",
+    cors_origins=bodhi.server.security.cors_origins_ro,
+)
 
 
-override = Service(name='override', path='/overrides/{nvr}',
-                   description='Buildroot Overrides',
-                   cors_origins=bodhi.server.security.cors_origins_ro)
-
-overrides = Service(name='overrides', path='/overrides/',
-                    description='Buildroot Overrides',
-                    factory=security.PackagerACLFactory,
-                    # Note, this 'rw' is not a typo.  the @comments service has
-                    # a ``post`` section at the bottom.
-                    cors_origins=bodhi.server.security.cors_origins_rw)
-
-overrides_rss = Service(name='overrides_rss', path='/rss/overrides/',
-                        description='Buildroot Overrides RSS Feed',
-                        cors_origins=bodhi.server.security.cors_origins_ro)
-
-
-@override.get(accept=("application/json", "text/json"), renderer="json",
-              error_handler=bodhi.server.services.errors.json_handler)
-@override.get(accept=("application/javascript"), renderer="jsonp",
-              error_handler=bodhi.server.services.errors.jsonp_handler)
-@override.get(accept=("text/html"), renderer="override.html",
-              error_handler=bodhi.server.services.errors.html_handler)
+@override.get(
+    accept=("application/json", "text/json"),
+    renderer="json",
+    error_handler=bodhi.server.services.errors.json_handler,
+)
+@override.get(
+    accept=("application/javascript"),
+    renderer="jsonp",
+    error_handler=bodhi.server.services.errors.jsonp_handler,
+)
+@override.get(
+    accept=("text/html"),
+    renderer="override.html",
+    error_handler=bodhi.server.services.errors.html_handler,
+)
 def get_override(request):
     """
     Return a dictionary with key "override" indexing the override that matches the given nvr.
@@ -72,18 +90,17 @@ def get_override(request):
     Returns:
         dict: A dictionary with key "override" that indexes the override matching the given nvr.
     """
-    nvr = request.matchdict.get('nvr')
+    nvr = request.matchdict.get("nvr")
 
     build = Build.get(nvr)
 
     if not build:
-        request.errors.add('url', 'nvr', 'No such build')
+        request.errors.add("url", "nvr", "No such build")
         request.errors.status = HTTPNotFound.code
         return
 
     if not build.override:
-        request.errors.add('url', 'nvr',
-                           'No buildroot override for this build')
+        request.errors.add("url", "nvr", "No buildroot override for this build")
         request.errors.status = HTTPNotFound.code
         return
 
@@ -98,25 +115,40 @@ validators = (
 )
 
 
-@overrides_rss.get(schema=bodhi.server.schemas.ListOverrideSchema(), renderer='rss',
-                   error_handler=bodhi.server.services.errors.html_handler,
-                   validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(), renderer='rss',
-               accept=('application/atom+xml',),
-               error_handler=bodhi.server.services.errors.html_handler,
-               validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(),
-               accept=("application/json", "text/json"), renderer="json",
-               error_handler=bodhi.server.services.errors.json_handler,
-               validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(),
-               accept=("application/javascript"), renderer="jsonp",
-               error_handler=bodhi.server.services.errors.jsonp_handler,
-               validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(),
-               accept=('text/html'), renderer='overrides.html',
-               error_handler=bodhi.server.services.errors.html_handler,
-               validators=validators)
+@overrides_rss.get(
+    schema=bodhi.server.schemas.ListOverrideSchema(),
+    renderer="rss",
+    error_handler=bodhi.server.services.errors.html_handler,
+    validators=validators,
+)
+@overrides.get(
+    schema=bodhi.server.schemas.ListOverrideSchema(),
+    renderer="rss",
+    accept=("application/atom+xml",),
+    error_handler=bodhi.server.services.errors.html_handler,
+    validators=validators,
+)
+@overrides.get(
+    schema=bodhi.server.schemas.ListOverrideSchema(),
+    accept=("application/json", "text/json"),
+    renderer="json",
+    error_handler=bodhi.server.services.errors.json_handler,
+    validators=validators,
+)
+@overrides.get(
+    schema=bodhi.server.schemas.ListOverrideSchema(),
+    accept=("application/javascript"),
+    renderer="jsonp",
+    error_handler=bodhi.server.services.errors.jsonp_handler,
+    validators=validators,
+)
+@overrides.get(
+    schema=bodhi.server.schemas.ListOverrideSchema(),
+    accept=("text/html"),
+    renderer="overrides.html",
+    error_handler=bodhi.server.services.errors.html_handler,
+    validators=validators,
+)
 def query_overrides(request):
     """
     Search for overrides by various criteria.
@@ -145,41 +177,39 @@ def query_overrides(request):
     data = request.validated
     query = db.query(BuildrootOverride)
 
-    expired = data.get('expired')
+    expired = data.get("expired")
     if expired is not None:
         if expired:
             query = query.filter(BuildrootOverride.expired_date.isnot(None))
         else:
             query = query.filter(BuildrootOverride.expired_date.is_(None))
 
-    builds = data.get('builds')
+    builds = data.get("builds")
     if builds is not None:
         query = query.join(BuildrootOverride.build)
         query = query.filter(or_(*[Build.nvr == bld for bld in builds]))
 
-    packages = data.get('packages')
+    packages = data.get("packages")
     if packages is not None:
         query = query.join(BuildrootOverride.build).join(Build.package)
         query = query.filter(or_(*[Package.name == pkg.name for pkg in packages]))
 
-    releases = data.get('releases')
+    releases = data.get("releases")
     if releases is not None:
         query = query.join(BuildrootOverride.build).join(Build.release)
         query = query.filter(or_(*[Release.name == r.name for r in releases]))
 
-    like = data.get('like')
+    like = data.get("like")
     if like is not None:
         query = query.join(BuildrootOverride.build)
-        query = query.filter(or_(*[
-            Build.nvr.like('%%%s%%' % like)
-        ]))
+        query = query.filter(or_(*[Build.nvr.like(f"%{like}%")]))
 
-    search = data.get('search')
+    search = data.get("search")
     if search is not None:
         query = query.join(BuildrootOverride.build)
-        query = query.filter(Build.nvr.ilike('%%%s%%' % search))
+        query = query.filter(Build.nvr.ilike(f"%{search}%"))
 
-    submitter = data.get('user')
+    submitter = data.get("user")
     if submitter is not None:
         query = query.filter(or_(*[BuildrootOverride.submitter == s for s in submitter]))
 
@@ -187,14 +217,16 @@ def query_overrides(request):
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
-    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
-        .with_only_columns(func.count(distinct(BuildrootOverride.id)))\
+    count_query = (
+        query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL)
+        .statement.with_only_columns(func.count(distinct(BuildrootOverride.id)))
         .order_by(None)
+    )
     total = db.execute(count_query).scalar()
 
-    page = data.get('page')
-    rows_per_page = data.get('rows_per_page')
-    pages = int(math.ceil(total / float(rows_per_page)))
+    page = data.get("page")
+    rows_per_page = data.get("rows_per_page")
+    pages = math.ceil(total / int(rows_per_page))
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
     return_values = dict(
@@ -203,8 +235,8 @@ def query_overrides(request):
         pages=pages,
         rows_per_page=rows_per_page,
         total=total,
-        chrome=data.get('chrome'),
-        display_user=data.get('display_user'),
+        chrome=data.get("chrome"),
+        display_user=data.get("display_user"),
     )
     # we need some extra information for the searching / filterings interface
     # when rendering the html, so we add this here.
@@ -217,27 +249,29 @@ def query_overrides(request):
 
 @overrides.post(
     schema=bodhi.server.schemas.SaveOverrideSchema(),
-    permission='edit',
-    accept=("application/json", "text/json"), renderer='json',
+    permission="edit",
+    accept=("application/json", "text/json"),
+    renderer="json",
     error_handler=bodhi.server.services.errors.json_handler,
     validators=(
         colander_body_validator,
         validate_override_builds,
         validate_expiration_date,
         validate_override_notes,
-    )
+    ),
 )
 @overrides.post(
     schema=bodhi.server.schemas.SaveOverrideSchema(),
-    permission='edit',
-    accept=("application/javascript"), renderer="jsonp",
+    permission="edit",
+    accept=("application/javascript"),
+    renderer="jsonp",
     error_handler=bodhi.server.services.errors.jsonp_handler,
     validators=(
         colander_body_validator,
         validate_override_builds,
         validate_expiration_date,
         validate_override_notes,
-    )
+    ),
 )
 def save_override(request):
     """
@@ -260,79 +294,88 @@ def save_override(request):
     try:
         submitter = User.get(request.identity.name)
         if edited is None:
-            builds = data['builds']
+            builds = data["builds"]
             overrides = []
             if len(builds) > 1:
-                caveats.append({
-                    'name': 'nvrs',
-                    'description': 'Your override submission was '
-                    'split into %i.' % len(builds)
-                })
+                caveats.append(
+                    {
+                        "name": "nvrs",
+                        "description": f"Your override submission was split into {len(builds)}.",
+                    }
+                )
             for build in builds:
-                log.info("Creating a new buildroot override: %s" % build.nvr)
+                log.info(f"Creating a new buildroot override: {build.nvr}")
                 existing_override = BuildrootOverride.get(build.id)
                 if existing_override:
                     if not existing_override.expired_date:
-                        data['expiration_date'] = max(existing_override.expiration_date,
-                                                      data['expiration_date'])
+                        data["expiration_date"] = max(
+                            existing_override.expiration_date, data["expiration_date"]
+                        )
 
-                    new_notes = f"""{data['notes']}
+                    new_notes = f"""{data["notes"]}
 _____________
-_@{existing_override.submitter.name} ({existing_override.submission_date.strftime('%b %d, %Y')})_
+_@{existing_override.submitter.name} ({existing_override.submission_date.strftime("%b %d, %Y")})_
 {existing_override.notes}"""
                     # Truncate notes at 2000 chars
                     if len(new_notes) > 2000:
-                        new_notes = new_notes[:1972] + '(...)\n___Notes truncated___'
+                        new_notes = new_notes[:1972] + "(...)\n___Notes truncated___"
 
-                    overrides.append(BuildrootOverride.edit(
-                        request,
-                        edited=build,
-                        submitter=submitter,
-                        submission_date=datetime.now(timezone.utc),
-                        notes=new_notes,
-                        expiration_date=data['expiration_date'],
-                        expired=None,
-                    ))
+                    overrides.append(
+                        BuildrootOverride.edit(
+                            request,
+                            edited=build,
+                            submitter=submitter,
+                            submission_date=datetime.now(timezone.utc),
+                            notes=new_notes,
+                            expiration_date=data["expiration_date"],
+                            expired=None,
+                        )
+                    )
                 else:
-                    overrides.append(BuildrootOverride.new(
-                        request,
-                        build=build,
-                        submitter=submitter,
-                        notes=data['notes'],
-                        expiration_date=data['expiration_date'],
-                    ))
+                    overrides.append(
+                        BuildrootOverride.new(
+                            request,
+                            build=build,
+                            submitter=submitter,
+                            notes=data["notes"],
+                            expiration_date=data["expiration_date"],
+                        )
+                    )
 
             if len(builds) > 1:
                 result = dict(overrides=overrides)
             else:
                 result = overrides[0]
         else:
-            log.info("Editing buildroot override: %s" % edited)
+            log.info(f"Editing buildroot override: {edited}")
 
             edited = Build.get(edited)
 
             if edited is None:
-                request.errors.add('body', 'edited', 'No such build')
+                request.errors.add("body", "edited", "No such build")
                 return
 
             result = BuildrootOverride.edit(
-                request, edited=edited, submitter=submitter,
-                notes=data["notes"], expired=data["expired"],
-                expiration_date=data["expiration_date"])
+                request,
+                edited=edited,
+                submitter=submitter,
+                notes=data["notes"],
+                expired=data["expired"],
+                expiration_date=data["expiration_date"],
+            )
 
             if not result:
                 # Some error inside .edit(...)
                 return
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         log.exception(e)
-        request.errors.add('body', 'override',
-                           'Unable to save buildroot override: %s' % e)
+        request.errors.add("body", "override", f"Unable to save buildroot override: {e}")
         return
 
     if not isinstance(result, dict):
         result = result.__json__()
 
-    result['caveats'] = caveats
+    result["caveats"] = caveats
 
     return result

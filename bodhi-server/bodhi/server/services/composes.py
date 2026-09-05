@@ -17,18 +17,21 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines service endpoints pertaining to Composes."""
 
+
+from bodhi.server import models, security
+from bodhi.server.services import errors
 from cornice.resource import resource, view
 from pyramid import httpexceptions
 from pyramid.authorization import Allow, Everyone
 from sqlalchemy.orm import exc
 
-from bodhi.server import models, security
-from bodhi.server.services import errors
 
-
-@resource(collection_path='/composes/', path='/composes/{release_name}/{request}',
-          description='Compose service')
-class Composes(object):
+@resource(
+    collection_path="/composes/",
+    path="/composes/{release_name}/{request}",
+    description="Compose service",
+)
+class Composes:
     """
     Defines resources for interacting with Compose objects.
 
@@ -53,14 +56,22 @@ class Composes(object):
         Returns:
             list: A list of ACLs for this Resource.
         """
-        return [(Allow, Everyone, 'view_composes')]
+        return [(Allow, Everyone, "view_composes")]
 
     @view(
-        accept=('application/json', 'text/json'), renderer='json',
-        cors_origins=security.cors_origins_ro, error_handler=errors.json_handler,
-        permission='view_composes')
-    @view(accept=('text/html',), renderer='composes.html', cors_origins=security.cors_origins_ro,
-          permission='view_composes', error_handler=errors.html_handler)
+        accept=("application/json", "text/json"),
+        renderer="json",
+        cors_origins=security.cors_origins_ro,
+        error_handler=errors.json_handler,
+        permission="view_composes",
+    )
+    @view(
+        accept=("text/html",),
+        renderer="composes.html",
+        cors_origins=security.cors_origins_ro,
+        permission="view_composes",
+        error_handler=errors.html_handler,
+    )
     def collection_get(self):
         """
         List composes.
@@ -70,13 +81,22 @@ class Composes(object):
         Returns:
             dict: A dictionary mapping the key 'composes' to an iterable of all Compose objects.
         """
-        return {'composes': sorted(models.Compose.query.all())}
+        return {"composes": sorted(models.Compose.query.all())}
 
-    @view(accept=('application/json', 'text/json'), renderer='json',
-          cors_origins=security.cors_origins_ro, error_handler=errors.json_handler,
-          permission='view_composes')
-    @view(accept=('text/html',), renderer='compose.html', cors_origins=security.cors_origins_ro,
-          permission='view_composes', error_handler=errors.html_handler)
+    @view(
+        accept=("application/json", "text/json"),
+        renderer="json",
+        cors_origins=security.cors_origins_ro,
+        error_handler=errors.json_handler,
+        permission="view_composes",
+    )
+    @view(
+        accept=("text/html",),
+        renderer="compose.html",
+        cors_origins=security.cors_origins_ro,
+        permission="view_composes",
+        error_handler=errors.html_handler,
+    )
     def get(self):
         """
         Retrieve and render a single compose.
@@ -88,13 +108,15 @@ class Composes(object):
         """
         try:
             release = models.Release.query.filter_by(
-                name=self.request.matchdict['release_name']).one()
+                name=self.request.matchdict["release_name"]
+            ).one()
             compose = models.Compose.query.filter_by(
                 release_id=release.id,
-                request=models.UpdateRequest.from_string(self.request.matchdict['request'])).one()
+                request=models.UpdateRequest.from_string(self.request.matchdict["request"]),
+            ).one()
         except (exc.NoResultFound, ValueError):
             # NoResultFound means that either the Release or the Compose does not exist. ValueError
             # can happen if the request component of the URL does not match one of the enums.
             raise httpexceptions.HTTPNotFound()
 
-        return {'compose': compose}
+        return {"compose": compose}

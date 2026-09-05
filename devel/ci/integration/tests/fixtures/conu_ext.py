@@ -57,6 +57,7 @@ class Network:
 
 class DockerNetwork(Network):
     """The docker implementation of a network."""
+
     def __init__(self, identifier):
         super().__init__(identifier)
         self.d = get_client()
@@ -66,12 +67,16 @@ class DockerNetwork(Network):
 
     def connect_container(self, container, aliases=None):
         return self.d.connect_container_to_network(
-            container.get_id(), self.get_id(), aliases=aliases,
+            container.get_id(),
+            self.get_id(),
+            aliases=aliases,
         )
 
     def disconnect_container(self, container, force=False):
         return self.d.disconnect_container_from_network(
-            container.get_id(), self.get_id(), force=force,
+            container.get_id(),
+            self.get_id(),
+            force=force,
         )
 
     def remove(self):
@@ -86,6 +91,7 @@ class DockerNetwork(Network):
 
 class PodmanNetwork(Network):
     """The podman implementation of a network."""
+
     def __init__(self, identifier):
         super().__init__(identifier)
 
@@ -93,7 +99,7 @@ class PodmanNetwork(Network):
         return self._id
 
     def connect_container(self, container, aliases=None):
-        cmdline = ['podman', 'network', 'connect']
+        cmdline = ["podman", "network", "connect"]
         for alias in aliases or []:
             cmdline.extend(["--alias", alias])
         cmdline.extend([self.get_id(), container.get_id()])
@@ -102,7 +108,7 @@ class PodmanNetwork(Network):
         return json.loads(output)[0]
 
     def disconnect_container(self, container, force=False):
-        cmdline = ['podman', 'network', 'disconnect']
+        cmdline = ["podman", "network", "disconnect"]
         if force:
             cmdline.append("--force")
         cmdline.extend([self.get_id(), container.get_id()])
@@ -111,11 +117,11 @@ class PodmanNetwork(Network):
         return json.loads(output)[0]
 
     def remove(self):
-        cmdline = ['podman', 'network', 'rm', self.get_id()]
+        cmdline = ["podman", "network", "rm", self.get_id()]
         run_cmd(cmdline, return_output=True, log_output=True)
 
     @classmethod
     def create(cls, name, driver):
-        cmdline = ['podman', 'network', 'create', "--driver", driver, name]
+        cmdline = ["podman", "network", "create", "--driver", driver, name]
         run_cmd(cmdline, return_output=True, log_output=True)
         return cls(name)

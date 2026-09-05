@@ -21,23 +21,22 @@ fedora-messaging consumer.
 This module is responsible for consuming the messaging from the fedora-messaging bus.
 It has the role to inspect the topics of the message and call the correct handler.
 """
-from collections import namedtuple
+
 import logging
+from collections import namedtuple
 
 import fedora_messaging
-
 from bodhi.server import bugs, buildsys, initialize_db, raise_open_file_limit
 from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
-from bodhi.server.consumers.signed import SignedHandler
 from bodhi.server.consumers.resultsdb import ResultsdbHandler
+from bodhi.server.consumers.signed import SignedHandler
 from bodhi.server.consumers.waiverdb import WaiverdbHandler
 
+log = logging.getLogger("bodhi")
 
-log = logging.getLogger('bodhi')
 
-
-HandlerInfo = namedtuple('HandlerInfo', ['topic_suffix', 'name', 'handler'])
+HandlerInfo = namedtuple("HandlerInfo", ["topic_suffix", "name", "handler"])
 
 
 class Consumer:
@@ -45,20 +44,20 @@ class Consumer:
 
     def __init__(self):
         """Set up the database, build system, bug tracker, and handlers."""
-        log.info('Initializing Bodhi')
+        log.info("Initializing Bodhi")
         initialize_db(config)
         buildsys.setup_buildsystem(config)
         bugs.set_bugtracker()
         raise_open_file_limit()
 
         self.handler_infos = [
-            HandlerInfo('.buildsys.tag', "Signed", SignedHandler()),
-            HandlerInfo('.buildsys.tag', 'Automatic Update', AutomaticUpdateHandler()),
-            HandlerInfo('.waiverdb.waiver.new', 'WaiverDB', WaiverdbHandler()),
-            HandlerInfo('.resultsdb.result.new', 'ResultsDB', ResultsdbHandler()),
+            HandlerInfo(".buildsys.tag", "Signed", SignedHandler()),
+            HandlerInfo(".buildsys.tag", "Automatic Update", AutomaticUpdateHandler()),
+            HandlerInfo(".waiverdb.waiver.new", "WaiverDB", WaiverdbHandler()),
+            HandlerInfo(".resultsdb.result.new", "ResultsDB", ResultsdbHandler()),
         ]
 
-    def __call__(self, msg: fedora_messaging.api.Message):  # noqa: D401
+    def __call__(self, msg: fedora_messaging.api.Message):
         """
         Callback method called by fedora-messaging consume.
 
@@ -68,19 +67,21 @@ class Consumer:
         Args:
             msg: The message received from the broker.
         """
-        log.info(f'Received message from fedora-messaging with topic: {msg.topic}')
+        log.info(f"Received message from fedora-messaging with topic: {msg.topic}")
 
         error_handlers_msgs = []
 
         for handler_info in self.handler_infos:
             if not msg.topic.endswith(handler_info.topic_suffix):
                 continue
-            log.debug(f'Passing message to the {handler_info.name} handler')
+            log.debug(f"Passing message to the {handler_info.name} handler")
             try:
                 handler_info.handler(msg)
             except Exception as e:
-                log.exception(f'{str(e)}: Unable to handle message in {handler_info.name} handler: '
-                              f'{msg}')
+                log.exception(
+                    f"{e!s}: Unable to handle message in {handler_info.name} "  #noqa: TRY401
+                    f"handler: {msg}"
+                )
                 error_handlers_msgs.append((handler_info.name, str(e)))
 
         if error_handlers_msgs:

@@ -16,29 +16,23 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test suite for bodhi.server.models"""
-from datetime import datetime, timedelta, timezone
-from unittest import mock
+
 import hashlib
 import html
 import json
 import pickle
 import time
 import uuid
+from datetime import datetime, timedelta, timezone
+from unittest import mock
 
-from fedora_messaging.api import Message
-from fedora_messaging.testing import mock_sends
-from mediawiki.exceptions import HTTPTimeoutError, MediaWikiAPIURLError
-from pyramid.testing import DummyRequest
-from sqlalchemy.exc import IntegrityError
 import cornice
 import pytest
 import requests.exceptions
-
 from bodhi.messages.schemas import errata as errata_schemas
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server import buildsys, mail
+from bodhi.server import Session, buildsys, mail, util
 from bodhi.server import models as model
-from bodhi.server import Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import (
     BodhiException,
@@ -56,6 +50,11 @@ from bodhi.server.models import (
     UpdateSuggestion,
     UpdateType,
 )
+from fedora_messaging.api import Message
+from fedora_messaging.testing import mock_sends
+from mediawiki.exceptions import HTTPTimeoutError, MediaWikiAPIURLError
+from pyramid.testing import DummyRequest
+from sqlalchemy.exc import IntegrityError
 
 from .base import BasePyTestCase, DummyUser
 
@@ -68,9 +67,9 @@ class ModelTest(BasePyTestCase):
     _populate_db = False
 
     def setup_method(self):
-        super(ModelTest, self).setup_method(self)
-        buildsys.setup_buildsystem({'buildsystem': 'dev'})
-        if type(self) is not ModelTest:  # noqa: E721
+        super().setup_method(self)
+        buildsys.setup_buildsystem({"buildsystem": "dev"})
+        if type(self) is not ModelTest:
             try:
                 new_attrs = {}
                 new_attrs.update(self.attrs)
@@ -78,7 +77,7 @@ class ModelTest(BasePyTestCase):
                 # suppress message publication on update creation, the
                 # message somehow 'leaks' into mock_sends if we let it
                 # get published here
-                with mock.patch('bodhi.server.models.notifications'):
+                with mock.patch("bodhi.server.models.notifications"):
                     self.obj = self.klass(**new_attrs)
                 self.db.add(self.obj)
                 self.db.flush()
@@ -88,7 +87,7 @@ class ModelTest(BasePyTestCase):
                 raise
 
     def do_get_dependencies(self):
-        """ Use this method to pull in other objects that need to be
+        """Use this method to pull in other objects that need to be
         created for this object to be built properly.
         """
 
@@ -102,7 +101,7 @@ class ModelTest(BasePyTestCase):
             assert getattr(self.obj, key) == value
 
     def test_json(self):
-        """ Ensure our models can return valid JSON """
+        """Ensure our models can return valid JSON"""
         if type(self) is not ModelTest:
             assert isinstance(json.dumps(self.obj.__json__()), str)
 
@@ -127,7 +126,7 @@ class TestBodhiBase(BasePyTestCase):
         bugs = u._expand(u, u.bugs, [], mock.MagicMock())
 
         assert len(bugs) == 1
-        assert bugs[0]['bug_id'] == 12345
+        assert bugs[0]["bug_id"] == 12345
 
     def test__expand_with_relation_in_seen(self):
         """_expand() should return the relation.id attribute if its type is in seen."""
@@ -139,61 +138,61 @@ class TestBodhiBase(BasePyTestCase):
         """Test __json__()'s exclude flag."""
         c = model.Comment.query.all()[0]
         j_with_text = c.__json__()
-        assert 'text' in j_with_text
+        assert "text" in j_with_text
 
-        j = c.__json__(exclude=['text'])
+        j = c.__json__(exclude=["text"])
 
-        assert 'text' not in j
+        assert "text" not in j
         # If we remove the 'text' attribute from j_with_text, j should be equal to what remains.
-        del j_with_text['text']
+        del j_with_text["text"]
         assert j == j_with_text
 
     def test___json___include(self):
         """Test __json__()'s include flag."""
         c = model.Comment.query.all()[0]
         j_with_text = c.__json__()
-        assert 'unique_testcase_feedback' not in j_with_text
+        assert "unique_testcase_feedback" not in j_with_text
 
-        j = c.__json__(include=['unique_testcase_feedback'])
+        j = c.__json__(include=["unique_testcase_feedback"])
 
-        assert 'unique_testcase_feedback' in j
-        assert j['unique_testcase_feedback'] == []
+        assert "unique_testcase_feedback" in j
+        assert j["unique_testcase_feedback"] == []
         # If we add unique_testcase_feedback to j_with_text, it should be identical.
-        j_with_text['unique_testcase_feedback'] = j['unique_testcase_feedback']
+        j_with_text["unique_testcase_feedback"] = j["unique_testcase_feedback"]
         assert j == j_with_text
 
     def test__to_json_exclude(self):
         """Test _to_json()'s exclude flag."""
         c = model.Comment.query.all()[0]
         j_with_text = c._to_json(c)
-        assert 'text' in j_with_text
+        assert "text" in j_with_text
 
-        j = model.Comment._to_json(c, exclude=['text'])
+        j = model.Comment._to_json(c, exclude=["text"])
 
-        assert 'text' not in j
+        assert "text" not in j
         # If we remove the 'text' attribute from j_with_text, j should be equal to what remains.
-        del j_with_text['text']
+        del j_with_text["text"]
         assert j == j_with_text
 
     def test__to_json_include(self):
         """Test _to_json()'s include flag."""
         c = model.Comment.query.all()[0]
         j_with_text = c._to_json(c)
-        assert 'unique_testcase_feedback' not in j_with_text
+        assert "unique_testcase_feedback" not in j_with_text
 
-        j = model.Comment._to_json(c, include=['unique_testcase_feedback'])
+        j = model.Comment._to_json(c, include=["unique_testcase_feedback"])
 
-        assert 'unique_testcase_feedback' in j
-        assert j['unique_testcase_feedback'] == []
+        assert "unique_testcase_feedback" in j
+        assert j["unique_testcase_feedback"] == []
         # If we add unique_testcase_feedback to j_with_text, it should be identical.
-        j_with_text['unique_testcase_feedback'] = j['unique_testcase_feedback']
+        j_with_text["unique_testcase_feedback"] = j["unique_testcase_feedback"]
         assert j == j_with_text
 
     def test__to_json_falsey_object(self):
         """Assert that _to_json() returns None when handed a Falsey object."""
         assert model.Build._to_json(False, seen=None) is None
         assert model.Build._to_json(None, seen=None) is None
-        assert model.Build._to_json('', seen=None) is None
+        assert model.Build._to_json("", seen=None) is None
         assert model.Build._to_json([], seen=None) is None
 
     def test__to_json_no_seen(self):
@@ -203,13 +202,20 @@ class TestBodhiBase(BasePyTestCase):
         j = b._to_json(b, seen=None)
 
         assert j == (
-            {'release_id': 1, 'epoch': b.epoch, 'nvr': b.nvr,
-             'signed': b.signed, 'type': str(b.type.value)})
+            {
+                "release_id": 1,
+                "epoch": b.epoch,
+                "nvr": b.nvr,
+                "signed": b.signed,
+                "type": str(b.type.value),
+            }
+        )
 
     def test_grid_columns(self):
         """Assert correct return value from the grid_columns() method."""
-        assert sorted(model.Build.grid_columns()) == sorted(['nvr', 'signed', 'release_id',
-                                                             'type', 'epoch'])
+        assert sorted(model.Build.grid_columns()) == sorted(
+            ["nvr", "signed", "release_id", "type", "epoch"]
+        )
 
     def test_find_child_for_rpm(self):
         subclass = model.Package.find_polymorphic_child(model.ContentType.rpm)
@@ -237,8 +243,8 @@ class TestBodhiBase(BasePyTestCase):
 class TestBugAddComment(BasePyTestCase):
     """Test Bug.add_comment()."""
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
-    @mock.patch('bodhi.server.models.log.debug')
+    @mock.patch("bodhi.server.models.bugs.bugtracker.comment")
+    @mock.patch("bodhi.server.models.log.debug")
     def test_parent_security_bug(self, debug, comment):
         """The method should not comment on a parent security bug."""
         update = model.Update.query.first()
@@ -248,7 +254,7 @@ class TestBugAddComment(BasePyTestCase):
 
         bug.add_comment(update)
 
-        debug.assert_called_once_with('Not commenting on parent security bug %s', bug.bug_id)
+        debug.assert_called_once_with("Not commenting on parent security bug %s", bug.bug_id)
         assert comment.call_count == 0
 
 
@@ -264,75 +270,82 @@ class TestBugDefaultMessage(BasePyTestCase):
         with pytest.raises(ValueError) as exc:
             bug.default_message(update)
         assert str(exc.value) == (
-            f'Trying to post a default comment to a bug, but '
-            f'{update.alias} is not in Stable or Testing status.')
+            f"Trying to post a default comment to a bug, but "
+            f"{update.alias} is not in Stable or Testing status."
+        )
 
-    @mock.patch.dict(config, {'stable_bug_msg': 'cool fedora stuff {update_alias}',
-                              'testing_bug_msg': 'not here'})
+    @mock.patch.dict(
+        config,
+        {"stable_bug_msg": "cool fedora stuff {update_alias}", "testing_bug_msg": "not here"},
+    )
     def test_stable_bug_msg(self):
         """Test default message when update is in stable."""
         bug = model.Bug()
         update = model.Update.query.first()
-        update.release.id_prefix = 'FEDORA'
+        update.release.id_prefix = "FEDORA"
         update.status = UpdateStatus.stable
 
         message = bug.default_message(update)
 
-        assert 'cool fedora stuff {}'.format(update.alias) == message
-        assert 'not here' not in message
+        assert f"cool fedora stuff {update.alias}" == message
+        assert "not here" not in message
 
-    @mock.patch.dict(config, {'stable_bug_msg': 'not here',
-                              'testing_bug_msg': 'cool fedora stuff {update_alias}'})
+    @mock.patch.dict(
+        config,
+        {"stable_bug_msg": "not here", "testing_bug_msg": "cool fedora stuff {update_alias}"},
+    )
     def test_testing_bug_msg(self):
         """Test default message when update is in testing."""
         bug = model.Bug()
         update = model.Update.query.first()
-        update.release.id_prefix = 'FEDORA'
+        update.release.id_prefix = "FEDORA"
         update.status = UpdateStatus.testing
 
         message = bug.default_message(update)
 
-        assert 'cool fedora stuff {}'.format(update.alias) == message
-        assert 'not here' not in message
+        assert f"cool fedora stuff {update.alias}" == message
+        assert "not here" not in message
 
     def test_epel_with_testing_bug_epel_msg(self):
         """Test with testing_bug_epel_msg defined."""
-        config['testing_bug_epel_msg'] = 'cool epel stuff {update_url}'
+        config["testing_bug_epel_msg"] = "cool epel stuff {update_url}"
         bug = model.Bug()
         update = model.Update.query.first()
-        update.release.id_prefix = 'FEDORA-EPEL'
+        update.release.id_prefix = "FEDORA-EPEL"
         update.status = UpdateStatus.testing
 
         message = bug.default_message(update)
 
-        assert 'cool epel stuff {}'.format(config['base_address'] + update.get_url()) == message
+        assert "cool epel stuff {}".format(config["base_address"] + update.get_url()) == message
 
-    @mock.patch('bodhi.server.models.log.warning')
+    @mock.patch("bodhi.server.models.log.warning")
     def test_epel_without_testing_bug_epel_msg(self, warning):
         """Test with testing_bug_epel_msg undefined."""
-        config.update({
-            'testing_bug_msg': 'cool fedora stuff {update_url}',
-            'base_address': 'b',
-            'min_karma': 1,
-            'fedora_epel.mandatory_days_in_testing': 0
-        })
+        config.update(
+            {
+                "testing_bug_msg": "cool fedora stuff {update_url}",
+                "base_address": "b",
+                "min_karma": 1,
+                "fedora_epel.mandatory_days_in_testing": 0,
+            }
+        )
         del config["testing_bug_epel_msg"]
         bug = model.Bug()
         update = model.Update.query.first()
-        update.release.id_prefix = 'FEDORA-EPEL'
+        update.release.id_prefix = "FEDORA-EPEL"
         update.status = UpdateStatus.testing
 
         message = bug.default_message(update)
 
         warning.assert_called_once_with("No 'testing_bug_epel_msg' found in the config.")
-        assert f'cool fedora stuff {update.abs_url()}' == message
+        assert f"cool fedora stuff {update.abs_url()}" == message
 
 
 class TestBugModified(BasePyTestCase):
     """Test Bug.modified()."""
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.modified')
-    @mock.patch('bodhi.server.models.log.debug')
+    @mock.patch("bodhi.server.models.bugs.bugtracker.modified")
+    @mock.patch("bodhi.server.models.log.debug")
     def test_parent_security_bug(self, debug, modified):
         """The method should not act on a parent security bug."""
         update = model.Update.query.first()
@@ -340,17 +353,17 @@ class TestBugModified(BasePyTestCase):
         bug = model.Bug.query.first()
         bug.parent = True
 
-        bug.modified(update, 'this should not be used')
+        bug.modified(update, "this should not be used")
 
-        debug.assert_called_once_with('Not modifying parent security bug %s', bug.bug_id)
+        debug.assert_called_once_with("Not modifying parent security bug %s", bug.bug_id)
         assert modified.call_count == 0
 
 
 class TestBugTesting(BasePyTestCase):
     """Test Bug.testing()."""
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.on_qa')
-    @mock.patch('bodhi.server.models.log.debug')
+    @mock.patch("bodhi.server.models.bugs.bugtracker.on_qa")
+    @mock.patch("bodhi.server.models.log.debug")
     def test_parent_security_bug(self, debug, on_qa):
         """The method should not act on a parent security bug."""
         update = model.Update.query.first()
@@ -360,12 +373,11 @@ class TestBugTesting(BasePyTestCase):
 
         bug.testing(update)
 
-        debug.assert_called_once_with('Not modifying parent security bug %s', bug.bug_id)
+        debug.assert_called_once_with("Not modifying parent security bug %s", bug.bug_id)
         assert on_qa.call_count == 0
 
 
 class TestQueryProperty(BasePyTestCase):
-
     def test_session(self):
         """Assert the session the query property uses is from the scoped session."""
         query = model.Package.query
@@ -379,7 +391,7 @@ class TestComment(BasePyTestCase):
         For history about why this is important, see
         https://github.com/fedora-infra/bodhi/issues/949.
         """
-        assert model.Comment.__table__.columns['text'].nullable is False
+        assert model.Comment.__table__.columns["text"].nullable is False
 
 
 class TestDeclEnum:
@@ -388,7 +400,7 @@ class TestDeclEnum:
     def test_from_string_bad_value(self):
         """Test the from_string() method with a value that doesn't exist."""
         with pytest.raises(ValueError) as exc:
-            model.UpdateStatus.from_string('wrong')
+            model.UpdateStatus.from_string("wrong")
         assert str(exc.value) == "Invalid value for 'UpdateStatus': 'wrong'"
 
 
@@ -417,7 +429,7 @@ class TestDeclEnumType(BasePyTestCase):
         """Test the process_bind_param() method with a truthy value."""
         t = model.DeclEnumType(model.UpdateStatus)
 
-        assert t.process_bind_param(model.UpdateStatus.stable, self.engine.dialect) == 'stable'
+        assert t.process_bind_param(model.UpdateStatus.stable, self.engine.dialect) == "stable"
 
     def test_process_result_value_None(self):
         """Test the process_result_value() method with a value of None."""
@@ -429,7 +441,7 @@ class TestDeclEnumType(BasePyTestCase):
         """Test the process_result_value() method with a truthy value."""
         t = model.DeclEnumType(model.UpdateStatus)
 
-        assert t.process_result_value('testing', self.engine.dialect) == model.UpdateStatus.testing
+        assert t.process_result_value("testing", self.engine.dialect) == model.UpdateStatus.testing
 
 
 class TestEnumMeta:
@@ -437,13 +449,16 @@ class TestEnumMeta:
 
     def test___iter__(self):
         """Assert correct return value from the __iter__() method."""
-        m = model.EnumMeta('UpdateStatus', (model.DeclEnum,),
-                           {'testing': ('testing', 'Testing'), 'stable': ('stable', 'Stable')})
-        expected_values = ['testing', 'stable']
+        m = model.EnumMeta(
+            "UpdateStatus",
+            (model.DeclEnum,),
+            {"testing": ("testing", "Testing"), "stable": ("stable", "Stable")},
+        )
+        expected_values = ["testing", "stable"]
 
         for v, e in zip(iter(m), expected_values):
-            assert repr(v) == f'<{e}>'
-            assert type(v) is model.EnumSymbol  # noqa: E721
+            assert repr(v) == f"<{e}>"
+            assert type(v) is model.EnumSymbol
 
 
 class TestEnumSymbol:
@@ -451,24 +466,26 @@ class TestEnumSymbol:
 
     def test___iter__(self):
         """Ensure correct operation of the __iter__() method."""
-        s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
-        expected_values = ['value', 'description']
+        s = model.EnumSymbol(model.UpdateStatus, "name", "value", "description")
+        expected_values = ["value", "description"]
 
         for v, e in zip(iter(s), expected_values):
             assert v == e
 
     def test___json__(self):
         """Ensure that the __json__() method returns the value."""
-        s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
+        s = model.EnumSymbol(model.UpdateStatus, "name", "value", "description")
 
-        assert s.__json__() == 'value'
+        assert s.__json__() == "value"
 
     def test___lt__(self):
         """Ensure that EnumSymbols support sorting."""
-        open_source = model.EnumSymbol(model.UpdateStatus, 'open source', 'open_source',
-                                       'Open Source')
-        closed_source = model.EnumSymbol(model.UpdateStatus, 'closed source',
-                                         'closed_source', 'Closed Source')
+        open_source = model.EnumSymbol(
+            model.UpdateStatus, "open source", "open_source", "Open Source"
+        )
+        closed_source = model.EnumSymbol(
+            model.UpdateStatus, "closed source", "closed_source", "Closed Source"
+        )
 
         assert closed_source < open_source
         assert open_source > closed_source
@@ -476,32 +493,33 @@ class TestEnumSymbol:
 
     def test___reduce__(self):
         """Ensure correct operation of the __reduce__() method by pickling an instance."""
-        s = model.EnumSymbol(model.UpdateStatus, 'testing', 'testing', 'testing')
+        s = model.EnumSymbol(model.UpdateStatus, "testing", "testing", "testing")
 
         p = pickle.dumps(s)
 
         deserialized_s = pickle.loads(p)
         assert deserialized_s.cls_ == model.UpdateStatus
-        assert deserialized_s.name == 'testing'
-        assert deserialized_s.value == 'testing'
-        assert deserialized_s.description == 'testing'
+        assert deserialized_s.name == "testing"
+        assert deserialized_s.value == "testing"
+        assert deserialized_s.description == "testing"
 
     def test___repr__(self):
         """Ensure correct operation of the __repr__() method."""
-        s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
+        s = model.EnumSymbol(model.UpdateStatus, "name", "value", "description")
 
-        assert repr(s) == '<name>'
+        assert repr(s) == "<name>"
 
     def test___str__(self):
         """Ensure correct operation of the __str__() method."""
-        s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
+        s = model.EnumSymbol(model.UpdateStatus, "name", "value", "description")
 
-        assert str(s) == 'value'
+        assert str(s) == "value"
         assert isinstance(str(s), str)
 
 
 class TestCompose(BasePyTestCase):
     """Test the :class:`Compose` model."""
+
     def _generate_compose(self, request, security):
         """
         Create and return a Compose.
@@ -514,19 +532,23 @@ class TestCompose(BasePyTestCase):
         """
         uid = uuid.uuid4()
         release = model.Release(
-            name='F27-{}'.format(uid), long_name='Fedora 27 {}'.format(uid),
-            id_prefix='FEDORA', version='27',
-            dist_tag='f27', stable_tag='f27-updates',
-            testing_tag='f27-updates-testing',
-            candidate_tag='f27-updates-candidate',
-            pending_signing_tag='f27-updates-testing-signing',
-            pending_testing_tag='f27-updates-testing-pending',
-            pending_stable_tag='f27-updates-pending',
-            override_tag='f27-override',
+            name=f"F27-{uid}",
+            long_name=f"Fedora 27 {uid}",
+            id_prefix="FEDORA",
+            version="27",
+            dist_tag="f27",
+            stable_tag="f27-updates",
+            testing_tag="f27-updates-testing",
+            candidate_tag="f27-updates-candidate",
+            pending_signing_tag="f27-updates-testing-signing",
+            pending_testing_tag="f27-updates-testing-pending",
+            pending_stable_tag="f27-updates-pending",
+            override_tag="f27-override",
             state=ReleaseState.current,
-            branch='f27-{}'.format(uid))
+            branch=f"f27-{uid}",
+        )
         self.db.add(release)
-        update = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update = self.create_update([f"bodhi-{uuid.uuid4()}-1.fc27"])
         update.release = release
         update.request = request
         update.locked = True
@@ -563,27 +585,31 @@ class TestCompose(BasePyTestCase):
 
     def test_from_updates(self):
         """Assert that from_updates() correctly generates Composes."""
-        update_1 = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update_1 = self.create_update([f"bodhi-{uuid.uuid4()}-1.fc27"])
         # This update should be ignored.
-        update_2 = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update_2 = self.create_update([f"bodhi-{uuid.uuid4()}-1.fc27"])
         update_2.request = None
         release = model.Release(
-            name='F27', long_name='Fedora 27',
-            id_prefix='FEDORA', version='27',
-            dist_tag='f27', stable_tag='f27-updates',
-            testing_tag='f27-updates-testing',
-            candidate_tag='f27-updates-candidate',
-            pending_signing_tag='f27-updates-testing-signing',
-            pending_testing_tag='f27-updates-testing-pending',
-            pending_stable_tag='f27-updates-pending',
-            override_tag='f27-override',
+            name="F27",
+            long_name="Fedora 27",
+            id_prefix="FEDORA",
+            version="27",
+            dist_tag="f27",
+            stable_tag="f27-updates",
+            testing_tag="f27-updates-testing",
+            candidate_tag="f27-updates-candidate",
+            pending_signing_tag="f27-updates-testing-signing",
+            pending_testing_tag="f27-updates-testing-pending",
+            pending_stable_tag="f27-updates-pending",
+            override_tag="f27-override",
             state=ReleaseState.current,
-            branch='f27')
+            branch="f27",
+        )
         self.db.add(release)
-        update_3 = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update_3 = self.create_update([f"bodhi-{uuid.uuid4()}-1.fc27"])
         update_3.release = release
         update_3.type = model.UpdateType.security
-        update_4 = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update_4 = self.create_update([f"bodhi-{uuid.uuid4()}-1.fc27"])
         update_4.status = model.UpdateStatus.testing
         update_4.request = model.UpdateRequest.stable
 
@@ -608,7 +634,7 @@ class TestCompose(BasePyTestCase):
 
     def test_from_updates_no_builds(self):
         """Assert that update without builds is not added to compose."""
-        update = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update = self.create_update([f"bodhi-{uuid.uuid4()}-1.fc27"])
         update.builds = []
 
         composes = model.Compose.from_updates([update])
@@ -643,7 +669,8 @@ class TestCompose(BasePyTestCase):
         update = compose.updates[0]
 
         assert compose.update_summary == (
-            [{'alias': update.alias, 'title': update.get_title(nvr=True, beautify=True)}])
+            [{"alias": update.alias, "title": update.get_title(nvr=True, beautify=True)}]
+        )
 
     def test___json___composer_flag(self):
         """The composer flag should reduce the number of serialized fields."""
@@ -652,7 +679,7 @@ class TestCompose(BasePyTestCase):
 
         j = compose.__json__(composer=True)
 
-        assert set(j.keys()), {'security', 'release_id', 'request' == 'content_type'}
+        assert set(j.keys()), {"security", "release_id", "request" == "content_type"}
         # If we remove the extra keys from normal_json, the remaining dictionary should be the same
         # as j.
         for k in set(normal_json.keys()) - set(j.keys()):
@@ -709,18 +736,19 @@ class TestCompose(BasePyTestCase):
         """Ensure __str__() returns the right string."""
         compose = self._generate_compose(model.UpdateRequest.stable, False)
 
-        assert str(compose) == '<Compose: {} stable>'.format(compose.release.name)
+        assert str(compose) == f"<Compose: {compose.release.name} stable>"
 
 
 class TestRelease(ModelTest):
     """Unit test case for the ``Release`` model."""
+
     klass = model.Release
     attrs = dict(
         name="F11",
         long_name="Fedora 11",
         id_prefix="FEDORA",
-        version='11',
-        branch='f11',
+        version="11",
+        branch="f11",
         dist_tag="dist-f11",
         stable_tag="dist-f11-updates",
         testing_tag="dist-f11-updates-testing",
@@ -732,11 +760,12 @@ class TestRelease(ModelTest):
         state=model.ReleaseState.current,
         composed_by_bodhi=True,
         package_manager=PackageManager.yum,
-        testing_repository='updates-testing')
+        testing_repository="updates-testing",
+    )
 
     def test_collection_name(self):
         """Test the collection_name property of the Release."""
-        assert self.obj.collection_name == 'Fedora'
+        assert self.obj.collection_name == "Fedora"
 
     def test_mandatory_days_in_testing_status_falsey(self):
         """Test mandatory_days_in_testing() with a value that is falsey."""
@@ -745,18 +774,12 @@ class TestRelease(ModelTest):
 
     def test_mandatory_days_in_testing_status_truthy(self):
         """Test mandatory_days_in_testing() with a value that is truthy."""
-        config.update({
-            'f11.current.mandatory_days_in_testing': 42,
-            'f11.status': 'current'
-        })
+        config.update({"f11.current.mandatory_days_in_testing": 42, "f11.status": "current"})
         assert self.obj.mandatory_days_in_testing == 42
 
     def test_mandatory_days_in_testing_status_0_days(self):
         """Test mandatory_days_in_testing() with a value that is 0."""
-        config.update({
-            'f11.current.mandatory_days_in_testing': 0,
-            'f11.status': 'current'
-        })
+        config.update({"f11.current.mandatory_days_in_testing": 0, "f11.status": "current"})
         assert self.obj.mandatory_days_in_testing == 0
 
     def test_critpath_mandatory_days_in_testing_no_status(self):
@@ -764,10 +787,12 @@ class TestRelease(ModelTest):
         Test critpath_mandatory_days_in_testing() returns global default if
         release has no status.
         """
-        config.update({
-            'critpath.mandatory_days_in_testing': 11,
-            'f11.current.critpath.mandatory_days_in_testing': 42
-        })
+        config.update(
+            {
+                "critpath.mandatory_days_in_testing": 11,
+                "f11.current.critpath.mandatory_days_in_testing": 42,
+            }
+        )
         assert self.obj.critpath_mandatory_days_in_testing == 11
 
     def test_critpath_mandatory_days_in_testing_status_default(self):
@@ -775,10 +800,7 @@ class TestRelease(ModelTest):
         Test critpath_mandatory_days_in_testing() returns global default if
         release has status, but no override set.
         """
-        config.update({
-            'critpath.mandatory_days_in_testing': 11,
-            'f11.status': 'current'
-        })
+        config.update({"critpath.mandatory_days_in_testing": 11, "f11.status": "current"})
         assert self.obj.critpath_mandatory_days_in_testing == 11
 
     def test_critpath_mandatory_days_in_testing_status_override(self):
@@ -786,27 +808,27 @@ class TestRelease(ModelTest):
         Test critpath_mandatory_days_in_testing() returns override value if
         release has status and override set.
         """
-        config.update({
-            'critpath.mandatory_days_in_testing': 11,
-            'f11.status': 'current',
-            'f11.current.critpath.mandatory_days_in_testing': 42
-        })
+        config.update(
+            {
+                "critpath.mandatory_days_in_testing": 11,
+                "f11.status": "current",
+                "f11.current.critpath.mandatory_days_in_testing": 42,
+            }
+        )
         assert self.obj.critpath_mandatory_days_in_testing == 42
 
     def test_setting_prefix(self):
         """Assert correct return value from the setting_prefix property."""
-        assert self.obj.setting_prefix == 'f11'
+        assert self.obj.setting_prefix == "f11"
 
         # Try putting a - into the name of the release, which should get removed
-        self.obj.name = 'f-11'
+        self.obj.name = "f-11"
 
-        assert self.obj.setting_prefix == 'f11'
+        assert self.obj.setting_prefix == "f11"
 
     def test_setting_status_found(self):
         """Assert correct return value from the setting_status property when config is found."""
-        config.update({
-            'f11.status': "It's doing just fine, thanks for asking"
-        })
+        config.update({"f11.status": "It's doing just fine, thanks for asking"})
         assert self.obj.setting_status == "It's doing just fine, thanks for asking"
 
     def test_setting_status_not_found(self):
@@ -816,14 +838,14 @@ class TestRelease(ModelTest):
     def test_version_int(self):
         assert self.obj.version_int == 11
 
-    @mock.patch('bodhi.server.log.debug')
+    @mock.patch("bodhi.server.log.debug")
     def test_all_releases(self, debug):
         releases = model.Release.all_releases()
         debug.assert_called_with("Refreshing releases cache")
         debug.reset_mock()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
-        assert 'long_name' in releases[state.value][0], releases
+        assert "long_name" in releases[state.value][0], releases
         # Make sure it's the same cached object
         debug.assert_not_called()
 
@@ -831,9 +853,7 @@ class TestRelease(ModelTest):
         """
         Assert that correct side tag is returned.
         """
-        config.update({
-            'f11.koji-signing-pending-side-tag': '-signing-pending-test'
-        })
+        config.update({"f11.koji-signing-pending-side-tag": "-signing-pending-test"})
         assert self.obj.get_pending_signing_side_tag("side-tag") == "side-tag-signing-pending-test"
 
     def test_get_pending_signing_side_tag_not_found(self):
@@ -846,9 +866,7 @@ class TestRelease(ModelTest):
         """
         Assert that correct side tag is returned.
         """
-        config.update({
-            'f11.koji-testing-side-tag': '-testing-test'
-        })
+        config.update({"f11.koji-testing-side-tag": "-testing-test"})
         assert self.obj.get_pending_testing_side_tag("side-tag") == "side-tag-testing-test"
 
     def test_get_pending_testing_side_tag_not_found(self):
@@ -861,43 +879,36 @@ class TestRelease(ModelTest):
         """
         Assert that override tags are inherited from other releases.
         """
-        self.create_release('17')
-        config.update({
-            'f11.override-extend': 'F17'
-        })
-        assert self.obj.inherited_override_tags == ['f17-override']
+        self.create_release("17")
+        config.update({"f11.override-extend": "F17"})
+        assert self.obj.inherited_override_tags == ["f17-override"]
 
     def test_inherit_override_tags_wrong_release_name(self):
         """
         Assert empty answer if user refer a non-existent release.
         """
-        config.update({
-            'f11.override-extend': 'f17'
-        })
+        config.update({"f11.override-extend": "f17"})
         assert self.obj.inherited_override_tags == []
 
 
 class TestReleaseMinKarma(BasePyTestCase):
     """Tests for the Release.min_karma property."""
 
-    @mock.patch.dict(
-        config, {'min_karma': 1, 'f17.beta.min_karma': 42, 'f17.status': "beta"})
+    @mock.patch.dict(config, {"min_karma": 1, "f17.beta.min_karma": 42, "f17.status": "beta"})
     def test_setting_status_min(self):
         """If a min is defined for the release, it should be returned."""
         release = model.Release.query.first()
 
         assert release.min_karma == 42
 
-    @mock.patch.dict(
-        config, {'min_karma': 25, 'f17.status': "beta"})
+    @mock.patch.dict(config, {"min_karma": 25, "f17.status": "beta"})
     def test_setting_status_no_min(self):
         """If no min is defined for the release, the general min karma config should be returned."""
         release = model.Release.query.first()
 
         assert release.min_karma == 25
 
-    @mock.patch.dict(
-        config, {'min_karma': 72, 'f17.beta.min_karma': 42})
+    @mock.patch.dict(config, {"min_karma": 72, "f17.beta.min_karma": 42})
     def test_setting_status_no_setting_status(self):
         """If no status is defined for the release, the general min karma should be returned."""
         release = model.Release.query.first()
@@ -909,23 +920,22 @@ class TestReleaseCritpathMinKarma(BasePyTestCase):
     """Tests for the Release.critpath_min_karma property."""
 
     @mock.patch.dict(
-        config, {'critpath.min_karma': 2, 'f17.beta.critpath.min_karma': 42, 'f17.status': "beta"})
+        config, {"critpath.min_karma": 2, "f17.beta.critpath.min_karma": 42, "f17.status": "beta"}
+    )
     def test_setting_status_min(self):
         """If a min is defined for the release, it should be returned."""
         release = model.Release.query.first()
 
         assert release.critpath_min_karma == 42
 
-    @mock.patch.dict(
-        config, {'critpath.min_karma': 25, 'f17.status': "beta"})
+    @mock.patch.dict(config, {"critpath.min_karma": 25, "f17.status": "beta"})
     def test_setting_status_no_min(self):
         """If no min is defined for the release, the general min karma config should be returned."""
         release = model.Release.query.first()
 
         assert release.critpath_min_karma == 25
 
-    @mock.patch.dict(
-        config, {'critpath.min_karma': 72, 'f17.beta.critpath.min_karma': 42})
+    @mock.patch.dict(config, {"critpath.min_karma": 72, "f17.beta.critpath.min_karma": 42})
     def test_setting_status_no_setting_status(self):
         """If no status is defined for the release, the general min karma should be returned."""
         release = model.Release.query.first()
@@ -935,13 +945,14 @@ class TestReleaseCritpathMinKarma(BasePyTestCase):
 
 class TestReleaseModular(ModelTest):
     """Unit test case for the ``Release`` model for modular releases."""
+
     klass = model.Release
     attrs = dict(
         name="F11M",
         long_name="Fedora 11 Modular",
         id_prefix="FEDORA-MODULAR",
-        version='11',
-        branch='f11m',
+        version="11",
+        branch="f11m",
         dist_tag="dist-f11",
         stable_tag="dist-f11-updates",
         testing_tag="dist-f11-updates-testing",
@@ -953,32 +964,34 @@ class TestReleaseModular(ModelTest):
         state=model.ReleaseState.current,
         composed_by_bodhi=True,
         package_manager=PackageManager.dnf,
-        testing_repository='updates-testing')
+        testing_repository="updates-testing",
+    )
 
     def test_version_int(self):
         assert self.obj.version_int == 11
 
-    @mock.patch('bodhi.server.log.debug')
+    @mock.patch("bodhi.server.log.debug")
     def test_all_releases(self, debug):
         releases = model.Release.all_releases()
         debug.assert_called_with("Refreshing releases cache")
         debug.reset_mock()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
-        assert 'long_name' in releases[state.value][0], releases
+        assert "long_name" in releases[state.value][0], releases
         # Make sure it's the same cached object
         debug.assert_not_called()
 
 
 class TestReleaseContainer(ModelTest):
     """Unit test case for the ``Release`` model for container releases."""
+
     klass = model.Release
     attrs = dict(
         name="F11C",
         long_name="Fedora 11 Container",
         id_prefix="FEDORA-CONTAINER",
-        version='11',
-        branch='f11c',
+        version="11",
+        branch="f11c",
         dist_tag="dist-f11",
         stable_tag="dist-f11-updates",
         testing_tag="dist-f11-updates-testing",
@@ -990,32 +1003,34 @@ class TestReleaseContainer(ModelTest):
         state=model.ReleaseState.current,
         composed_by_bodhi=True,
         package_manager=PackageManager.unspecified,
-        testing_repository=None)
+        testing_repository=None,
+    )
 
     def test_version_int(self):
         assert self.obj.version_int == 11
 
-    @mock.patch('bodhi.server.log.debug')
+    @mock.patch("bodhi.server.log.debug")
     def test_all_releases(self, debug):
         releases = model.Release.all_releases()
         debug.assert_called_with("Refreshing releases cache")
         debug.reset_mock()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
-        assert 'long_name' in releases[state.value][0], releases
+        assert "long_name" in releases[state.value][0], releases
         # Make sure it's the same cached object
         debug.assert_not_called()
 
 
 class TestReleaseFlatpak(ModelTest):
     """Unit test case for the ``Release`` model for flatpak releases."""
+
     klass = model.Release
     attrs = dict(
         name="F29F",
         long_name="Fedora 29 Flatpaks",
         id_prefix="FEDORA-FLATPAK",
-        version='29',
-        branch='f29',
+        version="29",
+        branch="f29",
         dist_tag="f29-flatpak",
         stable_tag="f29-flatpak-updates",
         testing_tag="f29-flatpak-updates-testing",
@@ -1027,19 +1042,20 @@ class TestReleaseFlatpak(ModelTest):
         state=model.ReleaseState.current,
         composed_by_bodhi=True,
         package_manager=PackageManager.unspecified,
-        testing_repository=None)
+        testing_repository=None,
+    )
 
     def test_version_int(self):
         assert self.obj.version_int == 29
 
-    @mock.patch('bodhi.server.log.debug')
+    @mock.patch("bodhi.server.log.debug")
     def test_all_releases(self, debug):
         releases = model.Release.all_releases()
         debug.assert_called_with("Refreshing releases cache")
         debug.reset_mock()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
-        assert 'long_name' in releases[state.value][0], releases
+        assert "long_name" in releases[state.value][0], releases
         # Make sure it's the same cached object
         debug.assert_not_called()
 
@@ -1049,8 +1065,8 @@ class TestPackageModel(BasePyTestCase):
 
     def test_two_package_different_types(self):
         """Assert two different package types with the same name is fine."""
-        package1 = model.Package(name='python-requests')
-        package2 = model.RpmPackage(name='python-requests')
+        package1 = model.Package(name="python-requests")
+        package2 = model.RpmPackage(name="python-requests")
 
         self.db.add(package1)
         self.db.add(package2)
@@ -1058,68 +1074,71 @@ class TestPackageModel(BasePyTestCase):
 
     def test_two_package_same_type(self):
         """Assert two packages of the same type with the same name is *not* fine."""
-        package1 = model.RpmPackage(name='python-requests')
-        package2 = model.RpmPackage(name='python-requests')
+        package1 = model.RpmPackage(name="python-requests")
+        package2 = model.RpmPackage(name="python-requests")
 
         self.db.add(package1)
         self.db.add(package2)
         pytest.raises(IntegrityError, self.db.flush)
 
-    @pytest.mark.parametrize('exists', (False, True))
+    @pytest.mark.parametrize("exists", (False, True))
     def test_package_existence(self, exists):
         """Assert package existence check works based on specific type."""
         if exists:
-            package1 = model.RpmPackage(name='python-requests')
+            package1 = model.RpmPackage(name="python-requests")
         else:
-            package1 = model.ModulePackage(name='python-requests')
+            package1 = model.ModulePackage(name="python-requests")
         self.db.add(package1)
         self.db.flush()
 
         koji = buildsys.get_session()
-        kbuildinfo = koji.getBuild('python-requests-1.0-1.fc36')
+        kbuildinfo = koji.getBuild("python-requests-1.0-1.fc36")
         rbuildinfo = {
-            'info': kbuildinfo,
-            'nvr': kbuildinfo['nvr'].rsplit('-', 2),
+            "info": kbuildinfo,
+            "nvr": kbuildinfo["nvr"].rsplit("-", 2),
         }
         assert model.Package.check_existence(rbuildinfo) is exists
 
 
 class TestModulePackage(ModelTest):
     """Unit test case for the ``ModulePackage`` model."""
+
     klass = model.ModulePackage
     attrs = dict(name="TurboGears")
 
     def setup_method(self):
-        super(TestModulePackage, self).setup_method()
-        self.package = model.ModulePackage(name='the-greatest-package:master')
+        super().setup_method()
+        self.package = model.ModulePackage(name="the-greatest-package:master")
         self.db.add(self.package)
 
     def test_adding_rpmbuild(self):
         """Assert that validation fails when adding a RpmBuild."""
-        build1 = model.ModuleBuild(nvr='the-greatest-package-1.0.0-fc17.1')
-        build2 = model.RpmBuild(nvr='the-greatest-package-1.1.0-fc17.1')
+        build1 = model.ModuleBuild(nvr="the-greatest-package-1.0.0-fc17.1")
+        build2 = model.RpmBuild(nvr="the-greatest-package-1.1.0-fc17.1")
         self.package.builds.append(build1)
 
         with pytest.raises(ValueError) as exc_context:
             self.package.builds.append(build2)
         assert str(exc_context.value) == (
-            ("A RPM Build cannot be associated with a Module Package. A Package's "
-             "builds must be the same type as the package."))
+            "A RPM Build cannot be associated with a Module Package. A Package's "
+            "builds must be the same type as the package."
+        )
 
     def test_adding_list_of_module_and_rpmbuild(self):
         """Assert that validation fails when adding a ModuleBuild and RpmBuild via a list."""
-        build1 = model.ModuleBuild(nvr='the-greatest-package-1.0.0-fc17.1')
-        build2 = model.RpmBuild(nvr='the-greatest-package-1.1.0-fc17.1')
+        build1 = model.ModuleBuild(nvr="the-greatest-package-1.0.0-fc17.1")
+        build2 = model.RpmBuild(nvr="the-greatest-package-1.1.0-fc17.1")
 
         with pytest.raises(ValueError) as exc_context:
             self.package.builds = [build1, build2]
         assert str(exc_context.value) == (
-            ("A RPM Build cannot be associated with a Module Package. A Package's "
-             "builds must be the same type as the package."))
+            "A RPM Build cannot be associated with a Module Package. A Package's "
+            "builds must be the same type as the package."
+        )
 
     def test_backref_no_builds(self):
         """Assert that a ModuleBuild can be appended via a backref."""
-        build = model.ModuleBuild(nvr='the-greatest-package-1.0.0-fc17.1')
+        build = model.ModuleBuild(nvr="the-greatest-package-1.0.0-fc17.1")
         build.package = self.package
 
         # This should not raise any Exception.
@@ -1127,20 +1146,21 @@ class TestModulePackage(ModelTest):
 
     def test_backref_rpmbuild(self):
         """Assert that adding an RpmBuild via backref fails validation."""
-        build1 = model.ModuleBuild(nvr='the-greatest-package-1.0.0-fc17.1')
-        build2 = model.RpmBuild(nvr='the-greatest-package-1.1.0-fc17.1')
+        build1 = model.ModuleBuild(nvr="the-greatest-package-1.0.0-fc17.1")
+        build2 = model.RpmBuild(nvr="the-greatest-package-1.1.0-fc17.1")
         build1.package = self.package
 
         with pytest.raises(ValueError) as exc_context:
             build2.package = self.package
         assert str(exc_context.value) == (
-            ("A RPM Build cannot be associated with a Module Package. A Package's "
-             "builds must be the same type as the package."))
+            "A RPM Build cannot be associated with a Module Package. A Package's "
+            "builds must be the same type as the package."
+        )
 
     def test_backref_second_modulebuild(self):
         """Assert that two ModuleBuilds can be appended via backrefs."""
-        build1 = model.ModuleBuild(nvr='the-greatest-package-1.0.0-fc17.1')
-        build2 = model.ModuleBuild(nvr='the-greatest-package-1.1.0-fc17.1')
+        build1 = model.ModuleBuild(nvr="the-greatest-package-1.0.0-fc17.1")
+        build2 = model.ModuleBuild(nvr="the-greatest-package-1.1.0-fc17.1")
         build1.package = self.package
         build2.package = self.package
 
@@ -1149,7 +1169,7 @@ class TestModulePackage(ModelTest):
 
     def test_no_builds(self):
         """Assert that one ModuleBuild can be appended."""
-        build = model.ModuleBuild(nvr='the-greatest-package-1.0.0-fc17.1')
+        build = model.ModuleBuild(nvr="the-greatest-package-1.0.0-fc17.1")
         self.package.builds.append(build)
 
         # This should not raise any Exception.
@@ -1157,29 +1177,27 @@ class TestModulePackage(ModelTest):
 
     def test_same_build_types(self):
         """Assert that two builds of the module type can be added and that validation passes."""
-        build1 = model.ModuleBuild(nvr='the-greatest-package-1.0.0-fc17.1')
-        build2 = model.ModuleBuild(nvr='the-greatest-package-1.1.0-fc17.1')
+        build1 = model.ModuleBuild(nvr="the-greatest-package-1.0.0-fc17.1")
+        build2 = model.ModuleBuild(nvr="the-greatest-package-1.1.0-fc17.1")
         self.package.builds += [build1, build2]
 
         # This should not raise any Exception.
         self.db.flush()
 
-    @mock.patch('bodhi.server.util.http_session')
+    @mock.patch("bodhi.server.util.http_session")
     def test_get_pkg_committers_from_pagure_with_group(self, session):
         """
         Ensure that the package committers can be found using the Pagure
         API with a package that does have group ACLs.
         """
         json_output = {
-            "access_groups": {
-                "admin": [],
-                "commit": ["rpm-software-management-sig"],
-                "ticket": []},
+            "access_groups": {"admin": [], "commit": ["rpm-software-management-sig"], "ticket": []},
             "access_users": {
                 "admin": ["ignatenkobrain"],
                 "commit": ["jmracek"],
                 "owner": ["dmach"],
-                "ticket": []},
+                "ticket": [],
+            },
             "close_status": [],
             "custom_keys": [],
             "date_created": "1501867095",
@@ -1194,7 +1212,9 @@ class TestModulePackage(ModelTest):
                     "mluscon",
                     "jmracek",
                     "mhatina",
-                    "dmach"]},
+                    "dmach",
+                ]
+            },
             "id": 2599,
             "milestones": {},
             "name": "dnf",
@@ -1202,9 +1222,8 @@ class TestModulePackage(ModelTest):
             "parent": None,
             "priorities": {},
             "tags": [],
-            "user": {
-                "fullname": "Daniel Mach",
-                "name": "dmach"}}
+            "user": {"fullname": "Daniel Mach", "name": "dmach"},
+        }
         session.get.return_value.json.return_value = json_output
         session.get.return_value.status_code = 200
 
@@ -1213,38 +1232,36 @@ class TestModulePackage(ModelTest):
         committers, groups = rv
 
         assert sorted(committers) == (
-            ['dmach', 'ignatenkobrain', 'jmracek', 'jsilhan',
-             'mhatina', 'mluscon', 'releng'])
-        assert groups == ['rpm-software-management-sig']
+            ["dmach", "ignatenkobrain", "jmracek", "jsilhan", "mhatina", "mluscon", "releng"]
+        )
+        assert groups == ["rpm-software-management-sig"]
         session.get.assert_called_once_with(
-            'https://src.fedoraproject.org/pagure/api/0/modules/the-greatest-package?'
-            'expand_group=1',
-            timeout=60)
+            "https://src.fedoraproject.org/pagure/api/0/modules/the-greatest-package?"
+            "expand_group=1",
+            timeout=60,
+        )
 
-    @pytest.mark.parametrize('access', (False, True))
-    @mock.patch('bodhi.server.util.http_session')
+    @pytest.mark.parametrize("access", (False, True))
+    @mock.patch("bodhi.server.util.http_session")
     def test_hascommitaccess_module(self, session, access):
         """
         Test call to Pagure to check if a user has access to this package/branch.
         """
         json_output = {
-            "args": {
-                "username": "mattia",
-                "branch": "master",
-                "project": {}
-            },
-            "hascommit": access
+            "args": {"username": "mattia", "branch": "master", "project": {}},
+            "hascommit": access,
         }
         session.get.return_value.json.return_value = json_output
         session.get.return_value.status_code = 200
 
-        rv = self.package.hascommitaccess('mattia', 'f33')
+        rv = self.package.hascommitaccess("mattia", "f33")
 
         assert rv is access
         session.get.assert_called_once_with(
-            'https://src.fedoraproject.org/pagure/api/0/modules/the-greatest-package/'
-            'hascommit?user=mattia&branch=master',
-            timeout=60)
+            "https://src.fedoraproject.org/pagure/api/0/modules/the-greatest-package/"
+            "hascommit?user=mattia&branch=master",
+            timeout=60,
+        )
 
 
 class TestContainerPackage(ModelTest):
@@ -1253,23 +1270,12 @@ class TestContainerPackage(ModelTest):
     klass = model.ContainerPackage
     attrs = dict(name="docker-distribution")
 
-    @mock.patch('bodhi.server.util.http_session')
+    @mock.patch("bodhi.server.util.http_session")
     def test_get_pkg_committers_from_pagure(self, http_session):
         """Ensure correct return value from get_pkg_committers_from_pagure()."""
         json_output = {
-            "access_groups": {
-                "admin": [],
-                "commit": ['factory2'],
-                "ticket": []
-            },
-            "access_users": {
-                "admin": [],
-                "commit": [],
-                "owner": [
-                    "mprahl"
-                ],
-                "ticket": ["jsmith"]
-            },
+            "access_groups": {"admin": [], "commit": ["factory2"], "ticket": []},
+            "access_users": {"admin": [], "commit": [], "owner": ["mprahl"], "ticket": ["jsmith"]},
             "close_status": [],
             "custom_keys": [],
             "date_created": "1494947106",
@@ -1283,46 +1289,43 @@ class TestContainerPackage(ModelTest):
             "parent": None,
             "priorities": {},
             "tags": [],
-            "user": {
-                "fullname": "Matt Prahl",
-                "name": "mprahl"
-            }
+            "user": {"fullname": "Matt Prahl", "name": "mprahl"},
         }
         http_session.get.return_value.json.return_value = json_output
         http_session.get.return_value.status_code = 200
 
         rv = self.obj.get_pkg_committers_from_pagure()
 
-        assert rv == (['mprahl'], ['factory2'])
+        assert rv == (["mprahl"], ["factory2"])
         http_session.get.assert_called_once_with(
-            ('https://src.fedoraproject.org/pagure/api/0/container/docker-distribution'
-             '?expand_group=1'),
-            timeout=60)
+            (
+                "https://src.fedoraproject.org/pagure/api/0/container/docker-distribution"
+                "?expand_group=1"
+            ),
+            timeout=60,
+        )
 
-    @pytest.mark.parametrize('access', (False, True))
-    @mock.patch('bodhi.server.util.http_session')
+    @pytest.mark.parametrize("access", (False, True))
+    @mock.patch("bodhi.server.util.http_session")
     def test_hascommitaccess_container(self, session, access):
         """
         Test call to Pagure to check if a user has access to this package/branch.
         """
         json_output = {
-            "args": {
-                "username": "mattia",
-                "branch": "f33",
-                "project": {}
-            },
-            "hascommit": access
+            "args": {"username": "mattia", "branch": "f33", "project": {}},
+            "hascommit": access,
         }
         session.get.return_value.json.return_value = json_output
         session.get.return_value.status_code = 200
 
-        rv = self.obj.hascommitaccess('mattia', 'f33')
+        rv = self.obj.hascommitaccess("mattia", "f33")
 
         assert rv is access
         session.get.assert_called_once_with(
-            'https://src.fedoraproject.org/pagure/api/0/container/docker-distribution/'
-            'hascommit?user=mattia&branch=f33',
-            timeout=60)
+            "https://src.fedoraproject.org/pagure/api/0/container/docker-distribution/"
+            "hascommit?user=mattia&branch=f33",
+            timeout=60,
+        )
 
 
 class TestFlatpakPackage(ModelTest):
@@ -1332,19 +1335,8 @@ class TestFlatpakPackage(ModelTest):
     def patch_http_session(self, http_session, namespace):
         """Patch in the correct pagure API result for the particular flatpaks namespace."""
         json_output = {
-            "access_groups": {
-                "admin": [],
-                "commit": [],
-                "ticket": []
-            },
-            "access_users": {
-                "admin": [],
-                "commit": [],
-                "owner": [
-                    "otaylor"
-                ],
-                "ticket": []
-            },
+            "access_groups": {"admin": [], "commit": [], "ticket": []},
+            "access_users": {"admin": [], "commit": [], "owner": ["otaylor"], "ticket": []},
             "close_status": [],
             "custom_keys": [],
             "date_created": "1494947106",
@@ -1358,78 +1350,74 @@ class TestFlatpakPackage(ModelTest):
             "parent": None,
             "priorities": {},
             "tags": [],
-            "user": {
-                "fullname": "Owen Taylor",
-                "name": "otaylor"
-            }
+            "user": {"fullname": "Owen Taylor", "name": "otaylor"},
         }
         http_session.get.return_value.json.return_value = json_output
         http_session.get.return_value.status_code = 200
 
-    @mock.patch('bodhi.server.util.http_session')
+    @mock.patch("bodhi.server.util.http_session")
     def test_get_pkg_committers_from_pagure_modules(self, http_session):
         """Ensure correct return value from get_pkg_committers_from_pagure()."""
-        self.patch_http_session(http_session, namespace='flatpaks')
+        self.patch_http_session(http_session, namespace="flatpaks")
 
         rv = self.obj.get_pkg_committers_from_pagure()
 
-        assert rv == (['otaylor'], [])
+        assert rv == (["otaylor"], [])
         http_session.get.assert_called_once_with(
-            ('https://src.fedoraproject.org/pagure/api/0/flatpaks/flatpak-runtime'
-             '?expand_group=1'),
-            timeout=60)
+            ("https://src.fedoraproject.org/pagure/api/0/flatpaks/flatpak-runtime?expand_group=1"),
+            timeout=60,
+        )
 
-    @pytest.mark.parametrize('access', (False, True))
-    @mock.patch('bodhi.server.util.http_session')
+    @pytest.mark.parametrize("access", (False, True))
+    @mock.patch("bodhi.server.util.http_session")
     def test_hascommitaccess_flatpak(self, http_session, access):
         """
         Test call to Pagure to check if a user has access to this package/branch.
         """
         json_output = {
-            "args": {
-                "username": "mattia",
-                "branch": "stable",
-                "project": {}
-            },
-            "hascommit": access
+            "args": {"username": "mattia", "branch": "stable", "project": {}},
+            "hascommit": access,
         }
         http_session.get.return_value.json.return_value = json_output
         http_session.get.return_value.status_code = 200
 
-        rv = self.obj.hascommitaccess('mattia', 'f33')
+        rv = self.obj.hascommitaccess("mattia", "f33")
 
         assert rv is access
         http_session.get.assert_called_once_with(
-            'https://src.fedoraproject.org/pagure/api/0/flatpaks/flatpak-runtime/'
-            'hascommit?user=mattia&branch=stable',
-            timeout=60)
+            "https://src.fedoraproject.org/pagure/api/0/flatpaks/flatpak-runtime/"
+            "hascommit?user=mattia&branch=stable",
+            timeout=60,
+        )
 
 
 class TestRpmPackage(ModelTest):
     """Unit test case for the ``RpmPackage`` model."""
+
     klass = model.RpmPackage
     attrs = dict(name="TurboGears")
 
     def setup_method(self):
-        super(TestRpmPackage, self).setup_method()
-        self.package = model.RpmPackage(name='the-greatest-package')
+        super().setup_method()
+        self.package = model.RpmPackage(name="the-greatest-package")
         self.db.add(self.package)
 
     def test_adding_modulebuild(self):
         """Assert that validation fails when adding a ModuleBuild."""
-        build1 = model.RpmBuild(nvr='the-greatest-package-1.0.0-fc17.1')
-        build2 = model.ModuleBuild(nvr='the-greatest-package-1.1.0-fc17.1')
+        build1 = model.RpmBuild(nvr="the-greatest-package-1.0.0-fc17.1")
+        build2 = model.ModuleBuild(nvr="the-greatest-package-1.1.0-fc17.1")
         self.package.builds.append(build1)
 
         with pytest.raises(ValueError) as exc_context:
             self.package.builds.append(build2)
         assert str(exc_context.value) == (
-            ("A Module Build cannot be associated with a RPM Package. A Package's "
-             "builds must be the same type as the package."))
+            "A Module Build cannot be associated with a RPM Package. A Package's "
+            "builds must be the same type as the package."
+        )
 
     def test_backref_no_builds(self):
         """Assert that a RpmBuild can be appended via a backref."""
-        build = model.RpmBuild(nvr='the-greatest-package-1.0.0-fc17.1')
+        build = model.RpmBuild(nvr="the-greatest-package-1.0.0-fc17.1")
         build.package = self.package
 
         # This should not raise any Exception.
@@ -1437,20 +1425,21 @@ class TestRpmPackage(ModelTest):
 
     def test_backref_modulebuild(self):
         """Assert that adding a ModuleBuild via backref fails validation."""
-        build1 = model.RpmBuild(nvr='the-greatest-package-1.0.0-fc17.1')
-        build2 = model.ModuleBuild(nvr='the-greatest-package-1.1.0-fc17.1')
+        build1 = model.RpmBuild(nvr="the-greatest-package-1.0.0-fc17.1")
+        build2 = model.ModuleBuild(nvr="the-greatest-package-1.1.0-fc17.1")
         build1.package = self.package
 
         with pytest.raises(ValueError) as exc_context:
             build2.package = self.package
         assert str(exc_context.value) == (
-            ("A Module Build cannot be associated with a RPM Package. A Package's "
-             "builds must be the same type as the package."))
+            "A Module Build cannot be associated with a RPM Package. A Package's "
+            "builds must be the same type as the package."
+        )
 
     def test_backref_second_modulebuild(self):
         """Assert that two RpmBuilds can be appended via backrefs."""
-        build1 = model.RpmBuild(nvr='the-greatest-package-1.0.0-fc17.1')
-        build2 = model.RpmBuild(nvr='the-greatest-package-1.1.0-fc17.1')
+        build1 = model.RpmBuild(nvr="the-greatest-package-1.0.0-fc17.1")
+        build2 = model.RpmBuild(nvr="the-greatest-package-1.1.0-fc17.1")
         build1.package = self.package
         build2.package = self.package
 
@@ -1459,7 +1448,7 @@ class TestRpmPackage(ModelTest):
 
     def test_no_builds(self):
         """Assert that one RpmBuild can be appended."""
-        build = model.RpmBuild(nvr='the-greatest-package-1.0.0-fc17.1')
+        build = model.RpmBuild(nvr="the-greatest-package-1.0.0-fc17.1")
         self.package.builds.append(build)
 
         # This should not raise any Exception.
@@ -1467,29 +1456,27 @@ class TestRpmPackage(ModelTest):
 
     def test_same_build_types(self):
         """Assert that two builds of the RPM type can be added and that validation passes."""
-        build1 = model.RpmBuild(nvr='the-greatest-package-1.0.0-fc17.1')
-        build2 = model.RpmBuild(nvr='the-greatest-package-1.1.0-fc17.1')
+        build1 = model.RpmBuild(nvr="the-greatest-package-1.0.0-fc17.1")
+        build2 = model.RpmBuild(nvr="the-greatest-package-1.1.0-fc17.1")
         self.package.builds += [build1, build2]
 
         # This should not raise any Exception.
         self.db.flush()
 
-    @mock.patch('bodhi.server.util.http_session')
+    @mock.patch("bodhi.server.util.http_session")
     def test_get_pkg_committers_from_pagure_with_group(self, session):
         """
         Ensure that the package committers can be found using the Pagure
         API with a package that does have group ACLs.
         """
         json_output = {
-            "access_groups": {
-                "admin": [],
-                "commit": ["rpm-software-management-sig"],
-                "ticket": []},
+            "access_groups": {"admin": [], "commit": ["rpm-software-management-sig"], "ticket": []},
             "access_users": {
                 "admin": ["ignatenkobrain"],
                 "commit": ["jmracek"],
                 "owner": ["dmach"],
-                "ticket": []},
+                "ticket": [],
+            },
             "close_status": [],
             "custom_keys": [],
             "date_created": "1501867095",
@@ -1504,7 +1491,9 @@ class TestRpmPackage(ModelTest):
                     "mluscon",
                     "jmracek",
                     "mhatina",
-                    "dmach"]},
+                    "dmach",
+                ]
+            },
             "id": 2599,
             "milestones": {},
             "name": "dnf",
@@ -1512,9 +1501,8 @@ class TestRpmPackage(ModelTest):
             "parent": None,
             "priorities": {},
             "tags": [],
-            "user": {
-                "fullname": "Daniel Mach",
-                "name": "dmach"}}
+            "user": {"fullname": "Daniel Mach", "name": "dmach"},
+        }
         session.get.return_value.json.return_value = json_output
         session.get.return_value.status_code = 200
 
@@ -1523,33 +1511,23 @@ class TestRpmPackage(ModelTest):
         committers, groups = rv
 
         assert sorted(committers) == (
-            ['dmach', 'ignatenkobrain', 'jmracek', 'jsilhan',
-             'mhatina', 'mluscon', 'releng'])
-        assert groups == ['rpm-software-management-sig']
+            ["dmach", "ignatenkobrain", "jmracek", "jsilhan", "mhatina", "mluscon", "releng"]
+        )
+        assert groups == ["rpm-software-management-sig"]
         session.get.assert_called_once_with(
-            'https://src.fedoraproject.org/pagure/api/0/rpms/the-greatest-package?expand_group=1',
-            timeout=60)
+            "https://src.fedoraproject.org/pagure/api/0/rpms/the-greatest-package?expand_group=1",
+            timeout=60,
+        )
 
-    @mock.patch('bodhi.server.util.http_session')
+    @mock.patch("bodhi.server.util.http_session")
     def test_get_pkg_committers_from_pagure_without_group(self, session):
         """
         Ensure that the package committers can be found using the Pagure
         API with a package that doesn't have group ACLs.
         """
         json_output = {
-            "access_groups": {
-                "admin": [],
-                "commit": ['factory2'],
-                "ticket": []
-            },
-            "access_users": {
-                "admin": [],
-                "commit": [],
-                "owner": [
-                    "mprahl"
-                ],
-                "ticket": ["jsmith"]
-            },
+            "access_groups": {"admin": [], "commit": ["factory2"], "ticket": []},
+            "access_users": {"admin": [], "commit": [], "owner": ["mprahl"], "ticket": ["jsmith"]},
             "close_status": [],
             "custom_keys": [],
             "date_created": "1494947106",
@@ -1563,38 +1541,24 @@ class TestRpmPackage(ModelTest):
             "parent": None,
             "priorities": {},
             "tags": [],
-            "user": {
-                "fullname": "Matt Prahl",
-                "name": "mprahl"
-            }
+            "user": {"fullname": "Matt Prahl", "name": "mprahl"},
         }
         session.get.return_value.json.return_value = json_output
         session.get.return_value.status_code = 200
 
         rv = self.package.get_pkg_committers_from_pagure()
 
-        assert rv == (['mprahl'], ['factory2'])
+        assert rv == (["mprahl"], ["factory2"])
 
-    @mock.patch('bodhi.server.util.http_session')
+    @mock.patch("bodhi.server.util.http_session")
     def test_get_pkg_committers_from_pagure_without_group_expansion(self, session):
         """
         Ensure that the package committers can be found using the Pagure
         API with a Pagure version that doesn't support the expand_group GET parameter.
         """
         json_output = {
-            "access_groups": {
-                "admin": [],
-                "commit": ['factory2'],
-                "ticket": []
-            },
-            "access_users": {
-                "admin": [],
-                "commit": [],
-                "owner": [
-                    "mprahl"
-                ],
-                "ticket": ["jsmith"]
-            },
+            "access_groups": {"admin": [], "commit": ["factory2"], "ticket": []},
+            "access_users": {"admin": [], "commit": [], "owner": ["mprahl"], "ticket": ["jsmith"]},
             "close_status": [],
             "custom_keys": [],
             "date_created": "1494947106",
@@ -1607,46 +1571,41 @@ class TestRpmPackage(ModelTest):
             "parent": None,
             "priorities": {},
             "tags": [],
-            "user": {
-                "fullname": "Matt Prahl",
-                "name": "mprahl"
-            }
+            "user": {"fullname": "Matt Prahl", "name": "mprahl"},
         }
         session.get.return_value.json.return_value = json_output
         session.get.return_value.status_code = 200
 
         rv = self.package.get_pkg_committers_from_pagure()
 
-        assert rv == (['mprahl'], ['factory2'])
+        assert rv == (["mprahl"], ["factory2"])
 
-    @pytest.mark.parametrize('access', (False, True))
-    @mock.patch('bodhi.server.util.http_session')
+    @pytest.mark.parametrize("access", (False, True))
+    @mock.patch("bodhi.server.util.http_session")
     def test_hascommitaccess_container_rpm(self, session, access):
         """
         Test call to Pagure to check if a user has access to this package/branch.
         """
         json_output = {
-            "args": {
-                "username": "mattia",
-                "branch": "f33",
-                "project": {}
-            },
-            "hascommit": access
+            "args": {"username": "mattia", "branch": "f33", "project": {}},
+            "hascommit": access,
         }
         session.get.return_value.json.return_value = json_output
         session.get.return_value.status_code = 200
 
-        rv = self.package.hascommitaccess('mattia', 'f33')
+        rv = self.package.hascommitaccess("mattia", "f33")
 
         assert rv is access
         session.get.assert_called_once_with(
-            'https://src.fedoraproject.org/pagure/api/0/rpms/the-greatest-package/'
-            'hascommit?user=mattia&branch=f33',
-            timeout=60)
+            "https://src.fedoraproject.org/pagure/api/0/rpms/the-greatest-package/"
+            "hascommit?user=mattia&branch=f33",
+            timeout=60,
+        )
 
 
 class TestBuild(ModelTest):
     """Test class for the ``Build`` model."""
+
     klass = model.Build
     attrs = dict(nvr="TurboGears-1.0.8-3.fc11")
 
@@ -1657,36 +1616,33 @@ class TestBuild(ModelTest):
         Returns:
             dict: A dictionary specifying a package to associate with this Build.
         """
-        return {'package': model.Package(name='TurboGears')}
+        return {"package": model.Package(name="TurboGears")}
 
-    @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
+    @mock.patch.dict(config, {"query_wiki_test_cases": True})
+    @mock.patch("bodhi.server.models.MediaWiki")
     def test_wiki_test_cases(self, MediaWiki):
         """Test querying the wiki for test cases"""
-        responses = [
-            (['Fake test case'], [])]
+        responses = [(["Fake test case"], [])]
         MediaWiki.return_value.categorymembers.side_effect = responses
-        pkg = model.RpmPackage(name='gnome-shell')
+        pkg = model.RpmPackage(name="gnome-shell")
         self.db.add(pkg)
-        build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+        build = model.RpmBuild(nvr="gnome-shell-1.1.1-1.fc32", package=pkg)
         self.db.add(build)
         build.update_test_cases(self.db)
         assert model.TestCase.query.count() == 1
-        assert build.testcases[0].name == 'Fake test case'
+        assert build.testcases[0].name == "Fake test case"
         assert len(build.testcases) == 1
 
-    @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
+    @mock.patch.dict(config, {"query_wiki_test_cases": True})
+    @mock.patch("bodhi.server.models.MediaWiki")
     def test_wiki_test_cases_recursive(self, MediaWiki):
         """Test querying the wiki for test cases when recursion is necessary."""
-        responses = [
-            (['Fake', 'Uploading cat pictures'], ['Bodhi']),
-            (['Does Bodhi eat +1s'], [])]
+        responses = [(["Fake", "Uploading cat pictures"], ["Bodhi"]), (["Does Bodhi eat +1s"], [])]
         MediaWiki.return_value.categorymembers.side_effect = responses
         MediaWiki.return_value.call.side_effect = responses
-        pkg = model.RpmPackage(name='gnome-shell')
+        pkg = model.RpmPackage(name="gnome-shell")
         self.db.add(pkg)
-        build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+        build = model.RpmBuild(nvr="gnome-shell-1.1.1-1.fc32", package=pkg)
         self.db.add(build)
 
         build.update_test_cases(self.db)
@@ -1694,18 +1650,18 @@ class TestBuild(ModelTest):
         assert model.TestCase.query.count() == 3
         assert len(build.testcases) == 3
         assert {tc.name for tc in model.TestCase.query.all()} == (
-            {'Does Bodhi eat +1s', 'Fake', 'Uploading cat pictures'})
+            {"Does Bodhi eat +1s", "Fake", "Uploading cat pictures"}
+        )
 
-    @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
+    @mock.patch.dict(config, {"query_wiki_test_cases": True})
+    @mock.patch("bodhi.server.models.MediaWiki")
     def test_wiki_test_cases_removed(self, MediaWiki):
         """Test querying the wiki for test cases and remove test which aren't actual."""
-        responses = [
-            (['Fake test case', 'Does Bodhi eat +1s'], [])]
+        responses = [(["Fake test case", "Does Bodhi eat +1s"], [])]
 
-        pkg = model.RpmPackage(name='gnome-shell')
+        pkg = model.RpmPackage(name="gnome-shell")
         self.db.add(pkg)
-        build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+        build = model.RpmBuild(nvr="gnome-shell-1.1.1-1.fc32", package=pkg)
         self.db.add(build)
 
         # Add both tests to build
@@ -1713,248 +1669,277 @@ class TestBuild(ModelTest):
         build.update_test_cases(self.db)
         assert model.TestCase.query.count() == 2
         assert len(build.testcases) == 2
-        assert {tc.name for tc in build.testcases} == (
-            {'Does Bodhi eat +1s', 'Fake test case'})
+        assert {tc.name for tc in build.testcases} == ({"Does Bodhi eat +1s", "Fake test case"})
 
         # Now remove one test
-        responses = [
-            (['Fake test case'], [])]
+        responses = [(["Fake test case"], [])]
         MediaWiki.return_value.categorymembers.side_effect = responses
         build.update_test_cases(self.db)
         assert model.TestCase.query.count() == 2
         assert len(build.testcases) == 1
-        assert build.testcases[0].name == 'Fake test case'
+        assert build.testcases[0].name == "Fake test case"
 
-    @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
+    @mock.patch.dict(config, {"query_wiki_test_cases": True})
+    @mock.patch("bodhi.server.models.MediaWiki")
     def test_wiki_connection_failed(self, MediaWiki):
         """Test querying the wiki for test cases when connection to Wiki failed"""
         MediaWiki.side_effect = MediaWikiAPIURLError("https://bad-api-url")
 
         with pytest.raises(ExternalCallException) as exc_context:
-            pkg = model.RpmPackage(name='gnome-shell')
+            pkg = model.RpmPackage(name="gnome-shell")
             self.db.add(pkg)
-            build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+            build = model.RpmBuild(nvr="gnome-shell-1.1.1-1.fc32", package=pkg)
             self.db.add(build)
             build.update_test_cases(self.db)
         assert len(build.testcases) == 0
-        assert str(exc_context.value).startswith('Failed to connect to Fedora Wiki:')
+        assert str(exc_context.value).startswith("Failed to connect to Fedora Wiki:")
 
-    @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
+    @mock.patch.dict(config, {"query_wiki_test_cases": True})
+    @mock.patch("bodhi.server.models.MediaWiki")
     def test_wiki_query_timeout(self, MediaWiki):
         """Test querying the wiki for test cases when connection to Wiki failed"""
         MediaWiki.return_value.categorymembers.side_effect = HTTPTimeoutError("oh no!")
 
         with pytest.raises(ExternalCallException) as exc_context:
-            pkg = model.RpmPackage(name='gnome-shell')
+            pkg = model.RpmPackage(name="gnome-shell")
             self.db.add(pkg)
-            build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+            build = model.RpmBuild(nvr="gnome-shell-1.1.1-1.fc32", package=pkg)
             self.db.add(build)
             build.update_test_cases(self.db)
         assert len(build.testcases) == 0
-        assert str(exc_context.value).startswith('Failed retrieving testcases from Wiki:')
+        assert str(exc_context.value).startswith("Failed retrieving testcases from Wiki:")
 
 
 class TestRpmBuild(ModelTest):
     """Unit test case for the ``RpmBuild`` model."""
+
     klass = model.RpmBuild
     attrs = dict(nvr="TurboGears-1.0.8-3.fc11")
 
     def do_get_dependencies(self):
-        return dict(release=model.Release(**TestRelease.attrs),
-                    package=model.RpmPackage(**TestRpmPackage.attrs))
+        return dict(
+            release=model.Release(**TestRelease.attrs),
+            package=model.RpmPackage(**TestRpmPackage.attrs),
+        )
 
-    @mock.patch('bodhi.server.models.log.exception')
+    @mock.patch("bodhi.server.models.log.exception")
     def test_get_changelog_bad_data(self, exception):
         """Ensure the get_changelog() logs an error when it is unable to form the log."""
         # The changelogname field doesn't have enough entries, which will cause an Exception.
         rpm_header = {
-            'changelogtext': ['- Added a free money feature.', '- Make users ☺'],
-            'release': '1.fc20',
-            'version': '2.1.0',
-            'changelogtime': [1375531200, 1370952000],
-            'description': 'blah blah blah',
-            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1'],
-            'url': 'http://libseccomp.sourceforge.net',
-            'name': 'libseccomp',
-            'summary': 'Enhanced seccomp library'}
+            "changelogtext": ["- Added a free money feature.", "- Make users ☺"],
+            "release": "1.fc20",
+            "version": "2.1.0",
+            "changelogtime": [1375531200, 1370952000],
+            "description": "blah blah blah",
+            "changelogname": ["Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1"],
+            "url": "http://libseccomp.sourceforge.net",
+            "name": "libseccomp",
+            "summary": "Enhanced seccomp library",
+        }
 
         with mock.patch(
-                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+            "bodhi.server.models.get_rpm_header", return_value=rpm_header
+        ) as get_rpm_header:
             changelog = self.obj.get_changelog()
 
         # The free money note should still have made it.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
-             'a free money feature.\n'))
+            "* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added "
+            "a free money feature.\n"
+        )
         # The changelogname field should have caused an Exception to be raised.
-        exception.assert_called_once_with(
-            'Unable to add changelog entry for header %s', rpm_header)
+        exception.assert_called_once_with("Unable to add changelog entry for header %s", rpm_header)
         get_rpm_header.assert_called_once_with(self.obj.nvr)
 
     def test_get_changelog_no_description(self):
         """Ensure the get_changelog() returns empty string when there is no description."""
         rpm_header = {
-            'changelogtext': [],
-            'release': '1.fc20',
-            'version': '2.1.0',
-            'changelogtime': [1375531200, 1370952000],
-            'description': 'blah blah blah',
-            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1'],
-            'url': 'http://libseccomp.sourceforge.net',
-            'name': 'libseccomp',
-            'summary': 'Enhanced seccomp library'}
+            "changelogtext": [],
+            "release": "1.fc20",
+            "version": "2.1.0",
+            "changelogtime": [1375531200, 1370952000],
+            "description": "blah blah blah",
+            "changelogname": ["Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1"],
+            "url": "http://libseccomp.sourceforge.net",
+            "name": "libseccomp",
+            "summary": "Enhanced seccomp library",
+        }
 
         with mock.patch(
-                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+            "bodhi.server.models.get_rpm_header", return_value=rpm_header
+        ) as get_rpm_header:
             changelog = self.obj.get_changelog()
 
-        assert changelog == ''
+        assert changelog == ""
         get_rpm_header.assert_called_once_with(self.obj.nvr)
 
-    @mock.patch('bodhi.server.models.log.exception')
+    @mock.patch("bodhi.server.models.log.exception")
     def test_get_changelog_when_is_list(self, exception):
         """Test get_changelog() when the changelogtime is given as a list."""
         rpm_header = {
-            'changelogtext': ['- Added a free money feature.', '- Make users ☺'],
-            'release': '1.fc20',
-            'version': '2.1.0',
-            'changelogtime': [1375531200, 1370952000],
-            'description': 'blah blah blah',
-            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1',
-                              'Randy <bowlofeggs@fpo> - 2.0.1-2'],
-            'url': 'http://libseccomp.sourceforge.net',
-            'name': 'libseccomp',
-            'summary': 'Enhanced seccomp library'}
+            "changelogtext": ["- Added a free money feature.", "- Make users ☺"],
+            "release": "1.fc20",
+            "version": "2.1.0",
+            "changelogtime": [1375531200, 1370952000],
+            "description": "blah blah blah",
+            "changelogname": [
+                "Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1",
+                "Randy <bowlofeggs@fpo> - 2.0.1-2",
+            ],
+            "url": "http://libseccomp.sourceforge.net",
+            "name": "libseccomp",
+            "summary": "Enhanced seccomp library",
+        }
 
         with mock.patch(
-                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+            "bodhi.server.models.get_rpm_header", return_value=rpm_header
+        ) as get_rpm_header:
             changelog = self.obj.get_changelog()
 
         # The full changelog should be rendered.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
-             'a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo> - 2.0.1-2\n- Make '
-             'users ☺\n'))
+            "* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added "
+            "a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo> - 2.0.1-2\n- Make "
+            "users ☺\n"
+        )
         # No exception should have been logged.
         assert exception.call_count == 0
         get_rpm_header.assert_called_once_with(self.obj.nvr)
 
-    @mock.patch('bodhi.server.models.log.exception')
+    @mock.patch("bodhi.server.models.log.exception")
     def test_get_changelog_when_not_list(self, exception):
         """Test get_changelog() when the changelogtime is not given as a list."""
         rpm_header = {
-            'changelogtext': ['- Added a free money feature.'],
-            'release': '1.fc20',
-            'version': '2.1.0',
-            'changelogtime': 1375531200,
-            'description': 'blah blah blah',
-            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1'],
-            'url': 'http://libseccomp.sourceforge.net',
-            'name': 'libseccomp',
-            'summary': 'Enhanced seccomp library'}
+            "changelogtext": ["- Added a free money feature."],
+            "release": "1.fc20",
+            "version": "2.1.0",
+            "changelogtime": 1375531200,
+            "description": "blah blah blah",
+            "changelogname": ["Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1"],
+            "url": "http://libseccomp.sourceforge.net",
+            "name": "libseccomp",
+            "summary": "Enhanced seccomp library",
+        }
 
         with mock.patch(
-                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+            "bodhi.server.models.get_rpm_header", return_value=rpm_header
+        ) as get_rpm_header:
             changelog = self.obj.get_changelog()
 
         # The full changelog should be rendered.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
-             'a free money feature.\n'))
+            "* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added "
+            "a free money feature.\n"
+        )
         # No exception should have been logged.
         assert exception.call_count == 0
         get_rpm_header.assert_called_once_with(self.obj.nvr)
 
-    @mock.patch('bodhi.server.models.log.exception')
+    @mock.patch("bodhi.server.models.log.exception")
     def test_get_changelog_with_timelimit(self, exception):
         """Test get_changelog() with time limit."""
         rpm_header = {
-            'changelogtext': ['- Added a free money feature.', '- Make users ☺'],
-            'release': '1.fc20',
-            'version': '2.1.0',
-            'changelogtime': [1375531200, 1370952000],
-            'description': 'blah blah blah',
-            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1',
-                              'Randy <bowlofeggs@fpo> - 2.0.1-2'],
-            'url': 'http://libseccomp.sourceforge.net',
-            'name': 'libseccomp',
-            'summary': 'Enhanced seccomp library'}
+            "changelogtext": ["- Added a free money feature.", "- Make users ☺"],
+            "release": "1.fc20",
+            "version": "2.1.0",
+            "changelogtime": [1375531200, 1370952000],
+            "description": "blah blah blah",
+            "changelogname": [
+                "Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1",
+                "Randy <bowlofeggs@fpo> - 2.0.1-2",
+            ],
+            "url": "http://libseccomp.sourceforge.net",
+            "name": "libseccomp",
+            "summary": "Enhanced seccomp library",
+        }
 
         with mock.patch(
-                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+            "bodhi.server.models.get_rpm_header", return_value=rpm_header
+        ) as get_rpm_header:
             changelog = self.obj.get_changelog(timelimit=1371000000)
 
         # Only one entry should be rendered.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
-             'a free money feature.\n'))
+            "* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added "
+            "a free money feature.\n"
+        )
         # No exception should have been logged.
         assert exception.call_count == 0
         get_rpm_header.assert_called_once_with(self.obj.nvr)
 
-    @mock.patch('bodhi.server.models.log.exception')
-    @mock.patch('bodhi.server.models.RpmBuild.get_latest', return_value='libseccomp-2.0.1-2.fc20')
+    @mock.patch("bodhi.server.models.log.exception")
+    @mock.patch("bodhi.server.models.RpmBuild.get_latest", return_value="libseccomp-2.0.1-2.fc20")
     def test_get_changelog_with_lastupdate(self, get_latest, exception):
         """Test get_changelog() with lastupdate set to True."""
-        rpm_headers = [{
-            'changelogtext': ['- Added a free money feature.', '- Make users ☺'],
-            'release': '1.fc20',
-            'version': '2.1.0',
-            'changelogtime': [1375531200, 1370952000],
-            'description': 'blah blah blah',
-            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1',
-                              'Randy <bowlofeggs@fpo> - 2.0.1-2'],
-            'url': 'http://libseccomp.sourceforge.net',
-            'name': 'libseccomp',
-            'summary': 'Enhanced seccomp library'},
+        rpm_headers = [
             {
-            'changelogtext': ['- Make users ☺'],
-            'release': '2.fc20',
-            'version': '2.0.1',
-            'changelogtime': [1370952000],
-            'description': 'blah blah blah',
-            'changelogname': ['Randy <bowlofeggs@fpo> - 2.0.1-2'],
-            'url': 'http://libseccomp.sourceforge.net',
-            'name': 'libseccomp',
-            'summary': 'Enhanced seccomp library'}]
+                "changelogtext": ["- Added a free money feature.", "- Make users ☺"],
+                "release": "1.fc20",
+                "version": "2.1.0",
+                "changelogtime": [1375531200, 1370952000],
+                "description": "blah blah blah",
+                "changelogname": [
+                    "Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1",
+                    "Randy <bowlofeggs@fpo> - 2.0.1-2",
+                ],
+                "url": "http://libseccomp.sourceforge.net",
+                "name": "libseccomp",
+                "summary": "Enhanced seccomp library",
+            },
+            {
+                "changelogtext": ["- Make users ☺"],
+                "release": "2.fc20",
+                "version": "2.0.1",
+                "changelogtime": [1370952000],
+                "description": "blah blah blah",
+                "changelogname": ["Randy <bowlofeggs@fpo> - 2.0.1-2"],
+                "url": "http://libseccomp.sourceforge.net",
+                "name": "libseccomp",
+                "summary": "Enhanced seccomp library",
+            },
+        ]
 
-        with mock.patch('bodhi.server.models.get_rpm_header') as get_rpm_header:
+        with mock.patch("bodhi.server.models.get_rpm_header") as get_rpm_header:
             get_rpm_header.side_effect = rpm_headers
             changelog = self.obj.get_changelog(lastupdate=True)
 
         # Only the newer entry should be rendered.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
-             'a free money feature.\n'))
+            "* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added "
+            "a free money feature.\n"
+        )
         # No exception should have been logged.
         assert exception.call_count == 0
 
-    @mock.patch('bodhi.server.models.log.exception')
-    @mock.patch('bodhi.server.models.RpmBuild.get_latest', return_value=None)
+    @mock.patch("bodhi.server.models.log.exception")
+    @mock.patch("bodhi.server.models.RpmBuild.get_latest", return_value=None)
     def test_get_changelog_newpackage(self, get_latest, exception):
         """Test get_changelog() with a new package."""
         rpm_header = {
-            'changelogtext': ['- Added a free money feature.', '- Make users ☺'],
-            'release': '1.fc20',
-            'version': '2.1.0',
-            'changelogtime': [1375531200, 1370952000],
-            'description': 'blah blah blah',
-            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1',
-                              'Randy <bowlofeggs@fpo> - 2.0.1-2'],
-            'url': 'http://libseccomp.sourceforge.net',
-            'name': 'libseccomp',
-            'summary': 'Enhanced seccomp library'}
+            "changelogtext": ["- Added a free money feature.", "- Make users ☺"],
+            "release": "1.fc20",
+            "version": "2.1.0",
+            "changelogtime": [1375531200, 1370952000],
+            "description": "blah blah blah",
+            "changelogname": [
+                "Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1",
+                "Randy <bowlofeggs@fpo> - 2.0.1-2",
+            ],
+            "url": "http://libseccomp.sourceforge.net",
+            "name": "libseccomp",
+            "summary": "Enhanced seccomp library",
+        }
 
-        with mock.patch('bodhi.server.models.get_rpm_header', return_value=rpm_header):
+        with mock.patch("bodhi.server.models.get_rpm_header", return_value=rpm_header):
             changelog = self.obj.get_changelog(lastupdate=True)
 
         # The full changelog should be rendered, since no previous update exists.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
-             'a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo> - 2.0.1-2\n- Make '
-             'users ☺\n'))
+            "* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added "
+            "a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo> - 2.0.1-2\n- Make "
+            "users ☺\n"
+        )
         # No exception should have been logged.
         assert exception.call_count == 0
 
@@ -1969,7 +1954,7 @@ class TestRpmBuild(ModelTest):
         assert self.obj.package.builds[0] == self.obj
 
     def test_epoch(self):
-        self.obj.epoch = '1'
+        self.obj.epoch = "1"
         assert self.obj.evr, ("1", "1.0.8" == "3.fc11")
 
 
@@ -1980,49 +1965,58 @@ class TestUpdateInit(BasePyTestCase):
         """If the release is not passed when creating an Update, a ValueError should be raised."""
         with pytest.raises(ValueError) as exc:
             model.Update()
-        assert str(exc.value) == 'You must specify a Release when creating an Update.'
+        assert str(exc.value) == "You must specify a Release when creating an Update."
 
 
-@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
-@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
+@mock.patch("bodhi.server.models.work_on_bugs_task", mock.Mock())
+@mock.patch("bodhi.server.models.fetch_test_cases_task", mock.Mock())
 class TestUpdateNew(BasePyTestCase):
     """Tests for the Update.new() method."""
 
-    @mock.patch('bodhi.server.models.log.warning')
+    @mock.patch("bodhi.server.models.log.warning")
     def test_add_bugs_bodhi_not_configured(self, warning):
         """Adding a bug should log a warning if Bodhi isn't configured to handle bugs."""
         config["bodhi_email"] = None
-        release = self.create_release('36')
-        package = model.RpmPackage.query.filter_by(name='bodhi').one()
-        build = model.RpmBuild(nvr='bodhi-6.0.0-1.fc36', release=release,
-                               package=package, signed=False)
+        release = self.create_release("36")
+        package = model.RpmPackage.query.filter_by(name="bodhi").one()
+        build = model.RpmBuild(
+            nvr="bodhi-6.0.0-1.fc36", release=release, package=package, signed=False
+        )
         self.db.add(build)
-        user = model.User(name='tester')
+        user = model.User(name="tester")
         self.db.add(user)
-        data = {'release': release, 'builds': [build], 'from_tag': 'f36-build-side-1234',
-                'bugs': [], 'edited': '', 'autotime': True,
-                'stable_days': 3, 'stable_karma': 3, 'unstable_karma': -1,
-                'notes': 'simple update', 'type': 'unspecified'}
+        data = {
+            "release": release,
+            "builds": [build],
+            "from_tag": "f36-build-side-1234",
+            "bugs": [],
+            "edited": "",
+            "autotime": True,
+            "stable_days": 3,
+            "stable_karma": 3,
+            "unstable_karma": -1,
+            "notes": "simple update",
+            "type": "unspecified",
+        }
         request = mock.MagicMock()
         request.db = self.db
-        request.identity.name = 'tester'
+        request.identity.name = "tester"
         self.db.flush()
 
         with mock_sends(update_schemas.UpdateReadyForTestingV3):
             model.Update.new(request, data)
 
-        warning.assert_called_with('Not configured to handle bugs')
+        warning.assert_called_with("Not configured to handle bugs")
 
 
-@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
-@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
+@mock.patch("bodhi.server.models.work_on_bugs_task", mock.Mock())
+@mock.patch("bodhi.server.models.fetch_test_cases_task", mock.Mock())
 class TestUpdateEdit(BasePyTestCase):
     """Tests for the Update.edit() method."""
 
     def test_add_build_to_locked_update(self):
         """Adding a build to a locked update should raise LockedUpdateException."""
-        data = {
-            'edited': model.Update.query.first().alias, 'builds': ["can't", 'do', 'this']}
+        data = {"edited": model.Update.query.first().alias, "builds": ["can't", "do", "this"]}
         request = mock.MagicMock()
         request.db = self.db
         update = model.Update.query.first()
@@ -2034,8 +2028,7 @@ class TestUpdateEdit(BasePyTestCase):
 
     def test_remove_builds_from_locked_update(self):
         """Adding a build to a locked update should raise LockedUpdateException."""
-        data = {
-            'edited': model.Update.query.first().alias, 'builds': []}
+        data = {"edited": model.Update.query.first().alias, "builds": []}
         request = mock.MagicMock()
         request.db = self.db
         update = model.Update.query.first()
@@ -2045,35 +2038,43 @@ class TestUpdateEdit(BasePyTestCase):
         with pytest.raises(model.LockedUpdateException):
             model.Update.edit(request, data)
 
-    @mock.patch('bodhi.server.models.log.warning')
+    @mock.patch("bodhi.server.models.log.warning")
     def test_add_bugs_bodhi_not_configured(self, warning):
         """Adding a bug should log a warning if Bodhi isn't configured to handle bugs."""
         config["bodhi_email"] = None
         update = model.Update.query.first()
         data = {
-            'edited': update.alias, 'builds': [update.builds[0].nvr], 'bugs': [12345, ], }
+            "edited": update.alias,
+            "builds": [update.builds[0].nvr],
+            "bugs": [
+                12345,
+            ],
+        }
         request = mock.MagicMock()
         request.db = self.db
-        request.identity.name = 'tester'
+        request.identity.name = "tester"
         with mock_sends(Message):
             model.Update.edit(request, data)
 
-        warning.assert_called_with('Not configured to handle bugs')
+        warning.assert_called_with("Not configured to handle bugs")
 
     def test_empty_display_name(self):
         """An only whitespaces string should not be set as display name."""
         update = model.Update.query.first()
         data = {
-            'edited': update.alias, 'builds': [update.builds[0].nvr],
-            'bugs': [], 'display_name': '  '}
+            "edited": update.alias,
+            "builds": [update.builds[0].nvr],
+            "bugs": [],
+            "display_name": "  ",
+        }
         request = mock.MagicMock()
         request.db = self.db
-        request.identity.name = 'tester'
+        request.identity.name = "tester"
         with mock_sends(Message):
             model.Update.edit(request, data)
 
         update = model.Update.query.first()
-        assert update.display_name == ''
+        assert update.display_name == ""
 
     def test_gating_required_false(self):
         """Assert that test_gating_status is not updated if test_gating is not enabled."""
@@ -2081,24 +2082,35 @@ class TestUpdateEdit(BasePyTestCase):
         update = model.Update.query.first()
         update.test_gating_status = None
         data = {
-            'edited': update.alias, 'builds': [update.builds[0].nvr],
-            'bugs': [], 'display_name': '  '}
+            "edited": update.alias,
+            "builds": [update.builds[0].nvr],
+            "bugs": [],
+            "display_name": "  ",
+        }
         request = mock.MagicMock()
         request.db = self.db
-        request.identity.name = 'tester'
+        request.identity.name = "tester"
         with mock_sends(update_schemas.UpdateEditV2):
-            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
                 greenwave_response = {
-                    'policies_satisfied': False,
-                    'summary': 'what have you done‽',
-                    'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
-                    'unsatisfied_requirements': [
-                        {'testcase': 'dist.rpmdeplint',
-                         'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-failed', 'scenario': None},
-                        {'testcase': 'dist.rpmdeplint',
-                         'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-failed', 'scenario': None}]}
+                    "policies_satisfied": False,
+                    "summary": "what have you done‽",
+                    "applicable_policies": ["bodhiupdate_bodhipush_openqa_workstation"],
+                    "unsatisfied_requirements": [
+                        {
+                            "testcase": "dist.rpmdeplint",
+                            "item": {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
+                            "type": "test-result-failed",
+                            "scenario": None,
+                        },
+                        {
+                            "testcase": "dist.rpmdeplint",
+                            "item": {"item": update.alias, "type": "bodhi_update"},
+                            "type": "test-result-failed",
+                            "scenario": None,
+                        },
+                    ],
+                }
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -2111,24 +2123,35 @@ class TestUpdateEdit(BasePyTestCase):
         update = model.Update.query.first()
         update.test_gating_status = None
         data = {
-            'edited': update.alias, 'builds': [update.builds[0].nvr],
-            'bugs': [], 'display_name': '  '}
+            "edited": update.alias,
+            "builds": [update.builds[0].nvr],
+            "bugs": [],
+            "display_name": "  ",
+        }
         request = mock.MagicMock()
         request.db = self.db
-        request.identity.name = 'tester'
+        request.identity.name = "tester"
         with mock_sends(update_schemas.UpdateEditV2):
-            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
                 greenwave_response = {
-                    'policies_satisfied': False,
-                    'summary': 'what have you done‽',
-                    'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
-                    'unsatisfied_requirements': [
-                        {'testcase': 'dist.rpmdeplint',
-                         'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-failed', 'scenario': None},
-                        {'testcase': 'dist.rpmdeplint',
-                         'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-failed', 'scenario': None}]}
+                    "policies_satisfied": False,
+                    "summary": "what have you done‽",
+                    "applicable_policies": ["bodhiupdate_bodhipush_openqa_workstation"],
+                    "unsatisfied_requirements": [
+                        {
+                            "testcase": "dist.rpmdeplint",
+                            "item": {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
+                            "type": "test-result-failed",
+                            "scenario": None,
+                        },
+                        {
+                            "testcase": "dist.rpmdeplint",
+                            "item": {"item": update.alias, "type": "bodhi_update"},
+                            "type": "test-result-failed",
+                            "scenario": None,
+                        },
+                    ],
+                }
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -2141,30 +2164,41 @@ class TestUpdateEdit(BasePyTestCase):
         if all the builds in the update are signed.
         """
         config["test_gating.required"] = True
-        update = model.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update = model.Build.query.filter_by(nvr="bodhi-2.0-1.fc17").one().update
         update.status = model.UpdateStatus.pending
         update.release.composed_by_bodhi = False
         update.builds[0].signed = True
         data = {
-            'edited': update.alias, 'builds': [update.builds[0].nvr],
-            'bugs': [], 'display_name': '  '}
+            "edited": update.alias,
+            "builds": [update.builds[0].nvr],
+            "bugs": [],
+            "display_name": "  ",
+        }
         request = mock.MagicMock()
         request.db = self.db
-        request.identity.name = 'tester'
+        request.identity.name = "tester"
 
         with mock_sends(update_schemas.UpdateEditV2):
-            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
                 greenwave_response = {
-                    'policies_satisfied': False,
-                    'summary': 'what have you done‽',
-                    'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
-                    'unsatisfied_requirements': [
-                        {'testcase': 'dist.rpmdeplint',
-                         'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-failed', 'scenario': None},
-                        {'testcase': 'dist.rpmdeplint',
-                         'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-failed', 'scenario': None}]}
+                    "policies_satisfied": False,
+                    "summary": "what have you done‽",
+                    "applicable_policies": ["bodhiupdate_bodhipush_openqa_workstation"],
+                    "unsatisfied_requirements": [
+                        {
+                            "testcase": "dist.rpmdeplint",
+                            "item": {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
+                            "type": "test-result-failed",
+                            "scenario": None,
+                        },
+                        {
+                            "testcase": "dist.rpmdeplint",
+                            "item": {"item": update.alias, "type": "bodhi_update"},
+                            "type": "test-result-failed",
+                            "scenario": None,
+                        },
+                    ],
+                }
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -2177,30 +2211,41 @@ class TestUpdateEdit(BasePyTestCase):
         if not all the builds in the update are signed.
         """
         config["test_gating.required"] = True
-        update = model.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update = model.Build.query.filter_by(nvr="bodhi-2.0-1.fc17").one().update
         update.status = model.UpdateStatus.pending
         update.release.composed_by_bodhi = False
         update.builds[0].signed = False
         data = {
-            'edited': update.alias, 'builds': [update.builds[0].nvr],
-            'bugs': [], 'display_name': '  '}
+            "edited": update.alias,
+            "builds": [update.builds[0].nvr],
+            "bugs": [],
+            "display_name": "  ",
+        }
         request = mock.MagicMock()
         request.db = self.db
-        request.identity.name = 'tester'
+        request.identity.name = "tester"
 
         with mock_sends(update_schemas.UpdateEditV2):
-            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
                 greenwave_response = {
-                    'policies_satisfied': False,
-                    'summary': 'what have you done‽',
-                    'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
-                    'unsatisfied_requirements': [
-                        {'testcase': 'dist.rpmdeplint',
-                         'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-failed', 'scenario': None},
-                        {'testcase': 'dist.rpmdeplint',
-                         'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-failed', 'scenario': None}]}
+                    "policies_satisfied": False,
+                    "summary": "what have you done‽",
+                    "applicable_policies": ["bodhiupdate_bodhipush_openqa_workstation"],
+                    "unsatisfied_requirements": [
+                        {
+                            "testcase": "dist.rpmdeplint",
+                            "item": {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
+                            "type": "test-result-failed",
+                            "scenario": None,
+                        },
+                        {
+                            "testcase": "dist.rpmdeplint",
+                            "item": {"item": update.alias, "type": "bodhi_update"},
+                            "type": "test-result-failed",
+                            "scenario": None,
+                        },
+                    ],
+                }
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -2213,30 +2258,41 @@ class TestUpdateEdit(BasePyTestCase):
         if all the builds in the update are signed.
         """
         config["test_gating.required"] = True
-        update = model.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update = model.Build.query.filter_by(nvr="bodhi-2.0-1.fc17").one().update
         update.status = model.UpdateStatus.pending
         update.release.composed_by_bodhi = True
         update.builds[0].signed = True
         data = {
-            'edited': update.alias, 'builds': [update.builds[0].nvr],
-            'bugs': [], 'display_name': '  '}
+            "edited": update.alias,
+            "builds": [update.builds[0].nvr],
+            "bugs": [],
+            "display_name": "  ",
+        }
         request = mock.MagicMock()
         request.db = self.db
-        request.identity.name = 'tester'
+        request.identity.name = "tester"
 
         with mock_sends(update_schemas.UpdateEditV2):
-            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
                 greenwave_response = {
-                    'policies_satisfied': False,
-                    'summary': 'what have you done‽',
-                    'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
-                    'unsatisfied_requirements': [
-                        {'testcase': 'dist.rpmdeplint',
-                         'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-failed', 'scenario': None},
-                        {'testcase': 'dist.rpmdeplint',
-                         'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-failed', 'scenario': None}]}
+                    "policies_satisfied": False,
+                    "summary": "what have you done‽",
+                    "applicable_policies": ["bodhiupdate_bodhipush_openqa_workstation"],
+                    "unsatisfied_requirements": [
+                        {
+                            "testcase": "dist.rpmdeplint",
+                            "item": {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
+                            "type": "test-result-failed",
+                            "scenario": None,
+                        },
+                        {
+                            "testcase": "dist.rpmdeplint",
+                            "item": {"item": update.alias, "type": "bodhi_update"},
+                            "type": "test-result-failed",
+                            "scenario": None,
+                        },
+                    ],
+                }
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -2245,8 +2301,8 @@ class TestUpdateEdit(BasePyTestCase):
 
 
 @mock.patch("bodhi.server.models.tag_update_builds_task", mock.Mock())
-@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
-@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
+@mock.patch("bodhi.server.models.work_on_bugs_task", mock.Mock())
+@mock.patch("bodhi.server.models.fetch_test_cases_task", mock.Mock())
 class TestUpdateVersionHash(BasePyTestCase):
     """Tests for the Update.version_hash property."""
 
@@ -2262,23 +2318,25 @@ class TestUpdateVersionHash(BasePyTestCase):
         assert len(update.builds) == 1
         builds = " ".join(sorted([x.nvr for x in update.builds]))
         assert builds == initial_expected_builds
-        initial_calculated_hash = hashlib.sha1(str(builds).encode('utf-8')).hexdigest()
+        initial_calculated_hash = hashlib.sha1(str(builds).encode("utf-8")).hexdigest()
         assert update.version_hash == initial_calculated_hash
 
         # add another build
-        package = model.RpmPackage(name='python-rpdb')
+        package = model.RpmPackage(name="python-rpdb")
         self.db.add(package)
-        build = model.RpmBuild(nvr='python-rpdb-1.3-1.fc17', package=package)
+        build = model.RpmBuild(nvr="python-rpdb-1.3-1.fc17", package=package)
         self.db.add(build)
         update = model.Update.query.first()
-        data = {
-            'edited': update.alias, 'builds': [update.builds[0].nvr, build.nvr], 'bugs': []}
+        data = {"edited": update.alias, "builds": [update.builds[0].nvr, build.nvr], "bugs": []}
         request = mock.MagicMock()
         request.buildinfo = {
             build.nvr: {
-                'nvr': build._get_n_v_r(), 'info': buildsys.get_session().getBuild(build.nvr)}}
+                "nvr": build._get_n_v_r(),
+                "info": buildsys.get_session().getBuild(build.nvr),
+            }
+        }
         request.db = self.db
-        request.identity.name = 'tester'
+        request.identity.name = "tester"
         self.db.flush()
         with mock_sends(Message, Message):
             model.Update.edit(request, data)
@@ -2295,7 +2353,7 @@ class TestUpdateVersionHash(BasePyTestCase):
         assert len(update.builds) == 2
         builds = " ".join(sorted([x.nvr for x in update.builds]))
         assert builds == updated_expected_builds
-        updated_calculated_hash = hashlib.sha1(str(builds).encode('utf-8')).hexdigest()
+        updated_calculated_hash = hashlib.sha1(str(builds).encode("utf-8")).hexdigest()
         assert update.version_hash == updated_calculated_hash
 
 
@@ -2309,7 +2367,7 @@ class TestUpdateGetBugKarma(BasePyTestCase):
         bk = model.BugKarma(karma=1, comment=update.comments[0], bug=update.bugs[0])
         self.db.add(bk)
         # Now let's associate a new bug with the update.
-        bug = model.Bug(bug_id=12345, title='some title')
+        bug = model.Bug(bug_id=12345, title="some title")
         update.bugs.append(bug)
 
         bad, good = update.get_bug_karma(bug)
@@ -2321,8 +2379,8 @@ class TestUpdateGetBugKarma(BasePyTestCase):
         """Make sure mixed feedback is counted correctly."""
         update = model.Update.query.first()
         for i, karma in enumerate([-1, 1, 1]):
-            user = model.User(name='user_{}'.format(i))
-            comment = model.Comment(text='Test comment', karma=karma, user=user)
+            user = model.User(name=f"user_{i}")
+            comment = model.Comment(text="Test comment", karma=karma, user=user)
             self.db.add(comment)
             update.comments.append(comment)
             bug_karma = model.BugKarma(karma=karma, comment=comment, bug=update.bugs[0])
@@ -2334,7 +2392,7 @@ class TestUpdateGetBugKarma(BasePyTestCase):
         assert good == 2
 
         # This is a "karma reset event", so the above comments should not be counted in the karma.
-        user = model.User(name='bodhi')
+        user = model.User(name="bodhi")
         comment = model.Comment(text="New build", karma=0, user=user)
         self.db.add(comment)
         update.comments.append(comment)
@@ -2354,10 +2412,11 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.status = UpdateStatus.testing
         update.type = UpdateType.bugfix
         update.release.package_manager = PackageManager.dnf
-        update.release.testing_repository = 'updates-testing'
+        update.release.testing_repository = "updates-testing"
 
         assert update.install_command == (
-            f'sudo dnf upgrade --enablerepo=updates-testing --refresh --advisory={update.alias}')
+            f"sudo dnf upgrade --enablerepo=updates-testing --refresh --advisory={update.alias}"
+        )
 
     def test_upgrade_in_stable(self):
         """Update is an enhancement, a security or a bugfix and is in stable."""
@@ -2365,9 +2424,9 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.status = UpdateStatus.stable
         update.type = UpdateType.bugfix
         update.release.package_manager = PackageManager.dnf
-        update.release.testing_repository = 'updates-testing'
+        update.release.testing_repository = "updates-testing"
 
-        assert update.install_command == f'sudo dnf upgrade --refresh --advisory={update.alias}'
+        assert update.install_command == f"sudo dnf upgrade --refresh --advisory={update.alias}"
 
     def test_newpackage_in_testing(self):
         """Update is a newpackage and is in testing."""
@@ -2375,11 +2434,12 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.status = UpdateStatus.testing
         update.type = UpdateType.newpackage
         update.release.package_manager = PackageManager.dnf
-        update.release.testing_repository = 'updates-testing'
+        update.release.testing_repository = "updates-testing"
 
         assert update.install_command == (
-            r'sudo dnf install --enablerepo=updates-testing --refresh '
-            r'--advisory={} \*'.format(update.alias))
+            r"sudo dnf install --enablerepo=updates-testing --refresh "
+            rf"--advisory={update.alias} \*"
+        )
 
     def test_newpackage_in_stable(self):
         """Update is a newpackage and is in stable."""
@@ -2387,17 +2447,19 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.status = UpdateStatus.stable
         update.type = UpdateType.newpackage
         update.release.package_manager = PackageManager.dnf
-        update.release.testing_repository = 'updates-testing'
+        update.release.testing_repository = "updates-testing"
 
-        assert update.install_command == r'sudo dnf install --refresh ' \
-                                         r'--advisory={} \*'.format(update.alias)
+        assert (
+            update.install_command == r"sudo dnf install --refresh "
+            rf"--advisory={update.alias} \*"
+        )
 
     def test_cannot_install(self):
         """Update is out of stable or testing repositories."""
         update = model.Update.query.first()
         update.status = UpdateStatus.obsolete
 
-        assert update.install_command == ''
+        assert update.install_command == ""
 
     def test_cannot_install_rawhide_testing(self):
         """Update is in testing state and is for Rawhide.
@@ -2409,10 +2471,10 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.status = UpdateStatus.testing
         update.type = UpdateType.bugfix
         update.release.package_manager = PackageManager.dnf
-        update.release.testing_repository = 'updates-testing'
+        update.release.testing_repository = "updates-testing"
         update.release.composed_by_bodhi = False
 
-        assert update.install_command == ''
+        assert update.install_command == ""
 
     def test_update_command_not_possible_missing_packagemanager(self):
         """The Release of the Update misses the package manager definition."""
@@ -2420,9 +2482,9 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.status = UpdateStatus.stable
         update.type = UpdateType.newpackage
         update.release.package_manager = PackageManager.unspecified
-        update.release.testing_repository = 'updates-testing'
+        update.release.testing_repository = "updates-testing"
 
-        assert update.install_command == ''
+        assert update.install_command == ""
 
     def test_update_command_not_possible_missing_repo(self):
         """The Release of the Update misses the testing repository definition."""
@@ -2432,7 +2494,7 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = None
 
-        assert update.install_command == ''
+        assert update.install_command == ""
 
 
 class TestUpdateGetTestcaseKarma(BasePyTestCase):
@@ -2442,11 +2504,12 @@ class TestUpdateGetTestcaseKarma(BasePyTestCase):
         """Feedback for other testcases should be ignored."""
         update = model.Update.query.first()
         # Let's add a testcase karma to the existing comment on the testcase.
-        tck = model.TestCaseKarma(karma=1, comment=update.comments[0],
-                                  testcase=update.builds[0].testcases[0])
+        tck = model.TestCaseKarma(
+            karma=1, comment=update.comments[0], testcase=update.builds[0].testcases[0]
+        )
         self.db.add(tck)
         # Now let's associate a new testcase with the update.
-        testcase = model.TestCase(name='a testcase')
+        testcase = model.TestCase(name="a testcase")
         update.builds[0].testcases.append(testcase)
 
         bad, good = update.get_testcase_karma(testcase)
@@ -2458,12 +2521,13 @@ class TestUpdateGetTestcaseKarma(BasePyTestCase):
         """Make sure mixed feedback is counted correctly."""
         update = model.Update.query.first()
         for i, karma in enumerate([-1, 1, 1]):
-            user = model.User(name='user_{}'.format(i))
-            comment = model.Comment(text='Test comment', karma=karma, user=user)
+            user = model.User(name=f"user_{i}")
+            comment = model.Comment(text="Test comment", karma=karma, user=user)
             self.db.add(comment)
             update.comments.append(comment)
-            testcase_karma = model.TestCaseKarma(karma=karma, comment=comment,
-                                                 testcase=update.builds[0].testcases[0])
+            testcase_karma = model.TestCaseKarma(
+                karma=karma, comment=comment, testcase=update.builds[0].testcases[0]
+            )
             self.db.add(testcase_karma)
 
         bad, good = update.get_testcase_karma(update.builds[0].testcases[0])
@@ -2472,7 +2536,7 @@ class TestUpdateGetTestcaseKarma(BasePyTestCase):
         assert good == 2
 
         # This is a "karma reset event", so the above comments should not be counted in the karma.
-        user = model.User(name='bodhi')
+        user = model.User(name="bodhi")
         comment = model.Comment(text="New build", karma=0, user=user)
         self.db.add(comment)
         update.comments.append(comment)
@@ -2490,7 +2554,7 @@ class TestUpdateSigned(BasePyTestCase):
         """If the update's release doesn't have a pending_signing_tag, it should return True."""
         update = model.Update.query.first()
         update.builds[0].signed = False
-        update.release.pending_signing_tag = ''
+        update.release.pending_signing_tag = ""
 
         assert update.signed
 
@@ -2498,8 +2562,8 @@ class TestUpdateSigned(BasePyTestCase):
         """If the update's release doesn't have a pending_signing_tag, it should return True."""
         update = model.Update.query.first()
         update.builds[0].signed = False
-        update.from_tag = 'f30-side-tag'
-        update.release.pending_signing_tag = ''
+        update.from_tag = "f30-side-tag"
+        update.release.pending_signing_tag = ""
 
         assert not update.signed
 
@@ -2507,9 +2571,9 @@ class TestUpdateSigned(BasePyTestCase):
 class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
     """Test the Update.update_test_gating_status() method."""
 
-    @mock.patch('bodhi.server.models.log.error')
-    @mock.patch('bodhi.server.util.http_session.post')
-    @mock.patch('bodhi.server.util.time.sleep')
+    @mock.patch("bodhi.server.models.log.error")
+    @mock.patch("bodhi.server.util.http_session.post")
+    @mock.patch("bodhi.server.util.time.sleep")
     def test_500_response_from_greenwave(self, sleep, post, error):
         """A 500 response from Greenwave should result in marking the test results as ignored."""
         post.return_value = mock.MagicMock()
@@ -2524,12 +2588,19 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
         assert update.test_gating_status == model.TestGatingStatus.waiting
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
         expected_post = mock.call(
-            'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
-            data={"product_version": "fedora-17", "decision_context": ["bodhi_update_push_testing"],
-                  "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
-                              {"item": f"{update.alias}", "type": "bodhi_update"}],
-                  "verbose": False},
-            headers={'Content-Type': 'application/json'}, timeout=60)
+            "https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision",
+            data={
+                "product_version": "fedora-17",
+                "decision_context": ["bodhi_update_push_testing"],
+                "subject": [
+                    {"item": f"{update.builds[0].nvr}", "type": "koji_build"},
+                    {"item": f"{update.alias}", "type": "bodhi_update"},
+                ],
+                "verbose": False,
+            },
+            headers={"Content-Type": "application/json"},
+            timeout=60,
+        )
         assert post.call_count == 4
         for i in range(4):
             # Make sure the positional arguments are correct.
@@ -2539,23 +2610,28 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
             # expected JSON, because we don't have a guarantee that it will serialize to the same
             # string. So instead, let's deserialize the JSON that the mock captured and compare it
             # to our dictionary above.
-            assert json.loads(post.mock_calls[i][2]['data']) == expected_post[2]['data']
+            assert json.loads(post.mock_calls[i][2]["data"]) == expected_post[2]["data"]
             # Make sure the other stuff is all the same
             for key in expected_post[2].keys():
-                if key != 'data':
+                if key != "data":
                     assert post.mock_calls[i][2][key] == expected_post[2][key]
         assert error.mock_calls == (
-            [mock.call((
-                'Bodhi failed to send POST request to Greenwave at the following URL '
-                '"https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision". The '
-                'status code was "500".')) for i in range(2)])
+            [
+                mock.call(
+                    "Bodhi failed to send POST request to Greenwave at the following URL "
+                    '"https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision".'
+                    ' The status code was "500".'
+                )
+                for i in range(2)
+            ]
+        )
 
-    @mock.patch('bodhi.server.models.log.error')
-    @mock.patch('bodhi.server.util.http_session.post')
-    @mock.patch('bodhi.server.util.time.sleep')
+    @mock.patch("bodhi.server.models.log.error")
+    @mock.patch("bodhi.server.util.http_session.post")
+    @mock.patch("bodhi.server.util.time.sleep")
     def test_timeout_from_greenwave(self, sleep, post, error):
         """Similar to the 500 test above, a timeout should also result in marking tests ignored."""
-        post.side_effect = requests.exceptions.ConnectTimeout('The connection timed out.')
+        post.side_effect = requests.exceptions.ConnectTimeout("The connection timed out.")
         update = model.Update.query.first()
         # Let's set this to anything other than ignored, so we can assert that
         # update_test_gating_status() toggles it back.
@@ -2567,12 +2643,19 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
         # The call_url() handler doesn't catch a Timeout so there are no sleeps/retries.
         assert sleep.mock_calls == []
         expected_post = mock.call(
-            'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
-            data={"product_version": "fedora-17", "decision_context": ["bodhi_update_push_testing"],
-                  "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
-                              {"item": f"{update.alias}", "type": "bodhi_update"}],
-                  "verbose": False},
-            headers={'Content-Type': 'application/json'}, timeout=60)
+            "https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision",
+            data={
+                "product_version": "fedora-17",
+                "decision_context": ["bodhi_update_push_testing"],
+                "subject": [
+                    {"item": f"{update.builds[0].nvr}", "type": "koji_build"},
+                    {"item": f"{update.alias}", "type": "bodhi_update"},
+                ],
+                "verbose": False,
+            },
+            headers={"Content-Type": "application/json"},
+            timeout=60,
+        )
         assert post.call_count == 1
         # Make sure the positional arguments are correct.
         assert post.mock_calls[0][1] == expected_post[1]
@@ -2581,35 +2664,35 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
         # expected JSON, because we don't have a guarantee that it will serialize to the same
         # string. So instead, let's deserialize the JSON that the mock captured and compare it
         # to our dictionary above.
-        assert json.loads(post.mock_calls[0][2]['data']) == expected_post[2]['data']
+        assert json.loads(post.mock_calls[0][2]["data"]) == expected_post[2]["data"]
         # Make sure the other stuff is all the same
         for key in expected_post[2].keys():
-            if key != 'data':
+            if key != "data":
                 assert post.mock_calls[0][2][key] == expected_post[2][key]
-        assert error.mock_calls == [mock.call('The connection timed out.')]
+        assert error.mock_calls == [mock.call("The connection timed out.")]
 
 
 class TestUpdateValidateBuilds(BasePyTestCase):
     """Tests for the :class:`Update` validator for builds."""
 
     def setup_method(self):
-        super(TestUpdateValidateBuilds, self).setup_method(self)
-        self.package = model.RpmPackage(name='the-greatest-package')
+        super().setup_method(self)
+        self.package = model.RpmPackage(name="the-greatest-package")
         self.update = model.Update(
-            user=model.User.query.filter_by(name='guest').one(),
+            user=model.User.query.filter_by(name="guest").one(),
             request=model.UpdateRequest.testing,
-            notes='Useless details!',
-            release=model.Release.query.filter_by(name='F17').one(),
+            notes="Useless details!",
+            release=model.Release.query.filter_by(name="F17").one(),
             date_submitted=datetime(1984, 11, 2),
             stable_karma=3,
             unstable_karma=-3,
-            type=UpdateType.bugfix
+            type=UpdateType.bugfix,
         )
 
     def test_no_builds(self):
         """Assert when the first build is appended, the validator passes."""
         build = model.Build(
-            nvr='the-greatest-package-1.0.0-fc17.1',
+            nvr="the-greatest-package-1.0.0-fc17.1",
             package_id=self.package.id,
             release_id=self.update.release.id,
         )
@@ -2618,12 +2701,12 @@ class TestUpdateValidateBuilds(BasePyTestCase):
     def test_same_build_types(self):
         """Assert when all builds are the same type, validation passes."""
         build1 = model.RpmBuild(
-            nvr='the-greatest-package-1.0.0-fc17.1',
+            nvr="the-greatest-package-1.0.0-fc17.1",
             package_id=self.package.id,
             release_id=self.update.release.id,
         )
         build2 = model.RpmBuild(
-            nvr='the-greatest-package-1.1.0-fc17.1',
+            nvr="the-greatest-package-1.1.0-fc17.1",
             package_id=self.package.id,
             release_id=self.update.release.id,
         )
@@ -2632,12 +2715,12 @@ class TestUpdateValidateBuilds(BasePyTestCase):
     def test_different_build_types(self):
         """Assert when all builds are a different type, validation fails."""
         build1 = model.Build(
-            nvr='the-greatest-package-1.0.0-fc17.1',
+            nvr="the-greatest-package-1.0.0-fc17.1",
             package_id=self.package.id,
             release_id=self.update.release.id,
         )
         build2 = model.RpmBuild(
-            nvr='the-greatest-package-1.1.0-fc17.1',
+            nvr="the-greatest-package-1.1.0-fc17.1",
             package_id=self.package.id,
             release_id=self.update.release.id,
         )
@@ -2647,7 +2730,7 @@ class TestUpdateValidateBuilds(BasePyTestCase):
     def test_backref_no_builds(self):
         """Assert when the first build is appended via a backref, the validator passes."""
         build = model.Build(
-            nvr='the-greatest-package-1.0.0-fc17.1',
+            nvr="the-greatest-package-1.0.0-fc17.1",
             package_id=self.package.id,
             release_id=self.update.release.id,
         )
@@ -2656,12 +2739,12 @@ class TestUpdateValidateBuilds(BasePyTestCase):
     def test_backref_same_build_types(self):
         """Assert when all builds are the same type and set via backref validation passes."""
         build1 = model.RpmBuild(
-            nvr='the-greatest-package-1.0.0-fc17.1',
+            nvr="the-greatest-package-1.0.0-fc17.1",
             package_id=self.package.id,
             release_id=self.update.release.id,
         )
         build2 = model.RpmBuild(
-            nvr='the-greatest-package-1.1.0-fc17.1',
+            nvr="the-greatest-package-1.1.0-fc17.1",
             package_id=self.package.id,
             release_id=self.update.release.id,
         )
@@ -2671,23 +2754,23 @@ class TestUpdateValidateBuilds(BasePyTestCase):
     def test_backref_different_build_types(self):
         """Assert when builds differ in type and are set via backref validation passes."""
         build1 = model.Build(
-            nvr='the-greatest-package-1.0.0-fc17.1',
+            nvr="the-greatest-package-1.0.0-fc17.1",
             package_id=self.package.id,
             release_id=self.update.release.id,
         )
         build2 = model.RpmBuild(
-            nvr='the-greatest-package-1.1.0-fc17.1',
+            nvr="the-greatest-package-1.1.0-fc17.1",
             package_id=self.package.id,
             release_id=self.update.release.id,
         )
         build1.update = self.update
         with pytest.raises(ValueError) as cm:
             build2.update = self.update
-        assert str(cm.value) == 'An update must contain builds of the same type.'
+        assert str(cm.value) == "An update must contain builds of the same type."
 
 
-@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
-@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
+@mock.patch("bodhi.server.models.work_on_bugs_task", mock.Mock())
+@mock.patch("bodhi.server.models.fetch_test_cases_task", mock.Mock())
 class TestUpdateMeetsTestingRequirements(BasePyTestCase):
     """
     Test the Update.meets_testing_requirements() method and friends.
@@ -2698,7 +2781,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
     the tests/testing.ini configuration file.
     """
 
-    @pytest.mark.parametrize('critpath', (True, False))
+    @pytest.mark.parametrize("critpath", (True, False))
     @pytest.mark.parametrize("autokarma", (True, False))
     def test_update_reaching_stable_karma_not_min_karma(self, autokarma, critpath):
         """
@@ -2723,8 +2806,8 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         # updates to be pushed stable in this case but we no longer do
         assert not update.meets_testing_requirements
 
-    @pytest.mark.parametrize('critpath', (True, False))
-    @pytest.mark.parametrize('autokarma', (True, False))
+    @pytest.mark.parametrize("critpath", (True, False))
+    @pytest.mark.parametrize("autokarma", (True, False))
     def test_update_below_stable_karma(self, autokarma, critpath):
         """It should return False for all updates below stable karma, min_karma
         and time."""
@@ -2741,7 +2824,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         assert update.karma == 0
         assert not update.meets_testing_requirements
 
-    @pytest.mark.parametrize('critpath', (True, False))
+    @pytest.mark.parametrize("critpath", (True, False))
     def test_update_reaching_time_in_testing(self, critpath):
         """It should return True for updates that meet time in testing - including
         critpath updates that meet the critpath time-in-testing, if there is no
@@ -2762,7 +2845,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
 
         assert update.meets_testing_requirements
 
-    @pytest.mark.parametrize('critpath', (True, False))
+    @pytest.mark.parametrize("critpath", (True, False))
     def test_update_below_time_in_testing(self, critpath):
         """It should return False for updates that don't yet meet time in testing."""
         update = model.Update.query.first()
@@ -2781,7 +2864,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
 
         assert not update.meets_testing_requirements
 
-    @pytest.mark.parametrize('critpath', (True, False))
+    @pytest.mark.parametrize("critpath", (True, False))
     def test_update_reaching_time_in_testing_negative_karma(self, critpath):
         """If an update meets mandatory_days_in_testing but not min_karma, it
         should still return True. In the past we did not allow critical path updates
@@ -2799,16 +2882,16 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
             # testing.ini specifies fedora.mandatory_days_in_testing = 7
             update.date_testing = datetime.now(timezone.utc) - timedelta(days=8)
         update.stable_karma = 1
-        update.comment(self.db, 'testing', author='enemy', karma=-1)
+        update.comment(self.db, "testing", author="enemy", karma=-1)
         # This gets the update back to positive karma, but not to the required
         # +2 karma needed to clear the min_karma requirement
-        update.comment(self.db, 'testing', author='bro', karma=1)
+        update.comment(self.db, "testing", author="bro", karma=1)
 
         assert update.karma == 1
         assert update.min_karma == 2
         assert update.meets_testing_requirements is True
 
-    @pytest.mark.parametrize('critpath', (True, False))
+    @pytest.mark.parametrize("critpath", (True, False))
     def test_update_reaching_min_karma(self, critpath):
         """Both critpath and non-critpath packages should be allowed to go stable when
         meeting the policy minimum karma requirement for critpath packages, even if there
@@ -2820,8 +2903,8 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.critpath = critpath
         # make sure no autopush gets in the way
         update.stable_karma = 3
-        update.comment(self.db, 'testing', author='enemy', karma=-1)
-        update.comment(self.db, 'testing', author='bro', karma=1)
+        update.comment(self.db, "testing", author="enemy", karma=-1)
+        update.comment(self.db, "testing", author="bro", karma=1)
         # at this point we're at +1 as the update starts at +1. Non
         # critpath should now pass, critpath should fail
         assert update.karma == 1
@@ -2832,14 +2915,15 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
             assert update.min_karma == 1
             assert update.meets_testing_requirements
         # Add another +1 so total is +2, which meets critpath.min_karma
-        update.comment(self.db, 'testing', author='ham', karma=1)
+        update.comment(self.db, "testing", author="ham", karma=1)
 
         assert update.karma == 2
         assert update.meets_testing_requirements
 
-    @pytest.mark.parametrize('critpath', (True, False))
+    @pytest.mark.parametrize("critpath", (True, False))
     @pytest.mark.parametrize(
-        "status,expected", (
+        "status,expected",
+        (
             (TestGatingStatus.waiting, False),
             (TestGatingStatus.queued, False),
             (TestGatingStatus.ignored, True),
@@ -2847,8 +2931,8 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
             (TestGatingStatus.passed, True),
             (TestGatingStatus.failed, False),
             (None, False),
-            (TestGatingStatus.greenwave_failed, False)
-        )
+            (TestGatingStatus.greenwave_failed, False),
+        ),
     )
     def test_test_gating_status(self, status, expected, critpath):
         """
@@ -2862,7 +2946,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.autokarma = False
         update.critpath = critpath
         update.test_gating_status = status
-        update.comment(self.db, 'testing', author='bro', karma=1)
+        update.comment(self.db, "testing", author="bro", karma=1)
         # Assert that our preconditions from the docblock are correct.
         assert update.karma == 2
         assert update.min_karma == 2
@@ -2879,8 +2963,9 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.autokarma = False
         update.stable_karma = 1
         update.test_gating_status = TestGatingStatus.running
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
+        update.comment(
+            self.db, "I found $100 after applying this update.", karma=1, author="bowlofeggs"
+        )
         # Assert that our preconditions from the docblock are correct.
         assert update.karma == 2
         assert update.meets_testing_requirements
@@ -2898,14 +2983,12 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.autokarma = False
         update.stable_karma = 1
         update.test_gating_status = TestGatingStatus.running
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
+        update.comment(
+            self.db, "I found $100 after applying this update.", karma=1, author="bowlofeggs"
+        )
         # Assert that our preconditions from the docblock are correct.
         assert update.karma == 2
-        expwhy = (
-            True,
-            "Test gating is disabled, and the update has at least 2 karma."
-        )
+        expwhy = (True, "Test gating is disabled, and the update has at least 2 karma.")
         assert update.meets_requirements_why == expwhy
         with pytest.deprecated_call():
             assert update.check_requirements(self.db, config) == expwhy
@@ -2913,10 +2996,11 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
             assert update.critpath_approved
 
 
-@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
-@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
+@mock.patch("bodhi.server.models.work_on_bugs_task", mock.Mock())
+@mock.patch("bodhi.server.models.fetch_test_cases_task", mock.Mock())
 class TestUpdate(ModelTest):
     """Unit test case for the ``Update`` model."""
+
     klass = model.Update
     attrs = dict(
         type=UpdateType.security,
@@ -2927,28 +3011,36 @@ class TestUpdate(ModelTest):
         stable_karma=3,
         unstable_karma=-3,
         close_bugs=True,
-        notes='foobar')
+        notes="foobar",
+    )
 
     @staticmethod
     def do_get_dependencies():
         release = model.Release(**TestRelease.attrs)
         return dict(
-            builds=[model.RpmBuild(
-                nvr='TurboGears-1.0.8-3.fc11', package=model.RpmPackage(**TestRpmPackage.attrs),
-                release=release)],
+            builds=[
+                model.RpmBuild(
+                    nvr="TurboGears-1.0.8-3.fc11",
+                    package=model.RpmPackage(**TestRpmPackage.attrs),
+                    release=release,
+                )
+            ],
             bugs=[model.Bug(bug_id=1), model.Bug(bug_id=2)],
             release=release,
-            user=model.User(name='lmacken'))
+            user=model.User(name="lmacken"),
+        )
 
-    def get_update(self, name='TurboGears-1.0.8-3.fc11', override_args=None):
+    def get_update(self, name="TurboGears-1.0.8-3.fc11", override_args=None):
         """Return an Update instance for testing."""
         attrs = self.attrs.copy()
-        pkg = self.db.query(model.RpmPackage).filter_by(name='TurboGears').one()
-        rel = self.db.query(model.Release).filter_by(name='F11').one()
+        pkg = self.db.query(model.RpmPackage).filter_by(name="TurboGears").one()
+        rel = self.db.query(model.Release).filter_by(name="F11").one()
         user = self.db.query(model.User).first()
-        attrs.update(dict(
-            builds=[model.RpmBuild(nvr=name, package=pkg, release=rel)],
-            release=rel, user=user))
+        attrs.update(
+            dict(
+                builds=[model.RpmBuild(nvr=name, package=pkg, release=rel)], release=rel, user=user
+            )
+        )
         attrs.update(override_args or {})
         return self.klass(**attrs)
 
@@ -2956,16 +3048,17 @@ class TestUpdate(ModelTest):
         """Test the __json__() method when there are no Builds."""
         self.obj.builds = []
 
-        assert self.obj.__json__()['content_type'] is None
+        assert self.obj.__json__()["content_type"] is None
 
-    @mock.patch('bodhi.server.models.log.warning')
+    @mock.patch("bodhi.server.models.log.warning")
     def test_add_tag_null(self, warning):
         """Test the add_tag() method with a falsey tag, such as None."""
         result = self.obj.add_tag(tag=None)
 
         assert result == []
-        warning.assert_called_once_with('Not adding builds of %s to empty tag',
-                                        'TurboGears-1.0.8-3.fc11')
+        warning.assert_called_once_with(
+            "Not adding builds of %s to empty tag", "TurboGears-1.0.8-3.fc11"
+        )
 
     def test_autokarma_not_nullable(self):
         """Assert that the autokarma column does not allow NULL values.
@@ -2973,13 +3066,13 @@ class TestUpdate(ModelTest):
         For history about why this is important, see
         https://github.com/fedora-infra/bodhi/issues/1048
         """
-        assert not model.Update.__table__.columns['autokarma'].nullable
+        assert not model.Update.__table__.columns["autokarma"].nullable
 
     def test_builds(self):
         assert len(self.obj.builds) == 1
-        assert self.obj.builds[0].nvr == 'TurboGears-1.0.8-3.fc11'
-        assert self.obj.builds[0].release.name == 'F11'
-        assert self.obj.builds[0].package.name == 'TurboGears'
+        assert self.obj.builds[0].nvr == "TurboGears-1.0.8-3.fc11"
+        assert self.obj.builds[0].release.name == "F11"
+        assert self.obj.builds[0].package.name == "TurboGears"
 
     def test_compose_relationship(self):
         """Assert the compose relationship works correctly when the update is locked."""
@@ -3049,48 +3142,51 @@ class TestUpdate(ModelTest):
     def test_greenwave_subject(self):
         """Ensure that the greenwave_subject property returns the correct value."""
         assert self.obj.greenwave_subject == (
-            [{'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-             {'item': self.obj.alias, 'type': 'bodhi_update'}])
+            [
+                {"item": "TurboGears-1.0.8-3.fc11", "type": "koji_build"},
+                {"item": self.obj.alias, "type": "bodhi_update"},
+            ]
+        )
 
     def test_greenwave_request_batches_single(self):
         """Ensure that the greenwave_request_batches property returns the correct value."""
-        with mock.patch.dict('bodhi.server.models.config', {'greenwave_batch_size': 2}):
+        with mock.patch.dict("bodhi.server.models.config", {"greenwave_batch_size": 2}):
             assert self.obj.greenwave_subject_batch_size == 2
             assert self.obj.greenwave_request_batches(verbose=False) == (
                 [
                     {
-                        'product_version': 'fedora-11',
-                        'decision_context': ['bodhi_update_push_testing'],
-                        'verbose': False,
-                        'subject': [
-                            {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-                            {'item': self.obj.alias, 'type': 'bodhi_update'},
-                        ]
+                        "product_version": "fedora-11",
+                        "decision_context": ["bodhi_update_push_testing"],
+                        "verbose": False,
+                        "subject": [
+                            {"item": "TurboGears-1.0.8-3.fc11", "type": "koji_build"},
+                            {"item": self.obj.alias, "type": "bodhi_update"},
+                        ],
                     }
                 ]
             )
 
     def test_greenwave_request_batches_multiple(self):
         """Ensure that the greenwave_request_batches property returns the correct value."""
-        with mock.patch.dict('bodhi.server.models.config', {'greenwave_batch_size': 1}):
+        with mock.patch.dict("bodhi.server.models.config", {"greenwave_batch_size": 1}):
             assert self.obj.greenwave_subject_batch_size == 1
             assert self.obj.greenwave_request_batches(verbose=True) == (
                 [
                     {
-                        'product_version': 'fedora-11',
-                        'decision_context': ['bodhi_update_push_testing'],
-                        'verbose': True,
-                        'subject': [
-                            {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-                        ]
+                        "product_version": "fedora-11",
+                        "decision_context": ["bodhi_update_push_testing"],
+                        "verbose": True,
+                        "subject": [
+                            {"item": "TurboGears-1.0.8-3.fc11", "type": "koji_build"},
+                        ],
                     },
                     {
-                        'product_version': 'fedora-11',
-                        'decision_context': ['bodhi_update_push_testing'],
-                        'verbose': True,
-                        'subject': [
-                            {'item': self.obj.alias, 'type': 'bodhi_update'},
-                        ]
+                        "product_version": "fedora-11",
+                        "decision_context": ["bodhi_update_push_testing"],
+                        "verbose": True,
+                        "subject": [
+                            {"item": self.obj.alias, "type": "bodhi_update"},
+                        ],
                     },
                 ]
             )
@@ -3100,35 +3196,35 @@ class TestUpdate(ModelTest):
         Ensure that the greenwave_request_batches property returns the correct value
         for critpath update with multiple batches.
         """
-        with mock.patch.dict('bodhi.server.models.config', {'greenwave_batch_size': 1}):
+        with mock.patch.dict("bodhi.server.models.config", {"greenwave_batch_size": 1}):
             self.obj.critpath_groups = "core critical-path-apps"
             assert self.obj.greenwave_subject_batch_size == 1
             assert self.obj.greenwave_request_batches(verbose=True) == (
                 [
                     {
-                        'product_version': 'fedora-11',
-                        'decision_context': [
-                            'bodhi_update_push_testing_critical-path-apps_critpath',
-                            'bodhi_update_push_testing_core_critpath',
-                            'bodhi_update_push_testing'
+                        "product_version": "fedora-11",
+                        "decision_context": [
+                            "bodhi_update_push_testing_critical-path-apps_critpath",
+                            "bodhi_update_push_testing_core_critpath",
+                            "bodhi_update_push_testing",
                         ],
-                        'verbose': True,
-                        'subject': [
-                            {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-                        ]
+                        "verbose": True,
+                        "subject": [
+                            {"item": "TurboGears-1.0.8-3.fc11", "type": "koji_build"},
+                        ],
                     },
                     {
-                        'product_version': 'fedora-11',
-                        'decision_context': [
-                            'bodhi_update_push_testing_critical-path-apps_critpath',
-                            'bodhi_update_push_testing_core_critpath',
-                            'bodhi_update_push_testing'
+                        "product_version": "fedora-11",
+                        "decision_context": [
+                            "bodhi_update_push_testing_critical-path-apps_critpath",
+                            "bodhi_update_push_testing_core_critpath",
+                            "bodhi_update_push_testing",
                         ],
-                        'verbose': True,
-                        'subject': [
-                            {'item': self.obj.alias, 'type': 'bodhi_update'},
-                        ]
-                    }
+                        "verbose": True,
+                        "subject": [
+                            {"item": self.obj.alias, "type": "bodhi_update"},
+                        ],
+                    },
                 ]
             )
 
@@ -3140,13 +3236,13 @@ class TestUpdate(ModelTest):
         assert json.loads(requests) == (
             [
                 {
-                    'product_version': 'fedora-11',
-                    'decision_context': ['bodhi_update_push_testing'],
-                    'verbose': True,
-                    'subject': [
-                        {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-                        {'item': self.obj.alias, 'type': 'bodhi_update'},
-                    ]
+                    "product_version": "fedora-11",
+                    "decision_context": ["bodhi_update_push_testing"],
+                    "verbose": True,
+                    "subject": [
+                        {"item": "TurboGears-1.0.8-3.fc11", "type": "koji_build"},
+                        {"item": self.obj.alias, "type": "bodhi_update"},
+                    ],
                 }
             ]
         )
@@ -3165,7 +3261,7 @@ class TestUpdate(ModelTest):
         update.critpath = True
 
         # Configured value.
-        expected = int(config.get('critpath.mandatory_days_in_testing'))
+        expected = int(config.get("critpath.mandatory_days_in_testing"))
 
         assert update.mandatory_days_in_testing == expected
 
@@ -3198,8 +3294,7 @@ class TestUpdate(ModelTest):
         update.critpath = True
         update.date_testing = datetime.now(timezone.utc) + timedelta(days=-4)
 
-        critpath_days_to_stable = int(
-            config.get('critpath.mandatory_days_in_testing'))
+        critpath_days_to_stable = int(config.get("critpath.mandatory_days_in_testing"))
 
         assert update.days_to_stable == critpath_days_to_stable - 4
 
@@ -3210,10 +3305,10 @@ class TestUpdate(ModelTest):
         """
         update = self.obj
         update.autokarma = False
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
-        update.comment(self.db, 'This update saved my life!', karma=1,
-                       author='ralph')
+        update.comment(
+            self.db, "I found $100 after applying this update.", karma=1, author="bowlofeggs"
+        )
+        update.comment(self.db, "This update saved my life!", karma=1, author="ralph")
         # Assert that our preconditions from the docblock are correct.
         assert update.meets_testing_requirements
 
@@ -3288,7 +3383,7 @@ class TestUpdate(ModelTest):
 
         with pytest.raises(RuntimeError) as exc:
             self.obj.requested_tag
-        assert str(exc.value) == f'Unable to determine requested tag for {self.obj.alias}.'
+        assert str(exc.value) == f"Unable to determine requested tag for {self.obj.alias}."
 
     def test_requested_tag_request_obsolete(self):
         """requested_tag() should return the candidate_tag if the request is obsolete."""
@@ -3296,8 +3391,8 @@ class TestUpdate(ModelTest):
 
         assert self.obj.requested_tag == self.obj.release.candidate_tag
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.close')
-    @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
+    @mock.patch("bodhi.server.models.bugs.bugtracker.close")
+    @mock.patch("bodhi.server.models.bugs.bugtracker.comment")
     def test_modify_bugs_stable_close(self, comment, close):
         """Test the modify_bugs() method with a stable status and with close_bugs set to True."""
         update = self.get_update()
@@ -3315,15 +3410,22 @@ class TestUpdate(ModelTest):
         assert comment.call_count == 0
         # Make sure close() was called correctly.
         assert [c[1][0] for c in close.mock_calls] == [1, 2]
-        assert all(
-            ['to the Fedora 11 stable repository' in c[2]['comment']
-                for c in close.mock_calls]) is True
-        assert all(
-            [c[2]['versions']['TurboGears'] == 'TurboGears-1.0.8-3.fc11'
-                for c in close.mock_calls]) is True
+        assert (
+            all(["to the Fedora 11 stable repository" in c[2]["comment"] for c in close.mock_calls])
+            is True
+        )
+        assert (
+            all(
+                [
+                    c[2]["versions"]["TurboGears"] == "TurboGears-1.0.8-3.fc11"
+                    for c in close.mock_calls
+                ]
+            )
+            is True
+        )
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.close')
-    @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
+    @mock.patch("bodhi.server.models.bugs.bugtracker.close")
+    @mock.patch("bodhi.server.models.bugs.bugtracker.comment")
     def test_modify_bugs_stable_no_close(self, comment, close):
         """Test the modify_bugs() method with a stable status and with close_bugs set to False."""
         update = self.get_update()
@@ -3338,65 +3440,79 @@ class TestUpdate(ModelTest):
 
         # Make sure bugs number 1 and 2 were commented on correctly.
         assert [c[1][0] for c in comment.mock_calls] == [1, 2]
-        assert all(
-            ['pushed to the Fedora 11 stable repository' in c[1][1]
-                for c in comment.mock_calls]) is True
+        assert (
+            all(
+                ["pushed to the Fedora 11 stable repository" in c[1][1] for c in comment.mock_calls]
+            )
+            is True
+        )
         # No bugs should have been closed
         assert close.call_count == 0
 
-    @mock.patch.dict(util.config, {
-        'critpath.type': None,
-        'critpath_pkgs': ['gcc', 'TurboGears'],
-    })
+    @mock.patch.dict(
+        util.config,
+        {
+            "critpath.type": None,
+            "critpath_pkgs": ["gcc", "TurboGears"],
+        },
+    )
     def test_contains_critpath_component(self):
-        """ Verifies that the static function of contains_critpath_component
+        """Verifies that the static function of contains_critpath_component
         determines that one of the builds has a critpath component.
         """
         update = self.get_update()
         assert update.contains_critpath_component(update.builds, update.release.name)
 
-    @mock.patch.dict(util.config, {
-        'critpath.type': None,
-        'critpath_pkgs': ['gcc', 'python'],
-    })
+    @mock.patch.dict(
+        util.config,
+        {
+            "critpath.type": None,
+            "critpath_pkgs": ["gcc", "python"],
+        },
+    )
     def test_contains_critpath_component_not_critpath(self):
-        """ Verifies that the static function of contains_critpath_component
+        """Verifies that the static function of contains_critpath_component
         determines that none of the builds are critpath components.
         """
         update = self.get_update()
         # Use a different release here for additional testing and to avoid
         # caching from the previous test
         update.release = model.Release(
-            name='fc25', long_name='Fedora 25',
-            id_prefix='FEDORA', dist_tag='dist-fc25',
-            stable_tag='dist-fc25-updates',
-            testing_tag='dist-fc25-updates-testing',
-            candidate_tag='dist-fc25-updates-candidate',
-            pending_signing_tag='dist-fc25-updates-testing-signing',
-            pending_testing_tag='dist-fc25-updates-testing-pending',
-            pending_stable_tag='dist-fc25-updates-pending',
-            override_tag='dist-fc25-override',
-            branch='fc25', version='25')
+            name="fc25",
+            long_name="Fedora 25",
+            id_prefix="FEDORA",
+            dist_tag="dist-fc25",
+            stable_tag="dist-fc25-updates",
+            testing_tag="dist-fc25-updates-testing",
+            candidate_tag="dist-fc25-updates-candidate",
+            pending_signing_tag="dist-fc25-updates-testing-signing",
+            pending_testing_tag="dist-fc25-updates-testing-pending",
+            pending_stable_tag="dist-fc25-updates-pending",
+            override_tag="dist-fc25-override",
+            branch="fc25",
+            version="25",
+        )
         assert not update.contains_critpath_component(update.builds, update.release.name)
 
     def test_critpath_groups(self, critpath_json_config):
         (tempdir, _) = critpath_json_config
-        config.update({
-            'critpath.type': 'json',
-            'critpath.jsonpath': tempdir
-        })
+        config.update({"critpath.type": "json", "critpath.jsonpath": tempdir})
         update = self.get_update()
         update.release = model.Release(
-            name='F36', long_name='Fedora 36',
-            id_prefix='FEDORA', dist_tag='f36',
-            stable_tag='f36-updates',
-            testing_tag='f36-updates-testing',
-            candidate_tag='f36-updates-candidate',
-            pending_signing_tag='f36-updates-testing-signing',
-            pending_testing_tag='f36-updates-testing-pending',
-            pending_stable_tag='f36-updates-pending',
-            override_tag='f36-override',
-            branch='f36', version='36')
+            name="F36",
+            long_name="Fedora 36",
+            id_prefix="FEDORA",
+            dist_tag="f36",
+            stable_tag="f36-updates",
+            testing_tag="f36-updates-testing",
+            candidate_tag="f36-updates-candidate",
+            pending_signing_tag="f36-updates-testing-signing",
+            pending_testing_tag="f36-updates-testing-pending",
+            pending_stable_tag="f36-updates-pending",
+            override_tag="f36-override",
+            branch="f36",
+            version="36",
+        )
         groups = update.get_critpath_groups(update.builds, update.release.branch)
         assert groups == "core"
 
@@ -3405,19 +3521,21 @@ class TestUpdate(ModelTest):
         b = self.obj.builds[0]
         release = self.obj.release
         koji = buildsys.get_session()
-        koji.__tagged__[b.nvr] = [release.testing_tag,
-                                  release.pending_signing_tag,
-                                  release.pending_testing_tag,
-                                  # Add an unknown tag that we shouldn't touch
-                                  release.dist_tag + '-compose']
+        koji.__tagged__[b.nvr] = [
+            release.testing_tag,
+            release.pending_signing_tag,
+            release.pending_testing_tag,
+            # Add an unknown tag that we shouldn't touch
+            release.dist_tag + "-compose",
+        ]
         self.obj.builds[0].unpush(koji)
-        assert koji.__moved__ == [('dist-f11-updates-testing',
-                                   'dist-f11-updates-candidate',
-                                   'TurboGears-1.0.8-3.fc11')]
-        assert koji.__untag__ == [('dist-f11-updates-testing-signing',
-                                   'TurboGears-1.0.8-3.fc11'),
-                                  ('dist-f11-updates-testing-pending',
-                                   'TurboGears-1.0.8-3.fc11')]
+        assert koji.__moved__ == [
+            ("dist-f11-updates-testing", "dist-f11-updates-candidate", "TurboGears-1.0.8-3.fc11")
+        ]
+        assert koji.__untag__ == [
+            ("dist-f11-updates-testing-signing", "TurboGears-1.0.8-3.fc11"),
+            ("dist-f11-updates-testing-pending", "TurboGears-1.0.8-3.fc11"),
+        ]
 
     def test_unpush_pending_stable(self):
         """Test unpush() on a pending stable tagged build."""
@@ -3425,20 +3543,24 @@ class TestUpdate(ModelTest):
         build = self.obj.builds[0]
         koji = buildsys.get_session()
         koji.__tagged__[build.nvr] = [
-            release.testing_tag, release.pending_signing_tag, release.pending_testing_tag,
+            release.testing_tag,
+            release.pending_signing_tag,
+            release.pending_testing_tag,
             release.pending_stable_tag,
             # Add an unknown tag that we shouldn't touch
-            release.dist_tag + '-compose']
+            release.dist_tag + "-compose",
+        ]
 
         build.unpush(koji)
 
-        assert koji.__moved__ == [('dist-f11-updates-testing',
-                                   'dist-f11-updates-candidate',
-                                   'TurboGears-1.0.8-3.fc11')]
+        assert koji.__moved__ == [
+            ("dist-f11-updates-testing", "dist-f11-updates-candidate", "TurboGears-1.0.8-3.fc11")
+        ]
         assert koji.__untag__ == [
-            ('dist-f11-updates-testing-signing', 'TurboGears-1.0.8-3.fc11'),
-            ('dist-f11-updates-testing-pending', 'TurboGears-1.0.8-3.fc11'),
-            ('dist-f11-updates-pending', 'TurboGears-1.0.8-3.fc11')]
+            ("dist-f11-updates-testing-signing", "TurboGears-1.0.8-3.fc11"),
+            ("dist-f11-updates-testing-pending", "TurboGears-1.0.8-3.fc11"),
+            ("dist-f11-updates-pending", "TurboGears-1.0.8-3.fc11"),
+        ]
 
     def test_unpush_pending_stable_from_sidetag(self):
         """Test unpush() on a pending stable tagged build originated from side-tag."""
@@ -3446,20 +3568,25 @@ class TestUpdate(ModelTest):
         build = self.obj.builds[0]
         koji = buildsys.get_session()
         koji.__tagged__[build.nvr] = [
-            release.testing_tag, release.pending_signing_tag, release.pending_testing_tag,
-            release.pending_stable_tag, 'f35-build-side-12345',
+            release.testing_tag,
+            release.pending_signing_tag,
+            release.pending_testing_tag,
+            release.pending_stable_tag,
+            "f35-build-side-12345",
             # Add an unknown tag that we shouldn't touch
-            release.dist_tag + '-compose']
+            release.dist_tag + "-compose",
+        ]
 
         build.unpush(koji, from_side_tag=True)
 
         assert koji.__untag__ == [
-            ('dist-f11-updates-testing', 'TurboGears-1.0.8-3.fc11'),
-            ('dist-f11-updates-testing-signing', 'TurboGears-1.0.8-3.fc11'),
-            ('dist-f11-updates-testing-pending', 'TurboGears-1.0.8-3.fc11'),
-            ('dist-f11-updates-pending', 'TurboGears-1.0.8-3.fc11')]
+            ("dist-f11-updates-testing", "TurboGears-1.0.8-3.fc11"),
+            ("dist-f11-updates-testing-signing", "TurboGears-1.0.8-3.fc11"),
+            ("dist-f11-updates-testing-pending", "TurboGears-1.0.8-3.fc11"),
+            ("dist-f11-updates-pending", "TurboGears-1.0.8-3.fc11"),
+        ]
 
-    @mock.patch('bodhi.server.models.log.info')
+    @mock.patch("bodhi.server.models.log.info")
     def test_unpush_update(self, info):
         """Unpushing an update shouldn't clear the override tag from builds."""
         self.obj.status = UpdateStatus.testing
@@ -3467,16 +3594,18 @@ class TestUpdate(ModelTest):
         b = self.obj.builds[0]
         release = self.obj.release
         koji = buildsys.get_session()
-        koji.__tagged__[b.nvr] = [release.testing_tag,
-                                  release.pending_signing_tag,
-                                  release.pending_testing_tag,
-                                  release.override_tag,
-                                  # Add an unknown tag that we shouldn't touch
-                                  release.dist_tag + '-compose']
+        koji.__tagged__[b.nvr] = [
+            release.testing_tag,
+            release.pending_signing_tag,
+            release.pending_testing_tag,
+            release.override_tag,
+            # Add an unknown tag that we shouldn't touch
+            release.dist_tag + "-compose",
+        ]
         self.obj.unpush(self.db)
         info.assert_any_call("Skipping override tag")
 
-    @mock.patch('bodhi.server.models.log.debug')
+    @mock.patch("bodhi.server.models.log.debug")
     def test_unpush_stable(self, debug):
         """unpush() should raise a BodhiException on a stable update."""
         self.obj.status = UpdateStatus.stable
@@ -3485,10 +3614,10 @@ class TestUpdate(ModelTest):
         with pytest.raises(BodhiException) as exc:
             self.obj.unpush(self.db)
         assert str(exc.value) == "Can't unpush a stable update"
-        debug.assert_called_once_with('Unpushing %s', self.obj.alias)
+        debug.assert_called_once_with("Unpushing %s", self.obj.alias)
         assert self.obj.untag.call_count == 0
 
-    @mock.patch('bodhi.server.models.log.debug')
+    @mock.patch("bodhi.server.models.log.debug")
     def test_unpush_unpushed(self, debug):
         """unpush() should do nothing on an unpushed update."""
         self.obj.status = UpdateStatus.unpushed
@@ -3497,82 +3626,96 @@ class TestUpdate(ModelTest):
         self.obj.unpush(self.db)
 
         assert debug.mock_calls == (
-            [mock.call('Unpushing %s', self.obj.alias),
-             mock.call('%s already unpushed', self.obj.alias)])
+            [
+                mock.call("Unpushing %s", self.obj.alias),
+                mock.call("%s already unpushed", self.obj.alias),
+            ]
+        )
         assert self.obj.untag.call_count == 0
 
     def test_title(self):
-        assert self.obj.title == 'TurboGears-1.0.8-3.fc11'
+        assert self.obj.title == "TurboGears-1.0.8-3.fc11"
 
     def test_get_title_display_name(self):
         """If the user has set a display_name on the update, get_title() should use that."""
         update = self.get_update()
-        update.display_name = 'some human made title'
+        update.display_name = "some human made title"
 
-        assert update.get_title(beautify=True) == 'some human made title'
+        assert update.get_title(beautify=True) == "some human made title"
 
-    @pytest.mark.parametrize('beautify', (False, True))
+    @pytest.mark.parametrize("beautify", (False, True))
     def test_get_title_no_builds(self, beautify):
         """If the update include no builds, return update alias."""
         update = self.get_update()
         update.builds = []
         assert update.get_title(beautify=beautify) == update.alias
 
-        update.display_name = 'some human made title'
+        update.display_name = "some human made title"
         if beautify:
-            assert update.get_title(beautify=beautify) == 'some human made title'
+            assert update.get_title(beautify=beautify) == "some human made title"
         else:
             assert update.get_title(beautify=beautify) == update.alias
 
     def test_get_title_with_beautify(self):
         update = self.get_update()
         rpm_build = update.builds[0]
-        assert update.get_title(beautify=True) == 'TurboGears'
-        assert update.get_title(nvr=True, beautify=True) == 'TurboGears-1.0.8-3.fc11'
+        assert update.get_title(beautify=True) == "TurboGears"
+        assert update.get_title(nvr=True, beautify=True) == "TurboGears-1.0.8-3.fc11"
 
         update.builds.append(rpm_build)
-        assert update.get_title(beautify=True) == 'TurboGears and TurboGears'
+        assert update.get_title(beautify=True) == "TurboGears and TurboGears"
         assert update.get_title(nvr=True, beautify=True) == (
-            'TurboGears-1.0.8-3.fc11 and TurboGears-1.0.8-3.fc11')
+            "TurboGears-1.0.8-3.fc11 and TurboGears-1.0.8-3.fc11"
+        )
 
         update.builds.append(rpm_build)
-        assert update.get_title(beautify=True), 'TurboGears, TurboGears == and 1 more'
+        assert update.get_title(beautify=True), "TurboGears, TurboGears == and 1 more"
         assert update.get_title(nvr=True, beautify=True) == (
-            'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, and 1 more')
+            "TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, and 1 more"
+        )
 
         assert html.unescape(update.get_title(amp=True, beautify=True)) == (
-            'TurboGears, TurboGears, & 1 more')
+            "TurboGears, TurboGears, & 1 more"
+        )
         assert html.unescape(update.get_title(amp=True, nvr=True, beautify=True)) == (
-            'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, & 1 more')
+            "TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, & 1 more"
+        )
 
     def test_pkg_str(self):
-        """ Ensure str(pkg) is correct """
+        """Ensure str(pkg) is correct"""
         assert str(self.obj.builds[0].package) == (
-            '================================================================================\n   '
-            '  TurboGears\n======================================================================='
-            '=========\n\n Pending Updates (1)\n    o TurboGears-1.0.8-3.fc11\n')
+            "================================================================================\n   "
+            "  TurboGears\n======================================================================="
+            "=========\n\n Pending Updates (1)\n    o TurboGears-1.0.8-3.fc11\n"
+        )
 
     def test_bugstring(self):
-        assert self.obj.get_bugstring() == '1 2'
+        assert self.obj.get_bugstring() == "1 2"
 
     def test_epel_id(self):
-        """ Make sure we can handle id_prefixes that contain dashes.
+        """Make sure we can handle id_prefixes that contain dashes.
         eg: FEDORA-EPEL
         """
-        self.db.add(model.User(name='guest'))
+        self.db.add(model.User(name="guest"))
         release = model.Release(
-            name='EL-5', long_name='Fedora EPEL 5', id_prefix='FEDORA-EPEL',
-            dist_tag='dist-5E-epel', stable_tag='dist-5E-epel',
-            testing_tag='dist-5E-epel-testing', candidate_tag='dist-5E-epel-testing-candidate',
-            pending_signing_tag='dist-5E-epel-testing-signing',
-            pending_testing_tag='dist-5E-epel-testing-pending',
-            pending_stable_tag='dist-5E-epel-pending', override_tag='dist-5E-epel-override',
-            branch='el5', version='5')
+            name="EL-5",
+            long_name="Fedora EPEL 5",
+            id_prefix="FEDORA-EPEL",
+            dist_tag="dist-5E-epel",
+            stable_tag="dist-5E-epel",
+            testing_tag="dist-5E-epel-testing",
+            candidate_tag="dist-5E-epel-testing-candidate",
+            pending_signing_tag="dist-5E-epel-testing-signing",
+            pending_testing_tag="dist-5E-epel-testing-pending",
+            pending_stable_tag="dist-5E-epel-pending",
+            override_tag="dist-5E-epel-override",
+            branch="el5",
+            version="5",
+        )
         self.db.add(release)
         self.db.flush()
-        update = self.create_update(build_nvrs=['TurboGears-2.1-1.el5'],
-                                    release_name=release.name)
-        assert update.alias.startswith(f'FEDORA-EPEL-{time.localtime()[0]}')
+        update = self.create_update(build_nvrs=["TurboGears-2.1-1.el5"], release_name=release.name)
+        assert update.alias.startswith(f"FEDORA-EPEL-{time.localtime()[0]}")
 
     def test_dupe(self):
         with pytest.raises(IntegrityError):
@@ -3581,46 +3724,50 @@ class TestUpdate(ModelTest):
             session.commit()
 
     def test_karma_no_comments(self):
-        """Check that karma returns the correct value with one negative and two positive comments.
+        """
+        Check that karma returns the correct value with one negative and two positive comments.
         """
         assert self.obj.karma == 0
 
     def test_karma_one_negative_two_positive(self):
-        """Check that karma returns the correct value with one negative and two positive comments.
         """
-        self.obj.comment(self.db, "foo", 1, 'foo')
-        self.obj.comment(self.db, "foo", -1, 'bar')
-        self.obj.comment(self.db, "foo", 1, 'biz')
+        Check that karma returns the correct value with one negative and two positive comments.
+        """
+        self.obj.comment(self.db, "foo", 1, "foo")
+        self.obj.comment(self.db, "foo", -1, "bar")
+        self.obj.comment(self.db, "foo", 1, "biz")
 
         assert self.obj.karma == 1
 
     def test_karma_two_negative_one_positive(self):
-        """Check that karma returns the correct value with two negative and one positive comments.
         """
-        self.obj.comment(self.db, "foo", -1, 'foo')
-        self.obj.comment(self.db, "foo", -1, 'bar')
-        self.obj.comment(self.db, "foo", 1, 'biz')
+        Check that karma returns the correct value with two negative and one positive comments.
+        """
+        self.obj.comment(self.db, "foo", -1, "foo")
+        self.obj.comment(self.db, "foo", -1, "bar")
+        self.obj.comment(self.db, "foo", 1, "biz")
 
         assert self.obj.karma == -1
 
     def test__composite_karma_ignores_comments_before_new_build(self):
         """Assert that _composite_karma ignores karma from before a new build karma reset event."""
-        self.obj.comment(self.db, "foo", -1, 'foo')
-        self.obj.comment(self.db, "foo", -1, 'bar')
+        self.obj.comment(self.db, "foo", -1, "foo")
+        self.obj.comment(self.db, "foo", -1, "bar")
         # This is a "karma reset event", so the above comments should not be counted in the karma.
-        self.obj.comment(self.db, "New build", 0, 'bodhi')
-        self.obj.comment(self.db, "foo", 1, 'biz')
+        self.obj.comment(self.db, "New build", 0, "bodhi")
+        self.obj.comment(self.db, "foo", 1, "biz")
 
         assert self.obj._composite_karma == (1, 0)
 
     def test__composite_karma_ignores_comments_before_removed_build(self):
-        """Assert that _composite_karma ignores karma from before a removed build karma reset event.
         """
-        self.obj.comment(self.db, "foo", 1, 'foo')
-        self.obj.comment(self.db, "foo", 1, 'bar')
+        Assert that _composite_karma ignores karma from before a removed build karma reset event.
+        """
+        self.obj.comment(self.db, "foo", 1, "foo")
+        self.obj.comment(self.db, "foo", 1, "bar")
         # This is a "karma reset event", so the above comments should not be counted in the karma.
-        self.obj.comment(self.db, "Removed build", 0, 'bodhi')
-        self.obj.comment(self.db, "foo", -1, 'biz')
+        self.obj.comment(self.db, "Removed build", 0, "bodhi")
+        self.obj.comment(self.db, "foo", -1, "biz")
 
         assert self.obj._composite_karma == (0, -1)
 
@@ -3630,37 +3777,37 @@ class TestUpdate(ModelTest):
 
         See https://github.com/fedora-infra/bodhi/issues/829
         """
-        self.obj.comment(self.db, "It ate my ostree", -1, 'dusty')
-        self.obj.comment(self.db, "i love it push to stable now", 1, 'ididntreallytestitlol')
+        self.obj.comment(self.db, "It ate my ostree", -1, "dusty")
+        self.obj.comment(self.db, "i love it push to stable now", 1, "ididntreallytestitlol")
         # In bug #829, this comment would have overridden dusty's earlier -1 changing his vote to be
         # 0.
-        self.obj.comment(self.db, "plz no don't… my ostreeeeee!", 0, 'dusty')
+        self.obj.comment(self.db, "plz no don't… my ostreeeeee!", 0, "dusty")
 
         # The composite karma should be 1, -1 since dusty's earlier vote should still count.
         assert self.obj._composite_karma == (1, -1)
 
     def test__composite_karma_ignores_old_comments(self):
         """Assert that _composite_karma ignores karma from a user's previous responses."""
-        self.obj.comment(self.db, "I", -1, 'foo')
-        self.obj.comment(self.db, "can't", 1, 'foo')
-        self.obj.comment(self.db, "make", -1, 'foo')
-        self.obj.comment(self.db, "up", 1, 'foo')
-        self.obj.comment(self.db, "my", -1, 'foo')
-        self.obj.comment(self.db, "mind", 1, 'foo')
-        self.obj.comment(self.db, ".", -37, 'foo')
+        self.obj.comment(self.db, "I", -1, "foo")
+        self.obj.comment(self.db, "can't", 1, "foo")
+        self.obj.comment(self.db, "make", -1, "foo")
+        self.obj.comment(self.db, "up", 1, "foo")
+        self.obj.comment(self.db, "my", -1, "foo")
+        self.obj.comment(self.db, "mind", 1, "foo")
+        self.obj.comment(self.db, ".", -37, "foo")
 
         assert self.obj._composite_karma == (0, -37)
 
     def test__composite_karma_mixed_case(self):
         """Assert _composite_karma with mixed responses that hits a lot of the method."""
-        self.obj.comment(self.db, "ignored", -1, 'foo1')
-        self.obj.comment(self.db, "forgotten", -1, 'foo2')
+        self.obj.comment(self.db, "ignored", -1, "foo1")
+        self.obj.comment(self.db, "forgotten", -1, "foo2")
         # This is a "karma reset event", so the above comments should not be counted in the karma.
-        self.obj.comment(self.db, "Removed build", 0, 'bodhi')
-        self.obj.comment(self.db, "Nice job", -1, 'foo')
-        self.obj.comment(self.db, "Whoops my last comment was wrong", 1, 'foo')
-        self.obj.comment(self.db, "LGTM", 1, 'foo2')
-        self.obj.comment(self.db, "Don't ignore me", -1, 'foo1')
+        self.obj.comment(self.db, "Removed build", 0, "bodhi")
+        self.obj.comment(self.db, "Nice job", -1, "foo")
+        self.obj.comment(self.db, "Whoops my last comment was wrong", 1, "foo")
+        self.obj.comment(self.db, "LGTM", 1, "foo2")
+        self.obj.comment(self.db, "Don't ignore me", -1, "foo1")
 
         assert self.obj._composite_karma == (2, -1)
 
@@ -3669,11 +3816,12 @@ class TestUpdate(ModelTest):
         assert self.obj._composite_karma == (0, 0)
 
     def test__composite_karma_one_negative_two_positive(self):
-        """Assert that _composite_karma returns (2, -1) with one negative and two positive comments.
         """
-        self.obj.comment(self.db, "foo", 1, 'foo')
-        self.obj.comment(self.db, "foo", -1, 'bar')
-        self.obj.comment(self.db, "foo", 1, 'biz')
+        Assert that _composite_karma returns (2, -1) with one negative and two positive comments.
+        """
+        self.obj.comment(self.db, "foo", 1, "foo")
+        self.obj.comment(self.db, "foo", -1, "bar")
+        self.obj.comment(self.db, "foo", 1, "biz")
 
         assert self.obj._composite_karma == (2, -1)
 
@@ -3684,11 +3832,10 @@ class TestUpdate(ModelTest):
 
         with pytest.raises(ValueError) as exc:
             self.obj.last_modified
-        assert 'Update has no timestamps set:' in str(exc.value)
+        assert "Update has no timestamps set:" in str(exc.value)
 
-    @pytest.mark.parametrize("from_tag,to_tag", [("f17-pending-testing", ""),
-                                                 ("", "f17-testing")])
-    @mock.patch('bodhi.server.models.log.warning')
+    @pytest.mark.parametrize("from_tag,to_tag", [("f17-pending-testing", ""), ("", "f17-testing")])
+    @mock.patch("bodhi.server.models.log.warning")
     def test_move_tags_emptystring(self, warning, from_tag, to_tag):
         """Test move_tags() with a tag of ''."""
         assert self.obj.move_tags(from_tag, to_tag) == []
@@ -3698,13 +3845,12 @@ class TestUpdate(ModelTest):
             f"from {from_tag} to {to_tag}"
         )
 
-    @mock.patch('bodhi.server.models.log.warning')
+    @mock.patch("bodhi.server.models.log.warning")
     def test_remove_tag_emptystring(self, warning):
         """Test remove_tag() with a tag of ''."""
-        assert self.obj.remove_tag('') == []
+        assert self.obj.remove_tag("") == []
 
-        warning.assert_called_once_with(
-            'Not removing builds of %s from empty tag', self.obj.title)
+        warning.assert_called_once_with("Not removing builds of %s from empty tag", self.obj.title)
 
     def test_revoke_no_request(self):
         """revoke() should raise BodhiException on an Update with no request."""
@@ -3712,7 +3858,7 @@ class TestUpdate(ModelTest):
 
         with pytest.raises(BodhiException) as exc:
             self.obj.revoke()
-        assert str(exc.value) == 'Can only revoke an update with an existing request'
+        assert str(exc.value) == "Can only revoke an update with an existing request"
 
     def test_update_bugs(self):
         update = self.obj
@@ -3720,7 +3866,7 @@ class TestUpdate(ModelTest):
         session = self.db
 
         # try just adding bugs
-        bugs = ['1234']
+        bugs = ["1234"]
         update.update_bugs(bugs, session)
         assert len(update.bugs) == 1
         assert update.bugs[0].bug_id == 1234
@@ -3732,12 +3878,12 @@ class TestUpdate(ModelTest):
         assert self.db.query(model.Bug).filter_by(bug_id=1234).first() is None
 
         # Test new duplicate bugs
-        bugs = ['1234', '1234']
+        bugs = ["1234", "1234"]
         update.update_bugs(bugs, session)
         assert len(update.bugs) == 1
 
         # Try adding a new bug, and removing the rest
-        bugs = ['4321']
+        bugs = ["4321"]
         update.update_bugs(bugs, session)
         assert len(update.bugs) == 1
         assert update.bugs[0].bug_id == 4321
@@ -3747,7 +3893,7 @@ class TestUpdate(ModelTest):
         karma = BugKarma(bug_id=4321, karma=1)
         self.db.add(karma)
         self.db.flush()
-        bugs = ['5678']
+        bugs = ["5678"]
         update.update_bugs(bugs, session)
         assert len(update.bugs) == 1
         assert update.bugs[0].bug_id == 5678
@@ -3765,12 +3911,15 @@ class TestUpdate(ModelTest):
 
     def test_unicode_bug_title(self):
         bug = self.obj.bugs[0]
-        bug.title = 'foo\xe9bar'
+        bug.title = "foo\xe9bar"
         from bodhi.server.util import bug_link
+
         link = bug_link(None, bug)
 
-        assert link == ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'"
-                        " class='notblue'>BZ#1</a> foo\xe9bar")
+        assert link == (
+            "<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'"
+            " class='notblue'>BZ#1</a> foo\xe9bar"
+        )
 
     def test_set_request_pending_testing_gating_false(self):
         """Ensure that test gating is not updated when it is disabled in config."""
@@ -3782,18 +3931,26 @@ class TestUpdate(ModelTest):
         self.obj.test_gating_status = None
         assert self.obj.status == UpdateStatus.pending
 
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
             greenwave_response = {
-                'policies_satisfied': False,
-                'summary': 'what have you done‽',
-                'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
-                'unsatisfied_requirements': [
-                    {'testcase': 'dist.rpmdeplint',
-                     'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                     'type': 'test-result-failed', 'scenario': None},
-                    {'testcase': 'dist.rpmdeplint',
-                     'item': {'item': self.obj.alias, 'type': 'bodhi_update'},
-                     'type': 'test-result-failed', 'scenario': None}]}
+                "policies_satisfied": False,
+                "summary": "what have you done‽",
+                "applicable_policies": ["bodhiupdate_bodhipush_openqa_workstation"],
+                "unsatisfied_requirements": [
+                    {
+                        "testcase": "dist.rpmdeplint",
+                        "item": {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
+                        "type": "test-result-failed",
+                        "scenario": None,
+                    },
+                    {
+                        "testcase": "dist.rpmdeplint",
+                        "item": {"item": self.obj.alias, "type": "bodhi_update"},
+                        "type": "test-result-failed",
+                        "scenario": None,
+                    },
+                ],
+            }
             mock_greenwave.return_value = greenwave_response
             with mock_sends(Message):
                 self.obj.set_request(self.db, UpdateRequest.testing, req.user.name)
@@ -3811,18 +3968,26 @@ class TestUpdate(ModelTest):
         self.obj.test_gating_status = None
         assert self.obj.status == UpdateStatus.pending
 
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
             greenwave_response = {
-                'policies_satisfied': False,
-                'summary': 'what have you done‽',
-                'applicable_policies': ['bodhiupdate_bodhipush_openqa_workstation'],
-                'unsatisfied_requirements': [
-                    {'testcase': 'dist.rpmdeplint',
-                     'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                     'type': 'test-result-failed', 'scenario': None},
-                    {'testcase': 'dist.rpmdeplint',
-                     'item': {'item': self.obj.alias, 'type': 'bodhi_update'},
-                     'type': 'test-result-failed', 'scenario': None}]}
+                "policies_satisfied": False,
+                "summary": "what have you done‽",
+                "applicable_policies": ["bodhiupdate_bodhipush_openqa_workstation"],
+                "unsatisfied_requirements": [
+                    {
+                        "testcase": "dist.rpmdeplint",
+                        "item": {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
+                        "type": "test-result-failed",
+                        "scenario": None,
+                    },
+                    {
+                        "testcase": "dist.rpmdeplint",
+                        "item": {"item": self.obj.alias, "type": "bodhi_update"},
+                        "type": "test-result-failed",
+                        "scenario": None,
+                    },
+                ],
+            }
             mock_greenwave.return_value = greenwave_response
             with mock_sends(Message):
                 self.obj.set_request(self.db, UpdateRequest.testing, req.user.name)
@@ -3838,8 +4003,8 @@ class TestUpdate(ModelTest):
         assert self.obj.status == UpdateStatus.pending
         # disable autokarma, so sending the comment doesn't do the request
         self.obj.autokarma = False
-        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
-        self.obj.comment(self.db, 'sure does', karma=1, author='ralph')
+        self.obj.comment(self.db, "works", karma=1, author="bowlofeggs")
+        self.obj.comment(self.db, "sure does", karma=1, author="ralph")
         # make sure we are actually doing something here
         assert self.obj.request is not UpdateRequest.stable
 
@@ -3872,14 +4037,14 @@ class TestUpdate(ModelTest):
         self.obj.autokarma = False
         # make sure we meet the karma requirements, so we *could* push
         # stable if we weren't frozen
-        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
-        self.obj.comment(self.db, 'sure does', karma=1, author='ralph')
+        self.obj.comment(self.db, "works", karma=1, author="bowlofeggs")
+        self.obj.comment(self.db, "sure does", karma=1, author="ralph")
 
         with pytest.raises(BodhiException) as exc:
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
         assert str(exc.value) == (
-            'The release of this update is frozen and the update has not yet been '
-            'pushed to testing. It is currently not possible to push it to stable.'
+            "The release of this update is frozen and the update has not yet been "
+            "pushed to testing. It is currently not possible to push it to stable."
         )
 
         assert self.obj.request is UpdateRequest.testing
@@ -3889,7 +4054,7 @@ class TestUpdate(ModelTest):
         self.obj.remove_tag(self.obj.release.pending_testing_tag)
         self.obj.remove_tag.assert_called_once_with(self.obj.release.pending_testing_tag)
 
-    @mock.patch('bodhi.server.models.buildsys.get_session')
+    @mock.patch("bodhi.server.models.buildsys.get_session")
     def test_set_request_testing_ejected(self, get_session):
         """
         Ensure that set_request() adds the candidate tag back to an update which was
@@ -3901,24 +4066,28 @@ class TestUpdate(ModelTest):
         self.obj.status = UpdateStatus.pending
         self.obj.request = None
         expected_message = update_schemas.UpdateRequestTestingV1.from_dict(
-            {'update': self.obj, 'agent': req.user.name})
+            {"update": self.obj, "agent": req.user.name}
+        )
 
         with mock_sends(expected_message):
-            self.obj.set_request(self.db, 'testing', req.user.name)
+            self.obj.set_request(self.db, "testing", req.user.name)
             # set_request alters the update a bit, so we need to adjust the expected message to
             # reflect those changes so the mock_sends() check will pass.
-            expected_message.body['update']['status'] = 'pending'
-            expected_message.body['update']['request'] = 'testing'
-            expected_message.body['update']['comments'] = self.obj.__json__()['comments']
+            expected_message.body["update"]["status"] = "pending"
+            expected_message.body["update"]["request"] = "testing"
+            expected_message.body["update"]["comments"] = self.obj.__json__()["comments"]
             self.db.commit()
 
         assert self.obj.status == UpdateStatus.pending
         assert self.obj.request == UpdateRequest.testing
         assert get_session.return_value.tagBuild.mock_calls == (
-            [mock.call(self.obj.release.pending_signing_tag, self.obj.builds[0].nvr, force=True),
-             mock.call(self.obj.release.candidate_tag, self.obj.builds[0].nvr, force=True)])
+            [
+                mock.call(self.obj.release.pending_signing_tag, self.obj.builds[0].nvr, force=True),
+                mock.call(self.obj.release.candidate_tag, self.obj.builds[0].nvr, force=True),
+            ]
+        )
 
-    @mock.patch('bodhi.server.models.buildsys.get_session')
+    @mock.patch("bodhi.server.models.buildsys.get_session")
     def test_set_request_resubmit_candidate_tag_missing(self, get_session):
         """Ensure that set_request() adds the candidate tag back to a resubmitted build."""
         req = DummyRequest(user=DummyUser())
@@ -3927,22 +4096,26 @@ class TestUpdate(ModelTest):
         self.obj.status = UpdateStatus.unpushed
         self.obj.request = None
         expected_message = update_schemas.UpdateRequestTestingV1.from_dict(
-            {'update': self.obj, 'agent': req.user.name})
+            {"update": self.obj, "agent": req.user.name}
+        )
 
         with mock_sends(expected_message):
-            self.obj.set_request(self.db, 'testing', req.user.name)
+            self.obj.set_request(self.db, "testing", req.user.name)
             # set_request alters the update a bit, so we need to adjust the expected message to
             # reflect those changes so the mock_sends() check will pass.
-            expected_message.body['update']['status'] = 'pending'
-            expected_message.body['update']['request'] = 'testing'
-            expected_message.body['update']['comments'] = self.obj.__json__()['comments']
+            expected_message.body["update"]["status"] = "pending"
+            expected_message.body["update"]["request"] = "testing"
+            expected_message.body["update"]["comments"] = self.obj.__json__()["comments"]
             self.db.commit()
 
         assert self.obj.status == UpdateStatus.pending
         assert self.obj.request == UpdateRequest.testing
         assert get_session.return_value.tagBuild.mock_calls == (
-            [mock.call(self.obj.release.pending_signing_tag, self.obj.builds[0].nvr, force=True),
-             mock.call(self.obj.release.candidate_tag, self.obj.builds[0].nvr, force=True)])
+            [
+                mock.call(self.obj.release.pending_signing_tag, self.obj.builds[0].nvr, force=True),
+                mock.call(self.obj.release.candidate_tag, self.obj.builds[0].nvr, force=True),
+            ]
+        )
 
     def test_set_request_revoke_pending_stable(self):
         """Ensure that we can revoke a pending/stable update with set_request()."""
@@ -3952,12 +4125,13 @@ class TestUpdate(ModelTest):
         self.obj.status = UpdateStatus.pending
         self.obj.request = UpdateRequest.stable
         expected_message = update_schemas.UpdateRequestRevokeV1.from_dict(
-            {'update': self.obj, 'agent': req.user.name})
+            {"update": self.obj, "agent": req.user.name}
+        )
 
         with mock_sends(expected_message):
             self.obj.set_request(self.db, UpdateRequest.revoke, req.user.name)
             # set_request alters obj, so let's modify the expected_message with the updated obj.
-            expected_message.body['update'] = self.obj.__json__()
+            expected_message.body["update"] = self.obj.__json__()
             self.db.commit()
 
         assert self.obj.request is None
@@ -3985,28 +4159,28 @@ class TestUpdate(ModelTest):
         req = DummyRequest()
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
-        req.user = model.User(name='bob')
+        req.user = model.User(name="bob")
 
         self.obj.status = UpdateStatus.testing
         self.obj.request = None
 
         # Pretend it's been in testing for a week
-        self.obj.comment(
-            self.db, 'This update has been pushed to testing.', author='bodhi')
+        self.obj.comment(self.db, "This update has been pushed to testing.", author="bodhi")
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
         assert self.obj.days_in_testing == 7
         assert self.obj.meets_testing_requirements
         expected_message = update_schemas.UpdateRequestStableV1.from_dict(
-            {'update': self.obj, 'agent': req.user.name})
+            {"update": self.obj, "agent": req.user.name}
+        )
 
-        self.db.info['messages'] = []
+        self.db.info["messages"] = []
         with mock_sends(expected_message):
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             # set_request alters the update a bit, so we need to adjust the expected message to
             # reflect those changes so the mock_sends() check will pass.
-            expected_message.body['update']['status'] = 'testing'
-            expected_message.body['update']['request'] = 'stable'
-            expected_message.body['update']['comments'] = self.obj.__json__()['comments']
+            expected_message.body["update"]["status"] = "testing"
+            expected_message.body["update"]["request"] = "stable"
+            expected_message.body["update"]["comments"] = self.obj.__json__()["comments"]
             self.db.commit()
 
         assert self.obj.request == UpdateRequest.stable
@@ -4017,14 +4191,13 @@ class TestUpdate(ModelTest):
         req = DummyRequest()
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
-        req.user = model.User(name='bob')
+        req.user = model.User(name="bob")
 
         self.obj.status = UpdateStatus.testing
         self.obj.request = None
 
         # Pretend it's been in testing for a week
-        self.obj.comment(
-            self.db, u'This update has been pushed to testing.', author=u'bodhi')
+        self.obj.comment(self.db, "This update has been pushed to testing.", author="bodhi")
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
         assert self.obj.days_in_testing == 7
         assert self.obj.meets_testing_requirements
@@ -4033,25 +4206,28 @@ class TestUpdate(ModelTest):
         self.obj.release.state = ReleaseState.frozen
 
         expected_message = update_schemas.UpdateRequestStableV1.from_dict(
-            {'update': self.obj, 'agent': req.user.name})
+            {"update": self.obj, "agent": req.user.name}
+        )
 
-        self.db.info['messages'] = []
+        self.db.info["messages"] = []
         with mock_sends(expected_message):
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             # set_request alters the update a bit, so we need to adjust the expected message to
             # reflect those changes so the mock_sends() check will pass.
-            expected_message.body['update']['status'] = 'testing'
-            expected_message.body['update']['request'] = 'stable'
-            expected_message.body['update']['comments'] = self.obj.__json__()['comments']
+            expected_message.body["update"]["status"] = "testing"
+            expected_message.body["update"]["request"] = "stable"
+            expected_message.body["update"]["comments"] = self.obj.__json__()["comments"]
             self.db.commit()
         assert self.obj.request == UpdateRequest.stable
         assert len(req.errors) == 0
 
         # Check for information about frozen release in comment
-        expected_info = ("There is an ongoing freeze; "
-                         "this will be pushed to stable after the freeze is over, "
-                         "or possibly sooner if a bug it fixes is an accepted "
-                         "blocker or freeze exception.")
+        expected_info = (
+            "There is an ongoing freeze; "
+            "this will be pushed to stable after the freeze is over, "
+            "or possibly sooner if a bug it fixes is an accepted "
+            "blocker or freeze exception."
+        )
         assert expected_info in self.obj.comments[-1].text
 
     def test_set_request_stable_epel_requirements_not_met(self):
@@ -4059,14 +4235,13 @@ class TestUpdate(ModelTest):
         req = DummyRequest()
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
-        req.user = model.User(name='bob')
-        self.obj.release.id_prefix = 'FEDORA-EPEL'
+        req.user = model.User(name="bob")
+        self.obj.release.id_prefix = "FEDORA-EPEL"
         self.obj.status = UpdateStatus.testing
         self.obj.request = None
 
-        with pytest.raises(BodhiException) as exc:
-            with mock_sends():
-                self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+        with pytest.raises(BodhiException) as exc, mock_sends():
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
         assert str(exc.value) == (
             f"{config['not_yet_tested_epel_msg']}: Test gating is disabled, "
             "but update has less than 2 karma and has been in testing less than 14 days."
@@ -4079,18 +4254,19 @@ class TestUpdate(ModelTest):
         req = DummyRequest()
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
-        req.user = model.User(name='bob')
-        self.obj.release.id_prefix = 'FEDORA-EPEL'
+        req.user = model.User(name="bob")
+        self.obj.release.id_prefix = "FEDORA-EPEL"
         self.obj.status = UpdateStatus.pending
         self.obj.request = None
         expected_message = update_schemas.UpdateRequestTestingV1.from_dict(
-            {'update': self.obj, 'agent': req.user.name})
+            {"update": self.obj, "agent": req.user.name}
+        )
 
         with mock_sends(expected_message):
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             # set_request alters the update a bit, so we need to adjust the expected message to
             # reflect those changes so the mock_sends() check will pass.
-            expected_message.body['update'] = self.obj.__json__()
+            expected_message.body["update"] = self.obj.__json__()
             self.db.commit()
 
         # The request should have gotten switched to testing.
@@ -4105,7 +4281,7 @@ class TestUpdate(ModelTest):
         req = DummyRequest()
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
-        req.user = model.User(name='bob')
+        req.user = model.User(name="bob")
 
         self.obj.status = UpdateStatus.testing
         self.obj.request = None
@@ -4116,9 +4292,9 @@ class TestUpdate(ModelTest):
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
 
         expected_msg = (
-            'This update has not yet met the minimum testing requirements defined in the '
+            "This update has not yet met the minimum testing requirements defined in the "
             '<a href="https://fedoraproject.org/wiki/Package_update_acceptance_criteria">'
-            'Package Update Acceptance Criteria</a>: Required tests did not pass on this update.'
+            "Package Update Acceptance Criteria</a>: Required tests did not pass on this update."
         )
         assert str(exc.value) == expected_msg
 
@@ -4130,8 +4306,8 @@ class TestUpdate(ModelTest):
         assert self.obj.status == UpdateStatus.pending
         # disable autokarma, so sending the comment doesn't do the request
         self.obj.autokarma = False
-        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
-        self.obj.comment(self.db, 'sure does', karma=1, author='ralph')
+        self.obj.comment(self.db, "works", karma=1, author="bowlofeggs")
+        self.obj.comment(self.db, "sure does", karma=1, author="ralph")
         # make sure we are actually doing something here
         assert self.obj.request is not UpdateRequest.stable
 
@@ -4141,7 +4317,7 @@ class TestUpdate(ModelTest):
             update_schemas.UpdateRequestStableV1,
         )
         with mock_sends(*expected_messages):
-            self.obj.set_request(self.db, 'stable', req.user.name)
+            self.obj.set_request(self.db, "stable", req.user.name)
 
         assert self.obj.request == UpdateRequest.stable
         assert self.obj.status == UpdateStatus.pending
@@ -4153,15 +4329,14 @@ class TestUpdate(ModelTest):
         """
         self.obj.status = UpdateStatus.testing
         # Pretend it's been in testing for a week
-        self.obj.comment(
-            self.db, 'This update has been pushed to testing.', author='bodhi')
+        self.obj.comment(self.db, "This update has been pushed to testing.", author="bodhi")
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
         assert self.obj.days_in_testing == 7
         # The update should be eligible to receive the testing_approval_msg now.
         assert self.obj.meets_testing_requirements
         # Add the testing_approval_message
-        text = str(config.get('testing_approval_msg'))
-        self.obj.comment(self.db, text, author='bodhi')
+        text = str(config.get("testing_approval_msg"))
+        self.obj.comment(self.db, text, author="bodhi")
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
         # say that it can now be pushed to stable.
@@ -4174,8 +4349,7 @@ class TestUpdate(ModelTest):
         """
         self.obj.status = UpdateStatus.testing
         # Pretend it's been in testing for a week
-        self.obj.comment(
-            self.db, 'This update has been pushed to testing.', author='bodhi')
+        self.obj.comment(self.db, "This update has been pushed to testing.", author="bodhi")
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
         assert self.obj.days_in_testing == 7
         # The update should be eligible to receive the testing_approval_msg now.
@@ -4193,17 +4367,16 @@ class TestUpdate(ModelTest):
         self.obj.autokarma = False
         self.obj.status = UpdateStatus.testing
         # Pretend it's been in testing for a day
-        self.obj.comment(
-            self.db, 'This update has been pushed to testing.', author='bodhi')
+        self.obj.comment(self.db, "This update has been pushed to testing.", author="bodhi")
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=1)
         assert self.obj.days_in_testing == 1
         # Now let's add some karma to get it to the required threshold
-        self.obj.comment(self.db, 'testing', author='hunter1', karma=1)
-        self.obj.comment(self.db, 'testing', author='hunter2', karma=1)
-        self.obj.comment(self.db, 'testing', author='hunter3', karma=1)
+        self.obj.comment(self.db, "testing", author="hunter1", karma=1)
+        self.obj.comment(self.db, "testing", author="hunter2", karma=1)
+        self.obj.comment(self.db, "testing", author="hunter3", karma=1)
         # Add the testing_approval_message
-        text = config.get('testing_approval_msg')
-        self.obj.comment(self.db, text, author='bodhi')
+        text = config.get("testing_approval_msg")
+        self.obj.comment(self.db, text, author="bodhi")
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
         # say that it can now be pushed to stable.
@@ -4218,14 +4391,13 @@ class TestUpdate(ModelTest):
         self.obj.autokarma = False
         self.obj.status = UpdateStatus.testing
         # Pretend it's been in testing for a day
-        self.obj.comment(
-            self.db, 'This update has been pushed to testing.', author='bodhi')
+        self.obj.comment(self.db, "This update has been pushed to testing.", author="bodhi")
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=1)
         assert self.obj.days_in_testing == 1
         # Now let's add some karma to get it to the required threshold
-        self.obj.comment(self.db, 'testing', author='hunter1', karma=1)
-        self.obj.comment(self.db, 'testing', author='hunter2', karma=1)
-        self.obj.comment(self.db, 'testing', author='hunter3', karma=1)
+        self.obj.comment(self.db, "testing", author="hunter1", karma=1)
+        self.obj.comment(self.db, "testing", author="hunter2", karma=1)
+        self.obj.comment(self.db, "testing", author="hunter3", karma=1)
 
         # met_testing_requirement() should return False since Bodhi has not yet commented on the
         # Update to say that it can now be pushed to stable.
@@ -4247,14 +4419,14 @@ class TestUpdate(ModelTest):
         self.obj.status = UpdateStatus.testing
         self.obj.status_comment(self.db)
         assert len(self.obj.comments) == 1
-        assert self.obj.comments[0].user.name == 'bodhi'
-        assert self.obj.comments[0].text == 'This update has been pushed to testing.'
+        assert self.obj.comments[0].user.name == "bodhi"
+        assert self.obj.comments[0].text == "This update has been pushed to testing."
         self.obj.status = UpdateStatus.stable
         self.obj.status_comment(self.db)
         assert len(self.obj.comments) == 2
-        assert self.obj.comments[1].user.name == 'bodhi'
-        assert self.obj.comments[1].text == 'This update has been pushed to stable.'
-        assert str(self.obj.comments[1]).endswith('This update has been pushed to stable.')
+        assert self.obj.comments[1].user.name == "bodhi"
+        assert self.obj.comments[1].text == "This update has been pushed to stable."
+        assert str(self.obj.comments[1]).endswith("This update has been pushed to stable.")
 
     def test_status_comment_obsolete(self):
         """Test status_comment() with an obsolete update."""
@@ -4262,63 +4434,64 @@ class TestUpdate(ModelTest):
 
         self.obj.status_comment(self.db)
 
-        assert [c.text for c in self.obj.comments] == ['This update has been obsoleted.']
+        assert [c.text for c in self.obj.comments] == ["This update has been obsoleted."]
 
     def test_comment_emails_other_commenters(self):
         """comment() should send e-mails to the other maintainers."""
-        bowlofeggs = model.User(name='bowlofeggs', email='bowlofeggs@fp.o')
+        bowlofeggs = model.User(name="bowlofeggs", email="bowlofeggs@fp.o")
         self.db.add(bowlofeggs)
         self.db.flush()
-        self.obj.comment(self.db, 'im a commenter', author='bowlofeggs')
+        self.obj.comment(self.db, "im a commenter", author="bowlofeggs")
 
-        with mock.patch('bodhi.server.mail.smtplib.SMTP') as SMTP:
-            with mock.patch.dict('bodhi.server.models.config',
-                                 {'bodhi_email': 'bodhi@fp.o', 'smtp_server': 'smtp.fp.o'}):
-                self.obj.comment(self.db, 'Here is a cool e-mail for you.', author='someoneelse')
+        with mock.patch("bodhi.server.mail.smtplib.SMTP") as SMTP, mock.patch.dict(
+            "bodhi.server.models.config",
+            {"bodhi_email": "bodhi@fp.o", "smtp_server": "smtp.fp.o"},
+        ):
+            self.obj.comment(self.db, "Here is a cool e-mail for you.", author="someoneelse")
 
-        bodies = [c[1][2].decode('utf-8') for c in SMTP.return_value.sendmail.mock_calls]
-        assert 'lmacken' in bodies[0]
+        bodies = [c[1][2].decode("utf-8") for c in SMTP.return_value.sendmail.mock_calls]
+        assert "lmacken" in bodies[0]
         # In Python 2 this address is in the middle e-mail and in Python 3 it's in the last e-mail
-        assert 'bowlofeggs@fp.o' in '\n'.join(bodies)
-        assert 'someoneelse' in bodies[1]
-        assert all(['Here is a cool e-mail for you.' in b for b in bodies])
+        assert "bowlofeggs@fp.o" in "\n".join(bodies)
+        assert "someoneelse" in bodies[1]
+        assert all(["Here is a cool e-mail for you." in b for b in bodies])
 
     def test_comment_no_author(self):
         """A comment with no author should raise a ValueError."""
         with pytest.raises(ValueError) as exc:
-            self.obj.comment(self.db, 'Broke.', -1)
-        assert str(exc.value) == 'You must provide a comment author'
+            self.obj.comment(self.db, "Broke.", -1)
+        assert str(exc.value) == "You must provide a comment author"
 
     def test_comment_empty(self):
         """A comment with no text or feedback should raise a ValueError."""
         with pytest.raises(ValueError) as exc:
-            self.obj.comment(self.db, '', author='bowlofeggs')
-        assert str(exc.value) == 'You must provide either some text or feedback'
+            self.obj.comment(self.db, "", author="bowlofeggs")
+        assert str(exc.value) == "You must provide either some text or feedback"
 
     def test_get_url(self):
-        assert self.obj.get_url() == f'updates/{self.obj.alias}'
+        assert self.obj.get_url() == f"updates/{self.obj.alias}"
 
     def test_bug(self):
         bug = self.obj.bugs[0]
-        assert bug.url == 'https://bugzilla.redhat.com/show_bug.cgi?id=1'
+        assert bug.url == "https://bugzilla.redhat.com/show_bug.cgi?id=1"
         with pytest.raises(ValueError) as exc:
             bug.testing(self.obj)
-        assert 'is not in Stable or Testing status' in str(exc.value)
+        assert "is not in Stable or Testing status" in str(exc.value)
         self.obj.status = UpdateStatus.testing
         bug.testing(self.obj)
         bug.add_comment(self.obj)
-        bug.add_comment(self.obj, comment='testing')
+        bug.add_comment(self.obj, comment="testing")
         bug.close_bug(self.obj)
         self.obj.status = UpdateStatus.stable
         bug.add_comment(self.obj)
 
     def test_expand_messages(self):
         """Ensure all messages can be expanded properly"""
-        self.obj.comment(self.db, 'test', 0, 'guest')
+        self.obj.comment(self.db, "test", 0, "guest")
         for value in mail.MESSAGES.values():
-            value['body'] % value['fields']('guest', self.obj)
+            value["body"] % value["fields"]("guest", self.obj)
 
-    @mock.patch('bodhi.server.mail.get_template')
+    @mock.patch("bodhi.server.mail.get_template")
     def test_send_update_notice_message_template_fedora(self, get_template):
         """Ensure update message template reflects fedora when it should"""
         update = self.obj
@@ -4326,134 +4499,170 @@ class TestUpdate(ModelTest):
 
         update.send_update_notice()
 
-        get_template.assert_called_with(update, 'fedora_errata_template')
+        get_template.assert_called_with(update, "fedora_errata_template")
 
-    @mock.patch('bodhi.server.mail.get_template')
+    @mock.patch("bodhi.server.mail.get_template")
     def test_send_update_notice_message_template_el7(self, get_template):
         """Ensure update message template reflects EL <= 7 when it should"""
-        update = self.get_update(name='TurboGears-3.1-1.el7')
+        update = self.get_update(name="TurboGears-3.1-1.el7")
         release = model.Release(
-            name='EL-7', long_name='Fedora EPEL 7', id_prefix='FEDORA-EPEL',
-            dist_tag='dist-7E-epel', stable_tag='dist-7E-epel',
-            testing_tag='dist-7E-epel-testing', candidate_tag='dist-7E-epel-testing-candidate',
-            pending_testing_tag='dist-7E-epel-testing-pending',
-            pending_stable_tag='dist-7E-epel-pending', override_tag='dist-7E-epel-override',
-            branch='el7', version='7', mail_template='fedora_epel_legacy_errata_template')
+            name="EL-7",
+            long_name="Fedora EPEL 7",
+            id_prefix="FEDORA-EPEL",
+            dist_tag="dist-7E-epel",
+            stable_tag="dist-7E-epel",
+            testing_tag="dist-7E-epel-testing",
+            candidate_tag="dist-7E-epel-testing-candidate",
+            pending_testing_tag="dist-7E-epel-testing-pending",
+            pending_stable_tag="dist-7E-epel-pending",
+            override_tag="dist-7E-epel-override",
+            branch="el7",
+            version="7",
+            mail_template="fedora_epel_legacy_errata_template",
+        )
         update.release = release
         update.status = UpdateStatus.stable
 
         update.send_update_notice()
 
-        get_template.assert_called_with(update, 'fedora_epel_legacy_errata_template')
+        get_template.assert_called_with(update, "fedora_epel_legacy_errata_template")
 
-    @mock.patch('bodhi.server.mail.get_template')
+    @mock.patch("bodhi.server.mail.get_template")
     def test_send_update_notice_message_template_el8(self, get_template):
         """Ensure update message template reflects EL >= 8 when it should"""
-        update = self.get_update(name='TurboGears-4.1-1.el8')
+        update = self.get_update(name="TurboGears-4.1-1.el8")
         release = model.Release(
-            name='EL-8', long_name='Fedora EPEL 8', id_prefix='FEDORA-EPEL',
-            dist_tag='dist-8E-epel', stable_tag='dist-8E-epel',
-            testing_tag='dist-8E-epel-testing', candidate_tag='dist-8E-epel-testing-candidate',
-            pending_testing_tag='dist-8E-epel-testing-pending',
-            pending_stable_tag='dist-8E-epel-pending', override_tag='dist-8E-epel-override',
-            branch='el8', version='8', mail_template='fedora_epel_errata_template')
+            name="EL-8",
+            long_name="Fedora EPEL 8",
+            id_prefix="FEDORA-EPEL",
+            dist_tag="dist-8E-epel",
+            stable_tag="dist-8E-epel",
+            testing_tag="dist-8E-epel-testing",
+            candidate_tag="dist-8E-epel-testing-candidate",
+            pending_testing_tag="dist-8E-epel-testing-pending",
+            pending_stable_tag="dist-8E-epel-pending",
+            override_tag="dist-8E-epel-override",
+            branch="el8",
+            version="8",
+            mail_template="fedora_epel_errata_template",
+        )
         update.release = release
         update.status = UpdateStatus.stable
 
         update.send_update_notice()
 
-        get_template.assert_called_with(update, 'fedora_epel_errata_template')
+        get_template.assert_called_with(update, "fedora_epel_errata_template")
 
-    @mock.patch('bodhi.server.models.log.error')
-    @mock.patch('bodhi.server.models.mail.send_mail')
-    @mock.patch.dict('bodhi.server.models.config', {'bodhi_email': None})
+    @mock.patch("bodhi.server.models.log.error")
+    @mock.patch("bodhi.server.models.mail.send_mail")
+    @mock.patch.dict("bodhi.server.models.config", {"bodhi_email": None})
     def test_send_update_notice_no_email_configured(self, send_mail, error):
         """Test send_update_notice() when no e-mail address is configured."""
         self.obj.send_update_notice()
 
         error.assert_called_once_with(
-            'bodhi_email not defined in configuration!  Unable to send update notice')
+            "bodhi_email not defined in configuration!  Unable to send update notice"
+        )
         assert send_mail.call_count == 0
 
-    @mock.patch('bodhi.server.models.log.error')
-    @mock.patch('bodhi.server.models.mail.send_mail')
-    @mock.patch.dict('bodhi.server.models.config',
-                     {'bodhi_email': 'bodhi@fp.o', 'fedora_test_announce_list': None})
+    @mock.patch("bodhi.server.models.log.error")
+    @mock.patch("bodhi.server.models.mail.send_mail")
+    @mock.patch.dict(
+        "bodhi.server.models.config",
+        {"bodhi_email": "bodhi@fp.o", "fedora_test_announce_list": None},
+    )
     def test_send_update_notice_no_mailinglist_configured(self, send_mail, error):
         """Test send_update_notice() when no e-mail address is configured."""
         self.obj.send_update_notice()
 
         assert error.mock_calls == (
-            [mock.call('Cannot find mailing list address for update notice'),
-             mock.call('release_name = %r', 'fedora')])
+            [
+                mock.call("Cannot find mailing list address for update notice"),
+                mock.call("release_name = %r", "fedora"),
+            ]
+        )
         assert send_mail.call_count == 0
 
-    @mock.patch('bodhi.server.mail.smtplib.SMTP')
-    @mock.patch.dict('bodhi.server.models.config',
-                     {'bodhi_email': 'bodhi@fp.o', 'smtp_server': 'smtp.fp.o'})
+    @mock.patch("bodhi.server.mail.smtplib.SMTP")
+    @mock.patch.dict(
+        "bodhi.server.models.config", {"bodhi_email": "bodhi@fp.o", "smtp_server": "smtp.fp.o"}
+    )
     def test_send_update_notice_status_testing(self, SMTP):
         """Assert the test_announce_list setting is used for the mailing list of testing updates."""
         self.obj.status = UpdateStatus.testing
         subject, body = mail.get_template(self.obj, self.obj.release.mail_template)[0]
-        expected_message = errata_schemas.ErrataPublishV1.from_dict({
-            'subject': subject, 'body': body, 'update': self.obj})
+        expected_message = errata_schemas.ErrataPublishV1.from_dict(
+            {"subject": subject, "body": body, "update": self.obj}
+        )
 
-        self.db.info['messages'] = []
+        self.db.info["messages"] = []
         with mock_sends(expected_message):
             self.obj.send_update_notice()
             self.db.commit()
 
-        release_name = self.obj.release.id_prefix.lower().replace('-', '_')
-        msg = ('From: {}\r\nTo: {}\r\nX-Bodhi: {}'
-               '\r\nSubject: [SECURITY] Fedora 11 Test Update: {}\r\n\r\n{}')
+        release_name = self.obj.release.id_prefix.lower().replace("-", "_")
+        msg = (
+            "From: {}\r\nTo: {}\r\nX-Bodhi: {}"
+            "\r\nSubject: [SECURITY] Fedora 11 Test Update: {}\r\n\r\n{}"
+        )
         msg = msg.format(
-            config['bodhi_email'], config['{}_test_announce_list'.format(release_name)],
-            config['default_email_domain'], self.obj.builds[0].nvr, body)
+            config["bodhi_email"],
+            config[f"{release_name}_test_announce_list"],
+            config["default_email_domain"],
+            self.obj.builds[0].nvr,
+            body,
+        )
         SMTP.return_value.sendmail.assert_called_once_with(
-            config['bodhi_email'],
-            [config['{}_test_announce_list'.format(release_name)]],
-            msg.encode('utf-8'))
+            config["bodhi_email"],
+            [config[f"{release_name}_test_announce_list"]],
+            msg.encode("utf-8"),
+        )
 
     def test_validate_release_failure(self):
         """Test the validate_release() method for the failure case."""
         user = self.db.query(model.User).first()
 
         release = model.Release(
-            name='F18M', long_name='Fedora 18 Modular',
-            id_prefix='FEDORA-MODULE', version='18',
-            dist_tag='f18m', stable_tag='f18-modular-updates',
-            testing_tag='f18-modular-updates-testing',
-            candidate_tag='f18-modular-updates-candidate',
-            pending_signing_tag='f18-modular-updates-testing-signing',
-            pending_testing_tag='f18-modular-updates-testing-pending',
-            pending_stable_tag='f18-modular-updates-pending',
-            override_tag='f18-modular-override',
+            name="F18M",
+            long_name="Fedora 18 Modular",
+            id_prefix="FEDORA-MODULE",
+            version="18",
+            dist_tag="f18m",
+            stable_tag="f18-modular-updates",
+            testing_tag="f18-modular-updates-testing",
+            candidate_tag="f18-modular-updates-candidate",
+            pending_signing_tag="f18-modular-updates-testing-signing",
+            pending_testing_tag="f18-modular-updates-testing-pending",
+            pending_stable_tag="f18-modular-updates-pending",
+            override_tag="f18-modular-override",
             state=ReleaseState.current,
-            branch='f18m')
+            branch="f18m",
+        )
         self.db.add(release)
-        package = model.Package(name='testmodule',
-                                type=model.ContentType.module)
+        package = model.Package(name="testmodule", type=model.ContentType.module)
         self.db.add(package)
-        build = model.ModuleBuild(nvr='testmodule-master-2.fc18',
-                                  release=release, signed=True,
-                                  package=package)
+        build = model.ModuleBuild(
+            nvr="testmodule-master-2.fc18", release=release, signed=True, package=package
+        )
         self.db.add(build)
         update = model.Update(
             release=release,
-            builds=[build], user=user,
+            builds=[build],
+            user=user,
             status=UpdateStatus.testing,
             request=UpdateRequest.stable,
             type=UpdateType.enhancement,
-            notes='Useful details!',
+            notes="Useful details!",
             stable_karma=3,
-            unstable_karma=-3)
+            unstable_karma=-3,
+        )
         self.db.add(update)
         self.db.flush()
 
         # We should not be allowed to add our RPM Update to the Module release.
         with pytest.raises(ValueError) as exc:
             self.obj.release = release
-        assert str(exc.value) == 'A release must contain updates of the same type.'
+        assert str(exc.value) == "A release must contain updates of the same type."
 
     def test_validate_release_none(self):
         """Test validate_release() with the release set to None."""
@@ -4467,45 +4676,52 @@ class TestUpdate(ModelTest):
         user = self.db.query(model.User).first()
 
         release = model.Release(
-            name='F18M', long_name='Fedora 18 Modular',
-            id_prefix='FEDORA-MODULE', version='18',
-            dist_tag='f18m', stable_tag='f18-modular-updates',
-            testing_tag='f18-modular-updates-testing',
-            candidate_tag='f18-modular-updates-candidate',
-            pending_signing_tag='f18-modular-updates-testing-signing',
-            pending_testing_tag='f18-modular-updates-testing-pending',
-            pending_stable_tag='f18-modular-updates-pending',
-            override_tag='f18-modular-override',
+            name="F18M",
+            long_name="Fedora 18 Modular",
+            id_prefix="FEDORA-MODULE",
+            version="18",
+            dist_tag="f18m",
+            stable_tag="f18-modular-updates",
+            testing_tag="f18-modular-updates-testing",
+            candidate_tag="f18-modular-updates-candidate",
+            pending_signing_tag="f18-modular-updates-testing-signing",
+            pending_testing_tag="f18-modular-updates-testing-pending",
+            pending_stable_tag="f18-modular-updates-pending",
+            override_tag="f18-modular-override",
             state=ReleaseState.current,
-            branch='f18m')
+            branch="f18m",
+        )
         self.db.add(release)
-        package = model.Package(name='testmodule',
-                                type=model.ContentType.module)
+        package = model.Package(name="testmodule", type=model.ContentType.module)
         self.db.add(package)
-        build1 = model.ModuleBuild(nvr='testmodule-master-1.fc18',
-                                   release=release, signed=True,
-                                   package=package)
+        build1 = model.ModuleBuild(
+            nvr="testmodule-master-1.fc18", release=release, signed=True, package=package
+        )
         self.db.add(build1)
-        build2 = model.ModuleBuild(nvr='testmodule-master-2.fc18',
-                                   release=release, signed=True,
-                                   package=package)
+        build2 = model.ModuleBuild(
+            nvr="testmodule-master-2.fc18", release=release, signed=True, package=package
+        )
         self.db.add(build2)
         update1 = model.Update(
-            builds=[build1], user=user,
+            builds=[build1],
+            user=user,
             status=UpdateStatus.testing,
             request=UpdateRequest.stable,
-            notes='Useful details!',
-            release=release)
+            notes="Useful details!",
+            release=release,
+        )
 
         self.db.add(update1)
 
         # This should not raise an Exception.
         update2 = model.Update(
-            builds=[build2], user=user,
+            builds=[build2],
+            user=user,
             status=UpdateStatus.testing,
             request=UpdateRequest.stable,
-            notes='Useful details!',
-            release=release)
+            notes="Useful details!",
+            release=release,
+        )
 
         self.db.add(update2)
 
@@ -4514,14 +4730,14 @@ class TestUpdate(ModelTest):
     def test_cannot_waive_test_results_of_an_update_when_test_gating_is_off(self):
         update = self.obj
         with pytest.raises(BodhiException) as exc:
-            update.waive_test_results('foo')
+            update.waive_test_results("foo")
         assert str(exc.value) == "Test gating is not enabled"
 
     def test_cannot_waive_test_results_of_an_update_which_passes_gating(self):
         config["test_gating.required"] = True
         update = self.obj
         with pytest.raises(BodhiException) as exc:
-            update.waive_test_results('foo')
+            update.waive_test_results("foo")
         assert str(exc.value) == "Can't waive test results on an update that passes test gating"
 
     def test_cannot_waive_test_results_of_an_update_which_is_locked(self):
@@ -4529,11 +4745,11 @@ class TestUpdate(ModelTest):
         update = self.obj
         update.locked = True
         with pytest.raises(LockedUpdateException) as exc:
-            update.waive_test_results('foo')
+            update.waive_test_results("foo")
         assert str(exc.value) == "Can't waive test results on a locked update"
 
-    @mock.patch('bodhi.server.util.greenwave_api_post')
-    @mock.patch('bodhi.server.util.http_session.post')
+    @mock.patch("bodhi.server.util.greenwave_api_post")
+    @mock.patch("bodhi.server.util.http_session.post")
     def test_can_waive_multiple_test_results_of_an_update(self, post, greenwave_api_post):
         """Multiple failed tests getting waived should cause multiple calls to waiverdb."""
         self.obj.status = UpdateStatus.testing
@@ -4544,71 +4760,79 @@ class TestUpdate(ModelTest):
             "applicable_policies": ["1"],
             "unsatisfied_requirements": [
                 {
-                    'subject_identifier': "bodhi-3.6.0-1.fc28",
-                    'subject_type': "koji_build",
-                    'testcase': 'dist.depcheck',
-                    'type': 'test-result-failed'
+                    "subject_identifier": "bodhi-3.6.0-1.fc28",
+                    "subject_type": "koji_build",
+                    "testcase": "dist.depcheck",
+                    "type": "test-result-failed",
                 },
                 {
-                    'subject_identifier': "bodhi-3.6.0-1.fc28",
-                    'subject_type': "koji_build",
-                    'testcase': 'dist.rpmdeplint',
-                    'type': 'test-result-failed'
+                    "subject_identifier": "bodhi-3.6.0-1.fc28",
+                    "subject_type": "koji_build",
+                    "testcase": "dist.rpmdeplint",
+                    "type": "test-result-failed",
                 },
                 {
-                    'subject_identifier': "bodhi-3.6.0-1.fc28",
-                    'subject_type': "koji_build",
-                    'testcase': 'dist.someothertest',
-                    'type': 'test-result-failed'
-                }
-            ]
+                    "subject_identifier": "bodhi-3.6.0-1.fc28",
+                    "subject_type": "koji_build",
+                    "testcase": "dist.someothertest",
+                    "type": "test-result-failed",
+                },
+            ],
         }
         post.return_value.status_code = 200
 
-        config.update({
-            'test_gating.required': True,
-            'waiverdb.access_token': 'abc',
-        })
-        self.obj.waive_test_results('foo', 'this is not true!')
+        config.update(
+            {
+                "test_gating.required": True,
+                "waiverdb.access_token": "abc",
+            }
+        )
+        self.obj.waive_test_results("foo", "this is not true!")
 
         # Check for the comment
         expected_comment = "This update's test gating status has been changed to 'waiting'."
         assert self.obj.comments[-1].text == expected_comment
 
         expected_calls = []
-        for test in ('dist.depcheck', 'dist.rpmdeplint', 'dist.someothertest'):
+        for test in ("dist.depcheck", "dist.rpmdeplint", "dist.someothertest"):
             data = {
-                "username": "foo", "comment": "this is not true!", "waived": True,
-                "product_version": "{}".format(self.obj.product_version),
-                "testcase": "{}".format(test),
+                "username": "foo",
+                "comment": "this is not true!",
+                "waived": True,
+                "product_version": f"{self.obj.product_version}",
+                "testcase": f"{test}",
                 "scenario": None,
                 "subject_identifier": "bodhi-3.6.0-1.fc28",
-                "subject_type": "koji_build"
+                "subject_type": "koji_build",
             }
-            expected_calls.append(mock.call(
-                '{}/waivers/'.format(config.get('waiverdb_api_url')),
-                data=json.dumps(data),
-                headers={'Content-Type': 'application/json', 'Authorization': 'Bearer abc'},
-                timeout=60))
+            expected_calls.append(
+                mock.call(
+                    "{}/waivers/".format(config.get("waiverdb_api_url")),
+                    data=json.dumps(data),
+                    headers={"Content-Type": "application/json", "Authorization": "Bearer abc"},
+                    timeout=60,
+                )
+            )
             expected_calls.append(mock.call().json())
         for i, v in enumerate(expected_calls):
             # The even numbered calls have a JSON serialized data string in them, and the order of
             # the keys is not guaranteed to be the same by Python. For these, we will just make sure
             # that the interpreted JSON is equal rather than verifying that the strings are equal.
             if not i % 2:
-                assert post.mock_calls[i][1] == expected_calls[i][1]
+                assert post.mock_calls[i][1] == v[1]
                 assert post.mock_calls[i][2].keys() == v[2].keys()
                 for k in v[2].keys():
-                    if k == 'data':
-                        assert json.loads(post.mock_calls[i][2]['data']) == (
-                            json.loads(v[2]['data']))
+                    if k == "data":
+                        assert json.loads(post.mock_calls[i][2]["data"]) == (
+                            json.loads(v[2]["data"])
+                        )
                     else:
-                        assert post.mock_calls[i][2][k] == expected_calls[i][2][k]
+                        assert post.mock_calls[i][2][k] == v[2][k]
             else:
                 assert post.mock_calls[i] == v
 
-    @mock.patch('bodhi.server.util.greenwave_api_post')
-    @mock.patch('bodhi.server.util.waiverdb_api_post')
+    @mock.patch("bodhi.server.util.greenwave_api_post")
+    @mock.patch("bodhi.server.util.waiverdb_api_post")
     def test_can_waive_test_results_of_an_update(self, mock_waiverdb, mock_greenwave):
         update = self.obj
         update.status = UpdateStatus.testing
@@ -4619,38 +4843,41 @@ class TestUpdate(ModelTest):
             "applicable_policies": ["1"],
             "unsatisfied_requirements": [
                 {
-                    'subject_identifier': "%s" % update.builds[0].nvr,
-                    'subject_type': "koji_build",
-                    'testcase': 'dist.depcheck',
-                    'scenario': 'kde',
-                    'type': 'test-result-failed'
+                    "subject_identifier": "%s" % update.builds[0].nvr,
+                    "subject_type": "koji_build",
+                    "testcase": "dist.depcheck",
+                    "scenario": "kde",
+                    "type": "test-result-failed",
                 }
-            ]
+            ],
         }
         mock_greenwave.return_value = decision
-        config.update({
-            'test_gating.required': True,
-            'waiverdb.access_token': 'abc',
-        })
-        update.waive_test_results('foo', 'this is not true!')
+        config.update(
+            {
+                "test_gating.required": True,
+                "waiverdb.access_token": "abc",
+            }
+        )
+        update.waive_test_results("foo", "this is not true!")
         wdata = {
-            'subject_identifier': "%s" % update.builds[0].nvr,
-            'subject_type': "koji_build",
-            'testcase': 'dist.depcheck',
-            'scenario': 'kde',
-            'product_version': update.product_version,
-            'waived': True,
-            'username': 'foo',
-            'comment': 'this is not true!'
+            "subject_identifier": "%s" % update.builds[0].nvr,
+            "subject_type": "koji_build",
+            "testcase": "dist.depcheck",
+            "scenario": "kde",
+            "product_version": update.product_version,
+            "waived": True,
+            "username": "foo",
+            "comment": "this is not true!",
         }
         mock_waiverdb.assert_called_once_with(
-            '{}/waivers/'.format(config.get('waiverdb_api_url')), wdata)
+            "{}/waivers/".format(config.get("waiverdb_api_url")), wdata
+        )
 
         # Check for the comment
         expected_comment = "This update's test gating status has been changed to 'waiting'."
         assert update.comments[-1].text == expected_comment
 
-    @mock.patch('bodhi.server.models.mail')
+    @mock.patch("bodhi.server.models.mail")
     def test_comment_on_test_gating_status_change(self, mail):
         """Assert that Bodhi will leave comment only when test_gating_status changes."""
         # Let's make sure that update has no comments.
@@ -4672,7 +4899,7 @@ class TestUpdate(ModelTest):
         # Check that no email were sent:
         assert mail.send.call_count == 0
 
-    @mock.patch('bodhi.server.models.mail')
+    @mock.patch("bodhi.server.models.mail")
     def test_comment_on_test_gating_status_change_email(self, mail):
         """Assert that Bodhi will leave comment only when test_gating_status changes."""
         # Let's make sure that update has no comments.
@@ -4700,27 +4927,30 @@ class TestUpdate(ModelTest):
         # We should have two comments, one for each test_gating_status change
         assert len(self.obj.comments) == 2
 
-    @mock.patch('bodhi.server.models.Update.obsolete')
-    @mock.patch('bodhi.server.models.Update.comment')
+    @mock.patch("bodhi.server.models.Update.obsolete")
+    @mock.patch("bodhi.server.models.Update.comment")
     def test_obsolete_older_updates(self, comment, obsolete):
         """Assert notes from previous update are copied into the newer."""
         old_update = self.db.query(model.Update).first()
-        assert old_update.builds[0].nvr == 'TurboGears-1.0.8-3.fc11'
-        assert old_update.notes == 'foobar'
-        new_update = self.get_update(name='TurboGears-1.0.9-1.fc11',
-                                     override_args={'notes': 'These notes are new.'})
+        assert old_update.builds[0].nvr == "TurboGears-1.0.8-3.fc11"
+        assert old_update.notes == "foobar"
+        new_update = self.get_update(
+            name="TurboGears-1.0.9-1.fc11", override_args={"notes": "These notes are new."}
+        )
         new_update.obsolete_older_updates(self.db)
         assert new_update.notes == "These notes are new.\n\n----\n\nfoobar"
 
-    @mock.patch('bodhi.server.models.Update.obsolete')
-    @mock.patch('bodhi.server.models.Update.comment')
+    @mock.patch("bodhi.server.models.Update.obsolete")
+    @mock.patch("bodhi.server.models.Update.comment")
     def test_obsolete_older_updates_with_changelog(self, comment, obsolete):
         """Assert old changelog is not copied into newer notes."""
         old_update = self.db.query(model.Update).first()
-        assert old_update.builds[0].nvr == 'TurboGears-1.0.8-3.fc11'
-        changelog = ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2\n'
-                     '- Added a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo>'
-                     ' - 2.0.1-2\n- Make users ☺\n')
+        assert old_update.builds[0].nvr == "TurboGears-1.0.8-3.fc11"
+        changelog = (
+            "* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2\n"
+            "- Added a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo>"
+            " - 2.0.1-2\n- Make users ☺\n"
+        )
         old_update.notes = f"""Automatic update for {old_update.builds[0].nvr}.
 
 ##### **Changelog**
@@ -4728,9 +4958,11 @@ class TestUpdate(ModelTest):
 ```
 {changelog}
 ```"""
-        changelog = ('* Sat Aug  3 2018 Fedora Releng <rel-eng@lists.fedoraproject.org> - 3\n'
-                     '- Just having fun.\n' + changelog)
-        new_update = self.get_update(name='TurboGears-1.0.9-1.fc11')
+        changelog = (
+            "* Sat Aug  3 2018 Fedora Releng <rel-eng@lists.fedoraproject.org> - 3\n"
+            "- Just having fun.\n" + changelog
+        )
+        new_update = self.get_update(name="TurboGears-1.0.9-1.fc11")
         new_notes = new_update.notes = f"""Automatic update for {new_update.builds[0].nvr}.
 
 ##### **Changelog**
@@ -4740,27 +4972,28 @@ class TestUpdate(ModelTest):
 ```"""
         new_update.obsolete_older_updates(self.db)
         assert new_update.notes == (
-            new_notes + f"\n\n----\n\nAutomatic update for {old_update.builds[0].nvr}.\n")
+            new_notes + f"\n\n----\n\nAutomatic update for {old_update.builds[0].nvr}.\n"
+        )
 
-    @mock.patch('bodhi.server.models.Update.obsolete')
-    @mock.patch('bodhi.server.models.Update.comment')
+    @mock.patch("bodhi.server.models.Update.obsolete")
+    @mock.patch("bodhi.server.models.Update.comment")
     def test_obsolete_older_updates_with_notes_too_long(self, comment, obsolete):
         """Assert notes from previous update are not copied into the newer
         if the resultant notes are too long."""
         old_update = self.db.query(model.Update).first()
-        assert old_update.builds[0].nvr == 'TurboGears-1.0.8-3.fc11'
-        old_update.notes = 'a' * (config.get('update_notes_maxlength') - 100)
-        new_update = self.get_update(name='TurboGears-1.0.9-1.fc11')
-        new_update.notes = 'b' * 101
+        assert old_update.builds[0].nvr == "TurboGears-1.0.8-3.fc11"
+        old_update.notes = "a" * (config.get("update_notes_maxlength") - 100)
+        new_update = self.get_update(name="TurboGears-1.0.9-1.fc11")
+        new_update.notes = "b" * 101
         new_update.obsolete_older_updates(self.db)
-        assert new_update.notes == 'b' * 101
+        assert new_update.notes == "b" * 101
 
     def test_update__str__(self):
         """
         Test the __str__ representation of the Update.
         """
         update = self.obj
-        update.notes = 'a' * 100
+        update.notes = "a" * 100
         expected = f"""\
 ================================================================================
      {update.alias}
@@ -4784,47 +5017,51 @@ class TestUpdate(ModelTest):
 
 class TestUser(ModelTest):
     klass = model.User
-    attrs = dict(name='Bob Vila')
+    attrs = dict(name="Bob Vila")
 
     def do_get_dependencies(self):
-        group = model.Group(name='proventesters')
+        group = model.Group(name="proventesters")
         return dict(groups=[group])
 
 
 class TestGroup(ModelTest):
     klass = model.Group
-    attrs = dict(name='proventesters')
+    attrs = dict(name="proventesters")
 
     def do_get_dependencies(self):
-        user = model.User(name='bob')
+        user = model.User(name="bob")
         return dict(users=[user])
 
 
 class TestBuildrootOverride(ModelTest):
     klass = model.BuildrootOverride
-    attrs = dict(notes='This is needed to build foobar',
-                 expiration_date=datetime.now(timezone.utc))
+    attrs = dict(notes="This is needed to build foobar", expiration_date=datetime.now(timezone.utc))
 
     def do_get_dependencies(self):
         return dict(
             build=model.RpmBuild(
-                nvr='TurboGears-1.0.8-3.fc11', package=model.RpmPackage(**TestRpmPackage.attrs),
-                release=model.Release(**TestRelease.attrs)),
-            submitter=model.User(name='lmacken'))
+                nvr="TurboGears-1.0.8-3.fc11",
+                package=model.RpmPackage(**TestRpmPackage.attrs),
+                release=model.Release(**TestRelease.attrs),
+            ),
+            submitter=model.User(name="lmacken"),
+        )
 
-    @mock.patch('bodhi.server.models.buildsys.get_session')
-    @mock.patch('bodhi.server.models.log.error')
+    @mock.patch("bodhi.server.models.buildsys.get_session")
+    @mock.patch("bodhi.server.models.log.error")
     def test_expire_exception(self, error, get_session):
         """Exceptions raised by koji untag_build() should be caught and logged by expire()."""
-        get_session.return_value.untagBuild.side_effect = IOError('oh no!')
+        get_session.return_value.untagBuild.side_effect = OSError("oh no!")
         bro = model.BuildrootOverride.query.first()
 
         bro.expire()
 
-        get_session.return_value.untagBuild.assert_called_once_with(bro.build.release.override_tag,
-                                                                    bro.build.nvr, strict=True)
-        error.assert_called_once_with(f"Unable to untag override {bro.nvr} "
-                                      f"from {bro.build.release.override_tag}: 'oh no!'")
+        get_session.return_value.untagBuild.assert_called_once_with(
+            bro.build.release.override_tag, bro.build.nvr, strict=True
+        )
+        error.assert_called_once_with(
+            f"Unable to untag override {bro.nvr} from {bro.build.release.override_tag}: 'oh no!'"
+        )
 
     def test_new_already_exists(self):
         """new() should put an error on the request if the BRO already exists."""
@@ -4837,22 +5074,27 @@ class TestBuildrootOverride(ModelTest):
 
         assert resp is None
         assert req.errors == (
-            [{'location': 'body', 'name': 'nvr',
-              'description': '{} is already in a override'.format(bro.build.nvr)}])
+            [
+                {
+                    "location": "body",
+                    "name": "nvr",
+                    "description": f"{bro.build.nvr} is already in a override",
+                }
+            ]
+        )
 
-    @mock.patch('bodhi.server.models.buildsys.get_session')
+    @mock.patch("bodhi.server.models.buildsys.get_session")
     def test_override_with_inheritance(self, get_session):
         """Build must be tagged/untagged in each inherited tag also."""
-        self.create_release('17')
-        config.update({
-            'f11.override-extend': 'F17'
-        })
-        package = model.RpmPackage(name='notbodhi')
+        self.create_release("17")
+        config.update({"f11.override-extend": "F17"})
+        package = model.RpmPackage(name="notbodhi")
         self.db.add(package)
-        release_f17 = model.Release.get('F17')
-        release_f11 = model.Release.get('F11')
-        build = model.RpmBuild(nvr='notbodhi-1.0.0-1.fc11', release=release_f11,
-                               package=package, signed=True)
+        release_f17 = model.Release.get("F17")
+        release_f11 = model.Release.get("F11")
+        build = model.RpmBuild(
+            nvr="notbodhi-1.0.0-1.fc11", release=release_f11, package=package, signed=True
+        )
         self.db.add(build)
         self.db.commit()
         user = model.User.query.first()
@@ -4861,29 +5103,36 @@ class TestBuildrootOverride(ModelTest):
         req.db = self.db
 
         # Test tagging
-        model.BuildrootOverride.new(req, build=build, submitter=user,
-                                    expiration_date=expiration_date, notes='blabla')
-        calls = [mock.call(release_f17.override_tag, build.nvr),
-                 mock.call(build.release.override_tag, build.nvr)]
+        model.BuildrootOverride.new(
+            req, build=build, submitter=user, expiration_date=expiration_date, notes="blabla"
+        )
+        calls = [
+            mock.call(release_f17.override_tag, build.nvr),
+            mock.call(build.release.override_tag, build.nvr),
+        ]
         get_session.return_value.tagBuild.assert_has_calls(calls)
 
         # Test untagging
         bro = model.BuildrootOverride.get(build.id)
         bro.expire()
-        calls = [mock.call(release_f17.override_tag, build.nvr, strict=True),
-                 mock.call(build.release.override_tag, build.nvr, strict=True)]
+        calls = [
+            mock.call(release_f17.override_tag, build.nvr, strict=True),
+            mock.call(build.release.override_tag, build.nvr, strict=True),
+        ]
         get_session.return_value.untagBuild.assert_has_calls(calls)
 
 
 class TestDeprecatedObjects(BasePyTestCase):
     """Test deprecated objects."""
-    @mock.patch('bodhi.server.models.warnings.warn')
+
+    @mock.patch("bodhi.server.models.warnings.warn")
     def test_deprecated_BugKarma(self, warn):
         """Trying to define a BugKarma should return a BugFeedback object."""
         update = model.Update.query.first()
-        update.comment(self.db, 'testing', author='enemy', karma=-1, karma_critpath=-1)
+        update.comment(self.db, "testing", author="enemy", karma=-1, karma_critpath=-1)
         warn.assert_called_once_with(
             "karma_critpath is not used anymore and should not be passed in comment() call; "
             "date=2024-11-16",
-            DeprecationWarning, stacklevel=2
+            DeprecationWarning,
+            stacklevel=2,
         )
