@@ -3,7 +3,7 @@
 
 from time import time
 
-from prometheus_client import Histogram, Gauge
+from prometheus_client import Gauge, Histogram
 from pyramid.interfaces import IRoutesMapper
 
 

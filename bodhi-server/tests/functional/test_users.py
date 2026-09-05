@@ -25,7 +25,7 @@ from .. import base
 class TestUsersService(base.BasePyTestCase):
 
     def setup_method(self, method):
-        super(TestUsersService, self).setup_method(method)
+        super().setup_method(method)
 
         user = User(name='bodhi')
         self.db.add(user)

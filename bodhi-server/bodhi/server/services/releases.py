@@ -19,38 +19,36 @@
 
 import math
 
-from cornice import Service
-from cornice.validators import colander_body_validator, colander_querystring_validator
-from pyramid.exceptions import HTTPNotFound
-from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
-from sqlalchemy.exc import MultipleResultsFound, NoResultFound
-from sqlalchemy.sql import or_
-
+import bodhi.server.schemas
+import bodhi.server.services.errors
 from bodhi.server import log, security
 from bodhi.server.models import (
-    Update,
-    UpdateStatus,
-    UpdateType,
-    UpdateRequest,
     Build,
     BuildrootOverride,
     Package,
     Release,
     ReleaseState,
     TestGatingStatus,
+    Update,
+    UpdateRequest,
+    UpdateStatus,
+    UpdateType,
 )
 from bodhi.server.validators import (
-    validate_tags,
     validate_enums,
-    validate_updates,
+    validate_eol_date,
     validate_packages,
     validate_release,
-    validate_eol_date,
     validate_release_date,
+    validate_tags,
+    validate_updates,
 )
-import bodhi.server.schemas
-import bodhi.server.services.errors
-
+from cornice import Service
+from cornice.validators import colander_body_validator, colander_querystring_validator
+from pyramid.exceptions import HTTPNotFound
+from sqlalchemy import LABEL_STYLE_TABLENAME_PLUS_COL, distinct, func
+from sqlalchemy.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy.sql import or_
 
 release = Service(name='release', path='/releases/{name}',
                   description='Fedora Releases',
@@ -263,7 +261,7 @@ def query_releases_html(request):
         """
         basequery = basequery.filter(Update.status == status)
         return {
-            '{}_updates_total'.format(status.description): basequery.count(),
+            f'{status.description}_updates_total': basequery.count(),
         }
 
     def get_update_counts(releaseid, stable_only: bool = False):
@@ -438,7 +436,7 @@ def save_release(request):
                         u.comment(
                             request.db,
                             'This update is marked obsolete because '
-                            'the {} release is archived.'.format(u.release.name),
+                            f'the {u.release.name} release is archived.',
                             author='bodhi',
                         )
                 # Inform user that update requested for stable

@@ -1,13 +1,12 @@
 import threading
 import time
 
-from authlib.integrations.base_client.errors import OAuthError
-from click import ClickException
-from click.exceptions import Abort
 import pytest
 import requests
-
+from authlib.integrations.base_client.errors import OAuthError
 from bodhi.client.oidcclient import JSONStorage, OIDCClient, OIDCClientError
+from click import ClickException
+from click.exceptions import Abort
 
 from .utils import build_response
 

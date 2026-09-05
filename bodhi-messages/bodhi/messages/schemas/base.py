@@ -26,11 +26,9 @@ import re
 import typing
 import warnings
 
+from bodhi.messages.utils import MENTION_RE
 from fedora_messaging import message
 from fedora_messaging.schema_utils import user_avatar_url
-
-from bodhi.messages.utils import MENTION_RE
-
 
 SCHEMA_URL = 'https://bodhi.fedoraproject.org/message-schemas'
 
@@ -61,7 +59,7 @@ class BodhiMessage(message.Message):
         return "bodhi"
 
     @property
-    def agent(self) -> typing.Union[str, None]:
+    def agent(self) -> str | None:
         """Return the agent's username for this message.
 
         Returns:
@@ -75,7 +73,7 @@ class BodhiMessage(message.Message):
         return self.agent_name
 
     @property
-    def agent_name(self) -> typing.Union[str, None]:
+    def agent_name(self) -> str | None:
         """Return the agent's username for this message.
 
         Returns:
@@ -84,7 +82,7 @@ class BodhiMessage(message.Message):
         return self.body.get('agent', None)
 
     @property
-    def agent_avatar(self) -> typing.Union[None, str]:
+    def agent_avatar(self) -> None | str:
         """
         Return a URL to the avatar of the user who caused the action.
 
@@ -115,7 +113,7 @@ class BodhiMessage(message.Message):
         return cls(body=body)
 
     @property
-    def usernames(self) -> typing.List[str]:
+    def usernames(self) -> list[str]:
         """
         List of users affected by the action that generated this message.
 
@@ -237,7 +235,7 @@ class UpdateV1(typing.NamedTuple):
     builds: typing.Iterable[BuildV1]
     user: 'UserV1'
     status: str
-    request: typing.Union[None, str]
+    request: None | str
     release: 'ReleaseV1'
 
     @property

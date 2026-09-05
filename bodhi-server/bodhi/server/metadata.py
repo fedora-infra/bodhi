@@ -23,12 +23,10 @@ import shutil
 import tempfile
 
 import createrepo_c as cr
-
 from bodhi.server import util
 from bodhi.server.buildsys import get_session
 from bodhi.server.config import config
-from bodhi.server.models import Build, UpdateStatus, UpdateRequest, UpdateSuggestion
-
+from bodhi.server.models import Build, UpdateRequest, UpdateStatus, UpdateSuggestion
 
 __version__ = '2.0'
 log = logging.getLogger(__name__)
@@ -96,7 +94,7 @@ def modifyrepo(comp_type, compose_path, filetype, extension, source, zchunk):
         insert_in_repo(comp_type, repodata, filetype, extension, source, zchunk)
 
 
-class UpdateInfoMetadata(object):
+class UpdateInfoMetadata:
     """
     This class represents the updateinfo.xml yum metadata.
 

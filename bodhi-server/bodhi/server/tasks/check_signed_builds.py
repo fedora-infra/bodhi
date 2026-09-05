@@ -35,7 +35,6 @@ from bodhi.server.config import config
 from bodhi.server.tasks import handle_side_and_related_tags_task
 from bodhi.server.util import transactional_session_maker
 
-
 log = logging.getLogger(__name__)
 
 

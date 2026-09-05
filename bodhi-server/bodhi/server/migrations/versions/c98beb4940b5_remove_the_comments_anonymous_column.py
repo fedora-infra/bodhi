@@ -22,9 +22,8 @@ Revision ID: c98beb4940b5
 Revises: 58b7919b942c
 Create Date: 2019-03-17 11:55:38.248866
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'c98beb4940b5'

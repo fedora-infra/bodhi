@@ -13,13 +13,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Look for overrides that are past their expiration dates and mark them expired."""
 
-from datetime import datetime, timezone
 import logging
+from datetime import datetime, timezone
 
 from bodhi.server import Session
 from bodhi.server.util import transactional_session_maker
-from ..models import BuildrootOverride
 
+from ..models import BuildrootOverride
 
 log = logging.getLogger(__name__)
 

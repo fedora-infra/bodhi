@@ -23,7 +23,6 @@ import functools
 import signal
 import subprocess
 import sys
-import typing
 
 import click
 
@@ -33,7 +32,7 @@ from .job_registry import build_jobs_list
 from .reporter import ProgressReporter
 
 
-def _cancel_jobs(jobs: typing.List[Job]):
+def _cancel_jobs(jobs: list[Job]):
     """
     Mark the given jobs as cancelled.
 
@@ -64,7 +63,7 @@ class Runner:
         jobs = build_jobs_list(job_names, releases=releases, options=self.options)
         self._run_jobs(jobs)
 
-    def _run_jobs(self, jobs: typing.List[Job]):
+    def _run_jobs(self, jobs: list[Job]):
         """
         Run the given jobs in parallel.
 

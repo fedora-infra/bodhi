@@ -22,16 +22,24 @@ This module is responsible for the process of creating updates when builds are
 tagged with certain tags.
 """
 
-from time import sleep
 import logging
 import re
+from time import sleep
 
 import fedora_messaging
-
 from bodhi.server import buildsys
 from bodhi.server.config import config
 from bodhi.server.models import (
-    Bug, Build, ContentType, Package, Release, Update, UpdateStatus, UpdateType, User)
+    Bug,
+    Build,
+    ContentType,
+    Package,
+    Release,
+    Update,
+    UpdateStatus,
+    UpdateType,
+    User,
+)
 from bodhi.server.tasks import work_on_bugs_task
 from bodhi.server.util import transactional_session_maker
 
@@ -218,7 +226,7 @@ class AutomaticUpdateHandler:
             # Comment on the update that it was automatically created.
             update.comment(
                 dbsession,
-                str("This update was automatically created"),
+                "This update was automatically created",
                 author="bodhi",
             )
 

@@ -16,17 +16,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.validators."""
-from unittest import mock
 from datetime import date, datetime, timedelta, timezone
+from unittest import mock
 
-from cornice.errors import Errors
-from fedora_messaging import api, testing as fml_testing
 import koji
-from pyramid import exceptions
 import pytest
-
 from bodhi.server import buildsys, models, validators
 from bodhi.server.exceptions import BodhiException
+from cornice.errors import Errors
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
+from pyramid import exceptions
+
 from .base import BasePyTestCase
 
 
@@ -191,7 +192,7 @@ class TestValidateAcls(BasePyTestCase):
         request.validated = {'builds': [b.nvr for b in models.Build.query.all()]}
 
         with mock.patch('bodhi.server.validators.ContentType.infer_content_class',
-                        side_effect=IOError('oh no')):
+                        side_effect=OSError('oh no')):
             validators.validate_acls(request)
 
         assert request.errors == [
@@ -696,7 +697,7 @@ class TestValidateOverrideBuild(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.koji.listTags.side_effect = IOError('You forgot to pay your ISP.')
+        request.koji.listTags.side_effect = OSError('You forgot to pay your ISP.')
         request.validated = {'edited': None, 'expired': False}
 
         validators._validate_override_build(request, 'does not exist', self.db)

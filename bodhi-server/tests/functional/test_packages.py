@@ -18,6 +18,7 @@
 from bodhi.server.models import (
     RpmPackage,
 )
+
 from .. import base
 
 

@@ -16,8 +16,11 @@
 """Unit tests for the buildroot_override message schemas."""
 
 from bodhi.messages.schemas import base
-from bodhi.messages.schemas.buildroot_override import (BuildrootOverrideTagV1,
-                                                       BuildrootOverrideUntagV1)
+from bodhi.messages.schemas.buildroot_override import (
+    BuildrootOverrideTagV1,
+    BuildrootOverrideUntagV1,
+)
+
 from .utils import check_message
 
 

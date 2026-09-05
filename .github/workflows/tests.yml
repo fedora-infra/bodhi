@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit_tests
     # Run diff-cover even if the unit tests failed on rawhide:
-    if: always()
+    if: ${{ !cancelled() && needs.precommit.result == 'success' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -65,6 +65,7 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    needs: precommit
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -86,6 +87,7 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    needs: precommit
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -113,6 +115,7 @@ jobs:
   docs:
     name: Build Documentation
     runs-on: ubuntu-latest
+    needs: precommit
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -132,6 +135,7 @@ jobs:
   rpms:
     name: Build the RPMS
     runs-on: ubuntu-latest
+    needs: precommit
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7

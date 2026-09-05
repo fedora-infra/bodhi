@@ -5,17 +5,16 @@ https://github.com/lepture/authlib/blob/master/tests/django/test_client/test_oau
 
 from unittest import mock
 
+import pytest
 from authlib import __version__ as authlib_version
 from authlib.common.urls import url_decode, urlparse
 from authlib.integrations.base_client import OAuthError
 from authlib.jose import jwk
 from authlib.oidc.core.grants.util import generate_id_token
-from packaging.version import parse as parse_version
-from pyramid import testing
-import pytest
-
 from bodhi.server.auth import OAuth
 from bodhi.server.auth.oauth import TokenUpdate
+from packaging.version import parse as parse_version
+from pyramid import testing
 
 from .. import base
 from ..utils import get_bearer_token, mock_send_value
@@ -239,7 +238,7 @@ class TestOAuth2(base.BasePyTestCase):
         verifier = get_session_data(request.session, state, "code_verifier")
 
         def fake_send(sess, req, **kwargs):
-            assert 'code_verifier={}'.format(verifier) in req.body
+            assert f'code_verifier={verifier}' in req.body
             return mock_send_value(get_bearer_token())
 
         with mock.patch('requests.sessions.Session.send', fake_send):

@@ -19,17 +19,15 @@
 This module contains tests for the bodhi.server.scripts.sar module.
 """
 
+import os
 from datetime import datetime, timezone
 from unittest import mock
-import os
-
-from click import testing
 
 from bodhi.server import models
 from bodhi.server.scripts import sar
+from click import testing
 
 from ..base import BasePyTestCase
-
 
 EXPECTED_USER_DATA_OUTPUT = """\
 ==========> User account data for: guest <==========

@@ -1,20 +1,19 @@
 # Copyright (C) 2015 Patrick Uiterwijk, for license see Ipsilon's COPYING:
 # https://forge.fedoraproject.org/apps/ipsilon/src/branch/master/COPYING
 
-from __future__ import absolute_import
 
-import json
 import inspect
+import json
 
-from ipsilon.providers.openid.extensions.common import OpenidExtensionBase
 import ipsilon.root
+from ipsilon.providers.openid.extensions.common import OpenidExtensionBase
 from ipsilon.util.page import Page
 from ipsilon.util.user import User
 
 
 class OpenidExtension(OpenidExtensionBase):
     def __init__(self, *pargs):
-        super(OpenidExtension, self).__init__("insecureAPI")
+        super().__init__("insecureAPI")
 
     def enable(self):
         """
@@ -54,7 +53,7 @@ class APIPage(Page):
         ipsilon.root.sites["api"]["template_env"] = ipsilon.root.sites["default"][
             "template_env"
         ]
-        super(APIPage, self).__init__(ipsilon.root.sites["api"])
+        super().__init__(ipsilon.root.sites["api"])
         self.v1 = APIV1Page(root_obj)
 
 
@@ -64,7 +63,7 @@ class APIV1Page(Page):
         ipsilon.root.sites["api_v1"]["template_env"] = ipsilon.root.sites["default"][
             "template_env"
         ]
-        super(APIV1Page, self).__init__(ipsilon.root.sites["api_v1"])
+        super().__init__(ipsilon.root.sites["api_v1"])
         self.root_obj = root_obj
 
     def root(self, *args, **kwargs):
@@ -105,7 +104,7 @@ class APIV1Page(Page):
             userdata = {
                 "username": username,
                 "nickname": username,
-                "email": "{}@example.com".format(username),
+                "email": f"{username}@example.com",
                 "_groups": ["packager", "provenpackager"],
                 "_extras": {
                     "cla": ["http://admin.fedoraproject.org/accounts/cla/done"]
@@ -120,8 +119,8 @@ class APIV1Page(Page):
 
         def fake_session():
             return None
-        setattr(fake_session, "get_user", lambda *args: us_obj)
-        setattr(fake_session, "get_user_attrs", lambda *args: userdata)
+        fake_session.get_user = lambda *args: us_obj
+        fake_session.get_user_attrs = lambda *args: userdata
 
         openid_response = openid._response(openid_request, fake_session)
         openid_response = openid.cfg.server.signatory.sign(

@@ -20,11 +20,10 @@
 from datetime import datetime, timezone
 from unittest import mock
 
-from click.testing import CliRunner
 import click
 import pytest
-
 from bodhi.server import models, push
+from click.testing import CliRunner
 
 from . import base
 
@@ -508,7 +507,7 @@ class TestPush(base.BasePyTestCase):
                 compose_task.delay.assert_called_with(
                     api_version=2, agent="bowlofeggs", resume=False,
                     composes=[{'security': False, 'release_id': ejabberd.release.id,
-                               'request': u'testing', 'content_type': u'rpm'}],
+                               'request': 'testing', 'content_type': 'rpm'}],
                 )
 
         assert result.exit_code == 0
@@ -722,7 +721,7 @@ class TestPush(base.BasePyTestCase):
                 compose_task.delay.assert_called_with(
                     api_version=2, agent="bowlofeggs", resume=False,
                     composes=[{'security': False, 'release_id': 1,
-                               'request': u'testing', 'content_type': u'rpm'}],
+                               'request': 'testing', 'content_type': 'rpm'}],
                 )
 
         assert result.exit_code == 0
@@ -763,7 +762,7 @@ class TestPush(base.BasePyTestCase):
                 compose_task.delay.assert_called_with(
                     api_version=2, agent="bowlofeggs", resume=True,
                     composes=[{'security': False, 'release_id': 1,
-                               'request': u'testing', 'content_type': u'rpm'}],
+                               'request': 'testing', 'content_type': 'rpm'}],
                 )
 
         assert result.exit_code == 0

@@ -16,23 +16,22 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from datetime import datetime, timezone
-from hashlib import sha256
-from os.path import basename, exists, join
-from unittest import mock
 import glob
 import os
 import shutil
 import tempfile
+from datetime import datetime, timezone
+from hashlib import sha256
+from os.path import basename, exists, join
+from unittest import mock
 
+import bodhi.server.metadata as bodhi_metadata
 import createrepo_c
 import pytest
-
 from bodhi.server.buildsys import DevBuildsys, setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
 from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import Release, Update, UpdateRequest, UpdateStatus
-import bodhi.server.metadata as bodhi_metadata
 
 from . import base
 

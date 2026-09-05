@@ -23,10 +23,10 @@ from datetime import datetime, timezone
 from unittest.mock import call, patch
 
 import pytest
-
 from bodhi.server import models
 from bodhi.server.tasks import check_signed_builds_task
 from bodhi.server.tasks.check_signed_builds import main as check_signed_builds_main
+
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
 

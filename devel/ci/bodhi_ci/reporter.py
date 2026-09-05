@@ -19,7 +19,6 @@
 """Report progress."""
 
 import asyncio
-import typing
 
 import click
 
@@ -33,7 +32,7 @@ class ProgressReporter:
         jobs: A list of the Jobs to report on.
     """
 
-    def __init__(self, jobs: typing.List['Job']):
+    def __init__(self, jobs: list['Job']):
         """
         Args:
             jobs: A list of the Jobs to report on.

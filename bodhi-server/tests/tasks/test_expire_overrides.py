@@ -22,11 +22,12 @@ This module contains tests for the bodhi.server.tasks.expire_overrides module.
 from datetime import timedelta
 from unittest import mock
 
-from fedora_messaging import api, testing as fml_testing
-
 from bodhi.server import models
 from bodhi.server.tasks import expire_overrides_task
 from bodhi.server.tasks.expire_overrides import main as expire_overrides_main
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
+
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
 

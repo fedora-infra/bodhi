@@ -17,11 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for the compatibility scripts."""
 
-from unittest.mock import patch, Mock
-
-from click.testing import CliRunner
+from unittest.mock import Mock, patch
 
 from bodhi.server.scripts import compat
+from click.testing import CliRunner
+
 from ..base import BasePyTestCase
 
 

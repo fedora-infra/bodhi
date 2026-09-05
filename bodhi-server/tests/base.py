@@ -16,21 +16,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Contains a useful base test class that helps with common testing needs for bodhi.server."""
-from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
-from unittest import mock
 import os
 import subprocess
 import unittest
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
+from unittest import mock
 
-from pyramid import testing
-from pyramid.paster import get_appsettings
-from sqlalchemy import event
-from sqlalchemy.orm.exc import NoResultFound
-from webtest import TestApp
 import createrepo_c
-
 from bodhi.server import (
+    Session,
     bugs,
     buildsys,
     config,
@@ -38,10 +33,13 @@ from bodhi.server import (
     main,
     metadata,
     models,
-    Session,
     webapp,
 )
-
+from pyramid import testing
+from pyramid.paster import get_appsettings
+from sqlalchemy import event
+from sqlalchemy.orm.exc import NoResultFound
+from webtest import TestApp
 
 original_config = config.config.copy()
 engine = None
@@ -377,16 +375,16 @@ class BaseTestCaseMixin:
             bodhi.server.models.Release: A new release.
         """
         release = models.Release(
-            name='F{}'.format(version), long_name='Fedora {}'.format(version),
+            name=f'F{version}', long_name=f'Fedora {version}',
             id_prefix='FEDORA', version='{}'.format(version.replace('M', '')),
-            dist_tag='f{}'.format(version), stable_tag='f{}-updates'.format(version),
-            testing_tag='f{}-updates-testing'.format(version),
-            candidate_tag='f{}-updates-candidate'.format(version),
-            pending_signing_tag='f{}-updates-testing-signing'.format(version),
-            pending_testing_tag='f{}-updates-testing-pending'.format(version),
-            pending_stable_tag='f{}-updates-pending'.format(version),
-            override_tag='f{}-override'.format(version),
-            branch='f{}'.format(version), state=models.ReleaseState.current,
+            dist_tag=f'f{version}', stable_tag=f'f{version}-updates',
+            testing_tag=f'f{version}-updates-testing',
+            candidate_tag=f'f{version}-updates-candidate',
+            pending_signing_tag=f'f{version}-updates-testing-signing',
+            pending_testing_tag=f'f{version}-updates-testing-pending',
+            pending_stable_tag=f'f{version}-updates-pending',
+            override_tag=f'f{version}-override',
+            branch=f'f{version}', state=models.ReleaseState.current,
             create_automatic_updates=create_automatic_updates,
             package_manager=models.PackageManager.unspecified,
             testing_repository=None)
@@ -398,10 +396,10 @@ class BaseTestCaseMixin:
 
 
 class BasePyTestCase(BaseTestCaseMixin):
-    """Wraps BaseTestCaseMixin for pytest users.
+    f"""Wraps BaseTestCaseMixin for pytest users.
 
-    {}
-    """.format(BaseTestCaseMixin.__doc__)
+    {BaseTestCaseMixin.__doc__}
+    """
 
     def setup_method(self, method):
         """Set up Bodhi for testing."""
@@ -413,12 +411,12 @@ class BasePyTestCase(BaseTestCaseMixin):
 
 
 class BaseTestCase(unittest.TestCase, BaseTestCaseMixin):
-    """Wrap BaseTestCaseMixin for old-style unittest.TestCase users.
+    f"""Wrap BaseTestCaseMixin for old-style unittest.TestCase users.
 
     Don't derive new tests from this.
 
-    {}
-    """.format(BaseTestCaseMixin.__doc__)
+    {BaseTestCaseMixin.__doc__}
+    """
 
     def setUp(self):
         """Dispatch to BasePyTestCase.setup_method()."""
@@ -429,7 +427,7 @@ class BaseTestCase(unittest.TestCase, BaseTestCaseMixin):
         return self._teardown_method()
 
 
-class DummyUser(object):
+class DummyUser:
     """
     A fake user, suitable for passing to pyramid.testing.DummyRequest.
 
@@ -452,7 +450,7 @@ class DummyUser(object):
         self.name = name
 
 
-class TransactionalSessionMaker(object):
+class TransactionalSessionMaker:
     """
     Mimic the behavior of bodhi.server.utils.TransactionalSessionMaker.
 

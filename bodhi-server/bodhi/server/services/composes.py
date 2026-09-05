@@ -17,18 +17,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines service endpoints pertaining to Composes."""
 
+from bodhi.server import models, security
+from bodhi.server.services import errors
 from cornice.resource import resource, view
 from pyramid import httpexceptions
 from pyramid.authorization import Allow, Everyone
 from sqlalchemy.orm import exc
 
-from bodhi.server import models, security
-from bodhi.server.services import errors
-
 
 @resource(collection_path='/composes/', path='/composes/{release_name}/{request}',
           description='Compose service')
-class Composes(object):
+class Composes:
     """
     Defines resources for interacting with Compose objects.
 

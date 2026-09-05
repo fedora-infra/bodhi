@@ -20,10 +20,10 @@
 import os
 import sys
 
-from pyramid.paster import get_appsettings
-
 from bodhi.server import initialize_db
 from bodhi.server.logging import setup as setup_logging
+from pyramid.paster import get_appsettings
+
 from ..models import Base
 
 

@@ -23,7 +23,7 @@ messages.
 
 import typing
 
-from .base import BodhiMessage, BuildV1, SCHEMA_URL, UserV1
+from .base import SCHEMA_URL, BodhiMessage, BuildV1, UserV1
 
 
 class BuildrootOverrideMessage(BodhiMessage):
@@ -90,7 +90,7 @@ class BuildrootOverrideMessage(BodhiMessage):
         return self.submitter.name
 
     @property
-    def usernames(self) -> typing.List[str]:
+    def usernames(self) -> list[str]:
         """
         List of users affected by the action that generated this message.
 

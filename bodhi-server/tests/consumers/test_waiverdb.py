@@ -19,10 +19,9 @@
 
 from unittest import mock
 
-from fedora_messaging.api import Message
-
 from bodhi.server import models
 from bodhi.server.consumers import waiverdb
+from fedora_messaging.api import Message
 
 from ..base import BasePyTestCase, TransactionalSessionMaker
 
@@ -31,7 +30,7 @@ class TestWaiverdbHandler(BasePyTestCase):
     """Test class for the :func:`WaiverdbHandler` method."""
 
     def setup_method(self, method):
-        super(TestWaiverdbHandler, self).setup_method(method)
+        super().setup_method(method)
         self.handler = waiverdb.WaiverdbHandler()
         self.handler.db_factory = TransactionalSessionMaker(self.Session)
         self.single_build_update = self.db.query(models.Update).join(models.Build).filter(

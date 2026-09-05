@@ -19,7 +19,6 @@
 from unittest import mock
 
 import pytest
-
 from bodhi.server import config
 
 

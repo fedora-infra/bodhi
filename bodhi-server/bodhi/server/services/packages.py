@@ -18,16 +18,14 @@
 """Define a service endpoint for searching for packages."""
 import math
 
-from cornice import Service
-from cornice.validators import colander_querystring_validator
-from sqlalchemy import distinct, func, LABEL_STYLE_TABLENAME_PLUS_COL
-from sqlalchemy.sql.expression import case
-
-from bodhi.server.models import Package
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
-
+from bodhi.server.models import Package
+from cornice import Service
+from cornice.validators import colander_querystring_validator
+from sqlalchemy import LABEL_STYLE_TABLENAME_PLUS_COL, distinct, func
+from sqlalchemy.sql.expression import case
 
 packages = Service(name='packages', path='/packages/',
                    description='PkgDB packages',

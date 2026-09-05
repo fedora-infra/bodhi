@@ -19,19 +19,18 @@
 
 import datetime
 
+import bodhi.server.util
+import cornice.errors
+import sqlalchemy as sa
+from bodhi.server import METADATA, cache_region, log, models
+from bodhi.server.config import config
 from koji import GenericError
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest, REGISTRY
+from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
 from pyramid.exceptions import HTTPBadRequest, HTTPForbidden
 from pyramid.httpexceptions import HTTPMovedPermanently, HTTPUnauthorized
 from pyramid.response import Response
 from pyramid.settings import asbool
 from pyramid.view import notfound_view_config, view_config
-import cornice.errors
-import sqlalchemy as sa
-
-from bodhi.server import cache_region, log, METADATA, models
-from bodhi.server.config import config
-import bodhi.server.util
 
 
 def get_top_testers():

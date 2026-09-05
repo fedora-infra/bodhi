@@ -23,9 +23,7 @@ This module provides Python bindings to the Bodhi REST API.
 .. moduleauthor:: Randy Barlow <bowlofeggs@fedoraproject.org>
 """
 
-from urllib.parse import urlparse
 import configparser
-from datetime import datetime, timedelta, timezone
 import functools
 import itertools
 import logging
@@ -33,17 +31,18 @@ import os
 import re
 import textwrap
 import typing
-
+from datetime import datetime, timedelta, timezone
+from urllib.parse import urlparse
 
 try:
     import dnf
 except ImportError:  # pragma: no cover
     # dnf is not available on EL 7.
     dnf = None  # pragma: no cover
-from munch import munchify
-from requests.exceptions import ConnectionError, RequestException
 import koji
 import requests
+from munch import munchify
+from requests.exceptions import ConnectionError, RequestException
 
 from .constants import (
     BASE_URL,
@@ -56,9 +55,8 @@ from .constants import (
 )
 from .oidcclient import JSONStorage, OIDCClient, OIDCClientError
 
-
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import munch  # noqa: F401
+    import munch
 
 
 log = logging.getLogger(__name__)
@@ -179,7 +177,7 @@ class BodhiClient:
         client_id: str = CLIENT_ID,
         id_provider: str = IDP,
         staging: bool = False,
-        oidc_storage_path: typing.Optional[str] = None,
+        oidc_storage_path: str | None = None,
     ):
         """
         Initialize the Bodhi client.
@@ -347,7 +345,7 @@ class BodhiClient:
 
     @errorhandled
     def waive(self, update: str, comment: str,
-              tests: typing.Optional[typing.Iterable[str]] = None) -> 'munch.Munch':
+              tests: typing.Iterable[str] | None = None) -> 'munch.Munch':
         """
         Waive unsatisfied requirements on an update.
 
@@ -513,8 +511,8 @@ class BodhiClient:
     def save_override(
         self, nvr: str,
         notes: str,
-        duration: typing.Optional[int] = None,
-        expiration_date: typing.Optional[datetime] = None,
+        duration: int | None = None,
+        expiration_date: datetime | None = None,
         edit: bool = False,
         expired: bool = False
     ) -> 'munch.Munch':
@@ -588,10 +586,10 @@ class BodhiClient:
 
     @errorhandled
     def list_overrides(
-            self, user: typing.Optional[str] = None, packages: typing.Optional[str] = None,
-            expired: typing.Optional[bool] = None, releases: typing.Optional[str] = None,
-            builds: typing.Optional[str] = None, rows_per_page: typing.Optional[int] = None,
-            page: typing.Optional[int] = None) -> 'munch.Munch':
+            self, user: str | None = None, packages: str | None = None,
+            expired: bool | None = None, releases: str | None = None,
+            builds: str | None = None, rows_per_page: int | None = None,
+            page: int | None = None) -> 'munch.Munch':
         """
         List buildroot overrides.
 
@@ -607,7 +605,7 @@ class BodhiClient:
         Returns:
             A dictionary-like representation of the Overrides.
         """
-        params: typing.MutableMapping[str, typing.Union[int, str, None]] = {}
+        params: typing.MutableMapping[str, int | str | None] = {}
         if user:
             params['user'] = user
         if packages:
@@ -642,7 +640,7 @@ class BodhiClient:
                 'csrf', verb='GET', auth=True)['csrf_token']
         return self.csrf_token
 
-    def parse_file(self, input_file: str) -> typing.List[typing.Dict[str, typing.Any]]:
+    def parse_file(self, input_file: str) -> list[dict[str, typing.Any]]:
         """
         Parse an update template file.
 
@@ -764,7 +762,7 @@ class BodhiClient:
             line_formatter.format('Updated', compose['state_date']),
         ]
 
-        if 'error_message' in compose and compose['error_message']:
+        if compose.get('error_message'):
             compose_lines.append(line_formatter.format('Error', compose['error_message']))
 
         compose_lines += ['\nUpdates:\n\n']

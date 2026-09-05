@@ -16,18 +16,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from unittest import mock
 import copy
+from unittest import mock
 
-from bleach import __version__ as bleachver
-from pyramid.testing import DummyRequest
 import packaging
 import pytest
 import webtest
-
+from bleach import __version__ as bleachver
 from bodhi.server import __version__, main, util
 from bodhi.server.config import config
 from bodhi.server.models import Release, ReleaseState, Update, UpdateStatus
+from pyramid.testing import DummyRequest
 
 from .. import base
 

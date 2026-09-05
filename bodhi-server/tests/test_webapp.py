@@ -28,7 +28,7 @@ class TestCompleteDatabaseSession:
     def test_cleanup_exception(self):
         """Test for rollback() when there is an Exception."""
         request = mock.Mock()
-        request.exception = IOError('The Internet ran out of cats.')
+        request.exception = OSError('The Internet ran out of cats.')
 
         with mock.patch('bodhi.server.Session') as Session_mock:
             webapp._complete_database_session(request)

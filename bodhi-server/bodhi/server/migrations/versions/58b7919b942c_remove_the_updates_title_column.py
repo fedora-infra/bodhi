@@ -22,9 +22,8 @@ Revision ID: 58b7919b942c
 Revises: aae0d29d49b7
 Create Date: 2019-02-20 17:13:01.260748
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '58b7919b942c'
@@ -46,8 +45,8 @@ def downgrade():
     # set it to the expected format and expected set of NVRs. Single build updates should at least
     # get their old title back.
     op.execute(
-        ("UPDATE updates SET title=("
+        "UPDATE updates SET title=("
          "SELECT string_agg(nvr, ' ') as title FROM ("
-         "SELECT builds.nvr FROM builds WHERE update_id=updates.id ORDER BY nvr) as nvr)"))
+         "SELECT builds.nvr FROM builds WHERE update_id=updates.id ORDER BY nvr) as nvr)")
     op.create_index('ix_updates_title', 'updates', ['title'], unique=True)
     op.alter_column('updates', 'alias', existing_type=sa.BOOLEAN(), nullable=True)

@@ -22,7 +22,6 @@ import sys
 
 import click
 import sqlalchemy
-
 from bodhi.server import config, initialize_db, models
 
 
@@ -45,17 +44,17 @@ def print_human_readable_format(sar_data):
         click.echo("email: {}".format(sar_data[user]['email']))
         click.echo("groups: {}".format(sar_data[user]['groups']))
 
-        click.echo("\n{} Comments: {}".format(chapter_start, chapter_stop))
+        click.echo(f"\n{chapter_start} Comments: {chapter_stop}")
         for idx, comment in enumerate(sar_data[user]['comments'], 1):
-            click.echo("\nComment no {}:".format(idx))
+            click.echo(f"\nComment no {idx}:")
             for item in sorted(comment):
-                click.echo("{}: {}".format(item, comment[item]))
+                click.echo(f"{item}: {comment[item]}")
 
-        click.echo("\n{} Updates: {}".format(chapter_start, chapter_stop))
+        click.echo(f"\n{chapter_start} Updates: {chapter_stop}")
         for idx, update in enumerate(sar_data[user]['updates'], 1):
-            click.echo("\nUpdate no {}:".format(idx))
+            click.echo(f"\nUpdate no {idx}:")
             for item in sorted(update):
-                click.echo("{}: {}".format(item, update[item]))
+                click.echo(f"{item}: {update[item]}")
 
 
 @click.command()

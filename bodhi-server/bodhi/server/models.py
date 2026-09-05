@@ -16,11 +16,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Bodhi's database models."""
 
-from collections import defaultdict
-from datetime import date, datetime, timedelta, timezone
-from functools import partial
-from textwrap import wrap
-from urllib.parse import urljoin
 import hashlib
 import json
 import re
@@ -28,39 +23,18 @@ import time
 import typing
 import uuid
 import warnings
+from collections import defaultdict
+from datetime import date, datetime, timedelta, timezone
+from functools import partial
+from textwrap import wrap
+from urllib.parse import urljoin
 
-from mediawiki import MediaWiki
-from packaging.version import parse as parse_version
-from sqlalchemy import __version__ as sqlalchemy_version
-from sqlalchemy import (
-    and_,
-    Boolean,
-    Column,
-    Date,
-    DateTime,
-    event,
-    ForeignKey,
-    func,
-    Integer,
-    or_,
-    Table,
-    Unicode,
-    UnicodeText,
-    UniqueConstraint,
-)
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import class_mapper, declarative_base, relationship, validates
-from sqlalchemy.orm.base import NEVER_SET
-from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.orm.properties import RelationshipProperty
-from sqlalchemy.types import Enum, SchemaType, TypeDecorator
 import requests.exceptions
 import rpm
-
 from bodhi.messages.schemas import buildroot_override as override_schemas
 from bodhi.messages.schemas import errata as errata_schemas
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server import bugs, buildsys, get_cache_region, log, mail, notifications, Session, util
+from bodhi.server import Session, bugs, buildsys, get_cache_region, log, mail, notifications, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import (
     BodhiException,
@@ -75,20 +49,44 @@ from bodhi.server.tasks import (
 from bodhi.server.util import avatar as get_avatar
 from bodhi.server.util import (
     build_evr,
+    build_names_by_type,
     get_critpath_components,
     get_grouped_critpath_components,
     get_rpm_header,
     header,
-    pagure_api_get,
-    build_names_by_type,
     markdown_to_text,
+    pagure_api_get,
     wrap_text,
 )
-
+from mediawiki import MediaWiki
+from packaging.version import parse as parse_version
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Table,
+    Unicode,
+    UnicodeText,
+    UniqueConstraint,
+    and_,
+    event,
+    func,
+    or_,
+)
+from sqlalchemy import __version__ as sqlalchemy_version
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import class_mapper, declarative_base, relationship, validates
+from sqlalchemy.orm.base import NEVER_SET
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.properties import RelationshipProperty
+from sqlalchemy.types import Enum, SchemaType, TypeDecorator
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import bugzilla  # noqa: F401
-    import pyramid  # noqa: F401
+    import bugzilla
+    import pyramid
 
 
 cache_region = get_cache_region()
@@ -96,7 +94,7 @@ cache_region = get_cache_region()
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
 
-class EnumSymbol(object):
+class EnumSymbol:
     """Define a fixed symbol tied to a parent class."""
 
     def __init__(self, cls_, name, value, description):
@@ -323,14 +321,14 @@ class DeclEnumType(SchemaType, TypeDecorator):
 
     def create(self, bind=None, checkfirst=False):
         """Issue CREATE ddl for this type, if applicable."""
-        super(DeclEnumType, self).create(bind, checkfirst)
+        super().create(bind, checkfirst)
         t = self.dialect_impl(bind.dialect)
         if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
             t.impl.create(bind=bind, checkfirst=checkfirst)
 
     def drop(self, bind=None, checkfirst=False):
         """Issue DROP ddl for this type, if applicable."""
-        super(DeclEnumType, self).drop(bind, checkfirst)
+        super().drop(bind, checkfirst)
         t = self.dialect_impl(bind.dialect)
         if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
             t.impl.drop(bind=bind, checkfirst=checkfirst)
@@ -363,7 +361,7 @@ class TZDateTime(TypeDecorator):
         return value
 
 
-class BodhiBase(object):
+class BodhiBase:
     """
     Base class for the SQLAlchemy model base class.
 
@@ -417,7 +415,7 @@ class BodhiBase(object):
         Returns:
             str: A string representation of this model.
         """
-        return '<{0} {1}>'.format(self.__class__.__name__, self.__json__())
+        return f'<{self.__class__.__name__} {self.__json__()}>'
 
     def __json__(self, request=None, exclude=None, include=None):
         """
@@ -630,8 +628,8 @@ class ContentType(DeclEnum):
             image_info = extra['typeinfo']['image']
             if 'pull' not in image_info.get('index', {}):
                 raise ValueError(
-                    (f"Image build {build['nvr']} cannot be used for update, "
-                     "it has no pull specs")
+                    f"Image build {build['nvr']} cannot be used for update, "
+                     "it has no pull specs"
                 )
             if 'flatpak' in image_info:
                 identity = cls.flatpak
@@ -1090,7 +1088,7 @@ class Release(Base):
         return self.name.lower().replace('-', '')
 
     @property
-    def setting_status(self) -> typing.Optional[str]:
+    def setting_status(self) -> str | None:
         """
         Return the status of the Release from settings.
 
@@ -1305,9 +1303,8 @@ class Package(Base):
         """
         if build.type != self.type:
             raise ValueError(
-                ("A {} Build cannot be associated with a {} Package. A Package's builds must be "
-                 "the same type as the package.").format(
-                     build.type.description, self.type.description))
+                f"A {build.type.description} Build cannot be associated with a {self.type.description} Package. A Package's builds must be "
+                 "the same type as the package.")
         return build
 
     def __str__(self):
@@ -2093,7 +2090,7 @@ class Update(Base):
         # we need this to be set for message publishing to work
         self.status = kwargs.get('status', UpdateStatus.pending)
 
-        super(Update, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         log.debug('Set alias for %s to %s' % (self.get_title(), alias))
 
@@ -3194,7 +3191,7 @@ class Update(Base):
 
         if action is UpdateRequest.unpush:
             self.unpush(db)
-            self.comment(db, u'This update has been unpushed.', author=username)
+            self.comment(db, 'This update has been unpushed.', author=username)
             notifications.publish(update_schemas.UpdateRequestUnpushV1.from_dict(dict(
                 update=self, agent=username)))
             log.debug("%s has been unpushed." % self.alias)
@@ -3220,14 +3217,7 @@ class Update(Base):
         # If status is testing going to stable request and action is revoke,
         # keep the status at testing
         elif self.request == UpdateRequest.stable and \
-                self.status is UpdateStatus.testing and action is UpdateRequest.revoke:
-            self.revoke()
-            log.debug("%s has been revoked." % self.alias)
-            notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
-                update=self, agent=username)))
-            return
-
-        elif action is UpdateRequest.revoke:
+                self.status is UpdateStatus.testing and action is UpdateRequest.revoke or action is UpdateRequest.revoke:
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
             notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
@@ -3297,7 +3287,7 @@ class Update(Base):
                 "possibly sooner if a bug it fixes is an accepted "
                 "blocker or freeze exception. "
             )
-        self.comment(db, comment_text, author=u'bodhi')
+        self.comment(db, comment_text, author='bodhi')
 
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
@@ -3498,8 +3488,8 @@ class Update(Base):
         mailinglist = None
         sender = config.get('bodhi_email')
         if not sender:
-            log.error(("bodhi_email not defined in configuration!  Unable "
-                      "to send update notice"))
+            log.error("bodhi_email not defined in configuration!  Unable "
+                      "to send update notice")
             return
 
         # eg: fedora_epel
@@ -4195,7 +4185,7 @@ class Update(Base):
         Returns:
             str: A JSON representation of this update.
         """
-        result = super(Update, self).__json__(request=request)
+        result = super().__json__(request=request)
         # Duplicate alias as updateid for backwards compat with bodhi1
         result['updateid'] = result['alias']
         # Include the karma total in the results
@@ -4517,7 +4507,7 @@ class Compose(Base):
             # We need to include content_type and security so the composer can collate the Composes
             # and so it can pick the right composer class to use.
             include = ('content_type', 'security')
-        return super(Compose, self).__json__(request=request, exclude=exclude, include=include)
+        return super().__json__(request=request, exclude=exclude, include=include)
 
     def __lt__(self, other):
         """
@@ -4543,7 +4533,7 @@ class Compose(Base):
         Returns:
             str: A string to be displayed to users describing this compose.
         """
-        return '<Compose: {} {}>'.format(self.release.name, self.request.description)
+        return f'<Compose: {self.release.name} {self.request.description}>'
 
 
 event.listen(Compose.state, 'set', Compose.update_state_date, active_history=True)
@@ -4644,7 +4634,7 @@ class Comment(Base):
         return url
 
     @property
-    def unique_testcase_feedback(self) -> typing.List[TestCaseKarma]:
+    def unique_testcase_feedback(self) -> list[TestCaseKarma]:
         """
         Return a list of unique :class:`TestCaseKarma` objects found in the testcase_feedback.
 
@@ -4672,7 +4662,7 @@ class Comment(Base):
         Returns:
             A string representation of the comment for RSS feed.
         """
-        return "{} comment #{}".format(self.update.alias, self.id)
+        return f"{self.update.alias} comment #{self.id}"
 
     def __json__(self, *args, **kwargs) -> dict:
         """
@@ -4684,7 +4674,7 @@ class Comment(Base):
         Returns:
             A JSON-serializable dict representation of this comment.
         """
-        result = super(Comment, self).__json__(*args, **kwargs)
+        result = super().__json__(*args, **kwargs)
         # Duplicate 'user' as 'author' just for backwards compat with bodhi1.
         # Things like the message schemas and fedbadges rely on this.
         if result['user']:
@@ -4804,7 +4794,7 @@ class Bug(Base):
 
         return message
 
-    def add_comment(self, update: Update, comment: typing.Optional[str] = None) -> None:
+    def add_comment(self, update: Update, comment: str | None = None) -> None:
         """
         Add a comment to the bug, pertaining to the given update.
 
@@ -4907,7 +4897,7 @@ class User(Base):
     # Many-to-many relationships
     groups = relationship('Group', secondary=user_group_table, back_populates='users')
 
-    def avatar(self, request: 'pyramid.request') -> typing.Union[str, None]:
+    def avatar(self, request: 'pyramid.request') -> str | None:
         """
         Return a URL for the User's avatar, or None if request is falsey.
 

@@ -21,14 +21,13 @@
 import typing
 
 from .docs import DocsJob, DocsOldJob
-from .integration import (IntegrationBuildJob, IntegrationCleanJob,
-                          IntegrationJob)
+from .integration import IntegrationBuildJob, IntegrationCleanJob, IntegrationJob
 from .job import BuildJob, CleanJob, Job
 from .linting import PreCommitJob
 from .rpm import RPMJob
 from .unit import DiffCoverJob, UnitJob, UnitOldJob
 
-AVAILABLE_JOBS: typing.Dict[str, typing.Type['Job']] = {
+AVAILABLE_JOBS: dict[str, type['Job']] = {
     "build": BuildJob,
     "pre-commit": PreCommitJob,
     "docs": DocsJob,
@@ -46,7 +45,7 @@ def build_jobs_list(
     main_job_names: typing.Sequence[str],
     releases: typing.Sequence[str],
     options: dict
-) -> typing.List[Job | DocsJob | UnitJob]:
+) -> list[Job | DocsJob | UnitJob]:
     """
     Build and return a list of jobs to be run for the given command.
 

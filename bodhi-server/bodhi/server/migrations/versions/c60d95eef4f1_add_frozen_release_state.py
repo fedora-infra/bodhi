@@ -25,7 +25,6 @@ Create Date: 2019-04-20 08:44:52.083675
 from alembic import op
 from sqlalchemy import exc
 
-
 # revision identifiers, used by Alembic.
 revision = 'c60d95eef4f1'
 down_revision = 'b1fd856efcf6'

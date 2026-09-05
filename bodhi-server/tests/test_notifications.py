@@ -19,10 +19,12 @@
 
 from unittest import mock
 
-from fedora_messaging import api, testing as fml_testing, exceptions as fml_exceptions
-
 from bodhi.messages.schemas import compose as compose_schemas
-from bodhi.server import notifications, Session
+from bodhi.server import Session, notifications
+from fedora_messaging import api
+from fedora_messaging import exceptions as fml_exceptions
+from fedora_messaging import testing as fml_testing
+
 from . import base
 
 

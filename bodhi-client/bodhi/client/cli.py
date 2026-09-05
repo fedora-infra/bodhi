@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """The bodhi CLI client."""
 
-from datetime import datetime
 import functools
 import logging
 import os
@@ -27,19 +26,18 @@ import subprocess
 import sys
 import traceback
 import typing
+from datetime import datetime
 
 import click
 import munch
 import requests
-
 from bodhi.client import bindings, constants
-
 
 log = logging.getLogger(__name__)
 
 
 def _warn_staging_overrides(
-        ctx: click.core.Context, param: typing.Union[click.core.Option, click.core.Parameter],
+        ctx: click.core.Context, param: click.core.Option | click.core.Parameter,
         value: str) -> str:
     """
     Print a warning to stderr if the user has set both the --url/--id-provider and --staging flags.
@@ -75,7 +73,7 @@ def _warn_staging_overrides(
 
 
 def _set_logging_debug(
-        ctx: click.core.Context, param: typing.Union[click.core.Option, click.core.Parameter],
+        ctx: click.core.Context, param: click.core.Option | click.core.Parameter,
         value: bool) -> bool:
     """
     Set up the logging level to "debug".
@@ -278,8 +276,8 @@ def handle_errors(method: typing.Callable) -> typing.Callable:
 
 
 def _save_override(url: str, staging: bool, edit: bool = False,
-                   client_id: typing.Optional[str] = None,
-                   id_provider: typing.Optional[str] = None,
+                   client_id: str | None = None,
+                   id_provider: str | None = None,
                    **kwargs):
     """
     Create or edit a buildroot override.
@@ -324,13 +322,13 @@ def _save_override(url: str, staging: bool, edit: bool = False,
 @click.version_option(message='%(version)s', package_name='bodhi_client')
 def cli():
     """Create the main CLI group."""
-    pass  # pragma: no cover
+    # pragma: no cover
 
 
 @cli.group(help="Interact with composes.")
 def composes():
     """Create the composes group."""
-    pass  # pragma: no cover
+    # pragma: no cover
 
 
 @composes.command(name='info')
@@ -387,7 +385,7 @@ def list_composes(url: str, id_provider: str, client_id: str, staging: bool, ver
 @cli.group(help="Interact with updates on Bodhi.")
 def updates():
     """Create the updates group."""
-    pass  # pragma: no cover
+    # pragma: no cover
 
 
 def require_severity_for_security_update(type: str, severity: str):
@@ -479,7 +477,7 @@ def new(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
 
 
 def _validate_edit_update(
-        ctx: click.core.Context, param: typing.Union[click.core.Option, click.core.Parameter],
+        ctx: click.core.Context, param: click.core.Option | click.core.Parameter,
         value: str) -> str:
     """
     Validate the update argument given to the updates edit command.
@@ -645,7 +643,7 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
 @handle_errors
 def query(
     url: str, id_provider: str, client_id: str, debug: bool, mine: bool = False,
-    rows: typing.Optional[int] = None, **kwargs
+    rows: int | None = None, **kwargs
 ):
     # User Docs that show in the --help
     """Query updates on Bodhi.
@@ -1061,7 +1059,7 @@ def trigger_tests(update: str, url: str, id_provider: str, client_id: str, **kwa
 @cli.group(help="Interact with overrides on Bodhi.")
 def overrides():
     """Create the overrides CLI group."""
-    pass  # pragma: no cover
+    # pragma: no cover
 
 
 @overrides.command('query')
@@ -1085,10 +1083,10 @@ def overrides():
 @handle_errors
 def query_buildroot_overrides(
         url: str, id_provider: str, client_id: str,
-        user: typing.Optional[str] = None, mine: bool = False,
-        packages: typing.Optional[str] = None, expired: typing.Optional[bool] = None,
-        releases: typing.Optional[str] = None, builds: typing.Optional[str] = None,
-        rows: typing.Optional[int] = None, page: typing.Optional[int] = None, **kwargs):
+        user: str | None = None, mine: bool = False,
+        packages: str | None = None, expired: bool | None = None,
+        releases: str | None = None, builds: str | None = None,
+        rows: int | None = None, page: int | None = None, **kwargs):
     # Docs that show in the --help
     """Query the buildroot overrides."""
     # Developer Docs
@@ -1174,7 +1172,7 @@ def edit_buildroot_overrides(url: str, id_provider: str, client_id: str, staging
 
 
 def _generate_wait_repo_command(override: munch.Munch, client: bindings.BodhiClient) \
-        -> typing.Optional[typing.Tuple[str, str, str, str]]:
+        -> tuple[str, str, str, str] | None:
     """
     Generate and return a koji wait-repo command for the given override, if possible.
 
@@ -1276,7 +1274,7 @@ def print_resp(resp: munch.Munch, client: bindings.BodhiClient, verbose: bool = 
 @cli.group(help="Interact with releases.")
 def releases():
     """Manage the releases."""
-    pass  # pragma: no cover
+    # pragma: no cover
 
 
 @releases.command(name='create')
@@ -1427,7 +1425,7 @@ def requirements_release(name: str, url: str, id_provider: str, client_id: str, 
 @add_options(pagination_options)
 @staging_option
 def list_releases(display_archived: bool, url: str, id_provider: str, client_id: str,
-                  rows: typing.Optional[int] = None, page: typing.Optional[int] = None, **kwargs):
+                  rows: int | None = None, page: int | None = None, **kwargs):
     """Retrieve and print list of releases."""
     exclude_archived = True
     if display_archived:
@@ -1461,7 +1459,7 @@ def save(client: bindings.BodhiClient, **kwargs):
         print_release(res)
 
 
-def print_releases_list(releases: typing.List[munch.Munch]):
+def print_releases_list(releases: list[munch.Munch]):
     """
     Print a list of releases to the terminal.
 

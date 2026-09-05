@@ -16,11 +16,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Initialize the Bodhi server."""
-from collections import defaultdict
 import importlib.metadata
 import logging as python_logging
 import resource
+from collections import defaultdict
 
+from bodhi.server import bugs, buildsys
+from bodhi.server.config import config as bodhi_config
+from bodhi.server.security import BodhiSecurityPolicy
 from cornice.validators import DEFAULT_FILTERS
 from dogpile.cache import make_region
 from munch import munchify
@@ -30,11 +33,6 @@ from pyramid.session import JSONSerializer, SignedCookieSessionFactory
 from pyramid.tweens import EXCVIEW
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
-
-from bodhi.server import bugs, buildsys
-from bodhi.server.config import config as bodhi_config
-from bodhi.server.security import BodhiSecurityPolicy
-
 
 METADATA = importlib.metadata.metadata('bodhi-server')
 __version__ = METADATA['version']

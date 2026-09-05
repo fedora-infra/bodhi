@@ -12,14 +12,13 @@ import datetime
 import os
 import sys
 
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 for submodule in ("bodhi-server", "bodhi-messages", "bodhi-client"):
     sys.path.insert(0, os.path.join(basedir, submodule))
-#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../bodhi-server')))  # NOQA
+#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../bodhi-server')))
 
 from bodhi.server import __version__  # NOQA
 
@@ -57,7 +56,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'bodhi'
-copyright = '2007-{}, Red Hat, Inc.'.format(datetime.datetime.utcnow().year)
+copyright = f'2007-{datetime.datetime.utcnow().year}, Red Hat, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

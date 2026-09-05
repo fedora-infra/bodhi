@@ -22,10 +22,9 @@ Revision ID: 5703ddfe855d
 Revises: e8a059156d38
 Create Date: 2019-05-05 07:05:03.434601
 """
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
-
 
 # revision identifiers, used by Alembic.
 revision = '5703ddfe855d'

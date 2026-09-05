@@ -41,11 +41,11 @@ import datetime
 import logging
 
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server import Session, notifications, buildsys
+from bodhi.server import Session, buildsys, notifications
 from bodhi.server.util import transactional_session_maker
-from ..models import Update, UpdateStatus, UpdateRequest
-from ..config import config
 
+from ..config import config
+from ..models import Update, UpdateRequest, UpdateStatus
 
 log = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ def autopush_update(update: Update, db: Session):
     update.pushed = True
     update.date_stable = datetime.datetime.now(datetime.timezone.utc)
     update.comment(db, "This update has been submitted for stable by bodhi",
-                   author=u'bodhi')
+                   author='bodhi')
     update.modify_bugs()
     db.commit()
     if update.from_tag:

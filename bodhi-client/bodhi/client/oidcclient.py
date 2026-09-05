@@ -1,18 +1,17 @@
 """A generic OIDC client that can use OOB or not."""
-from functools import partial
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
 import re
 import threading
+from functools import partial
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
+import click
+import requests
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.integrations.requests_client import OAuth2Session
 from authlib.oidc.discovery.well_known import get_well_known_url
-from requests_kerberos import HTTPKerberosAuth, OPTIONAL
-import click
-import requests
-
+from requests_kerberos import OPTIONAL, HTTPKerberosAuth
 
 PORT = 45678  # Hopefully nothing else uses this on the host...
 

@@ -15,32 +15,31 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-from datetime import datetime, timedelta, timezone
-from unittest import mock
-from xml.etree import ElementTree
 import gzip
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+from datetime import datetime, timedelta, timezone
+from unittest import mock
+from xml.etree import ElementTree
 
-from munch import munchify
-from webob.multidict import MultiDict
 import bleach
 import createrepo_c
 import packaging
 import pytest
-
 from bodhi.server import models, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
 from bodhi.server.models import ReleaseState, TestGatingStatus, Update
+from munch import munchify
+from webob.multidict import MultiDict
 
 from . import base
 
 
-class TestAvatar():
+class TestAvatar:
     """Test the avatar() function."""
 
     def test_libravatar_disabled(self):
@@ -237,7 +236,7 @@ class TestCallAPI:
     @mock.patch('bodhi.server.util.http_session.get')
     def test_retries_failure(self, get, sleep):
         """Assert correct operation of the retries argument when they never succeed."""
-        class FakeResponse(object):
+        class FakeResponse:
             def __init__(self, status_code):
                 self.status_code = status_code
 
@@ -263,7 +262,7 @@ class TestCallAPI:
     @mock.patch('bodhi.server.util.http_session.get')
     def test_retries_success(self, get, sleep):
         """Assert correct operation of the retries argument when they succeed eventually."""
-        class FakeResponse(object):
+        class FakeResponse:
             def __init__(self, status_code):
                 self.status_code = status_code
 
@@ -1447,11 +1446,10 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
         tsm = util.TransactionalSessionMaker()
         exception = ValueError("u can't do that lol")
         # Now let's make it super bad by having rollback raise an Exception
-        Session.return_value.rollback.side_effect = IOError("lol now u can't connect to the db")
+        Session.return_value.rollback.side_effect = OSError("lol now u can't connect to the db")
 
-        with pytest.raises(ValueError) as exc_context:
-            with tsm():
-                raise exception
+        with pytest.raises(ValueError) as exc_context, tsm():
+            raise exception
         assert exc_context.value is exception
 
         log_exception.assert_called_once_with(
@@ -1472,9 +1470,8 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
         tsm = util.TransactionalSessionMaker()
         exception = ValueError("u can't do that lol")
 
-        with pytest.raises(ValueError) as exc_context:
-            with tsm():
-                raise exception
+        with pytest.raises(ValueError) as exc_context, tsm():
+            raise exception
         assert exc_context.value is exception
 
         assert log_exception.call_count == 0
@@ -1518,7 +1515,7 @@ class TestPyfileToModule(base.BasePyTestCase):
         with open(filepath, "w") as fh:
             fh.write("FOO = 'bar'\n")
         result = util.pyfile_to_module(filepath, "testfile")
-        assert getattr(result, "FOO") == "bar"
+        assert result.FOO == "bar"
         assert result.__file__ == filepath
         assert result.__name__ == "testfile"
 
@@ -1534,8 +1531,8 @@ class TestPyfileToModule(base.BasePyTestCase):
         filepath = os.path.join(self.tempdir, "does-not-exist.py")
         try:
             result = util.pyfile_to_module(filepath, "testfile", silent=True)
-        except IOError as e:
-            self.fail("pyfile_to_module raised an exception in silent mode: {}".format(e))
+        except OSError as e:
+            self.fail(f"pyfile_to_module raised an exception in silent mode: {e}")
         assert not result
 
 

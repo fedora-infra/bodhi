@@ -6,7 +6,6 @@ from packaging.version import parse as parse_version
 from .constants import SCOPES
 from .fedora import FedoraApp
 
-
 if parse_version(authlib_version) >= parse_version("1.0.0"):
     from .oauth_1 import OAuth
 else:

@@ -19,14 +19,15 @@
 This module contains tests for the bodhi.server.tasks.clean_old_composes module.
 """
 
-from unittest.mock import patch
 import os
 import shutil
 import tempfile
+from unittest.mock import patch
 
 from bodhi.server import config
 from bodhi.server.tasks import clean_old_composes_task
 from bodhi.server.tasks.clean_old_composes import main as clean_old_composes_main
+
 from ..base import BasePyTestCase
 
 

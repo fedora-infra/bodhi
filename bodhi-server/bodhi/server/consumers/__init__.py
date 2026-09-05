@@ -21,18 +21,16 @@ fedora-messaging consumer.
 This module is responsible for consuming the messaging from the fedora-messaging bus.
 It has the role to inspect the topics of the message and call the correct handler.
 """
-from collections import namedtuple
 import logging
+from collections import namedtuple
 
 import fedora_messaging
-
 from bodhi.server import bugs, buildsys, initialize_db, raise_open_file_limit
 from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
-from bodhi.server.consumers.signed import SignedHandler
 from bodhi.server.consumers.resultsdb import ResultsdbHandler
+from bodhi.server.consumers.signed import SignedHandler
 from bodhi.server.consumers.waiverdb import WaiverdbHandler
-
 
 log = logging.getLogger('bodhi')
 
@@ -58,7 +56,7 @@ class Consumer:
             HandlerInfo('.resultsdb.result.new', 'ResultsDB', ResultsdbHandler()),
         ]
 
-    def __call__(self, msg: fedora_messaging.api.Message):  # noqa: D401
+    def __call__(self, msg: fedora_messaging.api.Message):
         """
         Callback method called by fedora-messaging consume.
 
@@ -79,7 +77,7 @@ class Consumer:
             try:
                 handler_info.handler(msg)
             except Exception as e:
-                log.exception(f'{str(e)}: Unable to handle message in {handler_info.name} handler: '
+                log.exception(f'{e!s}: Unable to handle message in {handler_info.name} handler: '
                               f'{msg}')
                 error_handlers_msgs.append((handler_info.name, str(e)))
 

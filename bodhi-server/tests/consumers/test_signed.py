@@ -19,9 +19,6 @@
 
 from unittest import mock
 
-from fedora_messaging import api
-from fedora_messaging import testing as fml_testing
-
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.consumers import signed
 from bodhi.server.models import (
@@ -30,6 +27,8 @@ from bodhi.server.models import (
     UpdateRequest,
     UpdateStatus,
 )
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
 
 from .. import base
 

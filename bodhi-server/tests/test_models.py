@@ -16,29 +16,22 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test suite for bodhi.server.models"""
-from datetime import datetime, timedelta, timezone
-from unittest import mock
 import hashlib
 import html
 import json
 import pickle
 import time
 import uuid
+from datetime import datetime, timedelta, timezone
+from unittest import mock
 
-from fedora_messaging.api import Message
-from fedora_messaging.testing import mock_sends
-from mediawiki.exceptions import HTTPTimeoutError, MediaWikiAPIURLError
-from pyramid.testing import DummyRequest
-from sqlalchemy.exc import IntegrityError
 import cornice
 import pytest
 import requests.exceptions
-
 from bodhi.messages.schemas import errata as errata_schemas
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server import buildsys, mail
+from bodhi.server import Session, buildsys, mail, util
 from bodhi.server import models as model
-from bodhi.server import Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import (
     BodhiException,
@@ -56,6 +49,11 @@ from bodhi.server.models import (
     UpdateSuggestion,
     UpdateType,
 )
+from fedora_messaging.api import Message
+from fedora_messaging.testing import mock_sends
+from mediawiki.exceptions import HTTPTimeoutError, MediaWikiAPIURLError
+from pyramid.testing import DummyRequest
+from sqlalchemy.exc import IntegrityError
 
 from .base import BasePyTestCase, DummyUser
 
@@ -68,9 +66,9 @@ class ModelTest(BasePyTestCase):
     _populate_db = False
 
     def setup_method(self):
-        super(ModelTest, self).setup_method(self)
+        super().setup_method(self)
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
-        if type(self) is not ModelTest:  # noqa: E721
+        if type(self) is not ModelTest:
             try:
                 new_attrs = {}
                 new_attrs.update(self.attrs)
@@ -278,7 +276,7 @@ class TestBugDefaultMessage(BasePyTestCase):
 
         message = bug.default_message(update)
 
-        assert 'cool fedora stuff {}'.format(update.alias) == message
+        assert f'cool fedora stuff {update.alias}' == message
         assert 'not here' not in message
 
     @mock.patch.dict(config, {'stable_bug_msg': 'not here',
@@ -292,7 +290,7 @@ class TestBugDefaultMessage(BasePyTestCase):
 
         message = bug.default_message(update)
 
-        assert 'cool fedora stuff {}'.format(update.alias) == message
+        assert f'cool fedora stuff {update.alias}' == message
         assert 'not here' not in message
 
     def test_epel_with_testing_bug_epel_msg(self):
@@ -443,7 +441,7 @@ class TestEnumMeta:
 
         for v, e in zip(iter(m), expected_values):
             assert repr(v) == f'<{e}>'
-            assert type(v) is model.EnumSymbol  # noqa: E721
+            assert type(v) is model.EnumSymbol
 
 
 class TestEnumSymbol:
@@ -514,7 +512,7 @@ class TestCompose(BasePyTestCase):
         """
         uid = uuid.uuid4()
         release = model.Release(
-            name='F27-{}'.format(uid), long_name='Fedora 27 {}'.format(uid),
+            name=f'F27-{uid}', long_name=f'Fedora 27 {uid}',
             id_prefix='FEDORA', version='27',
             dist_tag='f27', stable_tag='f27-updates',
             testing_tag='f27-updates-testing',
@@ -524,9 +522,9 @@ class TestCompose(BasePyTestCase):
             pending_stable_tag='f27-updates-pending',
             override_tag='f27-override',
             state=ReleaseState.current,
-            branch='f27-{}'.format(uid))
+            branch=f'f27-{uid}')
         self.db.add(release)
-        update = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update = self.create_update([f'bodhi-{uuid.uuid4()}-1.fc27'])
         update.release = release
         update.request = request
         update.locked = True
@@ -563,9 +561,9 @@ class TestCompose(BasePyTestCase):
 
     def test_from_updates(self):
         """Assert that from_updates() correctly generates Composes."""
-        update_1 = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update_1 = self.create_update([f'bodhi-{uuid.uuid4()}-1.fc27'])
         # This update should be ignored.
-        update_2 = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update_2 = self.create_update([f'bodhi-{uuid.uuid4()}-1.fc27'])
         update_2.request = None
         release = model.Release(
             name='F27', long_name='Fedora 27',
@@ -580,10 +578,10 @@ class TestCompose(BasePyTestCase):
             state=ReleaseState.current,
             branch='f27')
         self.db.add(release)
-        update_3 = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update_3 = self.create_update([f'bodhi-{uuid.uuid4()}-1.fc27'])
         update_3.release = release
         update_3.type = model.UpdateType.security
-        update_4 = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update_4 = self.create_update([f'bodhi-{uuid.uuid4()}-1.fc27'])
         update_4.status = model.UpdateStatus.testing
         update_4.request = model.UpdateRequest.stable
 
@@ -608,7 +606,7 @@ class TestCompose(BasePyTestCase):
 
     def test_from_updates_no_builds(self):
         """Assert that update without builds is not added to compose."""
-        update = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update = self.create_update([f'bodhi-{uuid.uuid4()}-1.fc27'])
         update.builds = []
 
         composes = model.Compose.from_updates([update])
@@ -709,7 +707,7 @@ class TestCompose(BasePyTestCase):
         """Ensure __str__() returns the right string."""
         compose = self._generate_compose(model.UpdateRequest.stable, False)
 
-        assert str(compose) == '<Compose: {} stable>'.format(compose.release.name)
+        assert str(compose) == f'<Compose: {compose.release.name} stable>'
 
 
 class TestRelease(ModelTest):
@@ -1090,7 +1088,7 @@ class TestModulePackage(ModelTest):
     attrs = dict(name="TurboGears")
 
     def setup_method(self):
-        super(TestModulePackage, self).setup_method()
+        super().setup_method()
         self.package = model.ModulePackage(name='the-greatest-package:master')
         self.db.add(self.package)
 
@@ -1103,8 +1101,8 @@ class TestModulePackage(ModelTest):
         with pytest.raises(ValueError) as exc_context:
             self.package.builds.append(build2)
         assert str(exc_context.value) == (
-            ("A RPM Build cannot be associated with a Module Package. A Package's "
-             "builds must be the same type as the package."))
+            "A RPM Build cannot be associated with a Module Package. A Package's "
+             "builds must be the same type as the package.")
 
     def test_adding_list_of_module_and_rpmbuild(self):
         """Assert that validation fails when adding a ModuleBuild and RpmBuild via a list."""
@@ -1114,8 +1112,8 @@ class TestModulePackage(ModelTest):
         with pytest.raises(ValueError) as exc_context:
             self.package.builds = [build1, build2]
         assert str(exc_context.value) == (
-            ("A RPM Build cannot be associated with a Module Package. A Package's "
-             "builds must be the same type as the package."))
+            "A RPM Build cannot be associated with a Module Package. A Package's "
+             "builds must be the same type as the package.")
 
     def test_backref_no_builds(self):
         """Assert that a ModuleBuild can be appended via a backref."""
@@ -1134,8 +1132,8 @@ class TestModulePackage(ModelTest):
         with pytest.raises(ValueError) as exc_context:
             build2.package = self.package
         assert str(exc_context.value) == (
-            ("A RPM Build cannot be associated with a Module Package. A Package's "
-             "builds must be the same type as the package."))
+            "A RPM Build cannot be associated with a Module Package. A Package's "
+             "builds must be the same type as the package.")
 
     def test_backref_second_modulebuild(self):
         """Assert that two ModuleBuilds can be appended via backrefs."""
@@ -1411,7 +1409,7 @@ class TestRpmPackage(ModelTest):
     attrs = dict(name="TurboGears")
 
     def setup_method(self):
-        super(TestRpmPackage, self).setup_method()
+        super().setup_method()
         self.package = model.RpmPackage(name='the-greatest-package')
         self.db.add(self.package)
 
@@ -1424,8 +1422,8 @@ class TestRpmPackage(ModelTest):
         with pytest.raises(ValueError) as exc_context:
             self.package.builds.append(build2)
         assert str(exc_context.value) == (
-            ("A Module Build cannot be associated with a RPM Package. A Package's "
-             "builds must be the same type as the package."))
+            "A Module Build cannot be associated with a RPM Package. A Package's "
+             "builds must be the same type as the package.")
 
     def test_backref_no_builds(self):
         """Assert that a RpmBuild can be appended via a backref."""
@@ -1444,8 +1442,8 @@ class TestRpmPackage(ModelTest):
         with pytest.raises(ValueError) as exc_context:
             build2.package = self.package
         assert str(exc_context.value) == (
-            ("A Module Build cannot be associated with a RPM Package. A Package's "
-             "builds must be the same type as the package."))
+            "A Module Build cannot be associated with a RPM Package. A Package's "
+             "builds must be the same type as the package.")
 
     def test_backref_second_modulebuild(self):
         """Assert that two RpmBuilds can be appended via backrefs."""
@@ -1786,8 +1784,8 @@ class TestRpmBuild(ModelTest):
 
         # The free money note should still have made it.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
-             'a free money feature.\n'))
+            '* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+             'a free money feature.\n')
         # The changelogname field should have caused an Exception to be raised.
         exception.assert_called_once_with(
             'Unable to add changelog entry for header %s', rpm_header)
@@ -1834,9 +1832,9 @@ class TestRpmBuild(ModelTest):
 
         # The full changelog should be rendered.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+            '* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
              'a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo> - 2.0.1-2\n- Make '
-             'users ☺\n'))
+             'users ☺\n')
         # No exception should have been logged.
         assert exception.call_count == 0
         get_rpm_header.assert_called_once_with(self.obj.nvr)
@@ -1861,8 +1859,8 @@ class TestRpmBuild(ModelTest):
 
         # The full changelog should be rendered.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
-             'a free money feature.\n'))
+            '* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+             'a free money feature.\n')
         # No exception should have been logged.
         assert exception.call_count == 0
         get_rpm_header.assert_called_once_with(self.obj.nvr)
@@ -1888,8 +1886,8 @@ class TestRpmBuild(ModelTest):
 
         # Only one entry should be rendered.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
-             'a free money feature.\n'))
+            '* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+             'a free money feature.\n')
         # No exception should have been logged.
         assert exception.call_count == 0
         get_rpm_header.assert_called_once_with(self.obj.nvr)
@@ -1926,8 +1924,8 @@ class TestRpmBuild(ModelTest):
 
         # Only the newer entry should be rendered.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
-             'a free money feature.\n'))
+            '* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+             'a free money feature.\n')
         # No exception should have been logged.
         assert exception.call_count == 0
 
@@ -1952,9 +1950,9 @@ class TestRpmBuild(ModelTest):
 
         # The full changelog should be rendered, since no previous update exists.
         assert changelog == (
-            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+            '* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
              'a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo> - 2.0.1-2\n- Make '
-             'users ☺\n'))
+             'users ☺\n')
         # No exception should have been logged.
         assert exception.call_count == 0
 
@@ -2321,7 +2319,7 @@ class TestUpdateGetBugKarma(BasePyTestCase):
         """Make sure mixed feedback is counted correctly."""
         update = model.Update.query.first()
         for i, karma in enumerate([-1, 1, 1]):
-            user = model.User(name='user_{}'.format(i))
+            user = model.User(name=f'user_{i}')
             comment = model.Comment(text='Test comment', karma=karma, user=user)
             self.db.add(comment)
             update.comments.append(comment)
@@ -2379,7 +2377,7 @@ class TestUpdateInstallCommand(BasePyTestCase):
 
         assert update.install_command == (
             r'sudo dnf install --enablerepo=updates-testing --refresh '
-            r'--advisory={} \*'.format(update.alias))
+            rf'--advisory={update.alias} \*')
 
     def test_newpackage_in_stable(self):
         """Update is a newpackage and is in stable."""
@@ -2390,7 +2388,7 @@ class TestUpdateInstallCommand(BasePyTestCase):
         update.release.testing_repository = 'updates-testing'
 
         assert update.install_command == r'sudo dnf install --refresh ' \
-                                         r'--advisory={} \*'.format(update.alias)
+                                         rf'--advisory={update.alias} \*'
 
     def test_cannot_install(self):
         """Update is out of stable or testing repositories."""
@@ -2458,7 +2456,7 @@ class TestUpdateGetTestcaseKarma(BasePyTestCase):
         """Make sure mixed feedback is counted correctly."""
         update = model.Update.query.first()
         for i, karma in enumerate([-1, 1, 1]):
-            user = model.User(name='user_{}'.format(i))
+            user = model.User(name=f'user_{i}')
             comment = model.Comment(text='Test comment', karma=karma, user=user)
             self.db.add(comment)
             update.comments.append(comment)
@@ -2545,10 +2543,10 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
                 if key != 'data':
                     assert post.mock_calls[i][2][key] == expected_post[2][key]
         assert error.mock_calls == (
-            [mock.call((
+            [mock.call(
                 'Bodhi failed to send POST request to Greenwave at the following URL '
                 '"https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision". The '
-                'status code was "500".')) for i in range(2)])
+                'status code was "500".') for i in range(2)])
 
     @mock.patch('bodhi.server.models.log.error')
     @mock.patch('bodhi.server.util.http_session.post')
@@ -2593,7 +2591,7 @@ class TestUpdateValidateBuilds(BasePyTestCase):
     """Tests for the :class:`Update` validator for builds."""
 
     def setup_method(self):
-        super(TestUpdateValidateBuilds, self).setup_method(self)
+        super().setup_method(self)
         self.package = model.RpmPackage(name='the-greatest-package')
         self.update = model.Update(
             user=model.User.query.filter_by(name='guest').one(),
@@ -4024,7 +4022,7 @@ class TestUpdate(ModelTest):
 
         # Pretend it's been in testing for a week
         self.obj.comment(
-            self.db, u'This update has been pushed to testing.', author=u'bodhi')
+            self.db, 'This update has been pushed to testing.', author='bodhi')
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
         assert self.obj.days_in_testing == 7
         assert self.obj.meets_testing_requirements
@@ -4064,9 +4062,8 @@ class TestUpdate(ModelTest):
         self.obj.status = UpdateStatus.testing
         self.obj.request = None
 
-        with pytest.raises(BodhiException) as exc:
-            with mock_sends():
-                self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+        with pytest.raises(BodhiException) as exc, mock_sends():
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
         assert str(exc.value) == (
             f"{config['not_yet_tested_epel_msg']}: Test gating is disabled, "
             "but update has less than 2 karma and has been in testing less than 14 days."
@@ -4407,11 +4404,11 @@ class TestUpdate(ModelTest):
         msg = ('From: {}\r\nTo: {}\r\nX-Bodhi: {}'
                '\r\nSubject: [SECURITY] Fedora 11 Test Update: {}\r\n\r\n{}')
         msg = msg.format(
-            config['bodhi_email'], config['{}_test_announce_list'.format(release_name)],
+            config['bodhi_email'], config[f'{release_name}_test_announce_list'],
             config['default_email_domain'], self.obj.builds[0].nvr, body)
         SMTP.return_value.sendmail.assert_called_once_with(
             config['bodhi_email'],
-            [config['{}_test_announce_list'.format(release_name)]],
+            [config[f'{release_name}_test_announce_list']],
             msg.encode('utf-8'))
 
     def test_validate_release_failure(self):
@@ -4579,8 +4576,8 @@ class TestUpdate(ModelTest):
         for test in ('dist.depcheck', 'dist.rpmdeplint', 'dist.someothertest'):
             data = {
                 "username": "foo", "comment": "this is not true!", "waived": True,
-                "product_version": "{}".format(self.obj.product_version),
-                "testcase": "{}".format(test),
+                "product_version": f"{self.obj.product_version}",
+                "testcase": f"{test}",
                 "scenario": None,
                 "subject_identifier": "bodhi-3.6.0-1.fc28",
                 "subject_type": "koji_build"
@@ -4596,14 +4593,14 @@ class TestUpdate(ModelTest):
             # the keys is not guaranteed to be the same by Python. For these, we will just make sure
             # that the interpreted JSON is equal rather than verifying that the strings are equal.
             if not i % 2:
-                assert post.mock_calls[i][1] == expected_calls[i][1]
+                assert post.mock_calls[i][1] == v[1]
                 assert post.mock_calls[i][2].keys() == v[2].keys()
                 for k in v[2].keys():
                     if k == 'data':
                         assert json.loads(post.mock_calls[i][2]['data']) == (
                             json.loads(v[2]['data']))
                     else:
-                        assert post.mock_calls[i][2][k] == expected_calls[i][2][k]
+                        assert post.mock_calls[i][2][k] == v[2][k]
             else:
                 assert post.mock_calls[i] == v
 
@@ -4816,7 +4813,7 @@ class TestBuildrootOverride(ModelTest):
     @mock.patch('bodhi.server.models.log.error')
     def test_expire_exception(self, error, get_session):
         """Exceptions raised by koji untag_build() should be caught and logged by expire()."""
-        get_session.return_value.untagBuild.side_effect = IOError('oh no!')
+        get_session.return_value.untagBuild.side_effect = OSError('oh no!')
         bro = model.BuildrootOverride.query.first()
 
         bro.expire()
@@ -4838,7 +4835,7 @@ class TestBuildrootOverride(ModelTest):
         assert resp is None
         assert req.errors == (
             [{'location': 'body', 'name': 'nvr',
-              'description': '{} is already in a override'.format(bro.build.nvr)}])
+              'description': f'{bro.build.nvr} is already in a override'}])
 
     @mock.patch('bodhi.server.models.buildsys.get_session')
     def test_override_with_inheritance(self, get_session):

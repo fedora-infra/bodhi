@@ -22,7 +22,6 @@ from unittest import mock
 
 from bodhi.server import logging as bodhi_logging
 
-
 test_log = logging.Logger(__name__)
 
 

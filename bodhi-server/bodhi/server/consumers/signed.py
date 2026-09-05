@@ -25,15 +25,14 @@ from the pending-signing to pending-updates-testing tag by RoboSignatory.
 import logging
 
 import fedora_messaging
-from sqlalchemy import func
-
 from bodhi.server.models import Build, UpdateRequest, UpdateStatus
 from bodhi.server.util import transactional_session_maker
+from sqlalchemy import func
 
 log = logging.getLogger('bodhi')
 
 
-class SignedHandler(object):
+class SignedHandler:
     """
     The Bodhi Signed Handler.
 

@@ -21,7 +21,6 @@ import os
 from argparse import ArgumentParser
 from subprocess import check_output
 
-
 EXCLUDE = [
     "renovate[bot]",
 ]

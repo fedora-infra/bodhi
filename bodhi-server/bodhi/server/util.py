@@ -17,12 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Random functions that don't fit elsewhere."""
 
-from collections import defaultdict
-from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
-from importlib import import_module
-from textwrap import TextWrapper
-from urllib.parse import urlencode
 import bz2
 import configparser
 import errno
@@ -38,11 +32,13 @@ import subprocess
 import tempfile
 import time
 import types
-import typing
+from collections import defaultdict
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
+from importlib import import_module
+from textwrap import TextWrapper
+from urllib.parse import urlencode
 
-from bs4 import BeautifulSoup
-from munch import munchify
-from pyramid.i18n import TranslationStringFactory
 import arrow
 import bleach
 import colander
@@ -54,10 +50,12 @@ import packaging
 import requests
 import rpm
 import zstandard
-
-from bodhi.server import __version__, ffmarkdown, log, buildsys, Session
+from bodhi.server import Session, __version__, buildsys, ffmarkdown, log
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
+from bs4 import BeautifulSoup
+from munch import munchify
+from pyramid.i18n import TranslationStringFactory
 
 try:
     import libdnf5
@@ -600,7 +598,7 @@ def type2color(context, t):
         'enhancement': 'rgba(205,205,150,0.5)',
         'default': 'rgba(200,200,200,0.5)'
     }
-    return cls[t] if t in cls.keys() else cls['default']
+    return cls[t] if t in cls else cls['default']
 
 
 def type2icon(context, kind):
@@ -838,7 +836,7 @@ def cmd(cmd, cwd=None, raise_on_error=False):
     log.debug('Running {}'.format(' '.join(cmd)))
     p = subprocess.Popen(cmd, cwd=cwd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
-    output = '{}\n{}'.format(out, err)
+    output = f'{out}\n{err}'
     if p.returncode != 0:
         msg = '{} returned a non-0 exit code: {}'.format(' '.join(cmd), p.returncode)
         log.error(msg)
@@ -850,7 +848,7 @@ def cmd(cmd, cwd=None, raise_on_error=False):
     return out, err, p.returncode
 
 
-class TransactionalSessionMaker(object):
+class TransactionalSessionMaker:
     """Provide a transactional database scope around a series of operations."""
 
     @contextmanager
@@ -1039,7 +1037,7 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
             rv_error = ''
         error_msg = base_error_msg.format(
             service_name, api_url, rv.status_code)
-        error_msg = '{0} The error was "{1}".'.format(error_msg, rv_error)
+        error_msg = f'{error_msg} The error was "{rv_error}".'
         log.error(error_msg)
         raise RuntimeError(error_msg)
 
@@ -1097,7 +1095,7 @@ def waiverdb_api_post(waiverdb_api_url, data):
                     })
 
 
-class no_autoflush(object):
+class no_autoflush:
     """
     A content manager that disables sqlalchemy's autoflush, restoring it afterwards.
 
@@ -1196,7 +1194,7 @@ def copy_container(build, destination_registry=None, destination_tag=None):
     source_url = _container_image_url(source_registry, repository, digest=digest)
 
     if destination_tag is None:
-        destination_tag = '{}-{}'.format(build.nvr_version, build.nvr_release)
+        destination_tag = f'{build.nvr_version}-{build.nvr_release}'
 
     destination_registry_list = []
     if destination_registry:
@@ -1233,9 +1231,9 @@ def _container_image_url(registry, repository, *, tag=None, digest=None):
         str: A URL referencing the given build and tag in the given registry.
     """
     if tag:
-        return 'docker://{}/{}:{}'.format(registry, repository, tag)
+        return f'docker://{registry}/{repository}:{tag}'
     else:
-        return 'docker://{}/{}@{}'.format(registry, repository, digest)
+        return f'docker://{registry}/{repository}@{digest}'
 
 
 def get_absolute_path(location):
@@ -1256,7 +1254,7 @@ def get_absolute_path(location):
 
 
 def pyfile_to_module(
-        filename: str, modname: str, silent: bool = False) -> typing.Union[types.ModuleType, bool]:
+        filename: str, modname: str, silent: bool = False) -> types.ModuleType | bool:
     """Create a Python module from a Python file.
 
     This function behaves as if the file was imported as module. Copied from Flask's
@@ -1276,7 +1274,7 @@ def pyfile_to_module(
     try:
         with open(filename) as config_file:
             exec(compile(config_file.read(), filename, 'exec'), d.__dict__)
-    except IOError as e:
+    except OSError as e:
         if silent and e.errno in (errno.ENOENT, errno.EISDIR):
             return False
         e.strerror = 'Unable to load file (%s)' % e.strerror

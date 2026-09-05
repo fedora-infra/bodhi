@@ -22,7 +22,6 @@ import logging
 from bodhi.server.exceptions import BodhiException, ExternalCallException
 from bodhi.server.util import transactional_session_maker
 
-
 log = logging.getLogger(__name__)
 
 

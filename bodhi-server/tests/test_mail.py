@@ -17,12 +17,13 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Tests for bodhi.server.mail."""
 
-from unittest import mock
 import os
 import smtplib
+from unittest import mock
 
 from bodhi.server import config, mail, models
 from bodhi.server.util import get_absolute_path
+
 from .base import BasePyTestCase
 
 
@@ -127,7 +128,7 @@ class TestGetTemplate(BasePyTestCase):
         assert '--enablerepo=updates-testing' not in t
         assert 'Fedora Test Update Notification' not in t
         # The advisory flag should be included in the dnf instructions.
-        assert 'dnf upgrade --advisory {}'.format(u.alias) in t
+        assert f'dnf upgrade --advisory {u.alias}' in t
 
     def test_testing_update(self):
         """Testing updates should include --enablerepo=updates-testing in the notice."""
@@ -141,7 +142,7 @@ class TestGetTemplate(BasePyTestCase):
         assert '--enablerepo=updates-testing' in t
         assert 'Fedora Test Update Notification' in t
         # The advisory flag should be included in the dnf instructions.
-        assert 'dnf --enablerepo=updates-testing upgrade --advisory {}'.format(u.alias) in t
+        assert f'dnf --enablerepo=updates-testing upgrade --advisory {u.alias}' in t
 
     def test_no_markdown(self):
         """Update notes should be sent in plaintext."""
@@ -202,7 +203,7 @@ Let's also have some code:
         file_name = "%s.tpl" % (name)
         template_path = os.path.join(directory, file_name)
 
-        with mock.patch('bodhi.server.mail.open', side_effect=IOError()):
+        with mock.patch('bodhi.server.mail.open', side_effect=OSError()):
             mail.read_template(name)
 
         # Assert error is logged correctly.
@@ -357,8 +358,7 @@ class Test_SendMail:
         SMTP.assert_called_once_with('smtp.fp.o')
         smtp.sendmail.assert_called_once_with('archer@spies.com', ['lana@spies.com'], b'hi')
         warning.assert_called_once_with(
-            '"recipient refused" for \'lana@spies.com\', {}'.format(
-                repr(smtp.sendmail.side_effect)))
+            f'"recipient refused" for \'lana@spies.com\', {smtp.sendmail.side_effect!r}')
         smtp.quit.assert_called_once_with()
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': ''})

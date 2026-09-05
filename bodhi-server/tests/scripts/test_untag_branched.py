@@ -23,9 +23,9 @@ from io import StringIO
 from unittest.mock import call, patch
 
 import pytest
-
 from bodhi.server import models
 from bodhi.server.scripts import untag_branched
+
 from ..base import BasePyTestCase
 
 
@@ -49,7 +49,7 @@ class TestMain(BasePyTestCase):
         update.date_stable = datetime.now(timezone.utc) - timedelta(days=2)
         update.status = models.UpdateStatus.stable
         # Since only the stable tag is not present, no calls to untagBuild should happen.
-        koji.listTags.side_effect = IOError("Can't talk to koji bro")
+        koji.listTags.side_effect = OSError("Can't talk to koji bro")
         self.db.flush()
 
         untag_branched.main(['untag_branched', 'some_config_path'])
@@ -196,8 +196,8 @@ class TestMain(BasePyTestCase):
         assert koji.untagBuild.call_count == 0
         # An error should have been logged about the stable tag missing
         log.error.assert_called_once_with(
-            ("bodhi-2.0-1.fc17 not tagged as stable ['f17-updates-testing', "
-             "'f17-updates-signing-pending', 'f17-updates-testing-pending']"))
+            "bodhi-2.0-1.fc17 not tagged as stable ['f17-updates-testing', "
+             "'f17-updates-signing-pending', 'f17-updates-testing-pending']")
         # The Release name should have been logged
         log.info.assert_called_once_with(release.name)
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')

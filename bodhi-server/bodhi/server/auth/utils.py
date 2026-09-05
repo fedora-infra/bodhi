@@ -3,17 +3,15 @@
 import typing
 
 from authlib.oauth2.rfc6750 import InvalidTokenError
+from bodhi.server import log
+from bodhi.server.models import Group, User
 from pyramid.httpexceptions import HTTPFound, HTTPUnauthorized
 from pyramid.security import remember
 
-from bodhi.server import log
-from bodhi.server.models import Group, User
-
-
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import mako.runtime.Context  # noqa: F401
-    import pyramid.request.Request  # noqa: F401
-    import pyramid.response.Response  # noqa: F401
+    import mako.runtime.Context
+    import pyramid.request.Request
+    import pyramid.response.Response
 
 
 def get_and_store_user(

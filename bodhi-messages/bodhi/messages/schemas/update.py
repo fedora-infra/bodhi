@@ -27,7 +27,7 @@ import typing
 from fedora_messaging.message import DEBUG
 
 from ..utils import past_tense, truncate
-from .base import BodhiMessage, BuildV1, ReleaseV1, SCHEMA_URL, UpdateV1, UserV1
+from .base import SCHEMA_URL, BodhiMessage, BuildV1, ReleaseV1, UpdateV1, UserV1
 
 
 class UpdateMessage(BodhiMessage):
@@ -55,14 +55,14 @@ class UpdateMessage(BodhiMessage):
         return self._update_obj
 
     @property
-    def usernames(self) -> typing.List[str]:
+    def usernames(self) -> list[str]:
         """
         List of users affected by the action that generated this message.
 
         Returns:
             A list of affected usernames.
         """
-        usernames = super(UpdateMessage, self).usernames
+        usernames = super().usernames
         # Add the submitter if there is one
         if self.update.user.name not in usernames:
             usernames.append(self.update.user.name)
@@ -944,7 +944,7 @@ class UpdateReadyForTestingV1(BodhiMessage):
         return f"https://bodhi.fedoraproject.org/updates/{self.body['artifact']['id']}"
 
     @property
-    def usernames(self) -> typing.List[str]:
+    def usernames(self) -> list[str]:
         """
         List of users affected by the action that generated this message.
 
@@ -968,7 +968,7 @@ class UpdateReadyForTestingV1(BodhiMessage):
         return sorted(packages)
 
     @property
-    def agent_name(self) -> typing.Union[str, None]:
+    def agent_name(self) -> str | None:
         """Return the agent's username for this message.
 
         Returns:

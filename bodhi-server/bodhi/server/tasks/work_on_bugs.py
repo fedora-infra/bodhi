@@ -18,17 +18,16 @@
 """Iterate the list of bugs, retrieving information from Bugzilla and modifying them."""
 
 import logging
-import typing
 
-from bodhi.server import util, bugs as bug_module
+from bodhi.server import bugs as bug_module
+from bodhi.server import util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, ExternalCallException
-
 
 log = logging.getLogger(__name__)
 
 
-def main(alias: str, bugs: typing.List[int]):
+def main(alias: str, bugs: list[int]):
     """
     Iterate the list of bugs, retrieving information from Bugzilla and modifying them.
 

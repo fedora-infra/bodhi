@@ -17,13 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for the bodhi.server.tasks.check_policies module."""
 
-from unittest.mock import patch, call
 from datetime import datetime, timedelta, timezone
+from unittest.mock import call, patch
 
 from bodhi.server import models
+from bodhi.server.config import config
 from bodhi.server.tasks import check_policies_task
 from bodhi.server.tasks.check_policies import main as check_policies_main
-from bodhi.server.config import config
+
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
 

@@ -22,9 +22,8 @@ Revision ID: f50dc199039c
 Revises: 325954bac9f7
 Create Date: 2020-05-30 07:37:23.035661
 """
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'f50dc199039c'
