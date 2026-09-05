@@ -16,11 +16,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Bodhi's database models."""
 
-from collections import defaultdict
-from datetime import date, datetime, timedelta, timezone
-from functools import partial
-from textwrap import wrap
-from urllib.parse import urljoin
 import hashlib
 import json
 import re
@@ -28,39 +23,18 @@ import time
 import typing
 import uuid
 import warnings
+from collections import defaultdict
+from datetime import date, datetime, timedelta, timezone
+from functools import partial
+from textwrap import wrap
+from urllib.parse import urljoin
 
-from mediawiki import MediaWiki
-from packaging.version import parse as parse_version
-from sqlalchemy import __version__ as sqlalchemy_version
-from sqlalchemy import (
-    and_,
-    Boolean,
-    Column,
-    Date,
-    DateTime,
-    event,
-    ForeignKey,
-    func,
-    Integer,
-    or_,
-    Table,
-    Unicode,
-    UnicodeText,
-    UniqueConstraint,
-)
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import class_mapper, declarative_base, relationship, validates
-from sqlalchemy.orm.base import NEVER_SET
-from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.orm.properties import RelationshipProperty
-from sqlalchemy.types import Enum, SchemaType, TypeDecorator
 import requests.exceptions
 import rpm
-
 from bodhi.messages.schemas import buildroot_override as override_schemas
 from bodhi.messages.schemas import errata as errata_schemas
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server import bugs, buildsys, get_cache_region, log, mail, notifications, Session, util
+from bodhi.server import Session, bugs, buildsys, get_cache_region, log, mail, notifications, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import (
     BodhiException,
@@ -75,20 +49,44 @@ from bodhi.server.tasks import (
 from bodhi.server.util import avatar as get_avatar
 from bodhi.server.util import (
     build_evr,
+    build_names_by_type,
     get_critpath_components,
     get_grouped_critpath_components,
     get_rpm_header,
     header,
-    pagure_api_get,
-    build_names_by_type,
     markdown_to_text,
+    pagure_api_get,
     wrap_text,
 )
-
+from mediawiki import MediaWiki
+from packaging.version import parse as parse_version
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Table,
+    Unicode,
+    UnicodeText,
+    UniqueConstraint,
+    and_,
+    event,
+    func,
+    or_,
+)
+from sqlalchemy import __version__ as sqlalchemy_version
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import class_mapper, declarative_base, relationship, validates
+from sqlalchemy.orm.base import NEVER_SET
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm.properties import RelationshipProperty
+from sqlalchemy.types import Enum, SchemaType, TypeDecorator
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import bugzilla  # noqa: F401
-    import pyramid  # noqa: F401
+    import bugzilla
+    import pyramid
 
 
 cache_region = get_cache_region()
@@ -96,7 +94,8 @@ cache_region = get_cache_region()
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
 
-class EnumSymbol(object):
+
+class EnumSymbol:
     """Define a fixed symbol tied to a parent class."""
 
     def __init__(self, cls_, name, value, description):
@@ -264,7 +263,7 @@ class DeclEnumType(SchemaType, TypeDecorator):
         self.enum = enum
         self.impl = Enum(
             *enum.values(),
-            name="ck%s" % re.sub('([A-Z])', lambda m: "_" + m.group(1).lower(), enum.__name__),
+            name="ck%s" % re.sub("([A-Z])", lambda m: "_" + m.group(1).lower(), enum.__name__),
             # Required for SQLAlchemy >= 1.3.8
             # https://docs.sqlalchemy.org/en/14/changelog/changelog_13.html#change-ac119f6307026142f7a0ccbf81065f25
             sort_key_function=lambda e: str(e),
@@ -323,14 +322,14 @@ class DeclEnumType(SchemaType, TypeDecorator):
 
     def create(self, bind=None, checkfirst=False):
         """Issue CREATE ddl for this type, if applicable."""
-        super(DeclEnumType, self).create(bind, checkfirst)
+        super().create(bind, checkfirst)
         t = self.dialect_impl(bind.dialect)
         if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
             t.impl.create(bind=bind, checkfirst=checkfirst)
 
     def drop(self, bind=None, checkfirst=False):
         """Issue DROP ddl for this type, if applicable."""
-        super(DeclEnumType, self).drop(bind, checkfirst)
+        super().drop(bind, checkfirst)
         t = self.dialect_impl(bind.dialect)
         if t.impl.__class__ is not self.__class__ and isinstance(t, SchemaType):
             t.impl.drop(bind=bind, checkfirst=checkfirst)
@@ -363,7 +362,7 @@ class TZDateTime(TypeDecorator):
         return value
 
 
-class BodhiBase(object):
+class BodhiBase:
     """
     Base class for the SQLAlchemy model base class.
 
@@ -376,7 +375,7 @@ class BodhiBase(object):
             Query object against the class and the current Session when called.
     """
 
-    __exclude_columns__ = ('id',)
+    __exclude_columns__ = ("id",)
     __include_extras__ = tuple()
     __get_by__ = ()
 
@@ -395,9 +394,7 @@ class BodhiBase(object):
             BodhiBase or None: An instance of the model that matches the id, or ``None`` if no match
             was found.
         """
-        return cls.query.filter(or_(
-            getattr(cls, col) == id for col in cls.__get_by__
-        )).first()
+        return cls.query.filter(or_(getattr(cls, col) == id for col in cls.__get_by__)).first()
 
     def __getitem__(self, key):
         """
@@ -417,7 +414,7 @@ class BodhiBase(object):
         Returns:
             str: A string representation of this model.
         """
-        return '<{0} {1}>'.format(self.__class__.__name__, self.__json__())
+        return f"<{self.__class__.__name__} {self.__json__()}>"
 
     def __json__(self, request=None, exclude=None, include=None):
         """
@@ -461,15 +458,20 @@ class BodhiBase(object):
             return
 
         if exclude is None:
-            exclude = getattr(obj, '__exclude_columns__', [])
+            exclude = getattr(obj, "__exclude_columns__", [])
         properties = list(class_mapper(type(obj)).iterate_properties)
         rels = [p.key for p in properties if isinstance(p, RelationshipProperty)]
         attrs = [p.key for p in properties if p.key not in rels]
-        d = dict([(attr, getattr(obj, attr)) for attr in attrs
-                  if attr not in exclude and not attr.startswith('_')])
+        d = dict(
+            [
+                (attr, getattr(obj, attr))
+                for attr in attrs
+                if attr not in exclude and not attr.startswith("_")
+            ]
+        )
 
         if include is None:
-            include = getattr(obj, '__include_extras__', [])
+            include = getattr(obj, "__include_extras__", [])
 
         for name in include:
             attribute = getattr(obj, name)
@@ -486,9 +488,8 @@ class BodhiBase(object):
             d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
 
         for key, value in d.items():
-
             if isinstance(value, datetime):
-                d[key] = value.strftime('%Y-%m-%d %H:%M:%S')
+                d[key] = value.strftime("%Y-%m-%d %H:%M:%S")
             elif isinstance(value, date):
                 d[key] = value.isoformat()
             if isinstance(value, EnumSymbol):
@@ -509,9 +510,9 @@ class BodhiBase(object):
         Returns:
             object: The to_json() or the id of a sqlalchemy relationship.
         """
-        if hasattr(relation, 'all'):
+        if hasattr(relation, "all"):
             relation = relation.all()
-        if hasattr(relation, '__iter__'):
+        if hasattr(relation, "__iter__"):
             return [cls._expand(obj, item, seen, req) for item in relation]
         if type(relation) not in seen:
             return cls._to_json(relation, seen + [type(obj)], req)
@@ -527,7 +528,7 @@ class BodhiBase(object):
             list: A list of column names, with excluded ones removed.
         """
         columns = []
-        exclude = getattr(cls, '__exclude_columns__', [])
+        exclude = getattr(cls, "__exclude_columns__", [])
         for col in cls.__table__.columns:
             if col.name in exclude:
                 continue
@@ -559,13 +560,13 @@ class BodhiBase(object):
         if not isinstance(identity, EnumSymbol):
             raise TypeError("%r is not an instance of EnumSymbol" % identity)
 
-        if 'polymorphic_on' not in getattr(cls, '__mapper_args__', {}):
+        if "polymorphic_on" not in getattr(cls, "__mapper_args__", {}):
             raise KeyError("%r is not a polymorphic model." % cls)
 
         classes = (c for c in globals().values() if isinstance(c, type))
         children = (c for c in classes if issubclass(c, cls))
         for child in children:
-            candidate = child.__mapper_args__.get('polymorphic_identity')
+            candidate = child.__mapper_args__.get("polymorphic_identity")
             if candidate is identity:
                 return child
 
@@ -596,11 +597,11 @@ class ContentType(DeclEnum):
         flatpak (EnumSymbol): Used to represent Flatpak related objects.
     """
 
-    base = 'base', 'Base'
-    rpm = 'rpm', 'RPM'
-    module = 'module', 'Module'
-    container = 'container', 'Container'
-    flatpak = 'flatpak', 'Flatpak'
+    base = "base", "Base"
+    rpm = "rpm", "RPM"
+    module = "module", "Module"
+    container = "container", "Container"
+    flatpak = "flatpak", "Flatpak"
 
     @classmethod
     def infer_content_class(cls, base, build):
@@ -623,17 +624,16 @@ class ContentType(DeclEnum):
         # Default value.  Overridden below if we find markers in the build info
         identity = cls.rpm
 
-        extra = build.get('extra') or {}
-        if 'module' in extra.get('typeinfo', {}):
+        extra = build.get("extra") or {}
+        if "module" in extra.get("typeinfo", {}):
             identity = cls.module
-        elif 'image' in extra.get('typeinfo', {}):
-            image_info = extra['typeinfo']['image']
-            if 'pull' not in image_info.get('index', {}):
+        elif "image" in extra.get("typeinfo", {}):
+            image_info = extra["typeinfo"]["image"]
+            if "pull" not in image_info.get("index", {}):
                 raise ValueError(
-                    (f"Image build {build['nvr']} cannot be used for update, "
-                     "it has no pull specs")
+                    f"Image build {build['nvr']} cannot be used for update, it has no pull specs"
                 )
-            if 'flatpak' in image_info:
+            if "flatpak" in image_info:
                 identity = cls.flatpak
             else:
                 identity = cls.container
@@ -653,11 +653,11 @@ class UpdateStatus(DeclEnum):
         obsolete (EnumSymbol): The update has been obsoleted by another update.
     """
 
-    pending = 'pending', 'pending'
-    testing = 'testing', 'testing'
-    stable = 'stable', 'stable'
-    unpushed = 'unpushed', 'unpushed'
-    obsolete = 'obsolete', 'obsolete'
+    pending = "pending", "pending"
+    testing = "testing", "testing"
+    stable = "stable", "stable"
+    unpushed = "unpushed", "unpushed"
+    obsolete = "obsolete", "obsolete"
 
 
 class TestGatingStatus(DeclEnum):
@@ -674,13 +674,13 @@ class TestGatingStatus(DeclEnum):
         failed (EnumSymbol): Greenwave said that the required tests for this update have failed.
     """
 
-    waiting = 'waiting', 'Waiting'
-    ignored = 'ignored', 'Ignored'
-    queued = 'queued', 'Queued'
-    running = 'running', 'Running'
-    passed = 'passed', 'Passed'
-    failed = 'failed', 'Failed'
-    greenwave_failed = 'greenwave_failed', 'Greenwave failed to respond'
+    waiting = "waiting", "Waiting"
+    ignored = "ignored", "Ignored"
+    queued = "queued", "Queued"
+    running = "running", "Running"
+    passed = "passed", "Passed"
+    failed = "failed", "Failed"
+    greenwave_failed = "greenwave_failed", "Greenwave failed to respond"
 
 
 class UpdateType(DeclEnum):
@@ -695,11 +695,11 @@ class UpdateType(DeclEnum):
         unspecified (EnumSymbol): The packager has not specified a type.
     """
 
-    bugfix = 'bugfix', 'bugfix'
-    security = 'security', 'security'
-    newpackage = 'newpackage', 'newpackage'
-    enhancement = 'enhancement', 'enhancement'
-    unspecified = 'unspecified', 'unspecified'
+    bugfix = "bugfix", "bugfix"
+    security = "security", "security"
+    newpackage = "newpackage", "newpackage"
+    enhancement = "enhancement", "enhancement"
+    unspecified = "unspecified", "unspecified"
 
 
 class UpdateRequest(DeclEnum):
@@ -714,11 +714,11 @@ class UpdateRequest(DeclEnum):
         stable (EnumSymbol): The update is ready to be pushed to the stable repository.
     """
 
-    testing = 'testing', 'testing'
-    obsolete = 'obsolete', 'obsolete'
-    unpush = 'unpush', 'unpush'
-    revoke = 'revoke', 'revoke'
-    stable = 'stable', 'stable'
+    testing = "testing", "testing"
+    obsolete = "obsolete", "obsolete"
+    unpush = "unpush", "unpush"
+    revoke = "revoke", "revoke"
+    stable = "stable", "stable"
 
 
 class UpdateSeverity(DeclEnum):
@@ -733,11 +733,11 @@ class UpdateSeverity(DeclEnum):
         low (EnumSymbol): The update is low severity.
     """
 
-    unspecified = 'unspecified', 'unspecified'
-    urgent = 'urgent', 'urgent'
-    high = 'high', 'high'
-    medium = 'medium', 'medium'
-    low = 'low', 'low'
+    unspecified = "unspecified", "unspecified"
+    urgent = "urgent", "urgent"
+    high = "high", "high"
+    medium = "medium", "medium"
+    low = "low", "low"
 
 
 class UpdateSuggestion(DeclEnum):
@@ -750,9 +750,9 @@ class UpdateSuggestion(DeclEnum):
         logout (EnumSymbol): The user should logout after applying the update.
     """
 
-    unspecified = 'unspecified', 'unspecified'
-    reboot = 'reboot', 'reboot'
-    logout = 'logout', 'logout'
+    unspecified = "unspecified", "unspecified"
+    reboot = "reboot", "reboot"
+    logout = "logout", "logout"
 
 
 class ReleaseState(DeclEnum):
@@ -767,11 +767,11 @@ class ReleaseState(DeclEnum):
         archived (EnumSymbol): Indicates that the release is archived.
     """
 
-    disabled = 'disabled', 'disabled'
-    pending = 'pending', 'pending'
-    frozen = 'frozen', 'frozen'
-    current = 'current', 'current'
-    archived = 'archived', 'archived'
+    disabled = "disabled", "disabled"
+    pending = "pending", "pending"
+    frozen = "frozen", "frozen"
+    current = "current", "current"
+    archived = "archived", "archived"
 
 
 class ComposeState(DeclEnum):
@@ -794,17 +794,17 @@ class ComposeState(DeclEnum):
         cleaning (EnumSymbol): Cleaning old Composes after successful completion.
     """
 
-    requested = 'requested', 'Requested'
-    pending = 'pending', 'Pending'
-    initializing = 'initializing', 'Initializing'
-    updateinfo = 'updateinfo', 'Generating updateinfo.xml'
-    punging = 'punging', 'Waiting for Pungi to finish'
-    syncing_repo = 'syncing_repo', 'Wait for the repo to hit the master mirror'
-    notifying = 'notifying', 'Sending notifications'
-    success = 'success', 'Success'
-    failed = 'failed', 'Failed'
-    signing_repo = 'signing_repo', 'Signing repo'
-    cleaning = 'cleaning', 'Cleaning old composes'
+    requested = "requested", "Requested"
+    pending = "pending", "Pending"
+    initializing = "initializing", "Initializing"
+    updateinfo = "updateinfo", "Generating updateinfo.xml"
+    punging = "punging", "Waiting for Pungi to finish"
+    syncing_repo = "syncing_repo", "Wait for the repo to hit the master mirror"
+    notifying = "notifying", "Sending notifications"
+    success = "success", "Success"
+    failed = "failed", "Failed"
+    signing_repo = "signing_repo", "Signing repo"
+    cleaning = "cleaning", "Cleaning old composes"
 
 
 class PackageManager(DeclEnum):
@@ -817,9 +817,9 @@ class PackageManager(DeclEnum):
         yum (EnumSymbol): YUM package manager.
     """
 
-    unspecified = 'unspecified', 'package manager not specified'
-    dnf = 'dnf', 'dnf'
-    yum = 'yum', 'yum'
+    unspecified = "unspecified", "package manager not specified"
+    dnf = "dnf", "dnf"
+    yum = "yum", "yum"
 
 
 ##
@@ -827,15 +827,19 @@ class PackageManager(DeclEnum):
 ##
 
 update_bug_table = Table(
-    'update_bug_table', metadata,
-    Column('update_id', Integer, ForeignKey('updates.id')),
-    Column('bug_id', Integer, ForeignKey('bugs.id')))
+    "update_bug_table",
+    metadata,
+    Column("update_id", Integer, ForeignKey("updates.id")),
+    Column("bug_id", Integer, ForeignKey("bugs.id")),
+)
 
 
 build_testcase_table = Table(
-    'build_testcase_table', metadata,
-    Column('build_id', Integer, ForeignKey('builds.id')),
-    Column('testcase_id', Integer, ForeignKey('testcases.id')))
+    "build_testcase_table",
+    metadata,
+    Column("build_id", Integer, ForeignKey("builds.id")),
+    Column("testcase_id", Integer, ForeignKey("testcases.id")),
+)
 
 
 class Release(Base):
@@ -882,11 +886,16 @@ class Release(Base):
         eol (str): End-of-life of the release in a datetime.date() format '2020-05-17'.
     """
 
-    __tablename__ = 'releases'
-    __exclude_columns__ = ('id', 'builds', 'composes')
-    __include_extras__ = ('critpath_mandatory_days_in_testing', 'mandatory_days_in_testing',
-                          'critpath_min_karma', 'min_karma', 'setting_status', )
-    __get_by__ = ('name', 'long_name', 'dist_tag')
+    __tablename__ = "releases"
+    __exclude_columns__ = ("id", "builds", "composes")
+    __include_extras__ = (
+        "critpath_mandatory_days_in_testing",
+        "mandatory_days_in_testing",
+        "critpath_min_karma",
+        "min_karma",
+        "setting_status",
+    )
+    __get_by__ = ("name", "long_name", "dist_tag")
 
     name = Column(Unicode(10), unique=True, nullable=False)
     long_name = Column(Unicode(25), unique=True, nullable=False)
@@ -902,13 +911,13 @@ class Release(Base):
     pending_testing_tag = Column(UnicodeText, nullable=False)
     pending_stable_tag = Column(UnicodeText, nullable=False)
     override_tag = Column(UnicodeText, nullable=False)
-    mail_template = Column(UnicodeText, default='fedora_errata_template', nullable=False)
+    mail_template = Column(UnicodeText, default="fedora_errata_template", nullable=False)
 
     state = Column(ReleaseState.db_type(), default=ReleaseState.disabled, nullable=False)
     composed_by_bodhi = Column(Boolean, default=True)
     create_automatic_updates = Column(Boolean, default=False)
 
-    _version_int_regex = re.compile(r'\D+(\d+)[CMFN]?$')
+    _version_int_regex = re.compile(r"\D+(\d+)[CMFN]?$")
 
     package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
     testing_repository = Column(UnicodeText, nullable=True)
@@ -916,8 +925,8 @@ class Release(Base):
     eol = Column(Date, nullable=True)
 
     # One-to-many relationships
-    builds = relationship('Build', back_populates='release')
-    composes = relationship('Compose', back_populates='release')
+    builds = relationship("Build", back_populates="release")
+    composes = relationship("Compose", back_populates="release")
 
     @property
     def min_karma(self) -> int:
@@ -933,11 +942,10 @@ class Release(Base):
             threshold is reached.
         """
         if self.setting_status:
-            min_karma = config.get(
-                f'{self.setting_prefix}.{self.setting_status}.min_karma', None)
+            min_karma = config.get(f"{self.setting_prefix}.{self.setting_status}.min_karma", None)
             if min_karma:
                 return int(min_karma)
-        return config.get('min_karma')
+        return config.get("min_karma")
 
     @property
     def critpath_min_karma(self) -> int:
@@ -954,10 +962,11 @@ class Release(Base):
         """
         if self.setting_status:
             min_karma = config.get(
-                f'{self.setting_prefix}.{self.setting_status}.critpath.min_karma', None)
+                f"{self.setting_prefix}.{self.setting_status}.critpath.min_karma", None
+            )
             if min_karma:
                 return int(min_karma)
-        return config.get('critpath.min_karma')
+        return config.get("critpath.min_karma")
 
     @property
     def version_int(self):
@@ -980,13 +989,15 @@ class Release(Base):
             returned.
         """
         if self.setting_status:
-            days = config.get(f'{self.setting_prefix}.{self.setting_status}'
-                              f'.mandatory_days_in_testing', None)
+            days = config.get(
+                f"{self.setting_prefix}.{self.setting_status}.mandatory_days_in_testing", None
+            )
         else:
-            days = config.get(f'{self.id_prefix.lower().replace("-", "_")}'
-                              f'.mandatory_days_in_testing', None)
+            days = config.get(
+                f"{self.id_prefix.lower().replace('-', '_')}.mandatory_days_in_testing", None
+            )
         if days is None:
-            log.warning(f'No mandatory days in testing defined for {self.name}. Defaulting to 0.')
+            log.warning(f"No mandatory days in testing defined for {self.name}. Defaulting to 0.")
             return 0
         else:
             return int(days)
@@ -1002,12 +1013,14 @@ class Release(Base):
             returned.
         """
         if self.setting_status:
-            days = config.get(f'{self.setting_prefix}.{self.setting_status}'
-                              f'.critpath.mandatory_days_in_testing', None)
+            days = config.get(
+                f"{self.setting_prefix}.{self.setting_status}.critpath.mandatory_days_in_testing",
+                None,
+            )
             if days is not None:
                 return int(days)
 
-        return config.get('critpath.mandatory_days_in_testing', 0)
+        return config.get("critpath.mandatory_days_in_testing", 0)
 
     @property
     def collection_name(self):
@@ -1017,7 +1030,7 @@ class Release(Base):
         Returns:
             str: The collection name of this release.
         """
-        return ' '.join(self.long_name.split()[:-1])
+        return " ".join(self.long_name.split()[:-1])
 
     @classmethod
     @cache_region.cache_on_arguments()
@@ -1048,13 +1061,20 @@ class Release(Base):
             to the release's name that uses it.
         """
         log.debug("Refreshing tags cache")
-        data = {'candidate': [], 'testing': [], 'stable': [], 'override': [],
-                'pending_testing': [], 'pending_stable': []}
+        data = {
+            "candidate": [],
+            "testing": [],
+            "stable": [],
+            "override": [],
+            "pending_testing": [],
+            "pending_stable": [],
+        }
         tags = {}  # tag -> release lookup
-        for release in cls.query.filter(cls.state.notin_([ReleaseState.archived,
-                                                          ReleaseState.disabled])).all():
+        for release in cls.query.filter(
+            cls.state.notin_([ReleaseState.archived, ReleaseState.disabled])
+        ).all():
             for key in data:
-                tag = getattr(release, f'{key}_tag')
+                tag = getattr(release, f"{key}_tag")
                 data[key].append(tag)
                 tags[tag] = release.name
         return (data, tags)
@@ -1087,10 +1107,10 @@ class Release(Base):
         Returns:
             The Release's setting prefix.
         """
-        return self.name.lower().replace('-', '')
+        return self.name.lower().replace("-", "")
 
     @property
-    def setting_status(self) -> typing.Optional[str]:
+    def setting_status(self) -> str | None:
         """
         Return the status of the Release from settings.
 
@@ -1102,7 +1122,7 @@ class Release(Base):
         Returns:
             The status of the release.
         """
-        return config.get(f'{self.setting_prefix}.status', None)
+        return config.get(f"{self.setting_prefix}.status", None)
 
     def get_pending_testing_side_tag(self, from_tag: str) -> str:
         """
@@ -1115,7 +1135,8 @@ class Release(Base):
             Testing-pending side tag used in koji.
         """
         side_tag_postfix = config.get(
-            f'{self.setting_prefix}.koji-testing-side-tag', "-testing-pending")
+            f"{self.setting_prefix}.koji-testing-side-tag", "-testing-pending"
+        )
         return from_tag + side_tag_postfix
 
     def get_pending_signing_side_tag(self, from_tag: str) -> str:
@@ -1129,7 +1150,8 @@ class Release(Base):
             Signing-pending side tag used in koji.
         """
         side_tag_postfix = config.get(
-            f'{self.setting_prefix}.koji-signing-pending-side-tag', "-signing-pending")
+            f"{self.setting_prefix}.koji-signing-pending-side-tag", "-signing-pending"
+        )
         return from_tag + side_tag_postfix
 
     @property
@@ -1149,9 +1171,9 @@ class Release(Base):
             A list of override tags inherited from other releases.
         """
         tags = []
-        inheritance = config.get(f'{self.setting_prefix}.override-extend', None)
+        inheritance = config.get(f"{self.setting_prefix}.override-extend", None)
         if inheritance is not None:
-            rel_list = [Release.get(name.strip()) for name in inheritance.split(',')]
+            rel_list = [Release.get(name.strip()) for name in inheritance.split(",")]
             for rel in rel_list:
                 if rel is not None:
                     tags.append(rel.override_tag)
@@ -1167,18 +1189,17 @@ class TestCase(Base):
         package_name (str): The name of the package associated with this test case.
     """
 
-    __tablename__ = 'testcases'
-    __get_by__ = ('name',)
-    __exclude_columns__ = ('builds', 'feedback')
+    __tablename__ = "testcases"
+    __get_by__ = ("name",)
+    __exclude_columns__ = ("builds", "feedback")
 
     name = Column(UnicodeText, nullable=False, unique=True)
 
     # One-to-many relationships
-    feedback = relationship('TestCaseKarma', back_populates='testcase')
+    feedback = relationship("TestCaseKarma", back_populates="testcase")
 
     # Many-to-many relationships
-    builds = relationship('Build', secondary=build_testcase_table,
-                          back_populates='testcases')
+    builds = relationship("Build", secondary=build_testcase_table, back_populates="testcases")
 
 
 class Package(Base):
@@ -1194,24 +1215,25 @@ class Package(Base):
         builds (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Build` objects.
     """
 
-    __tablename__ = 'packages'
-    __get_by__ = ('name',)
-    __exclude_columns__ = ('id', 'builds',)
+    __tablename__ = "packages"
+    __get_by__ = ("name",)
+    __exclude_columns__ = (
+        "id",
+        "builds",
+    )
 
     name = Column(UnicodeText, nullable=False)
     type = Column(ContentType.db_type(), nullable=False)
 
     # One-to-many relationships
-    builds = relationship('Build', back_populates='package')
+    builds = relationship("Build", back_populates="package")
 
     __mapper_args__ = {
-        'polymorphic_on': type,
-        'polymorphic_identity': ContentType.base,
+        "polymorphic_on": type,
+        "polymorphic_identity": ContentType.base,
     }
 
-    __table_args__ = (
-        UniqueConstraint('name', 'type', name='packages_name_and_type_key'),
-    )
+    __table_args__ = (UniqueConstraint("name", "type", name="packages_name_and_type_key"),)
 
     @property
     def external_name(self):
@@ -1236,26 +1258,26 @@ class Package(Base):
         Raises:
             RuntimeError: If Pagure did not give us a 200 code.
         """
-        pagure_url = config.get('pagure_url')
-        namespace = config.get('pagure_namespaces')[self.type.name]
-        package_pagure_url = '{0}/api/0/{1}/{2}?expand_group=1'.format(
-            pagure_url.rstrip('/'), namespace, self.external_name)
+        pagure_url = config.get("pagure_url")
+        namespace = config.get("pagure_namespaces")[self.type.name]
+        package_pagure_url = "{0}/api/0/{1}/{2}?expand_group=1".format(
+            pagure_url.rstrip("/"), namespace, self.external_name
+        )
         package_json = pagure_api_get(package_pagure_url)
 
         committers = set()
-        for access_type in ['owner', 'admin', 'commit']:
-            committers = committers | set(
-                package_json['access_users'][access_type])
+        for access_type in ["owner", "admin", "commit"]:
+            committers = committers | set(package_json["access_users"][access_type])
 
         groups = set()
-        for access_type in ['admin', 'commit']:
-            for group_name in package_json['access_groups'][access_type]:
+        for access_type in ["admin", "commit"]:
+            for group_name in package_json["access_groups"][access_type]:
                 groups.add(group_name)
                 # Add to the list of committers the users in the groups
                 # having admin or commit access
                 committers = committers | set(
-                    package_json.get(
-                        'group_details', {}).get(group_name, []))
+                    package_json.get("group_details", {}).get(group_name, [])
+                )
 
         # The first list contains usernames with commit access. The second list
         # contains FAS group names with commit access.
@@ -1268,24 +1290,26 @@ class Package(Base):
         Raises:
             RuntimeError: If Pagure did not give us a 200 code.
         """
-        pagure_url = config.get('pagure_url')
-        namespace = config.get('pagure_namespaces')[self.type.name]
+        pagure_url = config.get("pagure_url")
+        namespace = config.get("pagure_namespaces")[self.type.name]
         # Here we override the queried branchname because:
         # - flatpaks only have one main branch
         # - modules streams have no direct mapping to branch names
         # The effect is that we cannot check collaborators rights for specific
         # streams on modules, so we fall back to old Bodhi behavior
         if self.type == ContentType.flatpak:
-            branchname = config.get('pagure_flatpak_main_branch')
+            branchname = config.get("pagure_flatpak_main_branch")
         elif self.type == ContentType.module:
-            branchname = config.get('pagure_module_main_branch')
+            branchname = config.get("pagure_module_main_branch")
 
-        pagure_query_url = (f'{pagure_url.rstrip("/")}/api/0/{namespace}/{self.external_name}'
-                            f'/hascommit?user={username}&branch={branchname}')
+        pagure_query_url = (
+            f"{pagure_url.rstrip('/')}/api/0/{namespace}/{self.external_name}"
+            f"/hascommit?user={username}&branch={branchname}"
+        )
         pagure_response = pagure_api_get(pagure_query_url)
-        return pagure_response['hascommit']
+        return pagure_response["hascommit"]
 
-    @validates('builds', include_backrefs=True)
+    @validates("builds", include_backrefs=True)
     def validate_builds(self, key, build):
         """
         Validate builds being appended to ensure they are all the same type as the Package.
@@ -1305,9 +1329,10 @@ class Package(Base):
         """
         if build.type != self.type:
             raise ValueError(
-                ("A {} Build cannot be associated with a {} Package. A Package's builds must be "
-                 "the same type as the package.").format(
-                     build.type.description, self.type.description))
+                f"A {build.type.description} Build cannot be associated with "
+                f"a {self.type.description} Package. A Package's builds must be "
+                "the same type as the package."
+            )
         return build
 
     def __str__(self):
@@ -1318,16 +1343,14 @@ class Package(Base):
             str: A string representing this package.
         """
         x = header(self.name)
-        states = {'pending': [], 'testing': [], 'stable': []}
+        states = {"pending": [], "testing": [], "stable": []}
         if self.builds:
             for build in self.builds:
                 if build.update and build.update.status.description in states:
-                    states[build.update.status.description].append(
-                        build.update)
+                    states[build.update.status.description].append(build.update)
         for state in states:
             if states[state]:
-                x += "\n %s Updates (%d)\n" % (state.title(),
-                                               len(states[state]))
+                x += "\n %s Updates (%d)\n" % (state.title(), len(states[state]))
                 for update in states[state]:
                     x += "    o %s\n" % update.get_title()
         del states
@@ -1346,7 +1369,7 @@ class Package(Base):
         Returns:
             str: The Package object identifier for this build.
         """
-        name, _, _ = build['nvr']
+        name, _, _ = build["nvr"]
         return name
 
     @staticmethod
@@ -1359,7 +1382,7 @@ class Package(Base):
         Returns:
             bool: True if the type-specific instance of Package is alreadi in database.
         """
-        base = ContentType.infer_content_class(Package, build['info'])
+        base = ContentType.infer_content_class(Package, build["info"])
         name = base._get_name(build)
         package = base.query.filter_by(name=name).one_or_none()
         if not package:
@@ -1380,7 +1403,7 @@ class Package(Base):
         Returns:
             Package: A type-specific instance of Package for the specific build requested.
         """
-        base = ContentType.infer_content_class(Package, build['info'])
+        base = ContentType.infer_content_class(Package, build["info"])
         name = base._get_name(build)
         package = base.query.filter_by(name=name).one_or_none()
         if not package:
@@ -1394,7 +1417,7 @@ class ContainerPackage(Package):
     """Represents a Container package."""
 
     __mapper_args__ = {
-        'polymorphic_identity': ContentType.container,
+        "polymorphic_identity": ContentType.container,
     }
 
 
@@ -1402,7 +1425,7 @@ class FlatpakPackage(Package):
     """Represents a Flatpak package."""
 
     __mapper_args__ = {
-        'polymorphic_identity': ContentType.flatpak,
+        "polymorphic_identity": ContentType.flatpak,
     }
 
 
@@ -1410,7 +1433,7 @@ class ModulePackage(Package):
     """Represents a Module package."""
 
     __mapper_args__ = {
-        'polymorphic_identity': ContentType.module,
+        "polymorphic_identity": ContentType.module,
     }
 
     @property
@@ -1423,7 +1446,7 @@ class ModulePackage(Package):
         Returns:
             str: The name of this module package without :stream.
         """
-        return self.name.split(':')[0]
+        return self.name.split(":")[0]
 
     @staticmethod
     def _get_name(build):
@@ -1435,15 +1458,15 @@ class ModulePackage(Package):
         Returns:
             str: The name:stream of this module build.
         """
-        name, stream, _ = build['nvr']
-        return '%s:%s' % (name, stream)
+        name, stream, _ = build["nvr"]
+        return "%s:%s" % (name, stream)
 
 
 class RpmPackage(Package):
     """Represents a RPM package."""
 
     __mapper_args__ = {
-        'polymorphic_identity': ContentType.rpm,
+        "polymorphic_identity": ContentType.rpm,
     }
 
 
@@ -1473,35 +1496,47 @@ class Build(Base):
             objects.
     """
 
-    __tablename__ = 'builds'
-    __exclude_columns__ = ('id', 'package', 'package_id', 'release', 'testcases',
-                           'update_id', 'update', 'override')
-    __get_by__ = ('nvr',)
+    __tablename__ = "builds"
+    __exclude_columns__ = (
+        "id",
+        "package",
+        "package_id",
+        "release",
+        "testcases",
+        "update_id",
+        "update",
+        "override",
+    )
+    __get_by__ = ("nvr",)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
     signed = Column(Boolean, default=False, nullable=False)
 
     # One-to-many relationships
-    override = relationship('BuildrootOverride', back_populates='build', uselist=False)
+    override = relationship("BuildrootOverride", back_populates="build", uselist=False)
 
     # Many-to-one relationships
-    package_id = Column(Integer, ForeignKey('packages.id'), nullable=False)
-    package = relationship('Package', back_populates='builds', lazy='joined', innerjoin=True)
+    package_id = Column(Integer, ForeignKey("packages.id"), nullable=False)
+    package = relationship("Package", back_populates="builds", lazy="joined", innerjoin=True)
 
-    release_id = Column(Integer, ForeignKey('releases.id'))
-    release = relationship('Release', back_populates='builds', lazy=False)
+    release_id = Column(Integer, ForeignKey("releases.id"))
+    release = relationship("Release", back_populates="builds", lazy=False)
 
-    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
-    update = relationship('Update', back_populates='builds')
+    update_id = Column(Integer, ForeignKey("updates.id"), index=True)
+    update = relationship("Update", back_populates="builds")
 
     # Many-to-many relationships
-    testcases = relationship('TestCase', secondary=build_testcase_table,
-                             back_populates='builds', order_by='TestCase.name')
+    testcases = relationship(
+        "TestCase",
+        secondary=build_testcase_table,
+        back_populates="builds",
+        order_by="TestCase.name",
+    )
 
     type = Column(ContentType.db_type(), nullable=False)
     __mapper_args__ = {
-        'polymorphic_on': type,
-        'polymorphic_identity': ContentType.base,
+        "polymorphic_on": type,
+        "polymorphic_identity": ContentType.base,
     }
 
     def _get_kojiinfo(self):
@@ -1511,7 +1546,7 @@ class Build(Base):
         Returns:
             dict: The response from Koji's getBuild() for this Build.
         """
-        if not hasattr(self, '_kojiinfo'):
+        if not hasattr(self, "_kojiinfo"):
             koji_session = buildsys.get_session()
             self._kojiinfo = koji_session.getBuild(self.nvr)
         return self._kojiinfo
@@ -1523,7 +1558,7 @@ class Build(Base):
         Returns:
             tuple: A 3-tuple of name, version, release.
         """
-        return self.nvr.rsplit('-', 2)
+        return self.nvr.rsplit("-", 2)
 
     @property
     def nvr_name(self):
@@ -1578,7 +1613,7 @@ class Build(Base):
         """
         if not koji:
             koji = buildsys.get_session()
-        return [tag['name'] for tag in koji.listTags(self.nvr)]
+        return [tag["name"] for tag in koji.listTags(self.nvr)]
 
     def get_owner_name(self):
         """
@@ -1587,7 +1622,7 @@ class Build(Base):
         Returns:
             str: The username of the user.
         """
-        return self._get_kojiinfo()['owner_name']
+        return self._get_kojiinfo()["owner_name"]
 
     def get_build_id(self):
         """
@@ -1596,7 +1631,7 @@ class Build(Base):
         Returns:
             id: The task/build if of the build.
         """
-        return self._get_kojiinfo()['id']
+        return self._get_kojiinfo()["id"]
 
     def get_task_id(self) -> int:
         """
@@ -1605,7 +1640,7 @@ class Build(Base):
         Returns:
             id: The task if of the build or None
         """
-        return self._get_kojiinfo().get('task_id')
+        return self._get_kojiinfo().get("task_id")
 
     def get_changelog(self, timelimit=0, lastupdate=False):
         """Will be overridden from child classes, when appropriate."""
@@ -1613,7 +1648,7 @@ class Build(Base):
 
     def get_creation_time(self) -> datetime:
         """Return the creation time of the build."""
-        return datetime.fromisoformat(self._get_kojiinfo()['creation_time'])
+        return datetime.fromisoformat(self._get_kojiinfo()["creation_time"])
 
     def unpush(self, koji, from_side_tag=False):
         """
@@ -1623,7 +1658,7 @@ class Build(Base):
             koji (bodhi.server.buildsys.Buildsysem or koji.ClientSession): A koji client.
             from_side_tag (bool): if the build was originally built in a side-tag.
         """
-        log.info('Unpushing %s' % self.nvr)
+        log.info("Unpushing %s" % self.nvr)
         release = self.update.release
         if not release.composed_by_bodhi and from_side_tag:
             pending_signing_tag = release.get_pending_signing_side_tag(self.update.from_tag)
@@ -1633,23 +1668,23 @@ class Build(Base):
             pending_testing_tag = release.pending_testing_tag
         for tag in self.get_tags(koji):
             if tag == pending_signing_tag:
-                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                log.info("Removing %s tag from %s" % (tag, self.nvr))
                 koji.untagBuild(tag, self.nvr)
             if tag == pending_testing_tag:
-                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                log.info("Removing %s tag from %s" % (tag, self.nvr))
                 koji.untagBuild(tag, self.nvr)
             if tag == release.pending_stable_tag:
-                log.info('Removing %s tag from %s' % (tag, self.nvr))
+                log.info("Removing %s tag from %s" % (tag, self.nvr))
                 koji.untagBuild(tag, self.nvr)
             if tag == release.testing_tag:
                 if not from_side_tag:
-                    log.info(f'Moving {self.nvr} from {tag} to {release.candidate_tag}')
+                    log.info(f"Moving {self.nvr} from {tag} to {release.candidate_tag}")
                     koji.moveBuild(tag, release.candidate_tag, self.nvr)
                 else:
-                    log.info(f'Removing {tag} tag from {self.nvr}')
+                    log.info(f"Removing {tag} tag from {self.nvr}")
                     koji.untagBuild(tag, self.nvr)
             elif from_side_tag and tag == release.candidate_tag:
-                log.info(f'Removing {tag} tag from {self.nvr}')
+                log.info(f"Removing {tag} tag from {self.nvr}")
                 koji.untagBuild(tag, self.nvr)
 
     def is_latest(self) -> bool:
@@ -1657,12 +1692,11 @@ class Build(Base):
         koji_session = buildsys.get_session()
         # Get the latest builds in koji in a tag for a package
         koji_builds = koji_session.getLatestBuilds(
-            self.update.release.stable_tag,
-            package=self.package.name
+            self.update.release.stable_tag, package=self.package.name
         )
 
         for koji_build in koji_builds:
-            build_creation_time = datetime.fromisoformat(koji_build['creation_time'])
+            build_creation_time = datetime.fromisoformat(koji_build["creation_time"])
             if self.get_creation_time() < build_creation_time:
                 return False
         return True
@@ -1676,31 +1710,30 @@ class Build(Base):
         Raises:
             ExternalCallException: When retrieving testcases from Wiki failed.
         """
-        if not config.get('query_wiki_test_cases'):
+        if not config.get("query_wiki_test_cases"):
             return
 
         start = datetime.now(timezone.utc)
-        log.debug(f'Querying the wiki for test cases of {self.nvr}')
+        log.debug(f"Querying the wiki for test cases of {self.nvr}")
         try:
-            wiki = MediaWiki(config.get('wiki_url'),
-                             user_agent=config.get('wiki_user_agent'))
+            wiki = MediaWiki(config.get("wiki_url"), user_agent=config.get("wiki_user_agent"))
         except Exception as ex:
-            raise ExternalCallException(f'Failed to connect to Fedora Wiki: {ex}')
-        cat_page = f'Package {self.package.external_name} test cases'
+            raise ExternalCallException(f"Failed to connect to Fedora Wiki: {ex}")
+        cat_page = f"Package {self.package.external_name} test cases"
 
         def list_categorymembers(wiki, cat_page, limit=500):
             try:
                 response = wiki.categorymembers(cat_page, results=limit, subcategories=True)
             except Exception as ex:
-                raise ExternalCallException(f'Failed retrieving testcases from Wiki: {ex}')
-            members = [entry for entry in response[0] if entry != '']
+                raise ExternalCallException(f"Failed retrieving testcases from Wiki: {ex}")
+            members = [entry for entry in response[0] if entry != ""]
 
             # Determine whether we need to recurse
             if len(response[1]) > 0 and len(members) < limit:
                 for subcat in response[1]:
                     members.extend(list_categorymembers(wiki, subcat, limit=limit - len(members)))
 
-            log.debug(f'Found the following testcases: {members}')
+            log.debug(f"Found the following testcases: {members}")
             return members
 
         fetched = set(list_categorymembers(wiki, cat_page))
@@ -1724,7 +1757,7 @@ class Build(Base):
                 log.debug(f'Added testcase "{case.name}" to {self.nvr}')
 
         db.flush()
-        log.debug(f'Finished querying for test cases in {datetime.now(timezone.utc) - start}')
+        log.debug(f"Finished querying for test cases in {datetime.now(timezone.utc) - start}")
 
 
 class ContainerBuild(Build):
@@ -1735,7 +1768,7 @@ class ContainerBuild(Build):
     """
 
     __mapper_args__ = {
-        'polymorphic_identity': ContentType.container,
+        "polymorphic_identity": ContentType.container,
     }
 
 
@@ -1747,7 +1780,7 @@ class FlatpakBuild(Build):
     """
 
     __mapper_args__ = {
-        'polymorphic_identity': ContentType.flatpak,
+        "polymorphic_identity": ContentType.flatpak,
     }
 
 
@@ -1762,7 +1795,7 @@ class ModuleBuild(Build):
     """
 
     __mapper_args__ = {
-        'polymorphic_identity': ContentType.module,
+        "polymorphic_identity": ContentType.module,
     }
 
     @property
@@ -1773,7 +1806,7 @@ class ModuleBuild(Build):
         Returns:
             str: The name of the module.
         """
-        return self._get_kojiinfo()['name']
+        return self._get_kojiinfo()["name"]
 
     @property
     def nvr_version(self):
@@ -1783,7 +1816,7 @@ class ModuleBuild(Build):
         Returns:
             str: The stream of the ModuleBuild.
         """
-        return self._get_kojiinfo()['version']
+        return self._get_kojiinfo()["version"]
 
     @property
     def nvr_release(self):
@@ -1793,7 +1826,7 @@ class ModuleBuild(Build):
         Returns:
             str: The version of the ModuleBuild.
         """
-        return self._get_kojiinfo()['release']
+        return self._get_kojiinfo()["release"]
 
 
 class RpmBuild(Build):
@@ -1811,7 +1844,7 @@ class RpmBuild(Build):
     epoch = Column(Integer, default=0)
 
     __mapper_args__ = {
-        'polymorphic_identity': ContentType.rpm,
+        "polymorphic_identity": ContentType.rpm,
     }
 
     @property
@@ -1823,7 +1856,7 @@ class RpmBuild(Build):
             tuple: (epoch, version, release)
         """
         if not self.epoch:
-            self.epoch = self._get_kojiinfo()['epoch']
+            self.epoch = self._get_kojiinfo()["epoch"]
             if not self.epoch:
                 self.epoch = 0
         return (str(self.epoch), str(self.nvr_version), str(self.nvr_release))
@@ -1850,14 +1883,13 @@ class RpmBuild(Build):
         latest = None
         evr = self.evr
         for tag in [self.release.stable_tag, self.release.dist_tag]:
-            builds = koji_session.listTagged(
-                tag, package=self.package.name, inherit=True)
+            builds = koji_session.listTagged(tag, package=self.package.name, inherit=True)
 
             # Find the first build that is older than us
             for build in builds:
                 old_evr = build_evr(build)
                 if rpm.labelCompare(evr, old_evr) > 0:
-                    latest = build['nvr']
+                    latest = build["nvr"]
                     break
             if latest:
                 break
@@ -1875,12 +1907,12 @@ class RpmBuild(Build):
             str: The RpmBuild's changelog.
         """
         rpm_header = get_rpm_header(self.nvr)
-        descrip = rpm_header['changelogtext']
+        descrip = rpm_header["changelogtext"]
         if not descrip:
             return ""
 
-        who = rpm_header['changelogname']
-        when = rpm_header['changelogtime']
+        who = rpm_header["changelogname"]
+        when = rpm_header["changelogtime"]
 
         num = len(descrip)
         if not isinstance(when, list):
@@ -1890,8 +1922,8 @@ class RpmBuild(Build):
             lastpkg = self.get_latest()
             if lastpkg is not None:
                 oldh = get_rpm_header(lastpkg)
-                if oldh['changelogtext']:
-                    timelimit = oldh['changelogtime']
+                if oldh["changelogtext"]:
+                    timelimit = oldh["changelogtime"]
                     if isinstance(timelimit, list):
                         timelimit = timelimit[0]
 
@@ -1899,12 +1931,13 @@ class RpmBuild(Build):
         i = 0
         while (i < num) and (when[i] > timelimit):
             try:
-                str += '* %s %s\n%s\n' % (time.strftime("%a %b %e %Y",
-                                          time.localtime(when[i])), who[i],
-                                          descrip[i])
+                str += "* %s %s\n%s\n" % (
+                    time.strftime("%a %b %e %Y", time.localtime(when[i])),
+                    who[i],
+                    descrip[i],
+                )
             except Exception:
-                log.exception('Unable to add changelog entry for header %s',
-                              rpm_header)
+                log.exception("Unable to add changelog entry for header %s", rpm_header)
             i += 1
         return str
 
@@ -1997,11 +2030,16 @@ class Update(Base):
             originally populated (if any).
     """
 
-    __tablename__ = 'updates'
-    __exclude_columns__ = ('id', 'user_id', 'release_id', 'compose')
-    __include_extras__ = ('date_pushed', 'meets_testing_requirements', 'url', 'title',
-                          'version_hash')
-    __get_by__ = ('alias',)
+    __tablename__ = "updates"
+    __exclude_columns__ = ("id", "user_id", "release_id", "compose")
+    __include_extras__ = (
+        "date_pushed",
+        "meets_testing_requirements",
+        "url",
+        "title",
+        "version_hash",
+    )
+    __get_by__ = ("alias",)
 
     autokarma = Column(Boolean, default=True, nullable=False)
     autotime = Column(Boolean, default=True, nullable=False)
@@ -2011,14 +2049,14 @@ class Update(Base):
     require_bugs = Column(Boolean, default=False)
     require_testcases = Column(Boolean, default=False)
 
-    display_name = Column(UnicodeText, nullable=False, default='')
+    display_name = Column(UnicodeText, nullable=False, default="")
     notes = Column(UnicodeText, nullable=False)  # Mandatory notes
 
     # Enumerated types
     type = Column(UpdateType.db_type(), nullable=False)
-    status = Column(UpdateStatus.db_type(),
-                    default=UpdateStatus.pending,
-                    nullable=False, index=True)
+    status = Column(
+        UpdateStatus.db_type(), default=UpdateStatus.pending, nullable=False, index=True
+    )
     request = Column(UpdateRequest.db_type(), index=True)
     severity = Column(UpdateSeverity.db_type(), default=UpdateSeverity.unspecified)
     suggest = Column(UpdateSuggestion.db_type(), default=UpdateSuggestion.unspecified)
@@ -2043,30 +2081,40 @@ class Update(Base):
     alias = Column(Unicode(64), unique=True, nullable=False)
 
     # Many-to-one relationships
-    release_id = Column(Integer, ForeignKey('releases.id'), nullable=False)
-    release = relationship('Release', lazy='joined', innerjoin=True)
+    release_id = Column(Integer, ForeignKey("releases.id"), nullable=False)
+    release = relationship("Release", lazy="joined", innerjoin=True)
 
-    user_id = Column(Integer, ForeignKey('users.id'))
-    user = relationship('User', back_populates='updates')
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship("User", back_populates="updates")
 
     # If the update is locked and a Compose exists for the same release and request, this will be
     # set to that Compose.
     compose = relationship(
-        'Compose',
-        primaryjoin=("and_(foreign(Update.release_id)==Compose.release_id, "
-                     "foreign(Update.request)==Compose.request, "
-                     "Update.locked==True)"),
-        overlaps='release', back_populates='updates')
+        "Compose",
+        primaryjoin=(
+            "and_(foreign(Update.release_id)==Compose.release_id, "
+            "foreign(Update.request)==Compose.request, "
+            "Update.locked==True)"
+        ),
+        overlaps="release",
+        back_populates="updates",
+    )
 
     # One-to-many relationships
-    comments = relationship('Comment', back_populates='update', cascade="all,delete,delete-orphan",
-                            order_by='Comment.timestamp', lazy='joined')
+    comments = relationship(
+        "Comment",
+        back_populates="update",
+        cascade="all,delete,delete-orphan",
+        order_by="Comment.timestamp",
+        lazy="joined",
+    )
 
-    builds = relationship('Build', back_populates='update', order_by='Build.nvr', lazy='joined')
+    builds = relationship("Build", back_populates="update", order_by="Build.nvr", lazy="joined")
 
     # Many-to-many relationships
-    bugs = relationship('Bug', secondary=update_bug_table, back_populates='updates',
-                        order_by='Bug.bug_id')
+    bugs = relationship(
+        "Bug", secondary=update_bug_table, back_populates="updates", order_by="Bug.bug_id"
+    )
 
     # Greenwave
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
@@ -2082,20 +2130,20 @@ class Update(Base):
         we don't want callers to have to generate the alias themselves.
         """
         # Let's give this Update an alias so the DB doesn't become displeased with us.
-        if 'release' not in kwargs:
-            raise ValueError('You must specify a Release when creating an Update.')
-        prefix = kwargs['release'].id_prefix
+        if "release" not in kwargs:
+            raise ValueError("You must specify a Release when creating an Update.")
+        prefix = kwargs["release"].id_prefix
         year = time.localtime()[0]
-        id = hashlib.sha1(str(uuid.uuid4()).encode('utf-8')).hexdigest()[:10]
-        alias = '%s-%s-%s' % (prefix, year, id)
+        id = hashlib.sha1(str(uuid.uuid4()).encode("utf-8")).hexdigest()[:10]
+        alias = "%s-%s-%s" % (prefix, year, id)
         self.alias = alias
-        self.release_id = kwargs['release'].id
+        self.release_id = kwargs["release"].id
         # we need this to be set for message publishing to work
-        self.status = kwargs.get('status', UpdateStatus.pending)
+        self.status = kwargs.get("status", UpdateStatus.pending)
 
-        super(Update, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-        log.debug('Set alias for %s to %s' % (self.get_title(), alias))
+        log.debug("Set alias for %s to %s" % (self.get_title(), alias))
 
     @property
     def version_hash(self):
@@ -2107,10 +2155,10 @@ class Update(Base):
         """
         nvrs = [x.nvr for x in self.builds]
         builds = " ".join(sorted(nvrs))
-        return hashlib.sha1(str(builds).encode('utf-8')).hexdigest()
+        return hashlib.sha1(str(builds).encode("utf-8")).hexdigest()
 
     # WARNING: consumers/composer.py assumes that this validation is performed!
-    @validates('builds', include_backrefs=True)
+    @validates("builds", include_backrefs=True)
     def validate_builds(self, key, build):
         """
         Validate builds being appended to ensure they are all the same type.
@@ -2125,10 +2173,10 @@ class Update(Base):
                 existing builds.
         """
         if not all(isinstance(b, type(build)) for b in self.builds):
-            raise ValueError('An update must contain builds of the same type.')
+            raise ValueError("An update must contain builds of the same type.")
         return build
 
-    @validates('release', include_backrefs=True)
+    @validates("release", include_backrefs=True)
     def validate_release(self, key, release):
         """
         Make sure the release is the same content type as this update.
@@ -2143,7 +2191,7 @@ class Update(Base):
         if release and self.content_type is not None:
             u = Update.query.filter(Update.release_id == release.id, Update.id != self.id).first()
             if u and u.content_type and u.content_type != self.content_type:
-                raise ValueError('A release must contain updates of the same type.')
+                raise ValueError("A release must contain updates of the same type.")
         return release
 
     @property
@@ -2261,8 +2309,9 @@ class Update(Base):
         comments_since_karma_reset = []
 
         for comment in reversed(self.comments):
-            if comment.user.name == 'bodhi' and \
-                    ('New build' in comment.text or 'Removed build' in comment.text):
+            if comment.user.name == "bodhi" and (
+                "New build" in comment.text or "Removed build" in comment.text
+            ):
                 # We only want to consider comments since the most recent karma
                 # reset, which happens whenever a build is added or removed
                 # from an Update. Since we are traversing the comments in
@@ -2292,9 +2341,7 @@ class Update(Base):
 
         for ptype in components:
             groups.extend(
-                get_grouped_critpath_components(
-                    release_branch, ptype, frozenset(components[ptype])
-                )
+                get_grouped_critpath_components(release_branch, ptype, frozenset(components[ptype]))
             )
         return " ".join(groups)
 
@@ -2328,8 +2375,8 @@ class Update(Base):
                 subject field for a decision about this Update.
         """
         # See discussion on https://pagure.io/greenwave/issue/34 for why we use these subjects.
-        subject = [{'item': build.nvr, 'type': 'koji_build'} for build in self.builds]
-        subject.append({'item': self.alias, 'type': 'bodhi_update'})
+        subject = [{"item": build.nvr, "type": "koji_build"} for build in self.builds]
+        subject.append({"item": self.alias, "type": "bodhi_update"})
         return subject
 
     def greenwave_request_batches(self, verbose):
@@ -2345,12 +2392,14 @@ class Update(Base):
         subjects = self.greenwave_subject
         data = []
         while count < len(subjects):
-            data.append({
-                'product_version': self.product_version,
-                'decision_context': self._greenwave_decision_contexts,
-                'subject': subjects[count:count + batch_size],
-                'verbose': verbose,
-            })
+            data.append(
+                {
+                    "product_version": self.product_version,
+                    "decision_context": self._greenwave_decision_contexts,
+                    "subject": subjects[count : count + batch_size],
+                    "verbose": verbose,
+                }
+            )
             count += batch_size
         return data
 
@@ -2368,14 +2417,14 @@ class Update(Base):
     @property
     def greenwave_subject_batch_size(self):
         """Maximum number of subjects in single Greenwave request."""
-        return config.get('greenwave_batch_size', 8)
+        return config.get("greenwave_batch_size", 8)
 
     @property
     def _greenwave_api_url(self):
-        if not config.get('greenwave_api_url'):
-            raise BodhiException('No greenwave_api_url specified')
+        if not config.get("greenwave_api_url"):
+            raise BodhiException("No greenwave_api_url specified")
 
-        return '{}/decision'.format(config.get('greenwave_api_url'))
+        return "{}/decision".format(config.get("greenwave_api_url"))
 
     @property
     def _greenwave_decision_contexts(self):
@@ -2413,8 +2462,10 @@ class Update(Base):
             BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
             RuntimeError: If Greenwave did not give us a 200 code.
         """
-        return [util.greenwave_api_post(self._greenwave_api_url, data)
-                for data in self.greenwave_request_batches(verbose=True)]
+        return [
+            util.greenwave_api_post(self._greenwave_api_url, data)
+            for data in self.greenwave_request_batches(verbose=True)
+        ]
 
     @property
     def _greenwave_requirements_generator(self):
@@ -2433,8 +2484,8 @@ class Update(Base):
         """
         for data in self.greenwave_request_batches(verbose=False):
             response = util.greenwave_api_post(self._greenwave_api_url, data)
-            satisfied = response.get('satisfied_requirements', [])
-            unsatisfied = response.get('unsatisfied_requirements', [])
+            satisfied = response.get("satisfied_requirements", [])
+            unsatisfied = response.get("unsatisfied_requirements", [])
             yield (satisfied, unsatisfied)
 
     @property
@@ -2450,7 +2501,7 @@ class Update(Base):
             policies were found.
         """
         ret = []
-        for (_, unsatisfied) in self._greenwave_requirements_generator:
+        for _, unsatisfied in self._greenwave_requirements_generator:
             ret.extend(unsatisfied)
         return ret
 
@@ -2475,15 +2526,15 @@ class Update(Base):
         gotsat = False
         gotunsat = False
         recent = datetime.now(timezone.utc) - self.last_modified < timedelta(hours=2)
-        for (satisfied, unsatisfied) in self._greenwave_requirements_generator:
+        for satisfied, unsatisfied in self._greenwave_requirements_generator:
             if satisfied:
                 gotsat = True
             if unsatisfied:
                 gotunsat = True
-                if not all(req.get('type', '') == 'test-result-missing' for req in unsatisfied):
+                if not all(req.get("type", "") == "test-result-missing" for req in unsatisfied):
                     # some unsats must be failures
                     return TestGatingStatus.failed
-                if not recent and not all(req.get('result_id') for req in unsatisfied):
+                if not recent and not all(req.get("result_id") for req in unsatisfied):
                     # all unsats are missing, but it's more than two
                     # hours since the update was edited and we don't
                     # have QUEUED or RUNNING results for all of them
@@ -2514,23 +2565,27 @@ class Update(Base):
             The dnf command to install the Update, or the empty string.
         """
         if not self.release.composed_by_bodhi and self.status == UpdateStatus.testing:
-            return ''
+            return ""
 
         if self.status != UpdateStatus.stable and self.status != UpdateStatus.testing:
-            return ''
+            return ""
 
-        if self.release.package_manager == PackageManager.unspecified \
-                or self.release.testing_repository is None:
-            return ''
+        if (
+            self.release.package_manager == PackageManager.unspecified
+            or self.release.testing_repository is None
+        ):
+            return ""
 
-        command = 'sudo {} {}{}{} --advisory={}{}'.format(
+        command = "sudo {} {}{}{} --advisory={}{}".format(
             self.release.package_manager.value,
-            'install' if self.type == UpdateType.newpackage else 'upgrade',
-            (' --enablerepo=' + self.release.testing_repository)
-            if self.status == UpdateStatus.testing else '',
-            ' --refresh' if self.release.package_manager.value == 'dnf' else '',
+            "install" if self.type == UpdateType.newpackage else "upgrade",
+            (" --enablerepo=" + self.release.testing_repository)
+            if self.status == UpdateStatus.testing
+            else "",
+            " --refresh" if self.release.package_manager.value == "dnf" else "",
             self.alias,
-            r' \*' if self.type == UpdateType.newpackage else '')
+            r" \*" if self.type == UpdateType.newpackage else "",
+        )
         return command
 
     def update_test_gating_status(self):
@@ -2559,24 +2614,26 @@ class Update(Base):
         user = User.get(request.identity.name)
         caveats = []
         try:
-            data['critpath_groups'] = cls.get_critpath_groups(
-                data['builds'], data['release'].branch)
-            data['critpath'] = bool(data['critpath_groups'])
+            data["critpath_groups"] = cls.get_critpath_groups(
+                data["builds"], data["release"].branch
+            )
+            data["critpath"] = bool(data["critpath_groups"])
         except ValueError:
-            data['critpath_groups'] = None
-            data['critpath'] = cls.contains_critpath_component(
-                data['builds'], data['release'].branch)
+            data["critpath_groups"] = None
+            data["critpath"] = cls.contains_critpath_component(
+                data["builds"], data["release"].branch
+            )
 
         # Be sure to not add an empty string as alternative title
         # and strip whitespaces from it
-        if 'display_name' in data:
-            data['display_name'] = data['display_name'].strip()
+        if "display_name" in data:
+            data["display_name"] = data["display_name"].strip()
 
         # Create the Bug entities, but don't talk to rhbz yet.  We do that
         # offline in the UpdatesHandler task worker now.
         bugs = []
-        if data['bugs']:
-            for bug_num in data['bugs']:
+        if data["bugs"]:
+            for bug_num in data["bugs"]:
                 bug = db.query(Bug).filter_by(bug_id=bug_num).first()
                 if not bug:
                     bug = Bug(bug_id=bug_num)
@@ -2584,7 +2641,7 @@ class Update(Base):
                     db.flush()
                 bugs.append(bug)
 
-        del data['edited']
+        del data["edited"]
         # Avoid sqlalchemy warnings about adding relationships before the Update is in session
         data.pop("bugs", None)
         builds = data.pop("builds", None)
@@ -2594,13 +2651,13 @@ class Update(Base):
 
         # Create the update
         log.debug("Creating new Update(**data) object.")
-        release = data.pop('release', None)
+        release = data.pop("release", None)
 
         if not release.composed_by_bodhi:
             # For rawhide updates make sure autotime push is enabled
             # https://github.com/fedora-infra/bodhi/issues/3912
-            data['autotime'] = True
-            data['stable_days'] = 0
+            data["autotime"] = True
+            data["stable_days"] = 0
             log.debug("Overriding autotime settings for rawhide update.")
 
         # Add the update to session
@@ -2617,21 +2674,25 @@ class Update(Base):
         # will not be lower than the mandatory_days_in_testing.
         if up.mandatory_days_in_testing > up.stable_days:
             up.stable_days = up.mandatory_days_in_testing
-            caveats.append({
-                'name': 'stable days',
-                'description': "The number of stable days required was set to the mandatory "
-                               f"release value of {up.mandatory_days_in_testing} days"
-            })
+            caveats.append(
+                {
+                    "name": "stable days",
+                    "description": "The number of stable days required was set to the mandatory "
+                    f"release value of {up.mandatory_days_in_testing} days",
+                }
+            )
 
         # We also need to make sure stable_karma is not set below
         # the policy minimum for this release
         if up.min_karma > up.stable_karma:
             up.stable_karma = up.min_karma
-            caveats.append({
-                'name': 'stable karma',
-                'description': "The stable karma required was set to the mandatory "
-                               f"release value of {up.min_karma}"
-            })
+            caveats.append(
+                {
+                    "name": "stable karma",
+                    "description": "The stable karma required was set to the mandatory "
+                    f"release value of {up.min_karma}",
+                }
+            )
 
         cls._ready_for_testing(up, None)
 
@@ -2640,7 +2701,7 @@ class Update(Base):
 
         log.info("Deferring working on bugs and fetching test cases to celery")
         alias = up.alias
-        if not bool(config.get('bodhi_email')):
+        if not bool(config.get("bodhi_email")):
             log.warning("Not configured to handle bugs")
         else:
             bug_ids = [bug.bug_id for bug in up.bugs]
@@ -2649,7 +2710,7 @@ class Update(Base):
         fetch_test_cases_task.delay(alias)
 
         # track whether to set gating status shortly...
-        setgs = config.get('test_gating.required')
+        setgs = config.get("test_gating.required")
         # The request to testing for side-tag updates is set within the signed consumer
         if not data.get("from_tag"):
             log.debug(f"Setting request for new update {up.alias}.")
@@ -2660,7 +2721,8 @@ class Update(Base):
 
         if setgs:
             log.debug(
-                'Test gating required is enforced, marking the update as waiting on test gating')
+                "Test gating required is enforced, marking the update as waiting on test gating"
+            )
             up.test_gating_status = TestGatingStatus.waiting
 
         log.debug(f"Done with Update.new(...) {up.alias}")
@@ -2681,44 +2743,47 @@ class Update(Base):
         """
         db = request.db
         buildinfo = request.buildinfo
-        up = db.query(Update).filter_by(alias=data['edited']).first()
-        del data['edited']
+        up = db.query(Update).filter_by(alias=data["edited"]).first()
+        del data["edited"]
 
         caveats = []
         edited_builds = [build.nvr for build in up.builds]
 
         # Be sure to not add an empty string as alternative title
         # and strip whitespaces from it
-        if 'display_name' in data:
-            data['display_name'] = data['display_name'].strip()
+        if "display_name" in data:
+            data["display_name"] = data["display_name"].strip()
 
         # stable_days can be set by the user. We want to make sure that the value
         # will not be lower than the mandatory_days_in_testing.
-        if up.mandatory_days_in_testing > data.get('stable_days', up.stable_days):
-            data['stable_days'] = up.mandatory_days_in_testing
-            caveats.append({
-                'name': 'stable days',
-                'description': "The number of stable days required was raised to the mandatory "
-                               f"release value of {up.mandatory_days_in_testing} days"
-            })
+        if up.mandatory_days_in_testing > data.get("stable_days", up.stable_days):
+            data["stable_days"] = up.mandatory_days_in_testing
+            caveats.append(
+                {
+                    "name": "stable days",
+                    "description": "The number of stable days required was raised to the mandatory "
+                    f"release value of {up.mandatory_days_in_testing} days",
+                }
+            )
 
         # We also need to make sure stable_karma is not set below
         # the policy minimum for this release
-        if up.min_karma > data.get('stable_karma', up.stable_karma):
-            data['stable_karma'] = up.min_karma
-            caveats.append({
-                'name': 'stable karma',
-                'description': "The stable karma required was raised to the mandatory "
-                               f"release value of {up.min_karma}"
-            })
+        if up.min_karma > data.get("stable_karma", up.stable_karma):
+            data["stable_karma"] = up.min_karma
+            caveats.append(
+                {
+                    "name": "stable karma",
+                    "description": "The stable karma required was raised to the mandatory "
+                    f"release value of {up.min_karma}",
+                }
+            )
 
         # Determine which builds have been added
         new_builds = []
-        for build in data['builds']:
+        for build in data["builds"]:
             if build not in edited_builds:
                 if up.locked:
-                    raise LockedUpdateException("Can't add builds to a "
-                                                "locked update")
+                    raise LockedUpdateException("Can't add builds to a locked update")
 
                 new_builds.append(build)
                 Package.get_or_create(db, buildinfo[build])
@@ -2729,10 +2794,9 @@ class Update(Base):
         # Determine which builds have been removed
         removed_builds = []
         for build in edited_builds:
-            if build not in data['builds']:
+            if build not in data["builds"]:
                 if up.locked:
-                    raise LockedUpdateException("Can't remove builds from a "
-                                                "locked update")
+                    raise LockedUpdateException("Can't remove builds from a locked update")
 
                 removed_builds.append(build)
                 b = None
@@ -2753,49 +2817,47 @@ class Update(Base):
                     db.delete(b)
 
         try:
-            data['critpath_groups'] = cls.get_critpath_groups(
-                up.builds, up.release.branch)
-            data['critpath'] = bool(data['critpath_groups'])
+            data["critpath_groups"] = cls.get_critpath_groups(up.builds, up.release.branch)
+            data["critpath"] = bool(data["critpath_groups"])
         except ValueError:
-            data['critpath_groups'] = None
-            data['critpath'] = cls.contains_critpath_component(
-                up.builds, up.release.branch)
+            data["critpath_groups"] = None
+            data["critpath"] = cls.contains_critpath_component(up.builds, up.release.branch)
 
-        del data['builds']
+        del data["builds"]
 
         # Comment on the update with details of added/removed builds
         # .. enumerate the builds in markdown format so they're pretty.
-        comment = '%s edited this update.' % request.identity.name
+        comment = "%s edited this update." % request.identity.name
         if new_builds:
-            comment += '\n\nNew build(s):\n'
+            comment += "\n\nNew build(s):\n"
             for new_build in new_builds:
                 comment += "\n- %s" % new_build
         if removed_builds:
-            comment += '\n\nRemoved build(s):\n'
+            comment += "\n\nRemoved build(s):\n"
             for removed_build in removed_builds:
                 comment += "\n- %s" % removed_build
         if new_builds or removed_builds:
-            comment += '\n\nKarma has been reset.'
-        up.comment(db, comment, karma=0, author='bodhi')
-        caveats.append({'name': 'builds', 'description': comment})
+            comment += "\n\nKarma has been reset."
+        up.comment(db, comment, karma=0, author="bodhi")
+        caveats.append({"name": "builds", "description": comment})
 
         # Updates with new or removed builds always go back to testing
         if new_builds or removed_builds:
-            data['request'] = UpdateRequest.testing
+            data["request"] = UpdateRequest.testing
             up.date_testing = None
 
-            if (
-                (up.status != UpdateStatus.pending and not up.from_tag)
-                or (up.status != UpdateStatus.pending and up.from_tag
-                    and up.release.composed_by_bodhi)
+            if (up.status != UpdateStatus.pending and not up.from_tag) or (
+                up.status != UpdateStatus.pending and up.from_tag and up.release.composed_by_bodhi
             ):
                 # Remove all koji tags and change the status back to pending
                 up.unpush(db)
-                caveats.append({
-                    'name': 'status',
-                    'description': 'Builds changed.  Your update is being '
-                    'sent back to testing.',
-                })
+                caveats.append(
+                    {
+                        "name": "status",
+                        "description": "Builds changed.  Your update is being "
+                        "sent back to testing.",
+                    }
+                )
                 builds_to_tag = [b.nvr for b in up.builds]
             else:
                 # No need to unpush the update, just tag new builds
@@ -2819,9 +2881,9 @@ class Update(Base):
                 tag_update_builds_task.delay(tag=tag, builds=builds_to_tag)
 
         new_bugs = []
-        if data['bugs'] is not None:
-            new_bugs = up.update_bugs(data['bugs'], db)
-        del data['bugs']
+        if data["bugs"] is not None:
+            new_bugs = up.update_bugs(data["bugs"], db)
+        del data["bugs"]
 
         req = data.pop("request", None)
         if req is not None and up.release.composed_by_bodhi:
@@ -2832,15 +2894,17 @@ class Update(Base):
 
         up.date_modified = datetime.now(timezone.utc)
 
-        notifications.publish(update_schemas.UpdateEditV2.from_dict(
-            message={
-                'update': up,
-                'agent': request.identity.name,
-                'new_bugs': new_bugs,
-                'new_builds': new_builds,
-                'removed_builds': removed_builds
-            }
-        ))
+        notifications.publish(
+            update_schemas.UpdateEditV2.from_dict(
+                message={
+                    "update": up,
+                    "agent": request.identity.name,
+                    "new_bugs": new_bugs,
+                    "new_builds": new_builds,
+                    "removed_builds": removed_builds,
+                }
+            )
+        )
         if (new_builds or removed_builds) and up.content_type == ContentType.rpm:
             message = update_schemas.UpdateReadyForTestingV3.from_dict(
                 message=up._build_group_test_message(agent=request.identity.name)
@@ -2849,15 +2913,14 @@ class Update(Base):
 
         # If editing a Pending update, all of whose builds are signed, for a release
         # which isn't composed by Bodhi (i.e. Rawhide), move it directly to Testing.
-        if not up.release.composed_by_bodhi and up.status == UpdateStatus.pending \
-                and up.signed:
+        if not up.release.composed_by_bodhi and up.status == UpdateStatus.pending and up.signed:
             log.info("Every build in the update is signed, set status to testing")
             up.status = UpdateStatus.testing
             up.date_testing = func.current_timestamp()
             up.request = None
             log.info(f"Update status of {up.alias} has been set to testing")
 
-        if config['test_gating.required']:
+        if config["test_gating.required"]:
             log.info(f"Updating test gating status of {up.alias}")
             up.update_test_gating_status()
 
@@ -2866,7 +2929,7 @@ class Update(Base):
 
         log.info("Deferring working on bugs and fetching test cases to celery")
         alias = up.alias
-        if not bool(config.get('bodhi_email')):
+        if not bool(config.get("bodhi_email")):
             log.warning("Not configured to handle bugs")
         else:
             work_on_bugs_task.delay(alias, new_bugs)
@@ -2916,8 +2979,7 @@ class Update(Base):
             True if the Update's test_gating_status property is None,
             ignored, or passed. Otherwise it returns False.
         """
-        if self.test_gating_status in (
-                None, TestGatingStatus.ignored, TestGatingStatus.passed):
+        if self.test_gating_status in (None, TestGatingStatus.ignored, TestGatingStatus.passed):
             return True
         return False
 
@@ -2934,20 +2996,38 @@ class Update(Base):
         """
         caveats = []
         for build in self.builds:
-            for oldBuild in db.query(Build).join(Update).filter(
-                and_(Build.nvr != build.nvr,
-                     Build.package == build.package,
-                     Update.locked.is_(False),
-                     Update.release == self.release,
-                     or_(and_(or_(Update.status == UpdateStatus.testing,
-                                  Update.status == UpdateStatus.pending),
-                              or_(Update.request != UpdateRequest.stable,
-                                  Update.request.is_(None))),
-                         and_(or_(Update.status == UpdateStatus.testing,
-                                  Update.status == UpdateStatus.pending),
-                              Update.request == UpdateRequest.stable,
-                              self.request == UpdateRequest.stable)))
-            ).all():
+            for oldBuild in (
+                db.query(Build)
+                .join(Update)
+                .filter(
+                    and_(
+                        Build.nvr != build.nvr,
+                        Build.package == build.package,
+                        Update.locked.is_(False),
+                        Update.release == self.release,
+                        or_(
+                            and_(
+                                or_(
+                                    Update.status == UpdateStatus.testing,
+                                    Update.status == UpdateStatus.pending,
+                                ),
+                                or_(
+                                    Update.request != UpdateRequest.stable, Update.request.is_(None)
+                                ),
+                            ),
+                            and_(
+                                or_(
+                                    Update.status == UpdateStatus.testing,
+                                    Update.status == UpdateStatus.pending,
+                                ),
+                                Update.request == UpdateRequest.stable,
+                                self.request == UpdateRequest.stable,
+                            ),
+                        ),
+                    )
+                )
+                .all()
+            ):
                 obsoletable = False
                 nvr = build.get_n_v_r()
                 if rpm.labelCompare(oldBuild.get_n_v_r(), nvr) < 0:
@@ -2966,31 +3046,38 @@ class Update(Base):
                 # obsolete them
                 if len(oldBuild.update.builds) != len(self.builds):
                     if oldBuild.update.user.name != self.user.name:
-                        caveats.append({
-                            'name': 'update',
-                            'description': 'Please be aware that there '
-                            'is another update in flight owned by %s, '
-                            'containing %s. Are you coordinating with '
-                            'them?' % (
-                                oldBuild.update.user.name,
-                                oldBuild.nvr,
-                            )
-                        })
+                        caveats.append(
+                            {
+                                "name": "update",
+                                "description": "Please be aware that there "
+                                "is another update in flight owned by %s, "
+                                "containing %s. Are you coordinating with "
+                                "them?"
+                                % (
+                                    oldBuild.update.user.name,
+                                    oldBuild.nvr,
+                                ),
+                            }
+                        )
 
                 # Warn about attempt to obsolete security update by update with
                 # other type and set type of new update to security.
-                if oldBuild.update.type == UpdateType.security and \
-                        self.type is not UpdateType.security:
-                    caveats.append({
-                        'name': 'update',
-                        'description': 'Adjusting type of this update to security,'
-                        'since it obsoletes another security update'
-                    })
+                if (
+                    oldBuild.update.type == UpdateType.security
+                    and self.type is not UpdateType.security
+                ):
+                    caveats.append(
+                        {
+                            "name": "update",
+                            "description": "Adjusting type of this update to security,"
+                            "since it obsoletes another security update",
+                        }
+                    )
                     self.type = UpdateType.security
                     self.severity = oldBuild.update.severity
 
                 if obsoletable:
-                    log.info('%s is obsoletable' % oldBuild.nvr)
+                    log.info("%s is obsoletable" % oldBuild.nvr)
 
                     # Have the newer update inherit the older updates bugs
                     oldbugs = [bug.bug_id for bug in oldBuild.update.bugs]
@@ -3001,20 +3088,20 @@ class Update(Base):
                     # add a markdown separator between the new and old ones.
                     # If it's an automatic update, do not copy the changelog again.
                     re_changelog = re.compile(r"(?s)\n##### \*\*Changelog\*\*\n\n```\n.*\n```")
-                    old_notes = re.sub(re_changelog, '', oldBuild.update.notes)
-                    new_notes = self.notes + '\n\n----\n\n' + old_notes
-                    if len(new_notes) <= config.get('update_notes_maxlength'):
+                    old_notes = re.sub(re_changelog, "", oldBuild.update.notes)
+                    new_notes = self.notes + "\n\n----\n\n" + old_notes
+                    if len(new_notes) <= config.get("update_notes_maxlength"):
                         self.notes = new_notes
                     oldBuild.update.obsolete(db, newer=build)
-                    template = ('This update has obsoleted %s, and has '
-                                'inherited its bugs and notes.')
-                    link = "[%s](%s)" % (oldBuild.nvr,
-                                         oldBuild.update.abs_url())
-                    self.comment(db, template % link, author='bodhi')
-                    caveats.append({
-                        'name': 'update',
-                        'description': template % oldBuild.nvr,
-                    })
+                    template = "This update has obsoleted %s, and has inherited its bugs and notes."
+                    link = "[%s](%s)" % (oldBuild.nvr, oldBuild.update.abs_url())
+                    self.comment(db, template % link, author="bodhi")
+                    caveats.append(
+                        {
+                            "name": "update",
+                            "description": template % oldBuild.nvr,
+                        }
+                    )
 
         return caveats
 
@@ -3036,8 +3123,9 @@ class Update(Base):
         """
         return self.get_title()
 
-    def get_title(self, delim=' ', limit=None, after_limit='…',
-                  beautify=False, nvr=False, amp=False):
+    def get_title(
+        self, delim=" ", limit=None, after_limit="…", beautify=False, nvr=False, amp=False
+    ):
         """
         Return a title for the update based on the :class:`Builds <Build>` it is associated with.
 
@@ -3084,8 +3172,9 @@ class Update(Base):
                 return self.alias
             all_nvrs = [x.nvr for x in self.builds]
             nvrs = all_nvrs[:limit]
-            builds = delim.join(sorted(nvrs)) + \
-                (after_limit if limit and len(all_nvrs) > limit else "")
+            builds = delim.join(sorted(nvrs)) + (
+                after_limit if limit and len(all_nvrs) > limit else ""
+            )
             return builds
 
     def get_bugstring(self, show_titles=False):
@@ -3098,14 +3187,14 @@ class Update(Base):
         Returns:
             str: A space separated list of bugs associated with this update.
         """
-        val = ''
+        val = ""
         if show_titles:
             bugstr = []
             for bug in self.bugs:
                 bugstr.append(f"{bug.bug_id} - {bug.title}")
-            val = '\n'.join(bugstr)
+            val = "\n".join(bugstr)
         else:
-            val = ' '.join([str(bug.bug_id) for bug in self.bugs])
+            val = " ".join([str(bug.bug_id) for bug in self.bugs])
         return val
 
     def get_bug_karma(self, bug):
@@ -3171,7 +3260,7 @@ class Update(Base):
 
             LockedUpdateException: If the update is locked.
         """
-        log.debug(f'Attempting to set request {action}')
+        log.debug(f"Attempting to set request {action}")
         notes = []
         if isinstance(action, str):
             action = UpdateRequest.from_string(action)
@@ -3179,88 +3268,96 @@ class Update(Base):
             log.info("%s already %s" % (self.alias, action.description))
             return
         if action is self.request:
-            log.debug("%s has already been submitted to %s" % (self.alias,
-                                                               self.request.description))
+            log.debug(
+                "%s has already been submitted to %s" % (self.alias, self.request.description)
+            )
             return
 
         if self.locked:
-            raise LockedUpdateException("Can't change the request on a "
-                                        "locked update")
+            raise LockedUpdateException("Can't change the request on a locked update")
 
-        if not self.release.composed_by_bodhi \
-                and action == (UpdateRequest.stable or UpdateRequest.testing):
-            raise BodhiException('Setting a request on an Update for a Release '
-                                 'not composed by Bodhi is not allowed')
+        if not self.release.composed_by_bodhi and action == (
+            UpdateRequest.stable or UpdateRequest.testing
+        ):
+            raise BodhiException(
+                "Setting a request on an Update for a Release not composed by Bodhi is not allowed"
+            )
 
         if action is UpdateRequest.unpush:
             self.unpush(db)
-            self.comment(db, u'This update has been unpushed.', author=username)
-            notifications.publish(update_schemas.UpdateRequestUnpushV1.from_dict(dict(
-                update=self, agent=username)))
+            self.comment(db, "This update has been unpushed.", author=username)
+            notifications.publish(
+                update_schemas.UpdateRequestUnpushV1.from_dict(dict(update=self, agent=username))
+            )
             log.debug("%s has been unpushed." % self.alias)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete(db)
             log.debug("%s has been obsoleted." % self.alias)
-            notifications.publish(update_schemas.UpdateRequestObsoleteV1.from_dict(dict(
-                update=self, agent=username)))
+            notifications.publish(
+                update_schemas.UpdateRequestObsoleteV1.from_dict(dict(update=self, agent=username))
+            )
             return
 
         # If status is pending going to testing request and action is revoke,
         # set the status to unpushed
-        elif self.status is UpdateStatus.pending and self.request is UpdateRequest.testing \
-                and action is UpdateRequest.revoke:
+        elif (
+            self.status is UpdateStatus.pending
+            and self.request is UpdateRequest.testing
+            and action is UpdateRequest.revoke
+        ):
             self.status = UpdateStatus.unpushed
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
-            notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
-                update=self, agent=username)))
+            notifications.publish(
+                update_schemas.UpdateRequestRevokeV1.from_dict(dict(update=self, agent=username))
+            )
             return
 
         # If status is testing going to stable request and action is revoke,
         # keep the status at testing
-        elif self.request == UpdateRequest.stable and \
-                self.status is UpdateStatus.testing and action is UpdateRequest.revoke:
+        elif (
+            self.request == UpdateRequest.stable
+            and self.status is UpdateStatus.testing
+            and action is UpdateRequest.revoke
+            or action is UpdateRequest.revoke
+        ):
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
-            notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
-                update=self, agent=username)))
-            return
-
-        elif action is UpdateRequest.revoke:
-            self.revoke()
-            log.debug("%s has been revoked." % self.alias)
-            notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
-                update=self, agent=username)))
+            notifications.publish(
+                update_schemas.UpdateRequestRevokeV1.from_dict(dict(update=self, agent=username))
+            )
             return
 
         # Disable pushing updates from pending directly to stable when the release is frozen
         if (
-            action == UpdateRequest.stable and self.status == UpdateStatus.pending
+            action == UpdateRequest.stable
+            and self.status == UpdateStatus.pending
             and self.release.state == ReleaseState.frozen
         ):
             raise BodhiException(
-                'The release of this update is frozen and the update has not yet been '
-                'pushed to testing. It is currently not possible to push it to stable.')
+                "The release of this update is frozen and the update has not yet been "
+                "pushed to testing. It is currently not possible to push it to stable."
+            )
 
         # Don't allow push to stable unless testing requirements are met
         if action == UpdateRequest.stable:
             met, reason = self.meets_requirements_why
             if not met:
                 if self.release.id_prefix == "FEDORA-EPEL":
-                    msg = config.get('not_yet_tested_epel_msg')
+                    msg = config.get("not_yet_tested_epel_msg")
                 else:
-                    msg = config.get('not_yet_tested_msg')
-                msg = f'{msg}: {reason}'
+                    msg = config.get("not_yet_tested_msg")
+                msg = f"{msg}: {reason}"
                 notes.append(msg)
 
                 if self.status is UpdateStatus.testing:
                     self.request = None
-                    raise BodhiException('. '.join(notes))
+                    raise BodhiException(". ".join(notes))
                 elif self.request is UpdateRequest.testing:
-                    raise BodhiException('. '.join(notes))
+                    raise BodhiException(". ".join(notes))
                 else:
-                    log.info('Forcing update into testing')
+                    log.info("Forcing update into testing")
                     action = UpdateRequest.testing
 
         # Add the appropriate 'pending' koji tag to this update, so tools
@@ -3282,13 +3379,14 @@ class Update(Base):
 
         self.request = action
 
-        notes = notes and '. '.join(notes) + '.' or ''
-        log.debug(
-            "%s has been submitted for %s. %s" % (
-                self.alias, action.description, notes))
+        notes = notes and ". ".join(notes) + "." or ""
+        log.debug("%s has been submitted for %s. %s" % (self.alias, action.description, notes))
 
-        comment_text = 'This update has been submitted for %s by %s. %s' % (
-            action.description, username, notes)
+        comment_text = "This update has been submitted for %s by %s. %s" % (
+            action.description,
+            username,
+            notes,
+        )
         # Add information about push to stable delay to comment when release is frozen.
         if self.release.state == ReleaseState.frozen and action == UpdateRequest.stable:
             comment_text += (
@@ -3297,19 +3395,21 @@ class Update(Base):
                 "possibly sooner if a bug it fixes is an accepted "
                 "blocker or freeze exception. "
             )
-        self.comment(db, comment_text, author=u'bodhi')
+        self.comment(db, comment_text, author="bodhi")
 
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
             UpdateRequest.testing: update_schemas.UpdateRequestTestingV1,
             UpdateRequest.unpush: update_schemas.UpdateRequestUnpushV1,
-            UpdateRequest.obsolete: update_schemas.UpdateRequestObsoleteV1}
-        notifications.publish(action_message_map[action].from_dict(
-            dict(update=self, agent=username)))
+            UpdateRequest.obsolete: update_schemas.UpdateRequestObsoleteV1,
+        }
+        notifications.publish(
+            action_message_map[action].from_dict(dict(update=self, agent=username))
+        )
 
         if action == UpdateRequest.testing:
-            if config['test_gating.required']:
+            if config["test_gating.required"]:
                 log.info(f"Updating test gating status of {self.alias}")
                 self.update_test_gating_status()
 
@@ -3335,14 +3435,13 @@ class Update(Base):
                             or if the tests have passed.
             RuntimeError: Either WaiverDB or Greenwave did not give us a 200 code.
         """
-        log.debug('Attempting to waive test results for this update %s' % self.alias)
+        log.debug("Attempting to waive test results for this update %s" % self.alias)
 
         if self.locked:
-            raise LockedUpdateException("Can't waive test results on a "
-                                        "locked update")
+            raise LockedUpdateException("Can't waive test results on a locked update")
 
-        if not config.get('test_gating.required'):
-            raise BodhiException('Test gating is not enabled')
+        if not config.get("test_gating.required"):
+            raise BodhiException("Test gating is not enabled")
 
         if self.test_gating_passed:
             raise BodhiException("Can't waive test results on an update that passes test gating")
@@ -3351,23 +3450,21 @@ class Update(Base):
         tests = tests or []
 
         for requirement in self._unsatisfied_requirements:
-
-            if tests and requirement['testcase'] not in tests:
+            if tests and requirement["testcase"] not in tests:
                 continue
 
             data = {
-                'subject_type': requirement['subject_type'],
-                'subject_identifier': requirement['subject_identifier'],
-                'testcase': requirement['testcase'],
-                'scenario': requirement.get('scenario', None),
-                'product_version': self.product_version,
-                'waived': True,
-                'username': username,
-                'comment': comment
+                "subject_type": requirement["subject_type"],
+                "subject_identifier": requirement["subject_identifier"],
+                "testcase": requirement["testcase"],
+                "scenario": requirement.get("scenario", None),
+                "product_version": self.product_version,
+                "waived": True,
+                "username": username,
+                "comment": comment,
             }
-            log.debug('Waiving test results: %s' % data)
-            util.waiverdb_api_post(
-                '{}/waivers/'.format(config.get('waiverdb_api_url')), data)
+            log.debug("Waiving test results: %s" % data)
+            util.waiverdb_api_post("{}/waivers/".format(config.get("waiverdb_api_url")), data)
 
         self.test_gating_status = TestGatingStatus.waiting
 
@@ -3378,7 +3475,7 @@ class Update(Base):
         Args:
             tag (str): The tag to be added to the builds.
         """
-        log.debug('Adding tag %s to %s', tag, self.get_title())
+        log.debug("Adding tag %s to %s", tag, self.get_title())
         if not tag:
             log.warning("Not adding builds of %s to empty tag", self.title)
             return []  # An empty iterator in place of koji multicall
@@ -3397,10 +3494,12 @@ class Update(Base):
             from_tag (str): The tag to be removed to the builds.
             to_tag (str): The tag to be added to the builds.
         """
-        log.debug(f'Moving tags from {from_tag} to {to_tag} for {self.title}')
+        log.debug(f"Moving tags from {from_tag} to {to_tag} for {self.title}")
         if any([not from_tag, not to_tag]):
-            log.warning(f"Not moving builds of {self.title} because of empty tag: "
-                        f"from {from_tag} to {to_tag}")
+            log.warning(
+                f"Not moving builds of {self.title} because of empty tag: "
+                f"from {from_tag} to {to_tag}"
+            )
             return []  # An empty iterator in place of koji multicall
 
         koji = buildsys.get_session()
@@ -3422,7 +3521,7 @@ class Update(Base):
             list or None: If a koji client was provided, ``None`` is returned. Else, a list of tasks
                 from ``koji.multiCall()`` are returned.
         """
-        log.debug('Removing tag %s from %s', tag, self.get_title())
+        log.debug("Removing tag %s from %s", tag, self.get_title())
         if not tag:
             log.warning("Not removing builds of %s from empty tag", self.get_title())
             return []  # An empty iterator in place of koji multicall
@@ -3457,12 +3556,12 @@ class Update(Base):
         """
         if self.status is UpdateStatus.testing:
             for bug in self.bugs:
-                log.debug('Adding testing comment to bugs for %s', self.alias)
+                log.debug("Adding testing comment to bugs for %s", self.alias)
                 bug.testing(self)
         elif self.status is UpdateStatus.stable:
             if not self.close_bugs:
                 for bug in self.bugs:
-                    log.debug('Adding stable comment to bugs for %s', self.alias)
+                    log.debug("Adding stable comment to bugs for %s", self.alias)
                     bug.add_comment(self)
             else:
                 if self.type is UpdateType.security:
@@ -3484,36 +3583,36 @@ class Update(Base):
             db (sqlalchemy.orm.session.Session): A database session.
         """
         if self.status is UpdateStatus.stable:
-            self.comment(db, 'This update has been pushed to stable.',
-                         author='bodhi')
+            self.comment(db, "This update has been pushed to stable.", author="bodhi")
         elif self.status is UpdateStatus.testing:
-            self.comment(db, 'This update has been pushed to testing.',
-                         author='bodhi')
+            self.comment(db, "This update has been pushed to testing.", author="bodhi")
         elif self.status is UpdateStatus.obsolete:
-            self.comment(db, 'This update has been obsoleted.', author='bodhi')
+            self.comment(db, "This update has been obsoleted.", author="bodhi")
 
     def send_update_notice(self):
         """Send e-mail notices about this update."""
         log.debug("Sending update notice for %s", self.alias)
         mailinglist = None
-        sender = config.get('bodhi_email')
+        sender = config.get("bodhi_email")
         if not sender:
-            log.error(("bodhi_email not defined in configuration!  Unable "
-                      "to send update notice"))
+            log.error("bodhi_email not defined in configuration!  Unable to send update notice")
             return
 
         # eg: fedora_epel
-        release_name = self.release.id_prefix.lower().replace('-', '_')
+        release_name = self.release.id_prefix.lower().replace("-", "_")
         if self.status is UpdateStatus.stable:
-            mailinglist = config.get('%s_announce_list' % release_name)
+            mailinglist = config.get("%s_announce_list" % release_name)
         elif self.status is UpdateStatus.testing:
-            mailinglist = config.get('%s_test_announce_list' % release_name)
+            mailinglist = config.get("%s_test_announce_list" % release_name)
 
         if mailinglist:
             for subject, body in mail.get_template(self, self.release.mail_template):
                 mail.send_mail(sender, mailinglist, subject, body)
-                notifications.publish(errata_schemas.ErrataPublishV1.from_dict(
-                    dict(subject=subject, body=body, update=self)))
+                notifications.publish(
+                    errata_schemas.ErrataPublishV1.from_dict(
+                        dict(subject=subject, body=body, update=self)
+                    )
+                )
         else:
             log.error("Cannot find mailing list address for update notice")
             log.error("release_name = %r", release_name)
@@ -3525,7 +3624,7 @@ class Update(Base):
         Returns:
             str: A URL.
         """
-        return f'updates/{self.alias}'
+        return f"updates/{self.alias}"
 
     def abs_url(self, request=None):
         """
@@ -3534,7 +3633,7 @@ class Update(Base):
         Args:
             request (pyramid.request.Request or None): The current web request. Unused.
         """
-        base = config['base_address']
+        base = config["base_address"]
         return urljoin(base, self.get_url())
 
     url = abs_url
@@ -3546,49 +3645,56 @@ class Update(Base):
         Returns:
             str: A string representation of the update.
         """
-        nl = '\n'
-        val = f"""{'=' * 80}
-{nl.join(wrap(self.alias, width=79, initial_indent=' ' * 5, subsequent_indent=' ' * 5))}
-{'=' * 80}
-{'Release:':>12} {self.release.long_name}
-{'Status:':>12} {self.status.description}
-{'Type:':>12} {self.type.description}
-{'Severity:':>12} {self.severity}
-{'Karma:':>12} {self.karma}"""
+        nl = "\n"
+        val = f"""{"=" * 80}
+{nl.join(wrap(self.alias, width=79, initial_indent=" " * 5, subsequent_indent=" " * 5))}
+{"=" * 80}
+{"Release:":>12} {self.release.long_name}
+{"Status:":>12} {self.status.description}
+{"Type:":>12} {self.type.description}
+{"Severity:":>12} {self.severity}
+{"Karma:":>12} {self.karma}"""
         if self.critpath:
             val += f"{nl}{'Critpath:':>12} {self.critpath}"
         if self.request is not None:
             val += f"{nl}{'Request:':>12} {self.request.description}"
         if self.bugs:
             bugs = wrap_text(
-                self.get_bugstring(show_titles=True), width=79,
+                self.get_bugstring(show_titles=True),
+                width=79,
                 initial_indent=f"{'Bugs:':>12} ",
-                subsequent_indent=f"{' ' * 13}")
+                subsequent_indent=f"{' ' * 13}",
+            )
             val += f"{nl}{bugs}"
         if self.notes:
             notes = wrap_text(
-                markdown_to_text(self.notes).strip(), width=79,
+                markdown_to_text(self.notes).strip(),
+                width=79,
                 initial_indent=f"{'Notes:':>12} ",
-                subsequent_indent=f"{' ' * 13}")
+                subsequent_indent=f"{' ' * 13}",
+            )
             val += f"{nl}{notes}"
         username = None
         if self.user:
             username = self.user.name
         val += f"""
-{'Submitter:':>12} {username}
-{'Submitted:':>12} {self.date_submitted}
+{"Submitter:":>12} {username}
+{"Submitted:":>12} {self.date_submitted}
 """
         if self.comments_since_karma_reset:
             comments_list = []
             for comment in reversed(self.comments_since_karma_reset):
-                comments_list.append(f"{comment.user.name} - {comment.timestamp} "
-                                     f"(karma {comment.karma})")
+                comments_list.append(
+                    f"{comment.user.name} - {comment.timestamp} (karma {comment.karma})"
+                )
                 if comment.text:
                     comments_list.append(comment.text)
             comments = wrap_text(
-                '\n'.join(comments_list), width=79,
+                "\n".join(comments_list),
+                width=79,
                 initial_indent=f"{'Comments:':>12} ",
-                subsequent_indent=f"{' ' * 13}")
+                subsequent_indent=f"{' ' * 13}",
+            )
             val += f"{comments}{nl}"
         val += f"{nl}  {self.abs_url()}"
         return val
@@ -3634,20 +3740,31 @@ class Update(Base):
         session.flush()
         return new
 
-    def comment(self, session, text, karma=0, author=None, karma_critpath=None,
-                bug_feedback=None, testcase_feedback=None, email_notification=True):
+    def comment(
+        self,
+        session,
+        text,
+        karma=0,
+        author=None,
+        karma_critpath=None,
+        bug_feedback=None,
+        testcase_feedback=None,
+        email_notification=True,
+    ):
         """Add a comment to this update.
 
         If the karma reaches the 'stable_karma' value, then request that this update be marked
         as stable. If it reaches the 'unstable_karma' value, then unpush it (obsolete it).
         """
         if not author:
-            raise ValueError('You must provide a comment author')
+            raise ValueError("You must provide a comment author")
 
         if karma_critpath:
             warnings.warn(
                 "karma_critpath is not used anymore and should not be passed in comment() call; "
-                "date=2024-11-16", DeprecationWarning, stacklevel=2
+                "date=2024-11-16",
+                DeprecationWarning,
+                stacklevel=2,
             )
 
         # Listify these
@@ -3655,21 +3772,21 @@ class Update(Base):
         testcase_feedback = testcase_feedback or []
 
         got_feedback = False
-        for feedback_dict in (bug_feedback + testcase_feedback):
-            if feedback_dict['karma'] != 0:
+        for feedback_dict in bug_feedback + testcase_feedback:
+            if feedback_dict["karma"] != 0:
                 got_feedback = True
                 break
 
-        if (not text and not karma and not got_feedback):
-            raise ValueError('You must provide either some text or feedback')
+        if not text and not karma and not got_feedback:
+            raise ValueError("You must provide either some text or feedback")
 
         caveats = []
 
         if self.user.name == author:
             if karma != 0:
                 karma = 0
-                notice = 'You may not give karma to your own updates.'
-                caveats.append({'name': 'karma', 'description': notice})
+                notice = "You may not give karma to your own updates."
+                caveats.append({"name": "karma", "description": notice})
 
         try:
             user = session.query(User).filter_by(name=author).one()
@@ -3690,28 +3807,33 @@ class Update(Base):
                     previous_karma = c.karma
                     break
             if previous_karma and karma != previous_karma:
-                caveats.append({
-                    'name': 'karma',
-                    'description': 'Your karma standing was reversed.',
-                })
+                caveats.append(
+                    {
+                        "name": "karma",
+                        "description": "Your karma standing was reversed.",
+                    }
+                )
             else:
-                log.debug('Ignoring duplicate %d karma from %s on %s', karma, author, self.alias)
+                log.debug("Ignoring duplicate %d karma from %s on %s", karma, author, self.alias)
 
             log.info("Updated %s karma to %d", self.alias, self.karma)
 
-            if author not in config.get('system_users'):
+            if author not in config.get("system_users"):
                 try:
-                    self.check_karma_thresholds(session, 'bodhi')
+                    self.check_karma_thresholds(session, "bodhi")
                 except LockedUpdateException:
                     pass
                 except BodhiException as e:
                     # This gets thrown if the karma is pushed over the
                     # threshold, but it does not meet testing requirements
                     # for some reason (failed gating test...)
-                    log.exception('Problem checking the karma threshold.')
-                    caveats.append({
-                        'name': 'karma', 'description': str(e),
-                    })
+                    log.exception("Problem checking the karma threshold.")
+                    caveats.append(
+                        {
+                            "name": "karma",
+                            "description": str(e),
+                        }
+                    )
 
         session.flush()
 
@@ -3728,9 +3850,12 @@ class Update(Base):
         session.flush()
 
         # Publish to Fedora Messaging
-        if author not in config.get('system_users'):
-            notifications.publish(update_schemas.UpdateCommentV1.from_dict(
-                {'comment': comment.__json__(), 'agent': author}))
+        if author not in config.get("system_users"):
+            notifications.publish(
+                update_schemas.UpdateCommentV1.from_dict(
+                    {"comment": comment.__json__(), "agent": author}
+                )
+            )
 
         # Send a notification to everyone that has commented on this update
         people = set()
@@ -3740,14 +3865,14 @@ class Update(Base):
             else:
                 people.add(person.name)
         for comment in self.comments:
-            if comment.user.name in ['anonymous', 'bodhi', author]:
+            if comment.user.name in ["anonymous", "bodhi", author]:
                 continue
             if comment.user.email:
                 people.add(comment.user.email)
             else:
                 people.add(comment.user.name)
         if email_notification:
-            mail.send(people, 'comment', self, sender=None, agent=author)
+            mail.send(people, "comment", self, sender=None, agent=author)
         return comment, caveats
 
     def unpush(self, db):
@@ -3767,8 +3892,7 @@ class Update(Base):
             return
 
         if self.status is not UpdateStatus.testing:
-            raise BodhiException("Can't unpush a %s update"
-                                 % self.status.description)
+            raise BodhiException("Can't unpush a %s update" % self.status.description)
 
         self.untag(db, preserve_override=True)
 
@@ -3792,14 +3916,18 @@ class Update(Base):
         log.debug("Revoking %s", self.alias)
 
         if not self.request:
-            raise BodhiException(
-                "Can only revoke an update with an existing request")
+            raise BodhiException("Can only revoke an update with an existing request")
 
-        if self.status not in [UpdateStatus.pending, UpdateStatus.testing,
-                               UpdateStatus.obsolete, UpdateStatus.unpushed]:
+        if self.status not in [
+            UpdateStatus.pending,
+            UpdateStatus.testing,
+            UpdateStatus.obsolete,
+            UpdateStatus.unpushed,
+        ]:
             raise BodhiException(
                 "Can only revoke a pending, testing, unpushed, or obsolete "
-                "update, not one that is %s" % self.status.description)
+                "update, not one that is %s" % self.status.description
+            )
 
         # Remove the 'pending' koji tags from this update
         if self.request is UpdateRequest.testing:
@@ -3853,10 +3981,13 @@ class Update(Base):
         self.status = UpdateStatus.obsolete
         self.request = None
         if newer:
-            self.comment(db, "This update has been obsoleted by [%s](%s)." % (
-                newer.nvr, newer.update.abs_url()), author='bodhi')
+            self.comment(
+                db,
+                "This update has been obsoleted by [%s](%s)." % (newer.nvr, newer.update.abs_url()),
+                author="bodhi",
+            )
         else:
-            self.comment(db, "This update has been obsoleted.", author='bodhi')
+            self.comment(db, "This update has been obsoleted.", author="bodhi")
 
     def get_maintainers(self):
         """
@@ -3879,7 +4010,7 @@ class Update(Base):
         Returns:
             str: The product version associated with this Update's Release.
         """
-        ret = self.release.long_name.lower().replace(' ', '-')
+        ret = self.release.long_name.lower().replace(" ", "-")
         if ret == "fedora-eln":
             # We call ELN something else so that "fedora-*" policies
             # do not apply to it
@@ -3928,7 +4059,7 @@ class Update(Base):
         """
         # Raise Exception if the update is locked
         if self.locked:
-            log.debug('%s locked. Ignoring karma thresholds.', self.alias)
+            log.debug("%s locked. Ignoring karma thresholds.", self.alias)
             raise LockedUpdateException
         # Return if the status of the update is not in testing or pending
         if self.status not in (UpdateStatus.testing, UpdateStatus.pending):
@@ -3940,33 +4071,46 @@ class Update(Base):
         if self.unstable_karma and self.karma <= self.unstable_karma:
             log.info("Automatically obsoleting %s (reached unstable karma threshold)", self.alias)
             self.obsolete(db)
-            notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
-                dict(update=self, status='unstable')))
+            notifications.publish(
+                update_schemas.UpdateKarmaThresholdV1.from_dict(
+                    dict(update=self, status="unstable")
+                )
+            )
         # If an update receives negative karma disable autopush
         # exclude rawhide updates see #4566
-        if (self.autokarma or self.autotime) and self._composite_karma[1] != 0 and \
-                self.request is not UpdateRequest.stable and \
-                self.release.composed_by_bodhi:
+        if (
+            (self.autokarma or self.autotime)
+            and self._composite_karma[1] != 0
+            and self.request is not UpdateRequest.stable
+            and self.release.composed_by_bodhi
+        ):
             log.info("Disabling Auto Push since the update has received negative karma")
             self.autokarma = False
             self.autotime = False
-            text = config.get('disable_automatic_push_to_stable')
-            self.comment(db, text, author='bodhi')
+            text = config.get("disable_automatic_push_to_stable")
+            self.comment(db, text, author="bodhi")
         # If update with autopush reaches threshold, set request stable
-        if self.stable_karma and self.karma >= self.stable_karma \
-                and self.release.composed_by_bodhi and self.autokarma:
+        if (
+            self.stable_karma
+            and self.karma >= self.stable_karma
+            and self.release.composed_by_bodhi
+            and self.autokarma
+        ):
             # Updates for releases not "composed by Bodhi" (Rawhide,
             # ELN...) are pushed stable only by approve_testing.py
-            if config.get('test_gating.required') and not self.test_gating_passed:
-                log.info("%s reached stable karma threshold, but does not meet gating "
-                         "requirements", self.alias)
+            if config.get("test_gating.required") and not self.test_gating_passed:
+                log.info(
+                    "%s reached stable karma threshold, but does not meet gating requirements",
+                    self.alias,
+                )
                 return
             if not self.date_approved:
                 self.date_approved = datetime.now(timezone.utc)
             log.info("Automatically marking %s as stable", self.alias)
             self.set_request(db, UpdateRequest.stable, agent)
-            notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
-                dict(update=self, status='stable')))
+            notifications.publish(
+                update_schemas.UpdateKarmaThresholdV1.from_dict(dict(update=self, status="stable"))
+            )
 
     @property
     def builds_json(self):
@@ -4036,7 +4180,7 @@ class Update(Base):
         req_days = self.mandatory_days_in_testing
         req_karma = self.min_karma
 
-        if config.get('test_gating.required'):
+        if config.get("test_gating.required"):
             tgs = self.test_gating_status
             if tgs in (TestGatingStatus.waiting, TestGatingStatus.queued, TestGatingStatus.running):
                 return (False, "Required tests for this update are queued or running.")
@@ -4060,9 +4204,11 @@ class Update(Base):
         # Any update that reaches req_days has met the testing requirements.
         if self.days_in_testing >= req_days:
             return (True, basemsg + " and update meets the wait time requirement.")
-        return (False,
-                basemsg + f" but update has less than {req_karma} karma and has been in testing "
-                f"less than {req_days} days.")
+        return (
+            False,
+            basemsg + f" but update has less than {req_karma} karma and has been in testing "
+            f"less than {req_days} days.",
+        )
 
     @property
     def meets_testing_requirements(self):
@@ -4089,8 +4235,7 @@ class Update(Base):
             bool: See description above for what the bool might mean.
         """
         for comment in self.comments_since_karma_reset:
-            if comment.user.name == 'bodhi' and \
-               comment.text == config.get('testing_approval_msg'):
+            if comment.user.name == "bodhi" and comment.text == config.get("testing_approval_msg"):
                 return True
         return False
 
@@ -4109,7 +4254,7 @@ class Update(Base):
                 determined.
         """
         if not self.meets_testing_requirements and self.date_testing:
-            num_days = (self.mandatory_days_in_testing - self.days_in_testing)
+            num_days = self.mandatory_days_in_testing - self.days_in_testing
             if num_days > 0:
                 return num_days
         return 0
@@ -4181,8 +4326,7 @@ class Update(Base):
         elif self.request is UpdateRequest.obsolete:
             tag = self.release.candidate_tag
         if not tag:
-            raise RuntimeError(
-                f'Unable to determine requested tag for {self.alias}.')
+            raise RuntimeError(f"Unable to determine requested tag for {self.alias}.")
         return tag
 
     def __json__(self, request=None):
@@ -4195,25 +4339,21 @@ class Update(Base):
         Returns:
             str: A JSON representation of this update.
         """
-        result = super(Update, self).__json__(request=request)
+        result = super().__json__(request=request)
         # Duplicate alias as updateid for backwards compat with bodhi1
-        result['updateid'] = result['alias']
+        result["updateid"] = result["alias"]
         # Include the karma total in the results
-        result['karma'] = self.karma
+        result["karma"] = self.karma
         # Also, the Update content_type (derived from the builds content_types)
-        result['content_type'] = self.content_type.value if self.content_type else None
+        result["content_type"] = self.content_type.value if self.content_type else None
 
         # For https://github.com/fedora-infra/bodhi/issues/270, throw the JSON
         # of the test cases in our output as well but take extra care to
         # short-circuit some of the insane recursion for
         # https://github.com/fedora-infra/bodhi/issues/343
         seen = [Package, TestCaseKarma]
-        result['test_cases'] = [
-            test._to_json(
-                obj=test,
-                seen=seen,
-                request=request)
-            for test in self.full_test_cases
+        result["test_cases"] = [
+            test._to_json(obj=test, seen=seen, request=request) for test in self.full_test_cases
         ]
 
         return result
@@ -4264,12 +4404,14 @@ class Update(Base):
         """
         builds = []
         for build in self.builds:
-            builds.append({
-                "type": "koji-build",
-                "id": build.get_build_id(),
-                "task_id": build.get_task_id(),
-                "nvr": build.nvr,
-            })
+            builds.append(
+                {
+                    "type": "koji-build",
+                    "id": build.get_build_id(),
+                    "task_id": build.get_task_id(),
+                    "nvr": build.nvr,
+                }
+            )
 
         artifact = {
             "type": "koji-build-group",
@@ -4278,8 +4420,8 @@ class Update(Base):
         return {
             "artifact": artifact,
             "update": self,
-            'agent': agent,
-            're-trigger': retrigger,
+            "agent": agent,
+            "re-trigger": retrigger,
         }
 
     @staticmethod
@@ -4311,7 +4453,7 @@ class Update(Base):
 
 event.listen(
     Update.test_gating_status,
-    'set',
+    "set",
     Update.comment_on_test_gating_status_change,
     active_history=True,
     raw=True,
@@ -4348,14 +4490,14 @@ class Compose(Base):
             this compose.
     """
 
-    __exclude_columns__ = ('updates')
+    __exclude_columns__ = "updates"
     # We need to include content_type and security so the composer can collate the Composes and so
     # it can pick the right composer class to use.
-    __include_extras__ = ('content_type', 'security', 'update_summary')
-    __tablename__ = 'composes'
+    __include_extras__ = ("content_type", "security", "update_summary")
+    __tablename__ = "composes"
 
     # These together form the primary key.
-    release_id = Column(Integer, ForeignKey('releases.id'), primary_key=True, nullable=False)
+    release_id = Column(Integer, ForeignKey("releases.id"), primary_key=True, nullable=False)
     request = Column(UpdateRequest.db_type(), primary_key=True, nullable=False)
 
     # The parent class gives us an id primary key, but we'd rather have a "natural" primary key, so
@@ -4363,22 +4505,28 @@ class Compose(Base):
     id = None
     # We could use the JSON type here, but that would require PostgreSQL >= 9.2.0. We don't really
     # need the ability to query inside this so the JSONB type probably isn't useful.
-    checkpoints = Column(UnicodeText, nullable=False, default='{}')
+    checkpoints = Column(UnicodeText, nullable=False, default="{}")
     error_message = Column(UnicodeText)
-    date_created = Column(TZDateTime, nullable=False,
-                          default=partial(datetime.now, tz=timezone.utc))
+    date_created = Column(
+        TZDateTime, nullable=False, default=partial(datetime.now, tz=timezone.utc)
+    )
     state_date = Column(TZDateTime, nullable=False, default=partial(datetime.now, tz=timezone.utc))
 
-    release = relationship('Release', back_populates='composes')
+    release = relationship("Release", back_populates="composes")
     state = Column(ComposeState.db_type(), nullable=False, default=ComposeState.requested)
 
     updates = relationship(
-        'Update',
-        primaryjoin=("and_(foreign(Update.release_id)==Compose.release_id, "
-                     "foreign(Update.request)==Compose.request, "
-                     "Update.locked==True)"),
-        passive_deletes=True, order_by='Update.date_submitted', overlaps='release',
-        back_populates='compose')
+        "Update",
+        primaryjoin=(
+            "and_(foreign(Update.release_id)==Compose.release_id, "
+            "foreign(Update.request)==Compose.request, "
+            "Update.locked==True)"
+        ),
+        passive_deletes=True,
+        order_by="Update.date_submitted",
+        overlaps="release",
+        back_populates="compose",
+    )
 
     @property
     def content_type(self):
@@ -4404,9 +4552,14 @@ class Compose(Base):
         Returns:
             bodhi.server.models.Compose: The requested compose instance.
         """
-        return db.query(cls).filter_by(
-            release_id=compose['release_id'],
-            request=UpdateRequest.from_string(compose['request'])).one()
+        return (
+            db.query(cls)
+            .filter_by(
+                release_id=compose["release_id"],
+                request=UpdateRequest.from_string(compose["request"]),
+            )
+            .one()
+        )
 
     @classmethod
     def from_updates(cls, updates):
@@ -4427,7 +4580,7 @@ class Compose(Base):
         work = {}
         for update in updates:
             if not update.request:
-                log.info('%s request was revoked', update.alias)
+                log.info("%s request was revoked", update.alias)
                 continue
             # ASSUMPTION: For now, updates can only be of a single type.
             ctype = None
@@ -4441,13 +4594,14 @@ class Compose(Base):
                     # This branch is not covered because the Update.validate_builds validator
                     # catches the same assumption breakage. This check here is extra for the
                     # time when someone adds multitype updates and forgets to update this.
-                    raise ValueError(f'Builds of multiple types found in {update.alias}')
+                    raise ValueError(f"Builds of multiple types found in {update.alias}")
             # This key is just to insert things in the same place in the "work"
             # dict.
-            key = '%s-%s' % (update.release.name, update.request.value)
+            key = "%s-%s" % (update.release.name, update.request.value)
             if key not in work:
-                work[key] = cls(request=update.request, release_id=update.release.id,
-                                release=update.release)
+                work[key] = cls(
+                    request=update.request, release_id=update.release.id, release=update.release
+                )
             # Lock the Update. This implicitly adds it to the Compose because the Update.compose
             # relationship joins on the Compose's compound pk for locked Updates.
             update.locked = True
@@ -4494,8 +4648,9 @@ class Compose(Base):
             list: A list of dictionaries with keys 'alias' and 'title', indexing each update alias
                 and title associated with this Compose.
         """
-        return [{'alias': u.alias,
-                'title': u.get_title(nvr=True, beautify=True)} for u in self.updates]
+        return [
+            {"alias": u.alias, "title": u.get_title(nvr=True, beautify=True)} for u in self.updates
+        ]
 
     def __json__(self, request=None, exclude=None, include=None, composer=False):
         """
@@ -4512,12 +4667,19 @@ class Compose(Base):
             str: A JSON representation of the Compose.
         """
         if composer:
-            exclude = ('checkpoints', 'error_message', 'date_created', 'state_date', 'release',
-                       'state', 'updates')
+            exclude = (
+                "checkpoints",
+                "error_message",
+                "date_created",
+                "state_date",
+                "release",
+                "state",
+                "updates",
+            )
             # We need to include content_type and security so the composer can collate the Composes
             # and so it can pick the right composer class to use.
-            include = ('content_type', 'security')
-        return super(Compose, self).__json__(request=request, exclude=exclude, include=include)
+            include = ("content_type", "security")
+        return super().__json__(request=request, exclude=exclude, include=include)
 
     def __lt__(self, other):
         """
@@ -4543,10 +4705,10 @@ class Compose(Base):
         Returns:
             str: A string to be displayed to users describing this compose.
         """
-        return '<Compose: {} {}>'.format(self.release.name, self.request.description)
+        return f"<Compose: {self.release.name} {self.request.description}>"
 
 
-event.listen(Compose.state, 'set', Compose.update_state_date, active_history=True)
+event.listen(Compose.state, "set", Compose.update_state_date, active_history=True)
 
 
 # Used for many-to-many relationships between karma and a bug
@@ -4560,16 +4722,16 @@ class BugKarma(Base):
         bug (Bug): The bug this BugKarma pertains to.
     """
 
-    __tablename__ = 'comment_bug_assoc'
+    __tablename__ = "comment_bug_assoc"
 
     karma = Column(Integer, default=0)
 
     # Many-to-one relationships
-    comment_id = Column(Integer, ForeignKey('comments.id'))
-    comment = relationship('Comment', back_populates='bug_feedback')
+    comment_id = Column(Integer, ForeignKey("comments.id"))
+    comment = relationship("Comment", back_populates="bug_feedback")
 
-    bug_id = Column(Integer, ForeignKey('bugs.bug_id'))
-    bug = relationship('Bug', back_populates='feedback')
+    bug_id = Column(Integer, ForeignKey("bugs.bug_id"))
+    bug = relationship("Bug", back_populates="feedback")
 
 
 # Used for many-to-many relationships between karma and a TestCase
@@ -4583,16 +4745,16 @@ class TestCaseKarma(Base):
         testcase (TestCase): The TestCase this TestCaseKarma pertains to.
     """
 
-    __tablename__ = 'comment_testcase_assoc'
+    __tablename__ = "comment_testcase_assoc"
 
     karma = Column(Integer, default=0)
 
     # Many-to-one relationships
-    comment_id = Column(Integer, ForeignKey('comments.id'))
-    comment = relationship('Comment', back_populates='testcase_feedback')
+    comment_id = Column(Integer, ForeignKey("comments.id"))
+    comment = relationship("Comment", back_populates="testcase_feedback")
 
-    testcase_id = Column(Integer, ForeignKey('testcases.id'))
-    testcase = relationship('TestCase', back_populates='feedback')
+    testcase_id = Column(Integer, ForeignKey("testcases.id"))
+    testcase = relationship("TestCase", back_populates="feedback")
 
 
 class Comment(Base):
@@ -4610,9 +4772,9 @@ class Comment(Base):
         user (User): The user who wrote this comment.
     """
 
-    __tablename__ = 'comments'
+    __tablename__ = "comments"
     __exclude_columns__ = tuple()
-    __get_by__ = ('id',)
+    __get_by__ = ("id",)
 
     karma = Column(Integer, default=0)
     karma_critpath = Column(Integer, default=0)
@@ -4620,18 +4782,20 @@ class Comment(Base):
     timestamp = Column(TZDateTime, default=partial(datetime.now, tz=timezone.utc))
 
     # One-to-many relationships
-    bug_feedback = relationship('BugKarma', back_populates='comment',
-                                cascade="all,delete,delete-orphan")
+    bug_feedback = relationship(
+        "BugKarma", back_populates="comment", cascade="all,delete,delete-orphan"
+    )
 
-    testcase_feedback = relationship('TestCaseKarma', back_populates='comment',
-                                     cascade="all,delete,delete-orphan")
+    testcase_feedback = relationship(
+        "TestCaseKarma", back_populates="comment", cascade="all,delete,delete-orphan"
+    )
 
     # Many-to-one relationships
-    update_id = Column(Integer, ForeignKey('updates.id'), nullable=False, index=True)
-    update = relationship('Update', back_populates='comments')
+    update_id = Column(Integer, ForeignKey("updates.id"), nullable=False, index=True)
+    update = relationship("Update", back_populates="comments")
 
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    user = relationship('User', back_populates='comments')
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user = relationship("User", back_populates="comments")
 
     def url(self) -> str:
         """
@@ -4640,11 +4804,11 @@ class Comment(Base):
         Returns:
             A URL to this comment.
         """
-        url = self.update.get_url() + '#comment-' + str(self.id)
+        url = self.update.get_url() + "#comment-" + str(self.id)
         return url
 
     @property
-    def unique_testcase_feedback(self) -> typing.List[TestCaseKarma]:
+    def unique_testcase_feedback(self) -> list[TestCaseKarma]:
         """
         Return a list of unique :class:`TestCaseKarma` objects found in the testcase_feedback.
 
@@ -4672,7 +4836,7 @@ class Comment(Base):
         Returns:
             A string representation of the comment for RSS feed.
         """
-        return "{} comment #{}".format(self.update.alias, self.id)
+        return f"{self.update.alias} comment #{self.id}"
 
     def __json__(self, *args, **kwargs) -> dict:
         """
@@ -4684,19 +4848,19 @@ class Comment(Base):
         Returns:
             A JSON-serializable dict representation of this comment.
         """
-        result = super(Comment, self).__json__(*args, **kwargs)
+        result = super().__json__(*args, **kwargs)
         # Duplicate 'user' as 'author' just for backwards compat with bodhi1.
         # Things like the message schemas and fedbadges rely on this.
-        if result['user']:
-            result['author'] = result['user']['name']
+        if result["user"]:
+            result["author"] = result["user"]["name"]
 
         # Similarly, duplicate the update's alias as update_alias.
-        result['update_alias'] = result['update']['alias']
+        result["update_alias"] = result["update"]["alias"]
 
         # Updates used to have a karma column which would be included in result['update']. The
         # column was replaced with a property, so we need to include it here for backwards
         # compatibility.
-        result['update']['karma'] = self.update.karma
+        result["update"]["karma"] = self.update.karma
 
         return result
 
@@ -4707,9 +4871,9 @@ class Comment(Base):
         Returns:
             A str representation of this comment.
         """
-        karma = '0'
+        karma = "0"
         if self.karma != 0:
-            karma = '%+d' % (self.karma,)
+            karma = "%+d" % (self.karma,)
         return "%s - %s (karma: %s)\n%s" % (self.user.name, self.timestamp, karma, self.text)
 
 
@@ -4724,9 +4888,9 @@ class Bug(Base):
         parent (bool): True if this is a parent tracker bug for release-specific bugs.
     """
 
-    __tablename__ = 'bugs'
-    __exclude_columns__ = ('id', 'updates')
-    __get_by__ = ('bug_id',)
+    __tablename__ = "bugs"
+    __exclude_columns__ = ("id", "updates")
+    __get_by__ = ("bug_id",)
 
     # Bug number. If None, assume ``url`` points to an external bug tracker
     bug_id = Column(Integer, unique=True)
@@ -4741,9 +4905,9 @@ class Bug(Base):
     parent = Column(Boolean, default=False)
 
     # Many-to-many relationships
-    updates = relationship('Update', secondary=update_bug_table, back_populates='bugs')
+    updates = relationship("Update", secondary=update_bug_table, back_populates="bugs")
 
-    feedback = relationship('BugKarma', back_populates='bug')
+    feedback = relationship("BugKarma", back_populates="bug")
 
     @property
     def url(self) -> str:
@@ -4753,9 +4917,9 @@ class Bug(Base):
         Returns:
             The URL to this bug.
         """
-        return config['buglink'] % self.bug_id
+        return config["buglink"] % self.bug_id
 
-    def update_details(self, bug: typing.Optional['bugzilla.bug.Bug'] = None) -> None:
+    def update_details(self, bug: typing.Optional["bugzilla.bug.Bug"] = None) -> None:
         """
         Grab details from rhbz to populate our bug fields.
 
@@ -4777,34 +4941,43 @@ class Bug(Base):
             The default comment to add to the bug related to the given update.
         """
         install_msg = (
-            f'Soon you\'ll be able to install the update with the following '
-            f'command:\n`{update.install_command}`') if update.install_command else ''
-        msg_data = {'update_title': update.get_title(delim=", ", nvr=True),
-                    'update_beauty_title': update.get_title(beautify=True, nvr=True),
-                    'update_alias': update.alias,
-                    'repo': f'{update.release.long_name} {update.status.description}',
-                    'install_instructions': install_msg,
-                    'update_url': update.abs_url()}
+            (
+                f"Soon you'll be able to install the update with the following "
+                f"command:\n`{update.install_command}`"
+            )
+            if update.install_command
+            else ""
+        )
+        msg_data = {
+            "update_title": update.get_title(delim=", ", nvr=True),
+            "update_beauty_title": update.get_title(beautify=True, nvr=True),
+            "update_alias": update.alias,
+            "repo": f"{update.release.long_name} {update.status.description}",
+            "install_instructions": install_msg,
+            "update_url": update.abs_url(),
+        }
 
         if update.status is UpdateStatus.stable:
-            message = config['stable_bug_msg'].format(**msg_data)
+            message = config["stable_bug_msg"].format(**msg_data)
         elif update.status is UpdateStatus.testing:
             if update.release.id_prefix == "FEDORA-EPEL":
-                if 'testing_bug_epel_msg' in config:
-                    template = config['testing_bug_epel_msg']
+                if "testing_bug_epel_msg" in config:
+                    template = config["testing_bug_epel_msg"]
                 else:
-                    template = config['testing_bug_msg']
+                    template = config["testing_bug_msg"]
                     log.warning("No 'testing_bug_epel_msg' found in the config.")
             else:
-                template = config['testing_bug_msg']
+                template = config["testing_bug_msg"]
             message = template.format(**msg_data)
         else:
-            raise ValueError(f'Trying to post a default comment to a bug, but '
-                             f'{update.alias} is not in Stable or Testing status.')
+            raise ValueError(
+                f"Trying to post a default comment to a bug, but "
+                f"{update.alias} is not in Stable or Testing status."
+            )
 
         return message
 
-    def add_comment(self, update: Update, comment: typing.Optional[str] = None) -> None:
+    def add_comment(self, update: Update, comment: str | None = None) -> None:
         """
         Add a comment to the bug, pertaining to the given update.
 
@@ -4813,9 +4986,12 @@ class Bug(Base):
             comment: The comment to add to the bug. If None, a default message
                 is added to the bug. Defaults to None.
         """
-        if update.type is UpdateType.security and self.parent \
-                and update.status is not UpdateStatus.stable:
-            log.debug('Not commenting on parent security bug %s', self.bug_id)
+        if (
+            update.type is UpdateType.security
+            and self.parent
+            and update.status is not UpdateStatus.stable
+        ):
+            log.debug("Not commenting on parent security bug %s", self.bug_id)
         else:
             if not comment:
                 comment = self.default_message(update)
@@ -4834,7 +5010,7 @@ class Bug(Base):
         """
         # Skip modifying Security Response bugs for testing updates
         if update.type is UpdateType.security and self.parent:
-            log.debug('Not modifying parent security bug %s', self.bug_id)
+            log.debug("Not modifying parent security bug %s", self.bug_id)
         else:
             comment = self.default_message(update)
             bugs.bugtracker.on_qa(self.bug_id, comment)
@@ -4848,9 +5024,7 @@ class Bug(Base):
         """
         # Build a mapping of package names to build versions
         # so that .close() can figure out which build version fixes which bug.
-        versions = dict([
-            (b.nvr_name, b.nvr) for b in update.builds
-        ])
+        versions = dict([(b.nvr_name, b.nvr) for b in update.builds])
         bugs.bugtracker.close(self.bug_id, versions=versions, comment=self.default_message(update))
 
     def modified(self, update: Update, comment: str) -> None:
@@ -4864,14 +5038,17 @@ class Bug(Base):
             comment: A comment to leave on the bug when modifying it.
         """
         if update.type is UpdateType.security and self.parent:
-            log.debug('Not modifying parent security bug %s', self.bug_id)
+            log.debug("Not modifying parent security bug %s", self.bug_id)
         else:
             bugs.bugtracker.modified(self.bug_id, comment)
 
 
-user_group_table = Table('user_group_table', Base.metadata,
-                         Column('user_id', Integer, ForeignKey('users.id')),
-                         Column('group_id', Integer, ForeignKey('groups.id')))
+user_group_table = Table(
+    "user_group_table",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id")),
+    Column("group_id", Integer, ForeignKey("groups.id")),
+)
 
 
 class User(Base):
@@ -4889,25 +5066,25 @@ class User(Base):
             the user is a member of.
     """
 
-    __tablename__ = 'users'
-    __exclude_columns__ = ('comments', 'updates', 'buildroot_overrides')
-    __include_extras__ = ('avatar', 'openid')
-    __get_by__ = ('name',)
+    __tablename__ = "users"
+    __exclude_columns__ = ("comments", "updates", "buildroot_overrides")
+    __include_extras__ = ("avatar", "openid")
+    __get_by__ = ("name",)
 
     name = Column(Unicode(64), unique=True, nullable=False)
     email = Column(UnicodeText)
 
     # One-to-many relationships
-    comments = relationship('Comment', back_populates='user', lazy='dynamic')
+    comments = relationship("Comment", back_populates="user", lazy="dynamic")
 
-    updates = relationship('Update', back_populates='user', lazy='dynamic')
+    updates = relationship("Update", back_populates="user", lazy="dynamic")
 
-    buildroot_overrides = relationship('BuildrootOverride', back_populates='submitter')
+    buildroot_overrides = relationship("BuildrootOverride", back_populates="submitter")
 
     # Many-to-many relationships
-    groups = relationship('Group', secondary=user_group_table, back_populates='users')
+    groups = relationship("Group", secondary=user_group_table, back_populates="users")
 
-    def avatar(self, request: 'pyramid.request') -> typing.Union[str, None]:
+    def avatar(self, request: "pyramid.request") -> str | None:
         """
         Return a URL for the User's avatar, or None if request is falsey.
 
@@ -4921,7 +5098,7 @@ class User(Base):
         context = dict(request=request)
         return get_avatar(context=context, username=self.name, usermail=self.email, size=24)
 
-    def openid(self, request: 'pyramid.request') -> str:
+    def openid(self, request: "pyramid.request") -> str:
         """
         Return an openid identity URL.
 
@@ -4932,7 +5109,7 @@ class User(Base):
         """
         if not request:
             return None
-        template = request.registry.settings.get('openid_template')
+        template = request.registry.settings.get("openid_template")
         return template.format(username=self.name)
 
 
@@ -4946,14 +5123,14 @@ class Group(Base):
             :class:`Users <User>` who are in the group.
     """
 
-    __tablename__ = 'groups'
-    __get_by__ = ('name',)
-    __exclude_columns__ = ('id',)
+    __tablename__ = "groups"
+    __get_by__ = ("name",)
+    __exclude_columns__ = ("id",)
 
     name = Column(Unicode(64), unique=True, nullable=False)
 
     # Many-to-many relationships
-    users = relationship("User", secondary=user_group_table, back_populates='groups')
+    users = relationship("User", secondary=user_group_table, back_populates="groups")
 
 
 class BuildrootOverride(Base):
@@ -4976,25 +5153,26 @@ class BuildrootOverride(Base):
         submitter (User): The user this override was created by.
     """
 
-    __tablename__ = 'buildroot_overrides'
-    __include_extras__ = ('nvr',)
-    __get_by__ = ('build_id',)
+    __tablename__ = "buildroot_overrides"
+    __include_extras__ = ("nvr",)
+    __get_by__ = ("build_id",)
 
     notes = Column(UnicodeText, nullable=False)
 
-    submission_date = Column(TZDateTime, default=partial(datetime.now, tz=timezone.utc),
-                             nullable=False)
+    submission_date = Column(
+        TZDateTime, default=partial(datetime.now, tz=timezone.utc), nullable=False
+    )
     expiration_date = Column(TZDateTime, nullable=False)
     expired_date = Column(TZDateTime)
 
     # Many-to-one relationships
-    build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
-    build = relationship('Build', lazy='joined', innerjoin=True,
-                         back_populates='override')
+    build_id = Column(Integer, ForeignKey("builds.id"), nullable=False)
+    build = relationship("Build", lazy="joined", innerjoin=True, back_populates="override")
 
-    submitter_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    submitter = relationship('User', lazy='joined', innerjoin=True,
-                             back_populates='buildroot_overrides')
+    submitter_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    submitter = relationship(
+        "User", lazy="joined", innerjoin=True, back_populates="buildroot_overrides"
+    )
 
     @property
     def nvr(self) -> str:
@@ -5007,7 +5185,7 @@ class BuildrootOverride(Base):
         return self.build.nvr
 
     @classmethod
-    def new(cls, request: 'pyramid.request', **data) -> 'BuildrootOverride':
+    def new(cls, request: "pyramid.request", **data) -> "BuildrootOverride":
         """
         Create a new buildroot override.
 
@@ -5019,17 +5197,19 @@ class BuildrootOverride(Base):
         """
         db = request.db
 
-        build = data['build']
+        build = data["build"]
 
         if build.override is not None:
-            request.errors.add('body', 'nvr',
-                               '%s is already in a override' % build.nvr)
+            request.errors.add("body", "nvr", "%s is already in a override" % build.nvr)
             return
 
-        old_build = db.query(Build).filter(
-            and_(
-                Build.package_id == build.package_id,
-                Build.release_id == build.release_id)).first()
+        old_build = (
+            db.query(Build)
+            .filter(
+                and_(Build.package_id == build.package_id, Build.release_id == build.release_id)
+            )
+            .first()
+        )
 
         if old_build is not None and old_build.override is not None:
             # There already is a buildroot override for an older build of this
@@ -5046,7 +5226,7 @@ class BuildrootOverride(Base):
         return override
 
     @classmethod
-    def edit(cls, request: 'pyramid.request', **data) -> 'BuildrootOverride':
+    def edit(cls, request: "pyramid.request", **data) -> "BuildrootOverride":
         """
         Edit an existing buildroot override.
 
@@ -5057,19 +5237,18 @@ class BuildrootOverride(Base):
             The new updated override.
         """
         db = request.db
-        edited = data.pop('edited')
+        edited = data.pop("edited")
         override = cls.get(edited.id)
 
         if override is None:
-            request.errors.add('body', 'edited',
-                               'No buildroot override for this build')
+            request.errors.add("body", "edited", "No buildroot override for this build")
             return
 
-        override.submitter = data['submitter']
-        override.notes = data['notes']
-        override.expiration_date = data['expiration_date']
-        if 'submission_date' in data:
-            override.submission_date = data['submission_date']
+        override.submitter = data["submitter"]
+        override.notes = data["notes"]
+        override.expiration_date = data["expiration_date"]
+        if "submission_date" in data:
+            override.submission_date = data["submission_date"]
 
         now = datetime.now(timezone.utc)
 
@@ -5077,7 +5256,7 @@ class BuildrootOverride(Base):
             # Buildroot override had expired, we need to unexpire it
             override.enable()
 
-        elif data['expired']:
+        elif data["expired"]:
             log.debug(f"Expiring BRO for {override.build.nvr} because it was edited.")
             override.expire()
 
@@ -5092,8 +5271,9 @@ class BuildrootOverride(Base):
         for tag in self.build.release.inherited_override_tags + [self.build.release.override_tag]:
             koji_session.tagBuild(tag, self.build.nvr)
 
-        notifications.publish(override_schemas.BuildrootOverrideTagV1.from_dict(
-            dict(override=self)))
+        notifications.publish(
+            override_schemas.BuildrootOverrideTagV1.from_dict(dict(override=self))
+        )
 
         self.expired_date = None
 
@@ -5110,5 +5290,6 @@ class BuildrootOverride(Base):
                 log.error(f"Unable to untag override {self.build.nvr} from {tag}: '{e}'")
         self.expired_date = datetime.now(timezone.utc)
 
-        notifications.publish(override_schemas.BuildrootOverrideUntagV1.from_dict(
-            {'override': self}))
+        notifications.publish(
+            override_schemas.BuildrootOverrideUntagV1.from_dict({"override": self})
+        )

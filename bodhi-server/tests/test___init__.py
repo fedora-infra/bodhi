@@ -16,39 +16,39 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for bodhi.server.__init__."""
-from unittest import mock
+
 import collections
 import resource
-
-from pyramid import authentication, testing
+from unittest import mock
 
 from bodhi import server
 from bodhi.server import models
 from bodhi.server.config import config
 from bodhi.server.security import BodhiSecurityPolicy
 from bodhi.server.views import generic
+from pyramid import authentication, testing
 
 from . import base
 
 
 class TestExceptionFilter:
     """Test the exception_filter() function."""
-    @mock.patch('bodhi.server.log.exception')
+
+    @mock.patch("bodhi.server.log.exception")
     def test_exception(self, exception):
         """An Exception should be logged and returned."""
-        request_response = OSError('Your money is gone.')
+        request_response = OSError("Your money is gone.")
 
         # The second argument is not used.
         response = server.exception_filter(request_response, None)
 
         assert response == request_response
-        exception.assert_called_once_with(
-            "Unhandled exception raised:  {}".format(repr(request_response)))
+        exception.assert_called_once_with(f"Unhandled exception raised:  %r", request_response)
 
-    @mock.patch('bodhi.server.log.exception')
+    @mock.patch("bodhi.server.log.exception")
     def test_no_exception(self, exception):
         """A non-exception should not be logged and should be returned."""
-        request_response = 'Your money is safe with me.'
+        request_response = "Your money is safe with me."
 
         # The second argument is not used.
         response = server.exception_filter(request_response, None)
@@ -59,6 +59,7 @@ class TestExceptionFilter:
 
 class TestGetBuildinfo:
     """Test get_buildinfo()."""
+
     def test_get_buildinfo(self):
         """get_buildinfo() should return an empty defaultdict."""
         # The argument isn't used, so we'll just pass None.
@@ -66,13 +67,14 @@ class TestGetBuildinfo:
 
         assert isinstance(bi, collections.defaultdict)
         assert bi == {}
-        assert bi['made_up_key'] == {}
+        assert bi["made_up_key"] == {}
 
 
 class TestGetCacheregion:
     """Test get_cache_region()."""
-    @mock.patch.dict('bodhi.server.bodhi_config', {'some': 'config'}, clear=True)
-    @mock.patch('bodhi.server.make_region')
+
+    @mock.patch.dict("bodhi.server.bodhi_config", {"some": "config"}, clear=True)
+    @mock.patch("bodhi.server.make_region")
     def test_get_cache_region(self, make_region):
         """Test get_cacheregion."""
         server.cache_region = None
@@ -80,12 +82,13 @@ class TestGetCacheregion:
 
         make_region.assert_called_once_with()
         assert region is make_region.return_value
-        region.configure_from_config.assert_called_once_with({'some': 'config'}, 'dogpile.cache.')
+        region.configure_from_config.assert_called_once_with({"some": "config"}, "dogpile.cache.")
 
 
 class TestGetKoji:
     """Test get_koji()."""
-    @mock.patch('bodhi.server.buildsys.get_session')
+
+    @mock.patch("bodhi.server.buildsys.get_session")
     def test_get_koji(self, get_session):
         """Ensure that get_koji() returns the response from buildsys.get_session()."""
         # The argument is not used, so set it to None.
@@ -96,9 +99,10 @@ class TestGetKoji:
 
 class TestGetReleases(base.BasePyTestCase):
     """Test the get_releases() function."""
+
     def test_get_releases(self):
         """Assert correct return value from get_releases()."""
-        request = testing.DummyRequest(user=base.DummyUser('guest'))
+        request = testing.DummyRequest(user=base.DummyUser("guest"))
 
         releases = server.get_releases(request)
 
@@ -109,95 +113,102 @@ class TestMain(base.BasePyTestCase):
     """
     Assert correct behavior from the main() function.
     """
-    @mock.patch('bodhi.server.Configurator.set_security_policy')
+
+    @mock.patch("bodhi.server.Configurator.set_security_policy")
     def test_authtkt_timeout_defined(self, set_security_policy):
         """Ensure that main() uses the setting when authtkt.timeout is defined in settings."""
         with mock.patch.dict(
-                self.app_settings,
-                {'authtkt.timeout': '10', 'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
+            self.app_settings,
+            {"authtkt.timeout": "10", "authtkt.secret": "hunter2", "authtkt.secure": "true"},
+        ):
             server.main({}, session=self.db, **self.app_settings)
 
         policy = set_security_policy.mock_calls[0][1][0]
         assert isinstance(policy, BodhiSecurityPolicy)
         assert isinstance(policy.helper, authentication.AuthTktCookieHelper)
-        assert policy.helper.hashalg == 'sha512'
+        assert policy.helper.hashalg == "sha512"
         assert policy.helper.max_age == 10
         assert policy.helper.secure is True
-        assert policy.helper.secret == 'hunter2'
+        assert policy.helper.secret == "hunter2"
         assert policy.helper.timeout == 10
         set_security_policy.assert_called_once_with(policy)
 
-    @mock.patch('bodhi.server.Configurator.set_security_policy')
+    @mock.patch("bodhi.server.Configurator.set_security_policy")
     def test_authtkt_timeout_undefined(self, set_security_policy):
         """Ensure that main() uses a default if authtkt.timeout is undefined in settings."""
         with mock.patch.dict(
-                self.app_settings, {'authtkt.secret': 'hunter2', 'authtkt.secure': 'true'}):
+            self.app_settings, {"authtkt.secret": "hunter2", "authtkt.secure": "true"}
+        ):
             server.main({}, session=self.db, **self.app_settings)
 
         policy = set_security_policy.mock_calls[0][1][0]
         assert isinstance(policy, BodhiSecurityPolicy)
         assert isinstance(policy.helper, authentication.AuthTktCookieHelper)
-        assert policy.helper.hashalg == 'sha512'
+        assert policy.helper.hashalg == "sha512"
         assert policy.helper.max_age == 86400
         assert policy.helper.secure is True
-        assert policy.helper.secret == 'hunter2'
+        assert policy.helper.secret == "hunter2"
         assert policy.helper.timeout == 86400
         set_security_policy.assert_called_once_with(policy)
 
-    @mock.patch('bodhi.server.bugs.set_bugtracker')
+    @mock.patch("bodhi.server.bugs.set_bugtracker")
     def test_calls_set_bugtracker(self, set_bugtracker):
         """
         Ensure that main() calls set_bugtracker().
         """
-        server.main({}, testing='guest', session=self.db, **self.app_settings)
+        server.main({}, testing="guest", session=self.db, **self.app_settings)
 
         set_bugtracker.assert_called_once_with()
 
-    @mock.patch.dict('bodhi.server.config.config', {'test': 'changeme'})
+    @mock.patch.dict("bodhi.server.config.config", {"test": "changeme"})
     def test_settings(self):
         """Ensure that passed settings make their way into the Bodhi config."""
-        self.app_settings.update({'test': 'setting'})
+        self.app_settings.update({"test": "setting"})
 
-        server.main({}, testing='guest', session=self.db, **self.app_settings)
+        server.main({}, testing="guest", session=self.db, **self.app_settings)
 
-        assert config['test'] == 'setting'
+        assert config["test"] == "setting"
 
-    @mock.patch('bodhi.server.log.debug')
+    @mock.patch("bodhi.server.log.debug")
     def test_sets_up_home_page_cache(self, debug):
         """Ensure that the home page cache works."""
         generic._generate_home_page_stats.invalidate()
-        self.app.get('/', status=200)
+        self.app.get("/", status=200)
         debug.assert_called_with("Refreshing home page stats")
         debug.reset_mock()
-        self.app.get('/', status=200)
+        self.app.get("/", status=200)
         debug.assert_not_called
 
         generic._generate_home_page_stats.invalidate()
-        self.app.get('/', status=200)
+        self.app.get("/", status=200)
         debug.assert_called_with("Refreshing home page stats")
 
-    @mock.patch.dict('bodhi.server.config.config', {'warm_cache_on_start': True})
-    @mock.patch('bodhi.server.log.debug')
+    @mock.patch.dict("bodhi.server.config.config", {"warm_cache_on_start": True})
+    @mock.patch("bodhi.server.log.debug")
     def test_warms_up_releases_cache(self, debug):
         """main() should warm up the all_releases cache."""
         generic._generate_home_page_stats.invalidate()
 
-        server.main({}, testing='guest', session=self.db)
+        server.main({}, testing="guest", session=self.db)
 
-        debug.assert_has_calls([mock.call('Refreshing releases cache'),
-                                mock.call('Refreshing tags cache'),
-                                mock.call('Refreshing home page stats')])
+        debug.assert_has_calls(
+            [
+                mock.call("Refreshing releases cache"),
+                mock.call("Refreshing tags cache"),
+                mock.call("Refreshing home page stats"),
+            ]
+        )
 
     def test_calls_initialize_db(self):
         """main() should call initialize_db() when called without a session arg."""
-        with mock.patch('bodhi.server.initialize_db') as init_db:
+        with mock.patch("bodhi.server.initialize_db") as init_db:
             server.main({}, **self.app_settings)
 
         init_db.assert_called_once()
 
 
 class TestRaiseOpenFileLimit(base.BasePyTestCase):
-    @mock.patch('bodhi.server.log.info')
+    @mock.patch("bodhi.server.log.info")
     def test_raises_limit(self, info):
         """The limit should be set to the hard limit."""
         (original_soft, original_hard) = resource.getrlimit(resource.RLIMIT_NOFILE)
@@ -209,6 +220,7 @@ class TestRaiseOpenFileLimit(base.BasePyTestCase):
 
             assert resource.getrlimit(resource.RLIMIT_NOFILE) == (original_hard, original_hard)
             info.assert_called_once_with(
-                f'Raised open file limit from {soft_limit} to {original_hard}')
+                f"Raised open file limit from {soft_limit} to {original_hard}"
+            )
         finally:
             resource.setrlimit(resource.RLIMIT_NOFILE, (original_soft, original_hard))

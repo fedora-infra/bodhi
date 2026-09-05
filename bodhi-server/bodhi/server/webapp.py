@@ -25,9 +25,8 @@ Unfortunately, it is a backwards-incompatible change to move main() here, so it 
 __init__ until we make a major Bodhi release. See https://github.com/fedora-infra/bodhi/issues/2294
 """
 
-from pyramid.events import NewRequest, subscriber
-
 from bodhi import server
+from pyramid.events import NewRequest, subscriber
 
 
 def _complete_database_session(request):
@@ -65,8 +64,8 @@ def _prepare_request(event):
     Args:
         event (pyramid.events.NewRequest): The new request event.
     """
-    if 'Accept' not in event.request.headers or event.request.headers['Accept'] == '*/*':
-        event.request.headers['Accept'] = 'application/json'
+    if "Accept" not in event.request.headers or event.request.headers["Accept"] == "*/*":
+        event.request.headers["Accept"] = "application/json"
 
     event.request.add_finished_callback(_complete_database_session)
 

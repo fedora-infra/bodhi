@@ -16,37 +16,36 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from urllib.parse import quote, urlencode
 import hashlib
 import math
 import xml.etree.ElementTree as ET
+from urllib.parse import quote, urlencode
 
 import psycopg2
 import pytest
 
 from .utils import read_file
 
-
 content_type_mapping = {
-    'base': 'Base',
-    'rpm': 'RPM',
-    'module': 'Module',
-    'container': 'Container',
-    'flatpak': 'Flatpak',
+    "base": "Base",
+    "rpm": "RPM",
+    "module": "Module",
+    "container": "Container",
+    "flatpak": "Flatpak",
 }
 
 compose_state_mapping = {
-    'requested': 'Requested',
-    'pending': 'Pending',
-    'initializing': 'Initializing',
-    'updateinfo': 'Generating updateinfo.xml',
-    'punging': 'Waiting for Pungi to finish',
-    'syncing_repo': 'Wait for the repo to hit the master mirror',
-    'notifying': 'Sending notifications',
-    'success': 'Success',
-    'failed': 'Failed',
-    'signing_repo': 'Signing repo',
-    'cleaning': 'Cleaning old composes',
+    "requested": "Requested",
+    "pending": "Pending",
+    "initializing": "Initializing",
+    "updateinfo": "Generating updateinfo.xml",
+    "punging": "Waiting for Pungi to finish",
+    "syncing_repo": "Wait for the repo to hit the master mirror",
+    "notifying": "Sending notifications",
+    "success": "Success",
+    "failed": "Failed",
+    "signing_repo": "Signing repo",
+    "cleaning": "Cleaning old composes",
 }
 
 
@@ -80,7 +79,8 @@ def check_rss_common_header(rss_xml, path, bodhi_ip):
     assert channel_childs[2].text == description
     assert channel_childs[3].tag == "{http://www.w3.org/2005/Atom}link"
     assert channel_childs[3].attrib == {
-        "href": f"http://{bodhi_ip}:8080/rss/{path}/", "rel": "self"
+        "href": f"http://{bodhi_ip}:8080/rss/{path}/",
+        "rel": "self",
     }
     assert channel_childs[3].text is None
     assert channel_childs[4].tag == "docs"
@@ -99,21 +99,17 @@ def check_rss_common_header(rss_xml, path, bodhi_ip):
 def test_get_root(bodhi_container, db_container):
     """Test ``/`` path"""
     # Fetch number of critpath updates in testing from DB
-    query = (
-        "SELECT * "
-        "FROM updates "
-        "WHERE status = 'testing' AND critpath")
+    query = "SELECT * FROM updates WHERE status = 'testing' AND critpath"
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query)
-            critpath_count = len(curs.fetchall())
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query)
+        critpath_count = len(curs.fetchall())
     conn.close()
 
     # GET on /
     with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
+        headers = {"Accept": "text/html"}
         http_response = c.get("/", headers=headers)
 
     try:
@@ -136,7 +132,7 @@ def test_get_api_version(bodhi_container):
 
     # Get bodhi version from source
     ret = bodhi_container.execute(
-        "python3 -c \"import importlib.metadata; print(importlib.metadata"
+        'python3 -c "import importlib.metadata; print(importlib.metadata'
         ".metadata('bodhi-server').get('version'), end='', flush=True)\""
     )
     bodhi_version = ret[0].decode("utf-8")
@@ -157,7 +153,7 @@ def test_get_liveness(bodhi_container):
     # this is standard `requests.Response`
     http_response = bodhi_container.http_request(path="/healthz/live", port=8080)
     assert http_response.ok
-    assert http_response.json() == 'ok'
+    assert http_response.json() == "ok"
 
 
 def test_get_readyness(bodhi_container):
@@ -166,14 +162,14 @@ def test_get_readyness(bodhi_container):
     # this is standard `requests.Response`
     http_response = bodhi_container.http_request(path="/healthz/ready", port=8080)
     assert http_response.ok
-    assert http_response.json() == {'db_session': True}
+    assert http_response.json() == {"db_session": True}
 
 
 def test_get_notfound_view(bodhi_container):
     """Test not_found_view path"""
     # GET on /inexisting_path
     with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
+        headers = {"Accept": "text/html"}
         http_response = c.get("/inexisting_path", headers=headers)
 
     try:
@@ -192,20 +188,17 @@ def test_get_notfound_view(bodhi_container):
 def test_get_releases_view(bodhi_container, db_container):
     """Test ``/releases`` path"""
     # Fetch releases from DB
-    query = (
-        "SELECT long_name FROM releases "
-        "WHERE state NOT IN ('disabled', 'archived')")
+    query = "SELECT long_name FROM releases WHERE state NOT IN ('disabled', 'archived')"
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query)
-            expected_releases = [r[0] for r in curs]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query)
+        expected_releases = [r[0] for r in curs]
     conn.close()
 
     # GET on /releases
     with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
+        headers = {"Accept": "text/html"}
         http_response = c.get("/releases", headers=headers)
 
     try:
@@ -239,18 +232,17 @@ def test_get_release_view(bodhi_container, db_container):
         "WHERE state = 'current' LIMIT 1"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query)
-            release_info = curs.fetchone()
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query)
+        release_info = curs.fetchone()
     conn.close()
 
     release_long_name = release_info[0]
 
     # GET on /release/{name}
     with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
+        headers = {"Accept": "text/html"}
         http_response = c.get(f"/releases/{release_long_name}", headers=headers)
 
     try:
@@ -283,32 +275,31 @@ def test_get_updates_view(bodhi_container, db_container):
         "ORDER BY nvr"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            expected_updates = [[row[0], row[1]] for row in curs]
-            for update in expected_updates:
-                curs.execute(query_builds, (update[0], ))
-                builds_nvrs = [row[0] for row in curs]
-                if update[1]:
-                    # if the update has the optional display_name, this is what
-                    # we show in the updates list page. So check for that.
-                    expected_updates_titles.append(update[1])
-                elif len(builds_nvrs) > 2:
-                    title = ", ".join(builds_nvrs[:2])
-                    title += ", &amp; "
-                    title += str(len(builds_nvrs) - 2)
-                    title += " more"
-                    expected_updates_titles.append(title)
-                else:
-                    expected_updates_titles.append(" and ".join(builds_nvrs))
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        expected_updates = [[row[0], row[1]] for row in curs]
+        for update in expected_updates:
+            curs.execute(query_builds, (update[0],))
+            builds_nvrs = [row[0] for row in curs]
+            if update[1]:
+                # if the update has the optional display_name, this is what
+                # we show in the updates list page. So check for that.
+                expected_updates_titles.append(update[1])
+            elif len(builds_nvrs) > 2:
+                title = ", ".join(builds_nvrs[:2])
+                title += ", &amp; "
+                title += str(len(builds_nvrs) - 2)
+                title += " more"
+                expected_updates_titles.append(title)
+            else:
+                expected_updates_titles.append(" and ".join(builds_nvrs))
 
     conn.close()
 
     # GET on /updates
     with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
+        headers = {"Accept": "text/html"}
         http_response = c.get("/updates", headers=headers)
 
     try:
@@ -354,51 +345,58 @@ def test_get_update_view(bodhi_container, db_container):
         "WHERE update_id = %s"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            update_info = {}
-            for value, description in zip(curs.fetchone(), curs.description):
-                update_info[description.name] = value
-            curs.execute(query_builds, (update_info["id"], ))
-            rows = curs.fetchall()
-            builds_nvrs = [row[0] for row in rows]
-            update_info["content_type"] = rows[0][1]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        update_info = {}
+        for value, description in zip(curs.fetchone(), curs.description):
+            update_info[description.name] = value
+        curs.execute(query_builds, (update_info["id"],))
+        rows = curs.fetchall()
+        builds_nvrs = [row[0] for row in rows]
+        update_info["content_type"] = rows[0][1]
 
     conn.close()
 
     # GET on latest testing update
     with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
+        headers = {"Accept": "text/html"}
         http_response = c.get(f"/updates/{update_info['alias']}", headers=headers)
 
     try:
         assert http_response.ok
-        assert update_info['alias'] in http_response.text
-        assert update_info['status'] in http_response.text
-        assert update_info['type'] in http_response.text
-        if update_info['severity'] and update_info['severity'] != 'unspecified':
-            assert update_info['severity'] in http_response.text
-        assert update_info['username'] in http_response.text
-        assert content_type_mapping[update_info['content_type']] in http_response.text
-        assert (f"The update will be marked as unstable"
-                f" when karma reaches {update_info['unstable_karma']}") in http_response.text
-        if update_info['request']:
-            assert update_info['request'] in http_response.text
-        if update_info['autokarma']:
-            assert "The update will be automatically pushed to stable when karma reaches"\
+        assert update_info["alias"] in http_response.text
+        assert update_info["status"] in http_response.text
+        assert update_info["type"] in http_response.text
+        if update_info["severity"] and update_info["severity"] != "unspecified":
+            assert update_info["severity"] in http_response.text
+        assert update_info["username"] in http_response.text
+        assert content_type_mapping[update_info["content_type"]] in http_response.text
+        assert (
+            f"The update will be marked as unstable"
+            f" when karma reaches {update_info['unstable_karma']}"
+        ) in http_response.text
+        if update_info["request"]:
+            assert update_info["request"] in http_response.text
+        if update_info["autokarma"]:
+            assert (
+                "The update will be automatically pushed to stable when karma reaches"
                 in http_response.text
-            assert (f"The update will be automatically pushed to stable"
-                    f" when karma reaches {update_info['stable_karma']}") in http_response.text
+            )
+            assert (
+                f"The update will be automatically pushed to stable"
+                f" when karma reaches {update_info['stable_karma']}"
+            ) in http_response.text
         else:
-            assert "The update will not be automatically pushed to stable by karma"\
+            assert (
+                "The update will not be automatically pushed to stable by karma"
                 in http_response.text
-        if update_info['locked']:
+            )
+        if update_info["locked"]:
             assert "Locked" in http_response.text
-        if update_info['suggest'] == "reboot":
+        if update_info["suggest"] == "reboot":
             assert "Reboot Required" in http_response.text
-        elif update_info['suggest'] == "logout":
+        elif update_info["suggest"] == "logout":
             assert "Logout Required" in http_response.text
         for nvr in builds_nvrs:
             assert nvr in http_response.text
@@ -421,19 +419,18 @@ def test_get_user_view(bodhi_container, db_container):
         "ORDER BY date_submitted DESC LIMIT 1"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_users)
-            username = curs.fetchone()[0]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_users)
+        username = curs.fetchone()[0]
     conn.close()
 
-    if username.startswith('packagerbot/'):
+    if username.startswith("packagerbot/"):
         pytest.skip("Skipping test due to bad username")
 
     # GET on user with latest update
     with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
+        headers = {"Accept": "text/html"}
         http_response = c.get(f"/users/{username}", headers=headers)
 
     try:
@@ -451,28 +448,21 @@ def test_get_user_view(bodhi_container, db_container):
 
 def create_avatar_url(username, usermail, size):
     hardcoded_avatars = {
-        'bodhi': f'https://apps.fedoraproject.org/img/icons/bodhi-{size}.png',
+        "bodhi": f"https://apps.fedoraproject.org/img/icons/bodhi-{size}.png",
     }
     if username in hardcoded_avatars:
         return hardcoded_avatars[username]
 
-    email = 'default' if not usermail else usermail
-    query = urlencode({'s': size, 'd': 'retro'})
-    hash = hashlib.sha256(email.lower().encode('utf-8')).hexdigest()
+    email = "default" if not usermail else usermail
+    query = urlencode({"s": size, "d": "retro"})
+    hash = hashlib.sha256(email.lower().encode("utf-8")).hexdigest()
     return f"https://seccdn.libravatar.org/avatar/{hash}?{query}"
 
 
 def test_get_users_json(bodhi_container, db_container):
     """Test ``/users/`` path"""
     # Fetch users from DB
-    query_users = (
-        "SELECT "
-        "  id, "
-        "  name, "
-        "  email "
-        "FROM users "
-        "LIMIT 20"
-    )
+    query_users = "SELECT   id,   name,   email FROM users LIMIT 20"
     query_groups = (
         "SELECT "
         "  groups.name as group_name "
@@ -481,30 +471,25 @@ def test_get_users_json(bodhi_container, db_container):
         "WHERE user_group_table.user_id = %s "
         "ORDER BY groups.name"
     )
-    query_total_users = (
-        "SELECT "
-        "  COUNT(name) "
-        "FROM users "
-    )
+    query_total_users = "SELECT   COUNT(name) FROM users "
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            users = []
-            curs.execute(query_users)
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        users = []
+        curs.execute(query_users)
+        rows = curs.fetchall()
+        for row in rows:
+            users.append({"id": row[0], "name": row[1], "email": row[2]})
+        for user in users:
+            user_id = user["id"]
+            curs.execute(query_groups, (user_id,))
             rows = curs.fetchall()
+            user_groups = []
             for row in rows:
-                users.append({"id": row[0], "name": row[1], "email": row[2]})
-            for user in users:
-                user_id = user["id"]
-                curs.execute(query_groups, (user_id, ))
-                rows = curs.fetchall()
-                user_groups = []
-                for row in rows:
-                    user_groups.append({"name": row[0]})
-                user["groups"] = user_groups
-            curs.execute(query_total_users)
-            total = curs.fetchone()[0]
+                user_groups.append({"name": row[0]})
+            user["groups"] = user_groups
+        curs.execute(query_total_users)
+        total = curs.fetchone()[0]
     conn.close()
 
     # GET on users
@@ -559,22 +544,21 @@ def test_get_user_json(bodhi_container, db_container):
         "WHERE user_group_table.user_id = %s"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            row = curs.fetchone()
-            user_name = row[0]
-            user_id = row[1]
-            user_email = row[2]
-            curs.execute(query_groups, (user_id, ))
-            rows = curs.fetchall()
-            user_groups = []
-            for row in rows:
-                user_groups.append({"name": row[0]})
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        row = curs.fetchone()
+        user_name = row[0]
+        user_id = row[1]
+        user_email = row[2]
+        curs.execute(query_groups, (user_id,))
+        rows = curs.fetchall()
+        user_groups = []
+        for row in rows:
+            user_groups.append({"name": row[0]})
     conn.close()
 
-    if user_name.startswith('packagerbot/'):
+    if user_name.startswith("packagerbot/"):
         pytest.skip("Skipping test due to bad username")
 
     # GET on user
@@ -592,14 +576,14 @@ def test_get_user_json(bodhi_container, db_container):
         "groups": user_groups,
     }
     urls = {
-        'comments_by': f"http://{bodhi_ip}:8080/comments/?user={user_name}",
-        'comments_on': f"http://{bodhi_ip}:8080/comments/?update_owner={user_name}",
-        'recent_updates': f"http://{bodhi_ip}:8080/updates/?user={user_name}",
-        'recent_overrides': f"http://{bodhi_ip}:8080/overrides/?user={user_name}",
-        'comments_by_rss': f"http://{bodhi_ip}:8080/rss/comments/?user={user_name}",
-        'comments_on_rss': f"http://{bodhi_ip}:8080/rss/comments/?update_owner={user_name}",
-        'recent_updates_rss': f"http://{bodhi_ip}:8080/rss/updates/?user={user_name}",
-        'recent_overrides_rss': f"http://{bodhi_ip}:8080/rss/overrides/?user={user_name}",
+        "comments_by": f"http://{bodhi_ip}:8080/comments/?user={user_name}",
+        "comments_on": f"http://{bodhi_ip}:8080/comments/?update_owner={user_name}",
+        "recent_updates": f"http://{bodhi_ip}:8080/updates/?user={user_name}",
+        "recent_overrides": f"http://{bodhi_ip}:8080/overrides/?user={user_name}",
+        "comments_by_rss": f"http://{bodhi_ip}:8080/rss/comments/?user={user_name}",
+        "comments_on_rss": f"http://{bodhi_ip}:8080/rss/comments/?update_owner={user_name}",
+        "recent_updates_rss": f"http://{bodhi_ip}:8080/rss/updates/?user={user_name}",
+        "recent_overrides_rss": f"http://{bodhi_ip}:8080/rss/overrides/?user={user_name}",
     }
     expected_json = {
         "user": user,
@@ -619,19 +603,13 @@ def test_get_user_json(bodhi_container, db_container):
 def test_get_users_rss(bodhi_container, db_container):
     """Test ``/rss/users/`` path"""
     # Fetch users from DB
-    query_users = (
-        "SELECT "
-        "  name "
-        "FROM users "
-        "LIMIT 20"
-    )
+    query_users = "SELECT   name FROM users LIMIT 20"
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_users)
-            rows = curs.fetchall()
-            usernames = [row[0] for row in rows]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_users)
+        rows = curs.fetchall()
+        usernames = [row[0] for row in rows]
     conn.close()
 
     # GET on users
@@ -680,12 +658,7 @@ def test_get_users_rss(bodhi_container, db_container):
 def test_get_packages_json(bodhi_container, db_container):
     """Test ``/packages`` path"""
     # Fetch package(with latest update) from DB
-    query_updates = (
-        "SELECT "
-        "  id "
-        "FROM updates "
-        "ORDER BY date_submitted DESC LIMIT 1"
-    )
+    query_updates = "SELECT   id FROM updates ORDER BY date_submitted DESC LIMIT 1"
     query_builds = (
         "SELECT "
         "  packages.name "
@@ -693,29 +666,23 @@ def test_get_packages_json(bodhi_container, db_container):
         "JOIN packages ON builds.package_id = packages.id "
         "WHERE update_id = %s"
     )
-    query_packages = (
-        "SELECT "
-        "  packages.type "
-        "FROM packages "
-        "WHERE name = %s"
-    )
+    query_packages = "SELECT   packages.type FROM packages WHERE name = %s"
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
     packages = []
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            update_id = curs.fetchone()[0]
-            curs.execute(query_builds, (update_id, ))
-            rows = curs.fetchone()
-            package_name = rows[0]
-            curs.execute(query_packages, (package_name, ))
-            rows = curs.fetchall()
-            for row in rows:
-                package = {}
-                package['name'] = package_name
-                package['type'] = row[0]
-                packages.append(package)
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        update_id = curs.fetchone()[0]
+        curs.execute(query_builds, (update_id,))
+        rows = curs.fetchone()
+        package_name = rows[0]
+        curs.execute(query_packages, (package_name,))
+        rows = curs.fetchall()
+        for row in rows:
+            package = {}
+            package["name"] = package_name
+            package["type"] = row[0]
+            packages.append(package)
     conn.close()
 
     # GET on package with particular name
@@ -725,7 +692,7 @@ def test_get_packages_json(bodhi_container, db_container):
     try:
         assert http_response.ok
         response = http_response.json()
-        assert response['total'] == 1
+        assert response["total"] == 1
         response_packages = response["packages"]
         # let's compare sorted lists to avoid flakiness
         # XXX: wait, there's two packages but total==1?
@@ -757,19 +724,18 @@ def test_get_override_view(bodhi_container, db_container):
         "ORDER BY submission_date DESC LIMIT 1"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_overrides)
-            row = curs.fetchone()
-            nvr = row[0]
-            expired_date = row[1]
-            username = row[2]
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_overrides)
+        row = curs.fetchone()
+        nvr = row[0]
+        expired_date = row[1]
+        username = row[2]
     conn.close()
 
     # GET on latest override
     with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
+        headers = {"Accept": "text/html"}
         http_response = c.get(f"/overrides/{nvr}", headers=headers)
 
     try:
@@ -803,18 +769,17 @@ def test_get_overrides_view(bodhi_container, db_container):
     )
     expected_overrides = []
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_overrides)
-            rows = curs.fetchall()
-            for row in rows:
-                expected_overrides.append({"nvr": row[0], "username": row[1]})
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_overrides)
+        rows = curs.fetchall()
+        for row in rows:
+            expected_overrides.append({"nvr": row[0], "username": row[1]})
     conn.close()
 
     # GET on latest overrides
     with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
+        headers = {"Accept": "text/html"}
         http_response = c.get("/overrides", headers=headers)
 
     try:
@@ -845,17 +810,18 @@ def test_get_overrides_rss(bodhi_container, db_container):
     )
     overrides = []
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_overrides)
-            rows = curs.fetchall()
-            for row in rows:
-                overrides.append({
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_overrides)
+        rows = curs.fetchall()
+        for row in rows:
+            overrides.append(
+                {
                     "nvr": row[0],
                     "notes": row[1],
                     "submission_date": row[2].strftime("%a, %d %b %Y %H:%M:%S +0000"),
-                })
+                }
+            )
     conn.close()
 
     # GET on latest overrides
@@ -885,7 +851,7 @@ def test_get_overrides_rss(bodhi_container, db_container):
             {
                 "tag": "link",
                 "attrib": {},
-                "text": f"http://{bodhi_ip}:8080/overrides/{quote(override['nvr'], safe='/+')}"
+                "text": f"http://{bodhi_ip}:8080/overrides/{quote(override['nvr'], safe='/+')}",
             },
             {"tag": "description", "attrib": {}, "text": override["notes"]},
             {"tag": "pubDate", "attrib": {}, "text": override["submission_date"]},
@@ -908,12 +874,7 @@ def test_get_overrides_rss(bodhi_container, db_container):
 def test_get_build_json(bodhi_container, db_container):
     """Test ``/builds/{nvr}`` path"""
     # Fetch builds (of latest update) from DB
-    query_updates = (
-        "SELECT "
-        "  id "
-        "FROM updates "
-        "ORDER BY date_submitted DESC LIMIT 1"
-    )
+    query_updates = "SELECT   id FROM updates ORDER BY date_submitted DESC LIMIT 1"
     query_builds = (
         "SELECT "
         "  nvr, "
@@ -925,13 +886,12 @@ def test_get_build_json(bodhi_container, db_container):
         "WHERE update_id = %s LIMIT 1"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            update_id = curs.fetchone()[0]
-            curs.execute(query_builds, (update_id, ))
-            nvr, release_id, signed, build_type, epoch = curs.fetchone()
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        update_id = curs.fetchone()[0]
+        curs.execute(query_builds, (update_id,))
+        nvr, release_id, signed, build_type, epoch = curs.fetchone()
     conn.close()
 
     # GET on build
@@ -939,9 +899,12 @@ def test_get_build_json(bodhi_container, db_container):
         http_response = c.get(f"/builds/{nvr}")
 
     build = {
-        "nvr": nvr, "release_id": release_id, "signed": signed, "type": build_type,
+        "nvr": nvr,
+        "release_id": release_id,
+        "signed": signed,
+        "type": build_type,
     }
-    if build_type == 'rpm':
+    if build_type == "rpm":
         build["epoch"] = epoch
     try:
         assert http_response.ok
@@ -957,13 +920,7 @@ def test_get_build_json(bodhi_container, db_container):
 def test_get_builds_json(bodhi_container, db_container):
     """Test ``/builds`` path"""
     # Fetch builds (of latest update) from DB
-    query_updates = (
-        "SELECT "
-        "  id, "
-        "  alias "
-        "FROM updates "
-        "ORDER BY date_submitted DESC LIMIT 1"
-    )
+    query_updates = "SELECT   id,   alias FROM updates ORDER BY date_submitted DESC LIMIT 1"
     query_builds = (
         "SELECT "
         "  nvr, "
@@ -976,22 +933,21 @@ def test_get_builds_json(bodhi_container, db_container):
         "ORDER BY nvr ASC"
     )
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_updates)
-            row = curs.fetchone()
-            update_id = row[0]
-            update_alias = row[1]
-            curs.execute(query_builds, (update_id, ))
-            builds = []
-            for row in curs.fetchall():
-                build = {}
-                for value, description in zip(row, curs.description):
-                    build[description.name] = value
-                if build["type"] != 'rpm':
-                    build.pop("epoch")
-                builds.append(build)
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_updates)
+        row = curs.fetchone()
+        update_id = row[0]
+        update_alias = row[1]
+        curs.execute(query_builds, (update_id,))
+        builds = []
+        for row in curs.fetchall():
+            build = {}
+            for value, description in zip(row, curs.description):
+                build[description.name] = value
+            if build["type"] != "rpm":
+                build.pop("epoch")
+            builds.append(build)
     conn.close()
 
     # GET on builds of lates update
@@ -1071,89 +1027,92 @@ def test_get_compose_json(bodhi_container, db_container):
         "ORDER BY date_submitted "
     )
     # Fetch builds for each update from the DB
-    query_builds = (
-        "SELECT "
-        "  nvr, "
-        "  type "
-        "FROM builds "
-        "WHERE update_id = %s "
-        "ORDER BY nvr "
-    )
+    query_builds = "SELECT   nvr,   type FROM builds WHERE update_id = %s ORDER BY nvr "
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_composes)
-            compose = {}
-            row = curs.fetchone()
-            if row is None:
-                pytest.skip("No composes in the database")
-            for value, description in zip(row, curs.description):
-                compose[description.name] = value
-            release = {}
-            curs.execute(query_releases, (compose['release_id'], ))
-            row = curs.fetchone()
-            for value, description in zip(row, curs.description):
-                release[description.name] = value
-            if release['released_on'] is not None:
-                release['released_on'] = release['released_on'].isoformat()
-            if release['eol'] is not None:
-                release['eol'] = release['eol'].isoformat()
-            curs.execute(query_updates, (compose['release_id'], compose['request'], ))
-            updates = []
-            rows = curs.fetchall()
-            for row in rows:
-                updates.append({
-                    'id': row[0], 'alias': row[1], 'type': row[2], 'display_name': row[3],
-                    'builds': []
-                })
-            for update in updates:
-                curs.execute(query_builds, (update['id'], ))
-                for row in curs.fetchall():
-                    update['builds'].append({'nvr': row[0], 'content_type': row[1]})
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_composes)
+        compose = {}
+        row = curs.fetchone()
+        if row is None:
+            pytest.skip("No composes in the database")
+        for value, description in zip(row, curs.description):
+            compose[description.name] = value
+        release = {}
+        curs.execute(query_releases, (compose["release_id"],))
+        row = curs.fetchone()
+        for value, description in zip(row, curs.description):
+            release[description.name] = value
+        if release["released_on"] is not None:
+            release["released_on"] = release["released_on"].isoformat()
+        if release["eol"] is not None:
+            release["eol"] = release["eol"].isoformat()
+        curs.execute(
+            query_updates,
+            (
+                compose["release_id"],
+                compose["request"],
+            ),
+        )
+        updates = []
+        rows = curs.fetchall()
+        for row in rows:
+            updates.append(
+                {
+                    "id": row[0],
+                    "alias": row[1],
+                    "type": row[2],
+                    "display_name": row[3],
+                    "builds": [],
+                }
+            )
+        for update in updates:
+            curs.execute(query_builds, (update["id"],))
+            for row in curs.fetchall():
+                update["builds"].append({"nvr": row[0], "content_type": row[1]})
     conn.close()
 
     # GET on compose
     with bodhi_container.http_client(port="8080") as c:
         http_response = c.get(f"/composes/{release['name']}/{compose['request']}")
 
-    compose['date_created'] = compose['date_created'].strftime("%Y-%m-%d %H:%M:%S")
-    compose['state_date'] = compose['state_date'].strftime("%Y-%m-%d %H:%M:%S")
-    compose['security'] = False
+    compose["date_created"] = compose["date_created"].strftime("%Y-%m-%d %H:%M:%S")
+    compose["state_date"] = compose["state_date"].strftime("%Y-%m-%d %H:%M:%S")
+    compose["security"] = False
     for update in updates:
-        if update['type'] == 'security':
-            compose['security'] = True
+        if update["type"] == "security":
+            compose["security"] = True
             break
 
-    if len(updates) and len(updates[0]['builds']):
-        compose['content_type'] = updates[0]['builds'][0]['content_type']
+    if len(updates) and len(updates[0]["builds"]):
+        compose["content_type"] = updates[0]["builds"][0]["content_type"]
     else:
-        compose['content_type'] = None
+        compose["content_type"] = None
     # We can't get these from db
-    release['setting_status'] = http_response.json()['compose']['release']['setting_status']
-    release['min_karma'] = http_response.json()['compose']['release']['min_karma']
-    release['critpath_min_karma'] = \
-        http_response.json()['compose']['release']['critpath_min_karma']
-    release['mandatory_days_in_testing'] = \
-        http_response.json()['compose']['release']['mandatory_days_in_testing']
-    release['critpath_mandatory_days_in_testing'] = \
-        http_response.json()['compose']['release']['critpath_mandatory_days_in_testing']
+    release["setting_status"] = http_response.json()["compose"]["release"]["setting_status"]
+    release["min_karma"] = http_response.json()["compose"]["release"]["min_karma"]
+    release["critpath_min_karma"] = http_response.json()["compose"]["release"]["critpath_min_karma"]
+    release["mandatory_days_in_testing"] = http_response.json()["compose"]["release"][
+        "mandatory_days_in_testing"
+    ]
+    release["critpath_mandatory_days_in_testing"] = http_response.json()["compose"]["release"][
+        "critpath_mandatory_days_in_testing"
+    ]
 
-    compose['release'] = release
-    compose['update_summary'] = []
+    compose["release"] = release
+    compose["update_summary"] = []
 
     for update in updates:
-        if len(update['builds']) > 2:
-            builds_left = len(update['builds']) - 2
+        if len(update["builds"]) > 2:
+            builds_left = len(update["builds"]) - 2
             suffix = f", and {builds_left} more"
-            update_builds = ", ".join([b['nvr'] for b in update['builds'][:2]])
+            update_builds = ", ".join([b["nvr"] for b in update["builds"][:2]])
             update_builds += suffix
         else:
-            update_builds = " and ".join([b['nvr'] for b in update['builds']])
-        compose['update_summary'].append({
-            'alias': update['alias'],
-            'title': update['display_name'] or update_builds
-        })
+            update_builds = " and ".join([b["nvr"] for b in update["builds"]])
+        compose["update_summary"].append(
+            {"alias": update["alias"], "title": update["display_name"] or update_builds}
+        )
 
     try:
         assert http_response.ok
@@ -1169,37 +1128,26 @@ def test_get_compose_json(bodhi_container, db_container):
 def test_get_composes_view(bodhi_container, db_container):
     """Test ``/composes`` path"""
     # Fetch composes from the DB
-    query_composes = (
-        "SELECT "
-        "  release_id, "
-        "  request "
-        "FROM composes "
-    )
+    query_composes = "SELECT   release_id,   request FROM composes "
     # Fetch release for compose from the DB
-    query_releases = (
-        "SELECT "
-        "  long_name "
-        "FROM releases "
-        "WHERE id = %s "
-    )
+    query_releases = "SELECT   long_name FROM releases WHERE id = %s "
     expected_composes = []
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_composes)
-            rows = curs.fetchall()
-            for row in rows:
-                compose = {'request': row[1]}
-                curs.execute(query_releases, (row[0], ))
-                row = curs.fetchone()
-                compose['release_name'] = row[0]
-                expected_composes.append(compose)
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_composes)
+        rows = curs.fetchall()
+        for row in rows:
+            compose = {"request": row[1]}
+            curs.execute(query_releases, (row[0],))
+            row = curs.fetchone()
+            compose["release_name"] = row[0]
+            expected_composes.append(compose)
     conn.close()
 
     # GET on /composes
     with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
+        headers = {"Accept": "text/html"}
         http_response = c.get("/composes", headers=headers)
 
     try:
@@ -1230,12 +1178,7 @@ def test_get_compose_view(bodhi_container, db_container):
         "ORDER BY date_created DESC LIMIT 1"
     )
     # Fetch release for compose from the DB
-    query_releases = (
-        "SELECT "
-        "  name "
-        "FROM releases "
-        "WHERE id = %s "
-    )
+    query_releases = "SELECT   name FROM releases WHERE id = %s "
     # Fetch updates for compose from the DB
     query_updates = (
         "SELECT "
@@ -1247,90 +1190,86 @@ def test_get_compose_view(bodhi_container, db_container):
         "ORDER BY date_submitted "
     )
     # Fetch builds for each update from the DB
-    query_builds = (
-        "SELECT "
-        "  nvr, "
-        "  type "
-        "FROM builds "
-        "WHERE update_id = %s "
-        "ORDER BY nvr "
-    )
+    query_builds = "SELECT   nvr,   type FROM builds WHERE update_id = %s ORDER BY nvr "
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_composes)
-            compose = {}
-            row = curs.fetchone()
-            if row is None:
-                pytest.skip("No composes in the database")
-            for value, description in zip(row, curs.description):
-                compose[description.name] = value
-            release = {}
-            curs.execute(query_releases, (compose['release_id'], ))
-            row = curs.fetchone()
-            compose['release_name'] = row[0]
-            curs.execute(query_updates, (compose['release_id'], compose['request'], ))
-            updates = []
-            rows = curs.fetchall()
-            for row in rows:
-                updates.append({
-                    'id': row[0], 'type': row[1], 'display_name': row[2], 'builds': []
-                })
-            for update in updates:
-                curs.execute(query_builds, (update['id'], ))
-                for row in curs.fetchall():
-                    update['builds'].append({'nvr': row[0], 'content_type': row[1]})
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_composes)
+        compose = {}
+        row = curs.fetchone()
+        if row is None:
+            pytest.skip("No composes in the database")
+        for value, description in zip(row, curs.description):
+            compose[description.name] = value
+        release = {}
+        curs.execute(query_releases, (compose["release_id"],))
+        row = curs.fetchone()
+        compose["release_name"] = row[0]
+        curs.execute(
+            query_updates,
+            (
+                compose["release_id"],
+                compose["request"],
+            ),
+        )
+        updates = []
+        rows = curs.fetchall()
+        for row in rows:
+            updates.append({"id": row[0], "type": row[1], "display_name": row[2], "builds": []})
+        for update in updates:
+            curs.execute(query_builds, (update["id"],))
+            for row in curs.fetchall():
+                update["builds"].append({"nvr": row[0], "content_type": row[1]})
     conn.close()
 
     # GET on compose
     with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
+        headers = {"Accept": "text/html"}
         http_response = c.get(
             f"/composes/{compose['release_name']}/{compose['request']}", headers=headers
         )
 
-    compose['date_created'] = compose['date_created'].strftime("%Y-%m-%d %H:%M:%S")
-    compose['state_date'] = compose['state_date'].strftime("%Y-%m-%d %H:%M:%S")
-    compose['security'] = False
+    compose["date_created"] = compose["date_created"].strftime("%Y-%m-%d %H:%M:%S")
+    compose["state_date"] = compose["state_date"].strftime("%Y-%m-%d %H:%M:%S")
+    compose["security"] = False
     for update in updates:
-        if update['type'] == 'security':
-            compose['security'] = True
+        if update["type"] == "security":
+            compose["security"] = True
             break
 
-    if len(updates) and len(updates[0]['builds']):
-        compose['content_type'] = updates[0]['builds'][0]['content_type']
+    if len(updates) and len(updates[0]["builds"]):
+        compose["content_type"] = updates[0]["builds"][0]["content_type"]
     else:
-        compose['content_type'] = None
-    compose['release'] = release
-    compose['updates'] = []
+        compose["content_type"] = None
+    compose["release"] = release
+    compose["updates"] = []
 
     for update in updates:
-        if len(update['builds']) > 2:
-            builds_left = len(update['builds']) - 2
+        if len(update["builds"]) > 2:
+            builds_left = len(update["builds"]) - 2
             suffix = f", &amp; {builds_left} more"
-            update_builds = ", ".join([b['nvr'] for b in update['builds'][:2]])
+            update_builds = ", ".join([b["nvr"] for b in update["builds"][:2]])
             update_builds += suffix
         else:
-            update_builds = " and ".join([b['nvr'] for b in update['builds']])
-        compose['updates'].append({'title': update["display_name"] or update_builds})
+            update_builds = " and ".join([b["nvr"] for b in update["builds"]])
+        compose["updates"].append({"title": update["display_name"] or update_builds})
 
     try:
         assert http_response.ok
         assert f"{compose['release_name']} {compose['request']}" in http_response.text
-        if compose['security']:
+        if compose["security"]:
             assert "This compose contains security updates." in http_response.text
         assert "State" in http_response.text
-        assert compose_state_mapping[compose['state']] in http_response.text
-        if compose['content_type'] is not None:
-            assert content_type_mapping[compose['content_type']] in http_response.text
+        assert compose_state_mapping[compose["state"]] in http_response.text
+        if compose["content_type"] is not None:
+            assert content_type_mapping[compose["content_type"]] in http_response.text
         assert "Dates" in http_response.text
-        assert compose['date_created'] + " (UTC)" in http_response.text
-        assert compose['state_date'] + " (UTC)" in http_response.text
+        assert compose["date_created"] + " (UTC)" in http_response.text
+        assert compose["state_date"] + " (UTC)" in http_response.text
         assert "Updates" in http_response.text
-        assert str(len(compose['updates'])) in http_response.text
-        for update in compose['updates']:
-            assert update['title'] in http_response.text
+        assert str(len(compose["updates"])) in http_response.text
+        for update in compose["updates"]:
+            assert update["title"] in http_response.text
     except AssertionError:
         print(http_response)
         print(http_response.text)
@@ -1356,18 +1295,19 @@ def test_get_comments_rss(bodhi_container, db_container):
     )
     comments = []
     db_ip = db_container.get_IPv4s()[0]
-    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
-    with conn:
-        with conn.cursor() as curs:
-            curs.execute(query_comments)
-            rows = curs.fetchall()
-            for row in rows:
-                comments.append({
+    conn = psycopg2.connect(f"dbname=bodhi2 user=postgres host={db_ip}")
+    with conn, conn.cursor() as curs:
+        curs.execute(query_comments)
+        rows = curs.fetchall()
+        for row in rows:
+            comments.append(
+                {
                     "alias": row[0],
                     "id": row[1],
                     "text": row[2],
                     "timestamp": row[3].strftime("%a, %d %b %Y %H:%M:%S +0000"),
-                })
+                }
+            )
     conn.close()
 
     # GET on latest comments

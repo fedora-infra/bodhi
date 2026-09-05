@@ -22,22 +22,24 @@ from unittest import mock
 
 from bodhi.server import logging as bodhi_logging
 
-
 test_log = logging.Logger(__name__)
 
 
 class TestSetup:
     """Test the setup() function."""
-    @mock.patch.dict('bodhi.server.logging.config.config',
-                     {'pyramid.includes': 'some_plugin\nsome_other_plugin'})
-    @mock.patch('bodhi.server.logging.config.get_configfile',
-                mock.MagicMock(return_value='/test/file'))
-    @mock.patch('bodhi.server.logging.paster.setup_logging')
+
+    @mock.patch.dict(
+        "bodhi.server.logging.config.config", {"pyramid.includes": "some_plugin\nsome_other_plugin"}
+    )
+    @mock.patch(
+        "bodhi.server.logging.config.get_configfile", mock.MagicMock(return_value="/test/file")
+    )
+    @mock.patch("bodhi.server.logging.paster.setup_logging")
     def test_without_sawing(self, setup_logging):
         """Test for when the user is not using pyramid_sawing."""
         bodhi_logging.setup()
 
-        setup_logging.assert_called_once_with('/test/file')
+        setup_logging.assert_called_once_with("/test/file")
 
 
 class TestRateLimiter:
@@ -51,7 +53,8 @@ class TestRateLimiter:
     def test_filter_new_record(self):
         """Assert a new record is not limited."""
         record = test_log.makeRecord(
-            "test_name", logging.INFO, "/my/file.py", 3, "beep boop", tuple(), None)
+            "test_name", logging.INFO, "/my/file.py", 3, "beep boop", tuple(), None
+        )
         rate_filter = bodhi_logging.RateLimiter()
 
         assert rate_filter.filter(record)
@@ -59,7 +62,8 @@ class TestRateLimiter:
     def test_filter_false(self):
         """Assert if the filename:lineno entry exists and is new, it's filtered out."""
         record = test_log.makeRecord(
-            "test_name", logging.INFO, "/my/file.py", 3, "beep boop", tuple(), None)
+            "test_name", logging.INFO, "/my/file.py", 3, "beep boop", tuple(), None
+        )
         rate_filter = bodhi_logging.RateLimiter(rate=2)
         rate_filter._sent["/my/file.py:3"] = record.created - 1
 
@@ -68,7 +72,8 @@ class TestRateLimiter:
     def test_rate_is_used(self):
         """Assert custom rates are respected."""
         record = test_log.makeRecord(
-            "test_name", logging.INFO, "/my/file.py", 3, "beep boop", tuple(), None)
+            "test_name", logging.INFO, "/my/file.py", 3, "beep boop", tuple(), None
+        )
         rate_filter = bodhi_logging.RateLimiter(rate=2)
         rate_filter._sent["/my/file.py:3"] = record.created - 2
 
@@ -77,7 +82,8 @@ class TestRateLimiter:
     def test_rate_limited(self):
         """Assert the first call is allowed and the subsequent one is not."""
         record = test_log.makeRecord(
-            "test_name", logging.INFO, "/my/file.py", 3, "beep boop", tuple(), None)
+            "test_name", logging.INFO, "/my/file.py", 3, "beep boop", tuple(), None
+        )
         rate_filter = bodhi_logging.RateLimiter(rate=60)
 
         assert rate_filter.filter(record)
@@ -86,9 +92,11 @@ class TestRateLimiter:
     def test_different_lines(self):
         """Assert rate limiting is line-dependent."""
         record1 = test_log.makeRecord(
-            "test_name", logging.INFO, "/my/file.py", 3, "beep boop", tuple(), None)
+            "test_name", logging.INFO, "/my/file.py", 3, "beep boop", tuple(), None
+        )
         record2 = test_log.makeRecord(
-            "test_name", logging.INFO, "/my/file.py", 4, "beep boop", tuple(), None)
+            "test_name", logging.INFO, "/my/file.py", 4, "beep boop", tuple(), None
+        )
         rate_filter = bodhi_logging.RateLimiter()
 
         assert rate_filter.filter(record1)

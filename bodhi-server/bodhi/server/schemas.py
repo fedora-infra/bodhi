@@ -16,10 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A set of API schemas to validate input and generate documentation."""
+
 import os
 
 import colander
-
 from bodhi.server import util
 from bodhi.server.config import config
 from bodhi.server.models import (
@@ -35,9 +35,8 @@ from bodhi.server.models import (
 )
 from bodhi.server.validators import validate_csrf_token
 
-
 # Retrieving list of templates from filesystem for `mail_template` validation in SaveReleaseSchema
-template_directory = util.get_absolute_path(config.get('mail.templates_basepath'))
+template_directory = util.get_absolute_path(config.get("mail.templates_basepath"))
 MAIL_TEMPLATES = [os.path.splitext(file)[0] for file in os.listdir(template_directory)]
 
 
@@ -84,8 +83,9 @@ class Releases(colander.SequenceSchema):
 class ReleaseStates(colander.SequenceSchema):
     """A SequenceSchema to validate a list of ReleaseState objects."""
 
-    release_state = colander.SchemaNode(colander.String(),
-                                        validator=colander.OneOf(list(ReleaseState.values())))
+    release_state = colander.SchemaNode(
+        colander.String(), validator=colander.OneOf(list(ReleaseState.values()))
+    )
 
 
 class ReleaseIds(colander.SequenceSchema):
@@ -109,15 +109,17 @@ class Updates(colander.SequenceSchema):
 class Status(colander.SequenceSchema):
     """A SequenceSchema to validate a list of Update status objects."""
 
-    status = colander.SchemaNode(colander.String(),
-                                 validator=colander.OneOf(list(UpdateStatus.values())))
+    status = colander.SchemaNode(
+        colander.String(), validator=colander.OneOf(list(UpdateStatus.values()))
+    )
 
 
 class GatingStatus(colander.SequenceSchema):
     """A SequenceSchema to validate a list of TestGatingStatus objects."""
 
-    status = colander.SchemaNode(colander.String(),
-                                 validator=colander.OneOf(list(TestGatingStatus.values())))
+    status = colander.SchemaNode(
+        colander.String(), validator=colander.OneOf(list(TestGatingStatus.values()))
+    )
 
 
 class Tests(colander.SequenceSchema):
@@ -166,12 +168,12 @@ class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
     def deserialize(self, cstruct):
         """Unflatten comment before parsing into Schema."""
         appstruct = SaveCommentSchema().unflatten(cstruct)
-        return super(SaveCommentSchema, self).deserialize(appstruct)
+        return super().deserialize(appstruct)
 
     update = colander.SchemaNode(colander.String())
     text = colander.SchemaNode(
         colander.String(),
-        missing='',
+        missing="",
     )
     karma = colander.SchemaNode(
         colander.Integer(),
@@ -191,8 +193,7 @@ class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
 class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     """An API schema for bodhi.server.services.updates.new_update()."""
 
-    builds = Builds(colander.Sequence(accept_scalar=True),
-                    preparer=[util.splitter])
+    builds = Builds(colander.Sequence(accept_scalar=True), preparer=[util.splitter])
 
     from_tag = colander.SchemaNode(
         colander.String(),
@@ -203,7 +204,7 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
 
     display_name = colander.SchemaNode(
         colander.String(),
-        missing='',
+        missing="",
     )
     close_bugs = colander.SchemaNode(
         colander.Boolean(),
@@ -216,12 +217,12 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     severity = colander.SchemaNode(
         colander.String(),
         validator=colander.OneOf(list(UpdateSeverity.values())),
-        missing='unspecified',
+        missing="unspecified",
     )
     notes = colander.SchemaNode(
         colander.String(),
-        validator=colander.Length(min=2, max=config.get('update_notes_maxlength')),
-        missing_msg='A description is required for the update.'
+        validator=colander.Length(min=2, max=config.get("update_notes_maxlength")),
+        missing_msg="A description is required for the update.",
     )
     autokarma = colander.SchemaNode(
         colander.Boolean(),
@@ -240,11 +241,11 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     suggest = colander.SchemaNode(
         colander.String(),
         validator=colander.OneOf(list(UpdateSuggestion.values())),
-        missing='unspecified',
+        missing="unspecified",
     )
     edited = colander.SchemaNode(
         colander.String(),
-        missing='',
+        missing="",
     )
     require_bugs = colander.SchemaNode(
         colander.Boolean(),
@@ -269,7 +270,7 @@ class Cosmetics(colander.MappingSchema):
     """A mixin class used by schemas to validate the ``display_user`` API parameter."""
 
     display_user = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
+        colander.Boolean(true_choices=("true", "1")),
         location="querystring",
         missing=True,
     )
@@ -279,7 +280,7 @@ class PaginatedSchema(colander.MappingSchema):
     """A mixin class used by schemas to provide pagination support for API endpoints."""
 
     chrome = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
+        colander.Boolean(true_choices=("true", "1")),
         location="querystring",
         missing=True,
     )
@@ -360,13 +361,13 @@ class ListReleaseSchema(PaginatedSchema):
     )
 
     exclude_archived = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
+        colander.Boolean(true_choices=("true", "1")),
         location="querystring",
         missing=None,
     )
 
     active = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
+        colander.Boolean(true_choices=("true", "1")),
         location="querystring",
         missing=True,
     )
@@ -431,14 +432,14 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     mail_template = colander.SchemaNode(
         colander.String(),
         missing="fedora_errata_template",
-        validator=colander.OneOf(MAIL_TEMPLATES)
+        validator=colander.OneOf(MAIL_TEMPLATES),
     )
     composed_by_bodhi = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
+        colander.Boolean(true_choices=("true", "1")),
         missing=True,
     )
     create_automatic_updates = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
+        colander.Boolean(true_choices=("true", "1")),
         missing=False,
     )
     package_manager = colander.SchemaNode(
@@ -528,13 +529,13 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
     )
 
     critpath = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
+        colander.Boolean(true_choices=("true", "1")),
         location="querystring",
         missing=None,
     )
 
     from_side_tag = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
+        colander.Boolean(true_choices=("true", "1")),
         location="querystring",
         missing=None,
     )
@@ -546,7 +547,7 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
     )
 
     locked = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
+        colander.Boolean(true_choices=("true", "1")),
         location="querystring",
         missing=None,
     )
@@ -571,7 +572,7 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
     )
 
     pushed = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
+        colander.Boolean(true_choices=("true", "1")),
         location="querystring",
         missing=None,
     )
@@ -785,7 +786,7 @@ class ListOverrideSchema(PaginatedSchema, SearchableSchema, Cosmetics):
     )
 
     expired = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
+        colander.Boolean(true_choices=("true", "1")),
         location="querystring",
         missing=None,
     )
@@ -860,5 +861,3 @@ class GetTestResultsSchema(CSRFProtectedSchema, colander.MappingSchema):
 
 class TriggerTestsSchema(CSRFProtectedSchema, colander.MappingSchema):
     """An API schema for bodhi.server.services.updates.trigger_tests()."""
-
-    pass

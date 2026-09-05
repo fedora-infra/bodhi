@@ -22,7 +22,6 @@ import logging
 from bodhi.server.exceptions import BodhiException, ExternalCallException
 from bodhi.server.util import transactional_session_maker
 
-
 log = logging.getLogger(__name__)
 
 
@@ -46,5 +45,5 @@ def main(alias: str):
             try:
                 build.update_test_cases(session)
             except ExternalCallException:
-                log.warning('Error occurred during fetching testcases', exc_info=True)
+                log.warning("Error occurred during fetching testcases", exc_info=True)
                 raise ExternalCallException

@@ -42,10 +42,14 @@ def resultsdb_container(docker_backend, docker_network, db_container, rabbitmq_c
     image = docker_backend.ImageClass(image_name)
     run_opts = [
         "--rm",
-        "--name", "resultsdb",
-        "--network", docker_network.get_id(),
-        "--network-alias", "resultsdb",
-        "--network-alias", "resultsdb.ci",
+        "--name",
+        "resultsdb",
+        "--network",
+        docker_network.get_id(),
+        "--network-alias",
+        "resultsdb",
+        "--network-alias",
+        "resultsdb.ci",
     ]
     container = image.run_via_binary(additional_opts=run_opts)
     container.start()

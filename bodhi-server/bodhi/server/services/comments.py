@@ -17,55 +17,77 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define the service endpoints that handle Comments."""
 
+# ruff: noqa: C408
+
 import math
 import warnings
 
-from cornice import Service
-from cornice.validators import colander_body_validator, colander_querystring_validator
-from pyramid.httpexceptions import HTTPForbidden
-from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
-from sqlalchemy.sql import or_, and_
-
-from bodhi.server import log
-from bodhi.server.models import Comment, Build, Update, User
-from bodhi.server.validators import (
-    validate_packages,
-    validate_update,
-    validate_updates,
-    validate_update_owner,
-    validate_ignore_user,
-    validate_comment_id,
-    validate_username,
-    validate_bug_feedback,
-    validate_testcase_feedback,
-)
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
-
+from bodhi.server import log
+from bodhi.server.models import Build, Comment, Update, User
+from bodhi.server.validators import (
+    validate_bug_feedback,
+    validate_comment_id,
+    validate_ignore_user,
+    validate_packages,
+    validate_testcase_feedback,
+    validate_update,
+    validate_update_owner,
+    validate_updates,
+    validate_username,
+)
+from cornice import Service
+from cornice.validators import colander_body_validator, colander_querystring_validator
+from pyramid.httpexceptions import HTTPForbidden
+from sqlalchemy import LABEL_STYLE_TABLENAME_PLUS_COL, distinct, func
+from sqlalchemy.sql import and_, or_
 
 comment = Service(
-    name='comment', path='/comments/{id}', validators=(validate_comment_id,),
-    description='Comment submission service', cors_origins=bodhi.server.security.cors_origins_ro)
+    name="comment",
+    path="/comments/{id}",
+    validators=(validate_comment_id,),
+    description="Comment submission service",
+    cors_origins=bodhi.server.security.cors_origins_ro,
+)
 
-comments = Service(name='comments', path='/comments/',
-                   description='Comment submission service',
-                   # Note, this 'rw' is not a typo.  the @comments service has
-                   # a ``post`` section at the bottom.
-                   cors_origins=bodhi.server.security.cors_origins_rw)
-comments_rss = Service(name='comments_rss', path='/rss/comments/',
-                       description='Comments RSS feed',
-                       cors_origins=bodhi.server.security.cors_origins_ro)
+comments = Service(
+    name="comments",
+    path="/comments/",
+    description="Comment submission service",
+    # Note, this 'rw' is not a typo.  the @comments service has
+    # a ``post`` section at the bottom.
+    cors_origins=bodhi.server.security.cors_origins_rw,
+)
+comments_rss = Service(
+    name="comments_rss",
+    path="/rss/comments/",
+    description="Comments RSS feed",
+    cors_origins=bodhi.server.security.cors_origins_ro,
+)
 
 
-@comment.get(accept=('application/json', 'text/json'), renderer='json',
-             error_handler=bodhi.server.services.errors.json_handler)
-@comment.get(accept=('application/javascript'), renderer='jsonp',
-             error_handler=bodhi.server.services.errors.jsonp_handler)
-@comment.get(accept=('application/atom+xml'), renderer='rss',
-             error_handler=bodhi.server.services.errors.html_handler)
-@comment.get(accept="text/html", renderer="comment.html",
-             error_handler=bodhi.server.services.errors.html_handler)
+@comment.get(
+    accept=("application/json", "text/json"),
+    renderer="json",
+    error_handler=bodhi.server.services.errors.json_handler,
+)
+@comment.get(
+    accept=("application/javascript"),
+    renderer="jsonp",
+    error_handler=bodhi.server.services.errors.jsonp_handler,
+)
+@comment.get(
+    accept=("application/atom+xml"),
+    renderer="rss",
+    error_handler=bodhi.server.services.errors.html_handler,
+)
+@comment.get(
+    accept="text/html",
+    renderer="comment.html",
+    error_handler=bodhi.server.services.errors.html_handler,
+)
 def get_comment(request):
     """
     Return a single comment from an id.
@@ -75,7 +97,7 @@ def get_comment(request):
     Return:
         dict: A dictionary with key "comment" indexing the requested comment.
     """
-    return dict(comment=request.validated['comment'])
+    return dict(comment=request.validated["comment"])
 
 
 validators = (
@@ -89,22 +111,39 @@ validators = (
 
 
 @comments_rss.get(
-    schema=bodhi.server.schemas.ListCommentSchema(), renderer='rss',
-    error_handler=bodhi.server.services.errors.html_handler, validators=validators)
+    schema=bodhi.server.schemas.ListCommentSchema(),
+    renderer="rss",
+    error_handler=bodhi.server.services.errors.html_handler,
+    validators=validators,
+)
 @comments.get(
-    schema=bodhi.server.schemas.ListCommentSchema(), renderer='rss',
-    accept=('application/atom+xml',),
-    error_handler=bodhi.server.services.errors.html_handler, validators=validators)
+    schema=bodhi.server.schemas.ListCommentSchema(),
+    renderer="rss",
+    accept=("application/atom+xml",),
+    error_handler=bodhi.server.services.errors.html_handler,
+    validators=validators,
+)
 @comments.get(
-    schema=bodhi.server.schemas.ListCommentSchema(), accept=('application/json', 'text/json'),
-    renderer='json', error_handler=bodhi.server.services.errors.json_handler, validators=validators)
+    schema=bodhi.server.schemas.ListCommentSchema(),
+    accept=("application/json", "text/json"),
+    renderer="json",
+    error_handler=bodhi.server.services.errors.json_handler,
+    validators=validators,
+)
 @comments.get(
-    schema=bodhi.server.schemas.ListCommentSchema(), accept=('application/javascript'),
-    renderer='jsonp', error_handler=bodhi.server.services.errors.jsonp_handler,
-    validators=validators)
+    schema=bodhi.server.schemas.ListCommentSchema(),
+    accept=("application/javascript"),
+    renderer="jsonp",
+    error_handler=bodhi.server.services.errors.jsonp_handler,
+    validators=validators,
+)
 @comments.get(
-    schema=bodhi.server.schemas.ListCommentSchema(), accept=('text/html'), renderer='comments.html',
-    error_handler=bodhi.server.services.errors.html_handler, validators=validators)
+    schema=bodhi.server.schemas.ListCommentSchema(),
+    accept=("text/html"),
+    renderer="comments.html",
+    error_handler=bodhi.server.services.errors.html_handler,
+    validators=validators,
+)
 def query_comments(request):
     """
     Search for comments matching given search parameters.
@@ -124,42 +163,37 @@ def query_comments(request):
     data = request.validated
     query = db.query(Comment)
 
-    like = data.get('like')
+    like = data.get("like")
     if like is not None:
-        query = query.filter(or_(*[
-            Comment.text.like('%%%s%%' % like)
-        ]))
+        query = query.filter(or_(*[Comment.text.like(f"%{like}%")]))
 
-    packages = data.get('packages')
+    packages = data.get("packages")
     if packages is not None:
-        query = query\
-            .join(Comment.update)\
-            .join(Update.builds)\
-            .join(Build.package)
+        query = query.join(Comment.update).join(Update.builds).join(Build.package)
         query = query.filter(or_(*[Build.package == pkg for pkg in packages]))
 
-    since = data.get('since')
+    since = data.get("since")
     if since is not None:
         query = query.filter(Comment.timestamp >= since)
 
-    updates = data.get('updates')
+    updates = data.get("updates")
     if updates is not None:
         query = query.filter(or_(*[Comment.update == u for u in updates]))
 
-    update_owner = data.get('update_owner')
+    update_owner = data.get("update_owner")
     if update_owner is not None:
         query = query.join(Comment.update)
         query = query.filter(or_(*[Update.user == u for u in update_owner]))
 
-    ignore_user = data.get('ignore_user')
+    ignore_user = data.get("ignore_user")
     if ignore_user is not None:
         query = query.filter(and_(*[Comment.user != u for u in ignore_user]))
 
     # don't show bodhi user comments in the web interface
     if data.get("chrome"):
-        query = query.filter(and_(*[Comment.user != User.get('bodhi')]))
+        query = query.filter(and_(*[Comment.user != User.get("bodhi")]))
 
-    user = data.get('user')
+    user = data.get("user")
     if user is not None:
         query = query.filter(or_(*[Comment.user == u for u in user]))
 
@@ -167,14 +201,16 @@ def query_comments(request):
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
-    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
-        .with_only_columns(func.count(distinct(Comment.id)))\
+    count_query = (
+        query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL)
+        .statement.with_only_columns(func.count(distinct(Comment.id)))
         .order_by(None)
+    )
     total = db.execute(count_query).scalar()
 
-    page = data.get('page')
-    rows_per_page = data.get('rows_per_page')
-    pages = int(math.ceil(total / float(rows_per_page)))
+    page = data.get("page")
+    rows_per_page = data.get("rows_per_page")
+    pages = math.ceil(total / int(rows_per_page))
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
     return dict(
@@ -183,20 +219,20 @@ def query_comments(request):
         pages=pages,
         rows_per_page=rows_per_page,
         total=total,
-        chrome=data.get('chrome'),
+        chrome=data.get("chrome"),
     )
 
 
 @comments.post(
     schema=bodhi.server.schemas.SaveCommentSchema(),
-    renderer='json',
+    renderer="json",
     error_handler=bodhi.server.services.errors.json_handler,
     validators=(
         colander_body_validator,
         validate_update,
         validate_bug_feedback,
         validate_testcase_feedback,
-    )
+    ),
 )
 def new_comment(request):
     """
@@ -212,33 +248,35 @@ def new_comment(request):
 
     # This has already been validated at this point, but we need to ditch
     # it since the models don't care about a csrf argument.
-    data.pop('csrf_token')
+    data.pop("csrf_token")
 
-    update = data.pop('update')
+    update = data.pop("update")
     author = request.identity and request.identity.name
     if not author:
         # this can happen if we have a stale cached session, a 403
         # response will trigger the client to reauth:
         # https://github.com/fedora-infra/bodhi/issues/3298
-        request.errors.add('body', 'email', 'You must provide an author')
+        request.errors.add("body", "email", "You must provide an author")
         request.errors.status = HTTPForbidden.code
         return
 
-    if data.get('karma_critpath', None):
-        data.pop('karma_critpath')
+    if data.get("karma_critpath", None):
+        data.pop("karma_critpath")
         warnings.warn(
             "karma_critpath is not used anymore and should not be passed in new comments; "
-            "date=2024-11-16", DeprecationWarning, stacklevel=2
+            "date=2024-11-16",
+            DeprecationWarning,
+            stacklevel=2,
         )
 
     try:
         comment, caveats = update.comment(session=request.db, author=author, **data)
     except ValueError as e:
-        request.errors.add('body', 'comment', str(e))
+        request.errors.add("body", "comment", str(e))
         return
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         log.exception(e)
-        request.errors.add('body', 'comment', 'Unable to create comment')
+        request.errors.add("body", "comment", "Unable to create comment")
         return
 
     return dict(comment=comment, caveats=caveats)

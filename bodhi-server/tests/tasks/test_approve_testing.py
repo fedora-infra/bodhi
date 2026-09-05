@@ -18,18 +18,19 @@
 """
 This module contains tests for the bodhi.server.tasks.approve_testing module.
 """
+
 from datetime import datetime, timedelta, timezone
 from unittest.mock import call, patch
 
-from fedora_messaging import testing as fml_testing
 import pytest
 import sqlalchemy.exc
-
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server.config import config
 from bodhi.server import models
+from bodhi.server.config import config
 from bodhi.server.tasks import approve_testing_task
 from bodhi.server.tasks.approve_testing import main as approve_testing_main
+from fedora_messaging import testing as fml_testing
+
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
 
@@ -61,9 +62,9 @@ class TestMain(BaseTaskTestCase):
         Get an update to work with and set some common attributes that
         make sense for all or most of the tests.
         """
-        super(TestMain, self).setup_method(self)
+        super().setup_method(self)
         # Clear pending messages
-        self.db.info['messages'] = []
+        self.db.info["messages"] = []
         # Get an update to work with
         self.update = self.db.query(models.Update).all()[0]
         self.update.status = models.UpdateStatus.testing
@@ -74,12 +75,12 @@ class TestMain(BaseTaskTestCase):
             self.db.commit()
         # approve_testing never sends mail directly, so we always just
         # want to mock this out and not worry about it
-        self.mailpatcher = patch('bodhi.server.models.mail')
+        self.mailpatcher = patch("bodhi.server.models.mail")
         self.mailpatcher.start()
 
     def teardown_method(self):
         """Stop the mail patcher on teardown."""
-        super(TestMain, self).teardown_method(self)
+        super().teardown_method(self)
         self.mailpatcher.stop()
 
     def _assert_not_pushed(self):
@@ -92,19 +93,20 @@ class TestMain(BaseTaskTestCase):
     def _assert_commented(self, times):
         """Assert the testing_approval_msg was posted exactly (times) times."""
         try:
-            bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
+            bodhi = self.db.query(models.User).filter_by(name="bodhi").one()
             bodhicomments = self.db.query(models.Comment).filter_by(
                 update_id=self.update.id, user_id=bodhi.id
             )
         except sqlalchemy.exc.NoResultFound:
             bodhicomments = []
         approvalcomments = [
-            comment for comment in bodhicomments
-            if comment.text == config.get('testing_approval_msg')
+            comment
+            for comment in bodhicomments
+            if comment.text == config.get("testing_approval_msg")
         ]
         assert len(approvalcomments) == times
 
-    @patch('bodhi.server.models.Update.meets_testing_requirements', False)
+    @patch("bodhi.server.models.Update.meets_testing_requirements", False)
     def test_update_not_approved(self):
         """
         Ensure that if the update does not meet testing requirements, we do
@@ -125,7 +127,7 @@ class TestMain(BaseTaskTestCase):
         assert self.update.date_approved is None
 
     @pytest.mark.parametrize("autotime_enabled", (True, False))
-    @patch('bodhi.server.models.Update.meets_testing_requirements', True)
+    @patch("bodhi.server.models.Update.meets_testing_requirements", True)
     def test_update_approved_only(self, autotime_enabled):
         """
         Ensure that if the update meets testing requirements but does not meet
@@ -158,14 +160,21 @@ class TestMain(BaseTaskTestCase):
     @pytest.mark.parametrize("stable_days", (0, 7, 14))
     @pytest.mark.parametrize("has_stable_comment", (True, False))
     @pytest.mark.parametrize("composed_by_bodhi", (True, False))
-    @pytest.mark.parametrize('from_side_tag', (None, 'f17-build-side-1234'))
-    @patch('bodhi.server.models.Update.add_tag')
-    @patch('bodhi.server.models.Update.remove_tag')
-    @patch('bodhi.server.buildsys.DevBuildsys.deleteTag')
-    @patch('bodhi.server.models.Update.meets_testing_requirements', True)
-    def test_update_approved_and_autotime(self, delete_tag, remove_tag, add_tag,
-                                          from_side_tag, composed_by_bodhi, has_stable_comment,
-                                          stable_days):
+    @pytest.mark.parametrize("from_side_tag", (None, "f17-build-side-1234"))
+    @patch("bodhi.server.models.Update.add_tag")
+    @patch("bodhi.server.models.Update.remove_tag")
+    @patch("bodhi.server.buildsys.DevBuildsys.deleteTag")
+    @patch("bodhi.server.models.Update.meets_testing_requirements", True)
+    def test_update_approved_and_autotime(
+        self,
+        delete_tag,
+        remove_tag,
+        add_tag,
+        from_side_tag,
+        composed_by_bodhi,
+        has_stable_comment,
+        stable_days,
+    ):
         """
         Ensure that if the update meets testing requirements *and* the autotime
         push threshold, we push it, publish RequirementsMetStable unless the
@@ -189,14 +198,16 @@ class TestMain(BaseTaskTestCase):
         # stable comment indicating it was previously approved
         # we publish UpdateRequestStable on the composed_by_bodhi path, because
         # we call update.set_request() which does that
-        with patch('bodhi.server.models.Update.has_stable_comment', has_stable_comment):
+        with patch("bodhi.server.models.Update.has_stable_comment", has_stable_comment):
             if composed_by_bodhi:
                 if has_stable_comment:
                     with fml_testing.mock_sends(update_schemas.UpdateRequestStableV1):
                         approve_testing_main()
                 else:
-                    with fml_testing.mock_sends(update_schemas.UpdateRequirementsMetStableV1,
-                                                update_schemas.UpdateRequestStableV1):
+                    with fml_testing.mock_sends(
+                        update_schemas.UpdateRequirementsMetStableV1,
+                        update_schemas.UpdateRequestStableV1,
+                    ):
                         approve_testing_main()
             else:
                 if has_stable_comment:
@@ -227,38 +238,48 @@ class TestMain(BaseTaskTestCase):
             assert self.update.date_pushed is not None
 
             if from_side_tag:
-                assert remove_tag.call_args_list == \
-                    [call(f'{from_side_tag}-signing-pending'),
-                     call(f'{from_side_tag}-testing-pending'),
-                     call(from_side_tag)]
+                assert remove_tag.call_args_list == [
+                    call(f"{from_side_tag}-signing-pending"),
+                    call(f"{from_side_tag}-testing-pending"),
+                    call(from_side_tag),
+                ]
 
-                assert add_tag.call_args_list == \
-                    [call('f17-updates')]
-                assert delete_tag.call_args_list == \
-                    [call(f'{from_side_tag}-signing-pending'),
-                     call(f'{from_side_tag}-testing-pending'),
-                     call(from_side_tag)]
+                assert add_tag.call_args_list == [call("f17-updates")]
+                assert delete_tag.call_args_list == [
+                    call(f"{from_side_tag}-signing-pending"),
+                    call(f"{from_side_tag}-testing-pending"),
+                    call(from_side_tag),
+                ]
             else:
                 # First pass, it adds f17=updates-pending, then since we're pushing
                 # to stable directly, it adds f17-updates (the stable tag) then
                 # removes f17-updates-testing-pending and f17-updates-pending
-                assert remove_tag.call_args_list == \
-                    [call('f17-updates-testing-pending'), call('f17-updates-pending'),
-                     call('f17-updates-signing-pending'), call('f17-updates-testing'),
-                     call('f17-updates-candidate')]
+                assert remove_tag.call_args_list == [
+                    call("f17-updates-testing-pending"),
+                    call("f17-updates-pending"),
+                    call("f17-updates-signing-pending"),
+                    call("f17-updates-testing"),
+                    call("f17-updates-candidate"),
+                ]
 
-                assert add_tag.call_args_list == \
-                    [call('f17-updates')]
+                assert add_tag.call_args_list == [call("f17-updates")]
                 delete_tag.assert_not_called()
 
-    @pytest.mark.parametrize(('from_tag', 'update_status'),
-                             [('f17-build-side-1234', models.UpdateStatus.pending),
-                             (None, models.UpdateStatus.obsolete)])
-    @patch("bodhi.server.buildsys.DevBuildsys.getLatestBuilds", return_value=[{
-        'creation_time': '2007-08-25 19:38:29.422344'}])
-    @patch('bodhi.server.models.Update.meets_testing_requirements', True)
-    def test_update_conflicting_build_not_pushed(self, build_creation_time,
-                                                 from_tag, update_status):
+    @pytest.mark.parametrize(
+        ("from_tag", "update_status"),
+        [
+            ("f17-build-side-1234", models.UpdateStatus.pending),
+            (None, models.UpdateStatus.obsolete),
+        ],
+    )
+    @patch(
+        "bodhi.server.buildsys.DevBuildsys.getLatestBuilds",
+        return_value=[{"creation_time": "2007-08-25 19:38:29.422344"}],
+    )
+    @patch("bodhi.server.models.Update.meets_testing_requirements", True)
+    def test_update_conflicting_build_not_pushed(
+        self, build_creation_time, from_tag, update_status
+    ):
         """
         Ensure that an update that has conflicting builds is not pushed.
         """
@@ -277,42 +298,43 @@ class TestMain(BaseTaskTestCase):
         # to be manually submitted stable, which is still the case here
         assert self.update.date_approved is not None
 
-        bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
+        bodhi = self.db.query(models.User).filter_by(name="bodhi").one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=self.update.id, user_id=bodhi.id)
         assert cmnts.count() == 1
-        assert cmnts[0].text == "This update cannot be pushed to stable. "\
-            "These builds bodhi-2.0-1.fc17 have a more recent build in koji's "\
+        assert (
+            cmnts[0].text == "This update cannot be pushed to stable. "
+            "These builds bodhi-2.0-1.fc17 have a more recent build in koji's "
             f"{self.update.release.stable_tag} tag."
+        )
 
-    @pytest.mark.parametrize('composed_by_bodhi', (True, False))
-    @patch('bodhi.server.models.Update.comment', side_effect=IOError('The DB died lol'))
-    @patch('bodhi.server.tasks.approve_testing.log')
-    @patch('bodhi.server.models.Update.meets_testing_requirements', True)
+    @pytest.mark.parametrize("composed_by_bodhi", (True, False))
+    @patch("bodhi.server.models.Update.comment", side_effect=OSError("The DB died lol"))
+    @patch("bodhi.server.tasks.approve_testing.log")
+    @patch("bodhi.server.models.Update.meets_testing_requirements", True)
     def test_exception_handler(self, log, comment, composed_by_bodhi):
         """The Exception handler prints the Exception, rolls back and closes the db, and exits."""
         self.update.autotime = False
         self.update.release.composed_by_bodhi = composed_by_bodhi
         self.db.flush()
 
-        with patch.object(self.db, 'commit'):
-            with patch.object(self.db, 'rollback'):
-                approve_testing_main()
-                assert self.db.commit.call_count == 0
-                self.db.rollback.assert_called_once_with()
+        with patch.object(self.db, "commit"), patch.object(self.db, "rollback"):
+            approve_testing_main()
+            assert self.db.commit.call_count == 0
+            self.db.rollback.assert_called_once_with()
 
         comment.assert_called_once_with(
             self.db,
-            ('This update can be pushed to stable now if the maintainer wishes'),
-            author='bodhi',
+            ("This update can be pushed to stable now if the maintainer wishes"),
+            author="bodhi",
             email_notification=composed_by_bodhi,
         )
-        log.info.assert_called_with(f'{self.update.alias} now meets testing requirements')
+        log.info.assert_called_with(f"{self.update.alias} now meets testing requirements")
         log.exception.assert_called_with("There was an error approving testing updates.")
 
-    @pytest.mark.parametrize('composed_by_bodhi', (True, False))
-    @patch('bodhi.server.models.Update.comment', side_effect=[None, IOError('The DB died lol')])
-    @patch('bodhi.server.tasks.approve_testing.log')
-    @patch('bodhi.server.models.Update.meets_testing_requirements', True)
+    @pytest.mark.parametrize("composed_by_bodhi", (True, False))
+    @patch("bodhi.server.models.Update.comment", side_effect=[None, OSError("The DB died lol")])
+    @patch("bodhi.server.tasks.approve_testing.log")
+    @patch("bodhi.server.models.Update.meets_testing_requirements", True)
     def test_exception_handler_on_the_second_update(self, log, comment, composed_by_bodhi):
         """
         Ensure, that when the Exception is raised, all previous transactions are commited,
@@ -321,25 +343,24 @@ class TestMain(BaseTaskTestCase):
         self.update.autotime = False
         self.update.release.composed_by_bodhi = composed_by_bodhi
 
-        update2 = self.create_update(['bodhi2-2.0-1.fc17'])
+        update2 = self.create_update(["bodhi2-2.0-1.fc17"])
         update2.autotime = False
         update2.request = None
         update2.status = models.UpdateStatus.testing
         self.db.flush()
 
-        with patch.object(self.db, 'commit'):
-            with patch.object(self.db, 'rollback'):
-                approve_testing_main()
-                assert self.db.commit.call_count == 1
-                self.db.rollback.assert_called_once_with()
+        with patch.object(self.db, "commit"), patch.object(self.db, "rollback"):
+            approve_testing_main()
+            assert self.db.commit.call_count == 1
+            self.db.rollback.assert_called_once_with()
 
         comment_expected_call = call(
             self.db,
-            ('This update can be pushed to stable now if the maintainer wishes'),
-            author='bodhi',
+            ("This update can be pushed to stable now if the maintainer wishes"),
+            author="bodhi",
             email_notification=composed_by_bodhi,
         )
         assert comment.call_args_list == [comment_expected_call, comment_expected_call]
-        log.info.assert_any_call(f'{self.update.alias} now meets testing requirements')
-        log.info.assert_any_call(f'{update2.alias} now meets testing requirements')
+        log.info.assert_any_call(f"{self.update.alias} now meets testing requirements")
+        log.info.assert_any_call(f"{update2.alias} now meets testing requirements")
         log.exception.assert_called_with("There was an error approving testing updates.")

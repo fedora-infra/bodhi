@@ -8,18 +8,17 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-import datetime
 import os
 import sys
-
+from datetime import datetime, timezone
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 for submodule in ("bodhi-server", "bodhi-messages", "bodhi-client"):
     sys.path.insert(0, os.path.join(basedir, submodule))
-#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../bodhi-server')))  # NOQA
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../bodhi-server')))
 
 from bodhi.server import __version__  # NOQA
 
@@ -32,32 +31,33 @@ from bodhi.server import __version__  # NOQA
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.coverage',
-    'sphinx.ext.extlinks',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.todo',
-    'sphinx.ext.viewcode']
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.coverage",
+    "sphinx.ext.extlinks",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.todo",
+    "sphinx.ext.viewcode",
+]
 
-autodoc_default_options = {'members': None, 'show-inheritance': None, 'special-members': None}
+autodoc_default_options = {"members": None, "show-inheritance": None, "special-members": None}
 autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = 'bodhi'
-copyright = '2007-{}, Red Hat, Inc.'.format(datetime.datetime.utcnow().year)
+project = "bodhi"
+copyright = f"2007-{datetime.now(timezone.utc).year}, Red Hat, Inc."
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -80,7 +80,7 @@ release = __version__
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ["_build"]
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 # default_role = None
@@ -97,7 +97,7 @@ exclude_patterns = ['_build']
 # show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -107,17 +107,17 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'alabaster'
+html_theme = "alabaster"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'logo': 'logo.svg',
-    'logo_name': True,
-    'github_user': 'fedora-infra',
-    'github_repo': 'bodhi',
-    'page_width': '1040px',
+    "logo": "logo.svg",
+    "logo_name": True,
+    "github_user": "fedora-infra",
+    "github_repo": "bodhi",
+    "page_width": "1040px",
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -142,7 +142,7 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -158,12 +158,12 @@ html_static_path = ['_static']
 # This is required for the alabaster theme
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
 html_sidebars = {
-    '**': [
-        'about.html',
-        'navigation.html',
-        'relations.html',  # needs 'show_related': True theme option to display
-        'searchbox.html',
-        'donate.html',
+    "**": [
+        "about.html",
+        "navigation.html",
+        "relations.html",  # needs 'show_related': True theme option to display
+        "searchbox.html",
+        "donate.html",
     ]
 }
 
@@ -198,7 +198,7 @@ html_sidebars = {
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'bodhidoc'
+htmlhelp_basename = "bodhidoc"
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -206,10 +206,8 @@ htmlhelp_basename = 'bodhidoc'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     # 'preamble': '',
 }
@@ -217,8 +215,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('index', 'bodhi.tex', 'bodhi Documentation',
-     'Randy Barlow, Luke Macken', 'manual'),
+    ("index", "bodhi.tex", "bodhi Documentation", "Randy Barlow, Luke Macken", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -247,19 +244,37 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('user/man_pages/bodhi', 'bodhi', 'manage Fedora updates', ['Randy Barlow', 'Luke Macken'], 1),
-    ('user/man_pages/bodhi-push', 'bodhi-push', 'push Fedora updates', ['Randy Barlow'], 1),
-    ('user/man_pages/initialize_bodhi_db', 'initialize_bodhi_db', 'initialize bodhi\'s database',
-     ['Randy Barlow'], 1),
-    ('user/man_pages/bodhi-sar', 'bodhi-sar', 'display user data', ['Randy Barlow'], 1),
-    ('user/man_pages/bodhi-shell', 'bodhi-shell', 'run python shell initialized with Bodhi models',
-     ['Randy Barlow', 'Sebastian Wojciechowski'], 1),
-    ('user/man_pages/bodhi-skopeo-lite', 'bodhi-skopeo-lite',
-     'Copy containers between registries',
-     ['Owen Taylor'], 1),
-    ('user/man_pages/bodhi-untag-branched', 'bodhi-untag-branched',
-     'Remove the pending and testing tags from updates in a branched release.',
-     ['Randy Barlow'], 1),
+    ("user/man_pages/bodhi", "bodhi", "manage Fedora updates", ["Randy Barlow", "Luke Macken"], 1),
+    ("user/man_pages/bodhi-push", "bodhi-push", "push Fedora updates", ["Randy Barlow"], 1),
+    (
+        "user/man_pages/initialize_bodhi_db",
+        "initialize_bodhi_db",
+        "initialize bodhi's database",
+        ["Randy Barlow"],
+        1,
+    ),
+    ("user/man_pages/bodhi-sar", "bodhi-sar", "display user data", ["Randy Barlow"], 1),
+    (
+        "user/man_pages/bodhi-shell",
+        "bodhi-shell",
+        "run python shell initialized with Bodhi models",
+        ["Randy Barlow", "Sebastian Wojciechowski"],
+        1,
+    ),
+    (
+        "user/man_pages/bodhi-skopeo-lite",
+        "bodhi-skopeo-lite",
+        "Copy containers between registries",
+        ["Owen Taylor"],
+        1,
+    ),
+    (
+        "user/man_pages/bodhi-untag-branched",
+        "bodhi-untag-branched",
+        "Remove the pending and testing tags from updates in a branched release.",
+        ["Randy Barlow"],
+        1,
+    ),
 ]
 
 # If true, show URL addresses after external links.
@@ -272,9 +287,15 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'bodhi', 'bodhi Documentation',
-     'Randy Barlow, Luke Macken', 'bodhi', 'One line description of project.',
-     'Miscellaneous'),
+    (
+        "index",
+        "bodhi",
+        "bodhi Documentation",
+        "Randy Barlow, Luke Macken",
+        "bodhi",
+        "One line description of project.",
+        "Miscellaneous",
+    ),
 ]
 
 # Documents to append as an appendix to all manuals.
@@ -288,10 +309,10 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {"http://docs.python.org/": None}
 
 extlinks = {
-    'commit': ('https://github.com/fedora-infra/bodhi/commit/%s', '%s'),
-    'issue': ('https://github.com/fedora-infra/bodhi/issues/%s', '#%s'),
-    'pr': ('https://github.com/fedora-infra/bodhi/pull/%s', 'PR#%s'),
+    "commit": ("https://github.com/fedora-infra/bodhi/commit/%s", "%s"),
+    "issue": ("https://github.com/fedora-infra/bodhi/issues/%s", "#%s"),
+    "pr": ("https://github.com/fedora-infra/bodhi/pull/%s", "PR#%s"),
 }

@@ -22,23 +22,23 @@ Revision ID: c60d95eef4f1
 Revises: b1fd856efcf6
 Create Date: 2019-04-20 08:44:52.083675
 """
+
 from alembic import op
 from sqlalchemy import exc
 
-
 # revision identifiers, used by Alembic.
-revision = 'c60d95eef4f1'
-down_revision = 'b1fd856efcf6'
+revision = "c60d95eef4f1"
+down_revision = "b1fd856efcf6"
 
 
 def upgrade():
     """Add frozen release state."""
-    op.execute('COMMIT')  # See https://bitbucket.org/zzzeek/alembic/issue/123
+    op.execute("COMMIT")  # See https://bitbucket.org/zzzeek/alembic/issue/123
     try:
         # This will raise a ProgrammingError if the DB server doesn't use BDR.
-        op.execute('SHOW bdr.permit_ddl_locking')
+        op.execute("SHOW bdr.permit_ddl_locking")
         # This server uses BDR, so let's ask for a DDL lock.
-        op.execute('SET LOCAL bdr.permit_ddl_locking = true')
+        op.execute("SET LOCAL bdr.permit_ddl_locking = true")
     except exc.ProgrammingError:
         # This server doesn't use BDR, so no problem.
         pass
@@ -47,21 +47,20 @@ def upgrade():
 
 def downgrade():
     """Remove frozen release state."""
-    op.execute('COMMIT')  # See https://bitbucket.org/zzzeek/alembic/issue/123
+    op.execute("COMMIT")  # See https://bitbucket.org/zzzeek/alembic/issue/123
     try:
         # This will raise a ProgrammingError if the DB server doesn't use BDR.
-        op.execute('SHOW bdr.permit_ddl_locking')
+        op.execute("SHOW bdr.permit_ddl_locking")
         # This server uses BDR, so let's ask for a DDL lock.
-        op.execute('SET LOCAL bdr.permit_ddl_locking = true')
+        op.execute("SET LOCAL bdr.permit_ddl_locking = true")
     except exc.ProgrammingError:
         # This server doesn't use BDR, so no problem.
         pass
     op.execute("UPDATE releases SET state = 'pending' WHERE state = 'frozen'")
     op.execute("ALTER TYPE ck_release_state RENAME TO ck_release_state_old")
-    op.execute(
-        "CREATE TYPE ck_release_state AS ENUM('disabled', 'pending', "
-        "'current', 'archived')")
+    op.execute("CREATE TYPE ck_release_state AS ENUM('disabled', 'pending', 'current', 'archived')")
     op.execute(
         "ALTER TABLE releases ALTER COLUMN state TYPE ck_release_state "
-        "USING state::text::ck_release_state")
+        "USING state::text::ck_release_state"
+    )
     op.execute("DROP TYPE ck_release_state_old")

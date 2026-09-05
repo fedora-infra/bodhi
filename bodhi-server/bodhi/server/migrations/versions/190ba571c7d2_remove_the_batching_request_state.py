@@ -22,37 +22,39 @@ Revision ID: 190ba571c7d2
 Revises: 5c86a3f9dc03
 Create Date: 2019-02-12 16:49:04.326555
 """
+
 from alembic import op
 from sqlalchemy import exc
 
-
 # revision identifiers, used by Alembic.
-revision = '190ba571c7d2'
-down_revision = '5c86a3f9dc03'
+revision = "190ba571c7d2"
+down_revision = "5c86a3f9dc03"
 
 
 def upgrade():
     """Remove the update's batched request state."""
-    op.execute('COMMIT')  # See https://bitbucket.org/zzzeek/alembic/issue/123
+    op.execute("COMMIT")  # See https://bitbucket.org/zzzeek/alembic/issue/123
     try:
         # This will raise a ProgrammingError if the DB server doesn't use BDR.
-        op.execute('SHOW bdr.permit_ddl_locking')
+        op.execute("SHOW bdr.permit_ddl_locking")
         # This server uses BDR, so let's ask for a DDL lock.
-        op.execute('SET LOCAL bdr.permit_ddl_locking = true')
+        op.execute("SET LOCAL bdr.permit_ddl_locking = true")
     except exc.ProgrammingError:
         # This server doesn't use BDR, so no problem.
         pass
     op.execute("UPDATE updates SET request = 'stable' WHERE request = 'batched'")
     op.execute("ALTER TYPE ck_update_request RENAME TO ck_update_request_old")
     op.execute(
-        "CREATE TYPE ck_update_request AS ENUM('testing', 'obsolete', "
-        "'unpush', 'revoke', 'stable')")
+        "CREATE TYPE ck_update_request AS ENUM('testing', 'obsolete', 'unpush', 'revoke', 'stable')"
+    )
     op.execute(
         "ALTER TABLE updates ALTER COLUMN request TYPE ck_update_request "
-        "USING request::text::ck_update_request")
+        "USING request::text::ck_update_request"
+    )
     op.execute(
         "ALTER TABLE composes ALTER COLUMN request TYPE ck_update_request "
-        "USING request::text::ck_update_request")
+        "USING request::text::ck_update_request"
+    )
     op.execute("DROP TYPE ck_update_request_old")
 
 
@@ -63,12 +65,12 @@ def downgrade():
     This function is not able to restore which updates were batched since that information has been
     lost.
     """
-    op.execute('COMMIT')  # See https://bitbucket.org/zzzeek/alembic/issue/123
+    op.execute("COMMIT")  # See https://bitbucket.org/zzzeek/alembic/issue/123
     try:
         # This will raise a ProgrammingError if the DB server doesn't use BDR.
-        op.execute('SHOW bdr.permit_ddl_locking')
+        op.execute("SHOW bdr.permit_ddl_locking")
         # This server uses BDR, so let's ask for a DDL lock.
-        op.execute('SET LOCAL bdr.permit_ddl_locking = true')
+        op.execute("SET LOCAL bdr.permit_ddl_locking = true")
     except exc.ProgrammingError:
         # This server doesn't use BDR, so no problem.
         pass

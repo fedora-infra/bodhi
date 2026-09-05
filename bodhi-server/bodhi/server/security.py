@@ -16,19 +16,25 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A collection of authentication and authorization functions and classes."""
+
 import typing
 
 from cornice.errors import Errors
 from munch import munchify
 from pyramid.authentication import AuthTktCookieHelper
 from pyramid.authorization import (
-    ALL_PERMISSIONS, DENY_ALL, ACLHelper, Allow, Authenticated, Everyone
+    ALL_PERMISSIONS,
+    DENY_ALL,
+    ACLHelper,
+    Allow,
+    Authenticated,
+    Everyone,
 )
 from pyramid.request import RequestLocalCache
 from pyramid.threadlocal import get_current_registry
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import pyramid.request.Request  # noqa: F401
+    import pyramid.request.Request
 
 
 class BodhiSecurityPolicy:  # pragma: no cover
@@ -36,18 +42,25 @@ class BodhiSecurityPolicy:  # pragma: no cover
 
     def __init__(self, secret, secure, hashalg, timeout, max_age, samesite):
         """Initialize the security policy."""
-        self.helper = AuthTktCookieHelper(secret, secure=secure, hashalg=hashalg,
-                                          timeout=timeout, max_age=max_age, samesite=samesite)
+        self.helper = AuthTktCookieHelper(
+            secret,
+            secure=secure,
+            hashalg=hashalg,
+            timeout=timeout,
+            max_age=max_age,
+            samesite=samesite,
+        )
         self.identity_cache = RequestLocalCache(self.load_identity)
         self.acl = ACLHelper()
 
     def load_identity(self, request):
         """Load authenticated user from database and returns a munch."""
         from bodhi.server.models import User
+
         identity = self.helper.identify(request)
         if identity is None:
             return None
-        user = request.db.query(User).filter_by(name=str(identity['userid'])).first()
+        user = request.db.query(User).filter_by(name=str(identity["userid"])).first()
         if user is None:
             return None
         # Why munch?  https://github.com/fedora-infra/bodhi/issues/473
@@ -75,7 +88,7 @@ class BodhiSecurityPolicy:  # pragma: no cover
         if identity is not None:
             principals.add(Authenticated)
             principals.add(identity.name)
-            principals.update(['group:' + group.name for group in identity.groups])
+            principals.update(["group:" + group.name for group in identity.groups])
         return self.acl.permits(context, principals, permission)
 
     def remember(self, request, userid, **kw):
@@ -90,10 +103,10 @@ class BodhiSecurityPolicy:  # pragma: no cover
 #
 # Pyramid ACL factories
 #
-class ACLFactory(object):
+class ACLFactory:
     """Define an ACL factory base class to share the __init__()."""
 
-    def __init__(self, request: 'pyramid.request.Request', context: None = None):
+    def __init__(self, request: "pyramid.request.Request", context: None = None):
         """
         Initialize the Factory.
 
@@ -115,9 +128,10 @@ class AdminACLFactory(ACLFactory):
             A list of ACLs that allow all permissions for the admin_groups defined in
                 settings.
         """
-        return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
-                self.request.registry.settings['admin_groups']] + \
-               [DENY_ALL]
+        return [
+            (Allow, "group:" + group, ALL_PERMISSIONS)
+            for group in self.request.registry.settings["admin_groups"]
+        ] + [DENY_ALL]
 
 
 class PackagerACLFactory(ACLFactory):
@@ -131,10 +145,8 @@ class PackagerACLFactory(ACLFactory):
             A list of ACLs that allow all permissions for the mandatory_packager_groups
                 defined in settings.
         """
-        groups = self.request.registry.settings['mandatory_packager_groups']
-        return [
-            (Allow, 'group:' + group, ALL_PERMISSIONS) for group in groups
-        ] + [DENY_ALL]
+        groups = self.request.registry.settings["mandatory_packager_groups"]
+        return [(Allow, "group:" + group, ALL_PERMISSIONS) for group in groups] + [DENY_ALL]
 
 
 class QAACLFactory(ACLFactory):
@@ -158,14 +170,14 @@ class QAACLFactory(ACLFactory):
         """
         # Here we want to allow both packagers and QA engineers
         # More granular authorization will be performed within validators
-        groups = set(self.request.registry.settings['mandatory_packager_groups']
-                     + self.request.registry.settings['qa_groups'])
-        return [
-            (Allow, 'group:' + group, ALL_PERMISSIONS) for group in groups
-        ] + [DENY_ALL]
+        groups = set(
+            self.request.registry.settings["mandatory_packager_groups"]
+            + self.request.registry.settings["qa_groups"]
+        )
+        return [(Allow, "group:" + group, ALL_PERMISSIONS) for group in groups] + [DENY_ALL]
 
 
-class CorsOrigins(object):
+class CorsOrigins:
     """
     Proxy-list class to load CORS config after scan-time.
 
@@ -198,7 +210,7 @@ class CorsOrigins(object):
         """Initialize the self.origins list."""
         if self.origins is None:
             settings = get_current_registry().settings
-            self.origins = settings.get(self.name, 'localhost').split(',')
+            self.origins = settings.get(self.name, "localhost").split(",")
 
     def __len__(self) -> int:
         """
@@ -249,11 +261,11 @@ class CorsOrigins(object):
         return item in self.origins
 
 
-cors_origins_ro = CorsOrigins('cors_origins_ro')
-cors_origins_rw = CorsOrigins('cors_origins_rw')
+cors_origins_ro = CorsOrigins("cors_origins_ro")
+cors_origins_rw = CorsOrigins("cors_origins_rw")
 
 
-class ProtectedRequest(object):
+class ProtectedRequest:
     """
     A proxy to the request object.
 
@@ -262,7 +274,7 @@ class ProtectedRequest(object):
     object behaves just like a normal request object.
     """
 
-    def __init__(self, real_request: 'pyramid.request.Request'):
+    def __init__(self, real_request: "pyramid.request.Request"):
         """
         Initialize the object to look a lot like the real_request, but hiding the errors.
 
@@ -274,5 +286,5 @@ class ProtectedRequest(object):
         self.errors = Errors()
         # But proxy other attributes to the real request
         self.real_request = real_request
-        for attr in ['db', 'registry', 'validated', 'buildinfo', 'identity']:
+        for attr in ["db", "registry", "validated", "buildinfo", "identity"]:
             setattr(self, attr, getattr(self.real_request, attr))

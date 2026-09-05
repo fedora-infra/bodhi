@@ -32,7 +32,7 @@ class BaseTaskTestCase(BasePyTestCase):
     def setup_method(self, method):
         """Patch transactional_session_maker."""
         super().setup_method(method)
-        self._tsm_patcher = mock.patch('bodhi.server.util.transactional_session_maker._end_session')
+        self._tsm_patcher = mock.patch("bodhi.server.util.transactional_session_maker._end_session")
         self._tsm_patcher.start()
 
     def teardown_method(self, method):

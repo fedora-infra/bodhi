@@ -22,30 +22,26 @@ Revision ID: 559acf7e2c16
 Revises: 1c97477e38ee
 Create Date: 2020-11-17 16:25:38.464821
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '559acf7e2c16'
-down_revision = '1c97477e38ee'
+revision = "559acf7e2c16"
+down_revision = "1c97477e38ee"
 
 
 def upgrade():
     """Delete orphan objects and set comments.update_id not nullable."""
     # We must drop all comments not referenced to any update
-    op.execute('DELETE FROM comments WHERE update_id IS NULL')
+    op.execute("DELETE FROM comments WHERE update_id IS NULL")
     # Then we remove TestCaseKarma and BugKarma orphaned of their comment
-    op.execute('DELETE FROM comment_bug_assoc WHERE comment_id IS NULL')
-    op.execute('DELETE FROM comment_testcase_assoc WHERE comment_id IS NULL')
+    op.execute("DELETE FROM comment_bug_assoc WHERE comment_id IS NULL")
+    op.execute("DELETE FROM comment_testcase_assoc WHERE comment_id IS NULL")
 
-    op.alter_column('comments', 'update_id',
-                    existing_type=sa.INTEGER(),
-                    nullable=False)
+    op.alter_column("comments", "update_id", existing_type=sa.INTEGER(), nullable=False)
 
 
 def downgrade():
     """Restore comments.update_id to be nullable."""
-    op.alter_column('comments', 'update_id',
-                    existing_type=sa.INTEGER(),
-                    nullable=True)
+    op.alter_column("comments", "update_id", existing_type=sa.INTEGER(), nullable=True)

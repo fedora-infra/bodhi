@@ -15,8 +15,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Unit tests for the errata message schemas."""
 
-
 from bodhi.messages.schemas.errata import BuildV1, ErrataPublishV1, ReleaseV1, UpdateV1, UserV1
+
 from .utils import check_message
 
 
@@ -33,15 +33,20 @@ class TestErrataMessage:
             "app_name": "bodhi",
             "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-4cc36fafbb",
             "agent_avatar": (
-                'https://seccdn.libravatar.org/avatar/'
-                'a9bfa08eb2cdbfc3f0c22150b53985ea4489d288d9618b53b7d039c44e0f829d?s=64&d=retro'),
-            "usernames": ['test_submitter'],
+                "https://seccdn.libravatar.org/avatar/"
+                "a9bfa08eb2cdbfc3f0c22150b53985ea4489d288d9618b53b7d039c44e0f829d?s=64&d=retro"
+            ),
+            "usernames": ["test_submitter"],
             "packages": ["tzdata"],
-            'agent_name': 'test_submitter',
-            'update': UpdateV1(
+            "agent_name": "test_submitter",
+            "update": UpdateV1(
                 "FEDORA-2019-4cc36fafbb",
-                [BuildV1('tzdata-2014i-1.fc19')], UserV1('test_submitter'),
-                'pending', 'testing', ReleaseV1('F19')),
+                [BuildV1("tzdata-2014i-1.fc19")],
+                UserV1("test_submitter"),
+                "pending",
+                "testing",
+                ReleaseV1("F19"),
+            ),
         }
         msg = ErrataPublishV1(
             body={
@@ -72,11 +77,7 @@ class TestErrataMessage:
                             "anonymous": False,
                             "text": "ralph edited this update. ",
                             "id": 484236,
-                            "user": {
-                                "buildroot_overrides": [],
-                                "name": "bodhi",
-                                "avatar": None
-                            }
+                            "user": {"buildroot_overrides": [], "name": "bodhi", "avatar": None},
                         }
                     ],
                     "date_approved": None,
@@ -84,18 +85,9 @@ class TestErrataMessage:
                     "status": "pending",
                     "date_submitted": "2014-10-29 20:02:57",
                     "unstable_karma": -3,
-                    "user": {
-                        "buildroot_overrides": [],
-                        "name": "test_submitter",
-                        "avatar": None
-                    },
+                    "user": {"buildroot_overrides": [], "name": "test_submitter", "avatar": None},
                     "locked": False,
-                    "builds": [
-                        {
-                            "override": None,
-                            "nvr": "tzdata-2014i-1.fc19"
-                        }
-                    ],
+                    "builds": [{"override": None, "nvr": "tzdata-2014i-1.fc19"}],
                     "date_modified": "2015-01-28 03:02:55",
                     "notes": "the update notes go here...",
                     "request": "testing",
@@ -114,9 +106,9 @@ class TestErrataMessage:
                         "id_prefix": "FEDORA",
                         "pending_testing_tag": "f19-updates-testing-pending",
                         "stable_tag": "f19-updates",
-                        "candidate_tag": "f19-updates-candidate"
-                    }
-                }
+                        "candidate_tag": "f19-updates-candidate",
+                    },
+                },
             }
         )
         check_message(msg, expected)

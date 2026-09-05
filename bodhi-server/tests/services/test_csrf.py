@@ -16,23 +16,23 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.services.csrf.py"""
+
 from .. import base
 
 
 class TestCSRFService(base.BasePyTestCase):
-
     def test_csrf_html(self):
         """
         Assert that we return just the CSRF token when requesting HTML
         """
-        res = self.app.get('/csrf', headers={'Accept': 'text/html'}, status=200)
+        res = self.app.get("/csrf", headers={"Accept": "text/html"}, status=200)
 
-        assert res.body.decode('utf-8') == self.get_csrf_token()
+        assert res.body.decode("utf-8") == self.get_csrf_token()
 
     def test_csrf_json(self):
         """
         Assert that we return the CSRF token in JSON format when requesting JSON
         """
-        res = self.app.get('/csrf', headers={'Accept': 'application/json'}, status=200)
+        res = self.app.get("/csrf", headers={"Accept": "application/json"}, status=200)
 
-        assert res.body.decode('utf-8') == '{"csrf_token": "%s"}' % self.get_csrf_token()
+        assert res.body.decode("utf-8") == '{"csrf_token": "%s"}' % self.get_csrf_token()

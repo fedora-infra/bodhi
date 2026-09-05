@@ -17,12 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Random functions that don't fit elsewhere."""
 
-from collections import defaultdict
-from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
-from importlib import import_module
-from textwrap import TextWrapper
-from urllib.parse import urlencode
 import bz2
 import configparser
 import errno
@@ -38,11 +32,13 @@ import subprocess
 import tempfile
 import time
 import types
-import typing
+from collections import defaultdict
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
+from importlib import import_module
+from textwrap import TextWrapper
+from urllib.parse import urlencode
 
-from bs4 import BeautifulSoup
-from munch import munchify
-from pyramid.i18n import TranslationStringFactory
 import arrow
 import bleach
 import colander
@@ -54,25 +50,28 @@ import packaging
 import requests
 import rpm
 import zstandard
-
-from bodhi.server import __version__, ffmarkdown, log, buildsys, Session
+from bodhi.server import Session, __version__, buildsys, ffmarkdown, log
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
+from bs4 import BeautifulSoup
+from munch import munchify
+from pyramid.i18n import TranslationStringFactory
 
 try:
     import libdnf5
+
     use_libdnf5 = True
 except ImportError:
     use_libdnf5 = False
 
-_ = TranslationStringFactory('bodhi')
+_ = TranslationStringFactory("bodhi")
 
 http_session = requests.Session()
 
 
 def header(x):
     """Display a given message as a heading."""
-    return "%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
+    return "%s\n     %s\n%s\n" % ("=" * 80, x, "=" * 80)
 
 
 def get_rpm_header(nvr, tries=0):
@@ -90,10 +89,17 @@ def get_rpm_header(nvr, tries=0):
     """
     tries += 1
     headers = [
-        'name', 'summary', 'version', 'release', 'url', 'description',
-        'changelogtime', 'changelogname', 'changelogtext',
+        "name",
+        "summary",
+        "version",
+        "release",
+        "url",
+        "description",
+        "changelogtime",
+        "changelogname",
+        "changelogtext",
     ]
-    rpmID = nvr + '.src'
+    rpmID = nvr + ".src"
     koji_session = buildsys.get_session()
     try:
         result = koji_session.getRPMHeaders(rpmID=rpmID, headers=headers)
@@ -124,12 +130,12 @@ def build_evr(build):
         tuple: A 3-tuple of strings representing the given build's epoch, version, and release,
             respectively.
     """
-    if not build['epoch']:
-        build['epoch'] = 0
-    return tuple(map(str, (build['epoch'], build['version'], build['release'])))
+    if not build["epoch"]:
+        build["epoch"] = 0
+    return tuple(map(str, (build["epoch"], build["version"], build["release"])))
 
 
-def get_grouped_critpath_components(collection='master', component_type='rpm', components=None):
+def get_grouped_critpath_components(collection="master", component_type="rpm", components=None):
     """
     Return a dictionary of critical path components by group for a given collection.
 
@@ -143,21 +149,21 @@ def get_grouped_critpath_components(collection='master', component_type='rpm', c
     Raises:
         ValueError: if the configured critpath.type does not support groups.
     """
-    critpath_type = config.get('critpath.type')
-    if critpath_type != 'json':
+    critpath_type = config.get("critpath.type")
+    if critpath_type != "json":
         if not critpath_type:
             critpath_type = "(default)"
-        raise ValueError(f'critpath.type {critpath_type} does not support groups')
+        raise ValueError(f"critpath.type {critpath_type} does not support groups")
     critpath_components = {}
     try:
         critpath_components = read_critpath_json(collection).get(component_type, {})
     except FileNotFoundError:
-        log.warning(f'No JSON file found for collection {collection}')
+        log.warning(f"No JSON file found for collection {collection}")
     except json.JSONDecodeError:
-        log.warning(f'JSON file for collection {collection} is invalid')
+        log.warning(f"JSON file for collection {collection} is invalid")
     if components and critpath_components:
         filtered_dict = defaultdict(list)
-        for (group, groupcomps) in critpath_components.items():
+        for group, groupcomps in critpath_components.items():
             filteredcomps = [gcomp for gcomp in groupcomps if gcomp in components]
             if filteredcomps:
                 filtered_dict[group].extend(filteredcomps)
@@ -165,7 +171,7 @@ def get_grouped_critpath_components(collection='master', component_type='rpm', c
     return critpath_components
 
 
-def get_critpath_components(collection='master', component_type='rpm', components=None):
+def get_critpath_components(collection="master", component_type="rpm", components=None):
     """
     Return a list of critical path packages for a given collection, filtered by components.
 
@@ -180,22 +186,25 @@ def get_critpath_components(collection='master', component_type='rpm', component
         list: The critpath components for the given collection and type.
     """
     critpath_components = []
-    critpath_type = config.get('critpath.type')
-    if critpath_type != 'json' and component_type != 'rpm':
-        log.warning('The critpath.type of "{0}" does not support searching for'
-                    ' non-RPM components'.format(critpath_type or "(default)"))
+    critpath_type = config.get("critpath.type")
+    if critpath_type != "json" and component_type != "rpm":
+        log.warning(
+            'The critpath.type of "{0}" does not support searching for non-RPM components'.format(
+                critpath_type or "(default)"
+            )
+        )
 
-    if critpath_type == 'json':
+    if critpath_type == "json":
         try:
             critpath_components_grouped = read_critpath_json(collection).get(component_type, {})
             for compgroup in critpath_components_grouped.values():
                 critpath_components.extend(compgroup)
         except FileNotFoundError:
-            log.warning(f'No JSON file found for collection {collection}')
+            log.warning(f"No JSON file found for collection {collection}")
         except json.JSONDecodeError:
-            log.warning(f'JSON file for collection {collection} is invalid')
+            log.warning(f"JSON file for collection {collection} is invalid")
     else:
-        critpath_components = config.get('critpath_pkgs')
+        critpath_components = config.get("critpath_pkgs")
 
     # Filter the list of components down to what was requested, in case the specific path did
     # not take our request into account.
@@ -205,7 +214,7 @@ def get_critpath_components(collection='master', component_type='rpm', component
     return critpath_components
 
 
-def get_ccp_components(collection='rawhide', component_type='rpm', components=None):
+def get_ccp_components(collection="rawhide", component_type="rpm", components=None):
     """
     Return a dictionary of compose-critical packages for a given collection.
 
@@ -225,14 +234,14 @@ def get_ccp_components(collection='rawhide', component_type='rpm', components=No
     try:
         ccp_components = read_ccp_json(collection).get(component_type, {})
     except FileNotFoundError:
-        log.warning(f'No JSON file found for collection {collection}')
+        log.warning(f"No JSON file found for collection {collection}")
     except json.JSONDecodeError:
-        log.warning(f'JSON file for collection {collection} is invalid')
+        log.warning(f"JSON file for collection {collection} is invalid")
     if components and ccp_components:
         filtered_dict = {}
         for variant in ccp_components:
             for arch in ccp_components[variant]:
-                for (typ, packages) in ccp_components[variant][arch].items():
+                for typ, packages in ccp_components[variant][arch].items():
                     filtered = [pkg for pkg in packages if pkg in components]
                     if filtered:
                         if variant not in filtered_dict:
@@ -258,20 +267,20 @@ def sanity_check_repodata(myurl, repo_type, drpms=True):
         RepodataException: If the repodata is not valid or does not exist.
         ValueError: If repo_type is not an acceptable value.
     """
-    if repo_type not in ('module', 'source', 'yum'):
-        raise ValueError('repo_type must be one of module, source, or yum.')
+    if repo_type not in ("module", "source", "yum"):
+        raise ValueError("repo_type must be one of module, source, or yum.")
 
-    with tempfile.TemporaryDirectory(prefix='bodhi_repotest_') as tmpdir:
-        os.mkdir(os.path.join(tmpdir, 'lrodir'))
+    with tempfile.TemporaryDirectory(prefix="bodhi_repotest_") as tmpdir:
+        os.mkdir(os.path.join(tmpdir, "lrodir"))
 
         h = librepo.Handle()
         h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
-        h.setopt(librepo.LRO_DESTDIR, os.path.join(tmpdir, 'lrodir'))
+        h.setopt(librepo.LRO_DESTDIR, os.path.join(tmpdir, "lrodir"))
 
-        if myurl[-1] != '/':
-            myurl += '/'
-        if myurl.endswith('repodata/'):
-            myurl = myurl.replace('repodata/', '')
+        if myurl[-1] != "/":
+            myurl += "/"
+        if myurl.endswith("repodata/"):
+            myurl = myurl.replace("repodata/", "")
 
         h.setopt(librepo.LRO_URLS, [myurl])
         h.setopt(librepo.LRO_LOCAL, True)
@@ -285,57 +294,57 @@ def sanity_check_repodata(myurl, repo_type, drpms=True):
             raise RepodataException(msg)
 
         repo_info = r.getinfo(librepo.LRR_YUM_REPO)
-        reqparts = ['filelists', 'primary', 'repomd', 'updateinfo']
+        reqparts = ["filelists", "primary", "repomd", "updateinfo"]
         # Source and module repos don't have DRPMs.
-        if repo_type == 'yum':
+        if repo_type == "yum":
             if drpms:
-                reqparts.append('prestodelta')
-            reqparts.append('group')
-        elif repo_type == 'module':
-            reqparts.append('modules')
+                reqparts.append("prestodelta")
+            reqparts.append("group")
+        elif repo_type == "module":
+            reqparts.append("modules")
         missing = []
         for part in reqparts:
             if part not in repo_info:
                 missing.append(part)
         if missing:
-            raise RepodataException(f'Required parts not in repomd.xml: {", ".join(missing)}')
+            raise RepodataException(f"Required parts not in repomd.xml: {', '.join(missing)}")
 
         # Only yum repos have comps
-        if repo_type == 'yum':
+        if repo_type == "yum":
             # Test comps
             comps = libcomps.Comps()
             try:
                 # createrepo_c >= 1.0 also compresses the comps file
-                if repo_info['group'].endswith('xz'):
-                    xml_content = lzma.open(repo_info['group']).read()
+                if repo_info["group"].endswith("xz"):
+                    xml_content = lzma.open(repo_info["group"]).read()
                     ret = comps.fromxml_str(xml_content.decode())
-                elif repo_info['group'].endswith('gz'):
-                    xml_content = gzip.open(repo_info['group']).read()
+                elif repo_info["group"].endswith("gz"):
+                    xml_content = gzip.open(repo_info["group"]).read()
                     ret = comps.fromxml_str(xml_content.decode())
-                elif repo_info['group'].endswith('zst'):
-                    xml_content = zstandard.open(repo_info['group']).read()
+                elif repo_info["group"].endswith("zst"):
+                    xml_content = zstandard.open(repo_info["group"]).read()
                     ret = comps.fromxml_str(xml_content.decode())
-                elif repo_info['group'].endswith('bz2'):
-                    xml_content = bz2.open(repo_info['group']).read()
+                elif repo_info["group"].endswith("bz2"):
+                    xml_content = bz2.open(repo_info["group"]).read()
                     ret = comps.fromxml_str(xml_content.decode())
                 else:
-                    ret = comps.fromxml_f(repo_info['group'])
+                    ret = comps.fromxml_f(repo_info["group"])
             except Exception:
-                raise RepodataException('Comps file unable to be parsed')
+                raise RepodataException("Comps file unable to be parsed")
             if len(comps.groups) < 1:
-                raise RepodataException('Comps file empty')
+                raise RepodataException("Comps file empty")
 
         # Test updateinfo
-        ret = subprocess.call(['zgrep', '<id/>', repo_info['updateinfo']])
+        ret = subprocess.call(["zgrep", "<id/>", repo_info["updateinfo"]])
         if not ret:
-            raise RepodataException('updateinfo.xml.gz contains empty ID tags')
+            raise RepodataException("updateinfo.xml.gz contains empty ID tags")
 
         if use_libdnf5:
             try:
                 testdir = tempfile.mkdtemp(dir=tmpdir)
                 load_repo_libdnf5(testdir, myurl)
             except Exception as e:
-                raise RepodataException(f'Error loading the repository: {e}')
+                raise RepodataException(f"Error loading the repository: {e}")
         else:
             # Now call out to DNF to check if the repo is usable
             # "tests" is a list of tuples with (dnf args, expected output) to run.
@@ -343,10 +352,10 @@ def sanity_check_repodata(myurl, repo_type, drpms=True):
             # is not found, an error is raised.
             tests = []
 
-            if repo_type in ('yum', 'source'):
-                tests.append((['list', '--available'], 'testrepo'))
+            if repo_type in ("yum", "source"):
+                tests.append((["list", "--available"], "testrepo"))
             else:  # repo_type == 'module', verified above
-                tests.append((['module', 'list'], '.*'))
+                tests.append((["module", "list"], ".*"))
 
             for test in tests:
                 dnfargs, expout = test
@@ -359,7 +368,8 @@ def sanity_check_repodata(myurl, repo_type, drpms=True):
                 else:
                     raise RepodataException(
                         "DNF did not return expected output when running test!"
-                        + f" Test: {dnfargs}, expected: {expout}, output: {output}")
+                        + f" Test: {dnfargs}, expected: {expout}, output: {output}"
+                    )
 
 
 def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
@@ -377,16 +387,18 @@ def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
     Raises:
         Exception: If the repodata is not valid or does not exist.
     """
-    cmd = ['dnf4',
-           '--disablerepo=*',
-           f'--repofrompath=testrepo,{myurl}',
-           '--enablerepo=testrepo',
-           '--setopt=skip_if_unavailable=0',
-           '--setopt=testrepo.skip_if_unavailable=0',
-           '--refresh',
-           '--nogpgcheck'] + list(dnf_args)
+    cmd = [
+        "dnf4",
+        "--disablerepo=*",
+        f"--repofrompath=testrepo,{myurl}",
+        "--enablerepo=testrepo",
+        "--setopt=skip_if_unavailable=0",
+        "--setopt=testrepo.skip_if_unavailable=0",
+        "--refresh",
+        "--nogpgcheck",
+    ] + list(dnf_args)
 
-    return subprocess.check_output(cmd, encoding='utf-8', stderr=subprocess.STDOUT)
+    return subprocess.check_output(cmd, encoding="utf-8", stderr=subprocess.STDOUT)
 
 
 def load_repo_libdnf5(tempdir, myurl):
@@ -412,7 +424,7 @@ def load_repo_libdnf5(tempdir, myurl):
     query.filter_enabled(True)
     repos = [r.get_id() for r in query]
     assert len(repos) == 1
-    assert repos[0] == 'testrepo'
+    assert repos[0] == "testrepo"
     return True
 
 
@@ -431,7 +443,7 @@ def age(context, date, only_distance=False):
 
 
 hardcoded_avatars = {
-    'bodhi': 'https://apps.fedoraproject.org/img/icons/bodhi-{size}.png',
+    "bodhi": "https://apps.fedoraproject.org/img/icons/bodhi-{size}.png",
 }
 
 
@@ -453,31 +465,31 @@ def avatar(context, username, usermail, size):
         return hardcoded_avatars[username].format(size=size)
 
     # context is a mako context object
-    request = context['request']
-    https = request.registry.settings.get('libravatar_prefer_tls')
-    email = 'default' if not usermail else usermail
+    request = context["request"]
+    https = request.registry.settings.get("libravatar_prefer_tls")
+    email = "default" if not usermail else usermail
 
     @request.cache.cache_on_arguments()
     def get_libravatar_url(email, https, size):
-        log.debug(f'Refreshing avatar cache for {email}')
+        log.debug(f"Refreshing avatar cache for {email}")
         return libravatar.libravatar_url(
             email=email,
             https=https,
             size=size,
-            default='retro',
+            default="retro",
         )
 
     def work(email, size):
-        if config.get('libravatar_enabled'):
-            if config.get('libravatar_dns'):
+        if config.get("libravatar_enabled"):
+            if config.get("libravatar_dns"):
                 return get_libravatar_url(email, https, size)
             else:
-                query = urlencode({'s': size, 'd': 'retro'})
-                hash = hashlib.sha256(email.lower().encode('utf-8')).hexdigest()
+                query = urlencode({"s": size, "d": "retro"})
+                hash = hashlib.sha256(email.lower().encode("utf-8")).hexdigest()
                 template = "https://seccdn.libravatar.org/avatar/%s?%s"
                 return template % (hash, query)
 
-        return 'libravatar.org'
+        return "libravatar.org"
 
     return work(email, size)
 
@@ -505,7 +517,7 @@ def splitter(value):
     items = []
     for v in value:
         if isinstance(v, str):
-            for item in v.replace(',', ' ').split():
+            for item in v.replace(",", " ").split():
                 items.append(item)
 
         elif v is not None:
@@ -555,18 +567,39 @@ def markup(context, text, bodhi=True):
         "div": ["class"],
     }
     markdown_tags = [
-        "h1", "h2", "h3", "h4", "h5", "h6",
-        "b", "i", "strong", "em", "tt",
-        "p", "br",
-        "span", "div", "blockquote", "code", "hr", "pre",
-        "ul", "ol", "li", "dd", "dt",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "b",
+        "i",
+        "strong",
+        "em",
+        "tt",
+        "p",
+        "br",
+        "span",
+        "div",
+        "blockquote",
+        "code",
+        "hr",
+        "pre",
+        "ul",
+        "ol",
+        "li",
+        "dd",
+        "dt",
         "img",
         "a",
     ]
     if packaging.version.parse(bleach.__version__) >= packaging.version.parse("6.0.0"):
         markdown_tags = set(markdown_tags)
 
-    extensions = ['markdown.extensions.fenced_code', ]
+    extensions = [
+        "markdown.extensions.fenced_code",
+    ]
     if bodhi is True:
         extensions.append(ffmarkdown.BodhiExtension())
     markdown_text = markdown.markdown(text, extensions=extensions)
@@ -594,13 +627,13 @@ def type2color(context, t):
     """
     t = str(t)
     cls = {
-        'bugfix': 'rgba(150,180,205,0.5)',
-        'security': 'rgba(205,150,180,0.5)',
-        'newpackage': 'rgba(150,205,180,0.5)',
-        'enhancement': 'rgba(205,205,150,0.5)',
-        'default': 'rgba(200,200,200,0.5)'
+        "bugfix": "rgba(150,180,205,0.5)",
+        "security": "rgba(205,150,180,0.5)",
+        "newpackage": "rgba(150,205,180,0.5)",
+        "enhancement": "rgba(205,205,150,0.5)",
+        "default": "rgba(200,200,200,0.5)",
     }
-    return cls[t] if t in cls.keys() else cls['default']
+    return cls[t] if t in cls else cls["default"]
 
 
 def type2icon(context, kind):
@@ -616,21 +649,23 @@ def type2icon(context, kind):
     """
     kind = str(kind)
 
-    if kind[0].lower() in 'aeiou':
-        kind_article = 'an'
+    if kind[0].lower() in "aeiou":
+        kind_article = "an"
     else:
-        kind_article = 'a'
+        kind_article = "a"
 
     fontawesome = {
-        'security': 'fa-shield',
-        'bugfix': 'fa-bug',
-        'newpackage': 'fa-archive',
-        'enhancement': 'fa-bolt',
-        'unspecified': 'fa-circle-o',
+        "security": "fa-shield",
+        "bugfix": "fa-bug",
+        "newpackage": "fa-archive",
+        "enhancement": "fa-bolt",
+        "unspecified": "fa-circle-o",
     }.get(kind)
 
-    span = ("<span data-toggle='tooltip' "
-            "title='This is %s %s update'><i class='fa fa-fw %s'></i></span>")
+    span = (
+        "<span data-toggle='tooltip' "
+        "title='This is %s %s update'><i class='fa fa-fw %s'></i></span>"
+    )
     return span % (kind_article, kind, fontawesome)
 
 
@@ -682,10 +717,10 @@ def page_url(context, page):
     Returns:
         str: The current path appended with a GET query for the requested page.
     """
-    request = context.get('request')
+    request = context.get("request")
     params = request.params.mixed()
-    params['page'] = page
-    return f'{request.path_url}?{urlencode(params, doseq=True)}'
+    params["page"] = page
+    return f"{request.path_url}?{urlencode(params, doseq=True)}"
 
 
 def bug_link(context, bug, short=False):
@@ -699,7 +734,7 @@ def bug_link(context, bug, short=False):
     Returns:
         str: The requested link.
     """
-    url = config.get('buglink') % str(bug.bug_id)
+    url = config.get("buglink") % str(bug.bug_id)
     link = f"<a target='_blank' href='{url}' class='notblue'>BZ#{bug.bug_id}</a>"
     if not short:
         if bug.title:
@@ -725,8 +760,8 @@ def testcase_link(context, test, short=False):
     Returns:
         str: The requested link.
     """
-    url = config.get('test_case_base_url') + test.name
-    display = test.name.replace('QA:Testcase ', '')
+    url = config.get("test_case_base_url") + test.name
+    display = test.name.replace("QA:Testcase ", "")
     link = f"<a target='_blank' href='{url}' class='font-weight-bolder'>{display}</a>"
     if not short:
         link = "Test Case " + link
@@ -743,8 +778,12 @@ def can_waive_test_results(context, update):
     Returns:
         bool: Indicating if the test results can be waived on the given update.
     """
-    return config.get('test_gating.required') and not update.test_gating_passed \
-        and config.get('waiverdb.access_token') and update.status.description != 'stable'
+    return (
+        config.get("test_gating.required")
+        and not update.test_gating_passed
+        and config.get("waiverdb.access_token")
+        and update.status.description != "stable"
+    )
 
 
 def can_trigger_tests(context, update):
@@ -757,7 +796,7 @@ def can_trigger_tests(context, update):
     Returns:
         bool: Indicating if the test results can be triggered on the given update.
     """
-    return config.get('test_gating.required')
+    return config.get("test_gating.required")
 
 
 def sorted_builds(builds):
@@ -770,9 +809,7 @@ def sorted_builds(builds):
         list: A list of Builds sorted by NVR.
     """
     key_function = functools.cmp_to_key(rpm.labelCompare)
-    return sorted(builds,
-                  key=lambda x: key_function(x.get_n_v_r()),
-                  reverse=True)
+    return sorted(builds, key=lambda x: key_function(x.get_n_v_r()), reverse=True)
 
 
 def sorted_updates(updates):
@@ -807,14 +844,14 @@ def sorted_updates(updates):
             build = list(builds[package])[0]
             if build.update not in async_ and build.update not in sync:
                 async_.append(build.update)
-    log.info('sync = %s', [up.alias for up in sync])
-    log.info('async_ = %s', [up.alias for up in async_])
+    log.info("sync = %s", [up.alias for up in sync])
+    log.info("async_ = %s", [up.alias for up in async_])
     if not (len(set(sync) & set(async_)) == 0 and len(set(sync) | set(async_)) == len(updates)):
         # There should be absolutely no way to hit this code path, but let's be paranoid, and check
         # every run, to make sure no update gets left behind.
         # It makes sure that there is no update in sync AND async, and that the combination of
         # sync OR async_ is the full set of updates.
-        raise Exception('ERROR! SYNC+ASYNC != UPDATES! sorted_updates failed')  # pragma: no cover
+        raise Exception("ERROR! SYNC+ASYNC != UPDATES! sorted_updates failed")  # pragma: no cover
     return sync, async_
 
 
@@ -835,12 +872,12 @@ def cmd(cmd, cwd=None, raise_on_error=False):
     Raises:
         RuntimeError: If exception is True and the command's exit code is non-0.
     """
-    log.debug('Running {}'.format(' '.join(cmd)))
+    log.debug("Running {}".format(" ".join(cmd)))
     p = subprocess.Popen(cmd, cwd=cwd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
-    output = '{}\n{}'.format(out, err)
+    output = f"{out}\n{err}"
     if p.returncode != 0:
-        msg = '{} returned a non-0 exit code: {}'.format(' '.join(cmd), p.returncode)
+        msg = "{} returned a non-0 exit code: {}".format(" ".join(cmd), p.returncode)
         log.error(msg)
         log.error(output)
         if raise_on_error:
@@ -850,7 +887,7 @@ def cmd(cmd, cwd=None, raise_on_error=False):
     return out, err, p.returncode
 
 
-class TransactionalSessionMaker(object):
+class TransactionalSessionMaker:
     """Provide a transactional database scope around a series of operations."""
 
     @contextmanager
@@ -873,7 +910,7 @@ class TransactionalSessionMaker(object):
             try:
                 session.rollback()
             except Exception:
-                log.exception('An Exception was raised while rolling back a transaction.')
+                log.exception("An Exception was raised while rolling back a transaction.")
             raise e
         finally:
             self._end_session()
@@ -903,13 +940,7 @@ def sort_severity(value):
         int: A number representing the sorting order of the given UpdateSeverity string, or 99 if an
             unknown value is given.
     """
-    value_map = {
-        'unspecified': 1,
-        'low': 2,
-        'medium': 3,
-        'high': 4,
-        'urgent': 5
-    }
+    value_map = {"unspecified": 1, "low": 2, "medium": 3, "high": 4, "urgent": 5}
 
     return value_map.get(value, 99)
 
@@ -927,11 +958,11 @@ def severity_updateinfo_str(value):
         str: A severity string to be included in repodata.
     """
     severity_map = {
-        'unspecified': "None",
-        'low': "Low",
-        'medium': "Moderate",
-        'high': "Important",
-        'urgent': "Critical",
+        "unspecified": "None",
+        "low": "Low",
+        "medium": "Moderate",
+        "high": "Important",
+        "urgent": "Critical",
     }
     return severity_map.get(value, "None")
 
@@ -948,9 +979,9 @@ def read_critpath_json(collection):
         FileNotFoundError: If there is no file for the requested collection.
         json.JSONDecodeError: If the file is not valid JSON.
     """
-    jsonpath = config.get('critpath.jsonpath')
-    jsonfile = os.path.join(jsonpath, f'{collection}.json')
-    with open(jsonfile, 'r', encoding='utf-8') as jsonfh:
+    jsonpath = config.get("critpath.jsonpath")
+    jsonfile = os.path.join(jsonpath, f"{collection}.json")
+    with open(jsonfile, "r", encoding="utf-8") as jsonfh:
         return json.load(jsonfh)
 
 
@@ -969,14 +1000,15 @@ def read_ccp_json(collection):
         FileNotFoundError: If there is no file for the requested collection.
         json.JSONDecodeError: If the file is not valid JSON.
     """
-    jsonpath = config.get('critpath.jsonpath')
-    jsonfile = os.path.join(jsonpath, f'{collection}-ccp-source.json')
-    with open(jsonfile, 'r', encoding='utf-8') as jsonfh:
+    jsonpath = config.get("critpath.jsonpath")
+    jsonfile = os.path.join(jsonpath, f"{collection}-ccp-source.json")
+    with open(jsonfile, "r", encoding="utf-8") as jsonfh:
         return json.load(jsonfh)
 
 
-def call_api(api_url, service_name, error_key=None, method='GET', data=None, headers=None,
-             retries=0):
+def call_api(
+    api_url, service_name, error_key=None, method="GET", data=None, headers=None, retries=0
+):
     """
     Perform an HTTP request with response type and error handling.
 
@@ -999,20 +1031,19 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
     if data is None:
         data = dict()
     log.debug("Querying url: %s", api_url)
-    if method == 'POST':
+    if method == "POST":
         if headers is None:
-            headers = {'Content-Type': 'application/json'}
+            headers = {"Content-Type": "application/json"}
         base_error_msg = (
-            'Bodhi failed to send POST request to {0} at the following URL '
-            '"{1}". The status code was "{2}".')
-        rv = http_session.post(api_url,
-                               headers=headers,
-                               data=json.dumps(data),
-                               timeout=60)
+            "Bodhi failed to send POST request to {0} at the following URL "
+            '"{1}". The status code was "{2}".'
+        )
+        rv = http_session.post(api_url, headers=headers, data=json.dumps(data), timeout=60)
     else:
         base_error_msg = (
-            'Bodhi failed to get a resource from {0} at the following URL '
-            '"{1}". The status code was "{2}".')
+            "Bodhi failed to get a resource from {0} at the following URL "
+            '"{1}". The status code was "{2}".'
+        )
         rv = http_session.get(api_url, timeout=60)
 
     if rv.status_code >= 200 and rv.status_code < 300:
@@ -1023,8 +1054,7 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
     elif rv.status_code == 500:
         log.debug(rv.text)
         # There will be no JSON with an error message here
-        error_msg = base_error_msg.format(
-            service_name, api_url, rv.status_code)
+        error_msg = base_error_msg.format(service_name, api_url, rv.status_code)
         log.error(error_msg)
         raise RuntimeError(error_msg)
     else:
@@ -1036,10 +1066,9 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
             if error_key is not None:
                 rv_error = rv_error.get(error_key)
         except ValueError:
-            rv_error = ''
-        error_msg = base_error_msg.format(
-            service_name, api_url, rv.status_code)
-        error_msg = '{0} The error was "{1}".'.format(error_msg, rv_error)
+            rv_error = ""
+        error_msg = base_error_msg.format(service_name, api_url, rv.status_code)
+        error_msg = f'{error_msg} The error was "{rv_error}".'
         log.error(error_msg)
         raise RuntimeError(error_msg)
 
@@ -1055,7 +1084,7 @@ def pagure_api_get(pagure_api_url):
     Raises:
         RuntimeError: If the server did not give us a 200 code.
     """
-    return call_api(pagure_api_url, service_name='Pagure', error_key='error', retries=3)
+    return call_api(pagure_api_url, service_name="Pagure", error_key="error", retries=3)
 
 
 def greenwave_api_post(greenwave_api_url, data):
@@ -1072,8 +1101,9 @@ def greenwave_api_post(greenwave_api_url, data):
     """
     # There is no error_key specified because the error key is not consistent
     # based on the error message
-    return call_api(greenwave_api_url, service_name='Greenwave', method='POST',
-                    data=data, retries=3)
+    return call_api(
+        greenwave_api_url, service_name="Greenwave", method="POST", data=data, retries=3
+    )
 
 
 def waiverdb_api_post(waiverdb_api_url, data):
@@ -1090,14 +1120,19 @@ def waiverdb_api_post(waiverdb_api_url, data):
     """
     # There is no error_key specified because the error key is not consistent
     # based on the error message
-    return call_api(waiverdb_api_url, service_name='WaiverDB', method='POST',
-                    data=data, headers={
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer %s' % config.get('waiverdb.access_token')
-                    })
+    return call_api(
+        waiverdb_api_url,
+        service_name="WaiverDB",
+        method="POST",
+        data=data,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": "Bearer %s" % config.get("waiverdb.access_token"),
+        },
+    )
 
 
-class no_autoflush(object):
+class no_autoflush:
     """
     A content manager that disables sqlalchemy's autoflush, restoring it afterwards.
 
@@ -1138,11 +1173,11 @@ def _get_build_repository_and_digest(build):
     koji = buildsys.get_session()
     koji_build = koji.getBuild(build.nvr)
 
-    pull_specs = koji_build['extra']['typeinfo']['image']['index']['pull']
-    digest_pull_spec = [spec for spec in pull_specs if '@' in spec][0]
+    pull_specs = koji_build["extra"]["typeinfo"]["image"]["index"]["pull"]
+    digest_pull_spec = [spec for spec in pull_specs if "@" in spec][0]
 
-    base, digest = digest_pull_spec.split('@', 1)
-    server, repository = base.split('/', 1)
+    base, digest = digest_pull_spec.split("@", 1)
+    server, repository = base.split("/", 1)
 
     return repository, digest
 
@@ -1169,7 +1204,7 @@ def make_valid_container_tag(original_tag):
     #  [a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}
 
     # Replace invalid characters with _
-    new_tag = re.sub(r'^[^a-zA-Z0-9_]|[^a-zA-Z0-9._-]', '_', original_tag)
+    new_tag = re.sub(r"^[^a-zA-Z0-9_]|[^a-zA-Z0-9._-]", "_", original_tag)
 
     # Truncate to 128 characters
     return new_tag[0:128]
@@ -1190,29 +1225,28 @@ def copy_container(build, destination_registry=None, destination_tag=None):
     Raises:
         RuntimeError: If skopeo returns a non-0 exit code.
     """
-    source_registry = config['container.source_registry']
+    source_registry = config["container.source_registry"]
 
     repository, digest = _get_build_repository_and_digest(build)
     source_url = _container_image_url(source_registry, repository, digest=digest)
 
     if destination_tag is None:
-        destination_tag = '{}-{}'.format(build.nvr_version, build.nvr_release)
+        destination_tag = f"{build.nvr_version}-{build.nvr_release}"
 
     destination_registry_list = []
     if destination_registry:
         destination_registry_list.append(destination_registry)
     else:
-        destination_registry_list = config['container.destination_registry']
+        destination_registry_list = config["container.destination_registry"]
 
     for destination_registry in destination_registry_list:
-
         destination_url = _container_image_url(
-            destination_registry, repository, tag=make_valid_container_tag(destination_tag))
+            destination_registry, repository, tag=make_valid_container_tag(destination_tag)
+        )
 
-        skopeo_cmd = [
-            config.get('skopeo.cmd'), 'copy', source_url, destination_url]
-        if config.get('skopeo.extra_copy_flags'):
-            for flag in reversed(config.get('skopeo.extra_copy_flags').split(',')):
+        skopeo_cmd = [config.get("skopeo.cmd"), "copy", source_url, destination_url]
+        if config.get("skopeo.extra_copy_flags"):
+            for flag in reversed(config.get("skopeo.extra_copy_flags").split(",")):
                 skopeo_cmd.insert(2, flag)
         cmd(skopeo_cmd, raise_on_error=True)
 
@@ -1233,9 +1267,9 @@ def _container_image_url(registry, repository, *, tag=None, digest=None):
         str: A URL referencing the given build and tag in the given registry.
     """
     if tag:
-        return 'docker://{}/{}:{}'.format(registry, repository, tag)
+        return f"docker://{registry}/{repository}:{tag}"
     else:
-        return 'docker://{}/{}@{}'.format(registry, repository, digest)
+        return f"docker://{registry}/{repository}@{digest}"
 
 
 def get_absolute_path(location):
@@ -1250,13 +1284,12 @@ def get_absolute_path(location):
     Returns:
         str: An absolute path in the filesystem referencing to the given directory.
     """
-    module, final = location.split(':')
+    module, final = location.split(":")
     base = os.path.dirname(import_module(module).__file__)
     return base + "/" + final
 
 
-def pyfile_to_module(
-        filename: str, modname: str, silent: bool = False) -> typing.Union[types.ModuleType, bool]:
+def pyfile_to_module(filename: str, modname: str, silent: bool = False) -> types.ModuleType | bool:
     """Create a Python module from a Python file.
 
     This function behaves as if the file was imported as module. Copied from Flask's
@@ -1275,11 +1308,11 @@ def pyfile_to_module(
     d.__file__ = filename
     try:
         with open(filename) as config_file:
-            exec(compile(config_file.read(), filename, 'exec'), d.__dict__)
-    except IOError as e:
+            exec(compile(config_file.read(), filename, "exec"), d.__dict__)
+    except OSError as e:
         if silent and e.errno in (errno.ENOENT, errno.EISDIR):
             return False
-        e.strerror = 'Unable to load file (%s)' % e.strerror
+        e.strerror = "Unable to load file (%s)" % e.strerror
         raise
     return d
 
@@ -1321,13 +1354,11 @@ def eol_releases(days: int = 30) -> list:
         A list of tuples in the format (release.long_name, release.eol).
     """
     from bodhi.server.models import Release, ReleaseState
-    active_releases = Release.query.filter(
-        Release.state.not_in(
-            [ReleaseState.disabled, ReleaseState.archived])
-    ).filter(
-        Release.eol.is_not(None)
-    ).order_by(
-        Release.eol.asc()
+
+    active_releases = (
+        Release.query.filter(Release.state.not_in([ReleaseState.disabled, ReleaseState.archived]))
+        .filter(Release.eol.is_not(None))
+        .order_by(Release.eol.asc())
     )
 
     eol_releases = []
@@ -1350,17 +1381,18 @@ def markdown_to_text(markdown_string: str) -> str:
     Returns:
         Text with markdown tags stripped out.
     """
-    html = markdown.markdown(markdown_string, extensions=['fenced_code'])
+    html = markdown.markdown(markdown_string, extensions=["fenced_code"])
 
     # extract text
     soup = BeautifulSoup(html, "html.parser")
-    text = ''.join(soup.find_all(string=True))
+    text = "".join(soup.find_all(string=True))
 
     return text
 
 
-def wrap_text(text: str, width: int = 80, initial_indent: str = '',
-              subsequent_indent: str = '', **kwargs) -> str:
+def wrap_text(
+    text: str, width: int = 80, initial_indent: str = "", subsequent_indent: str = "", **kwargs
+) -> str:
     """
     Wrap text to the specified line length preserving existing newlines.
 
@@ -1374,11 +1406,13 @@ def wrap_text(text: str, width: int = 80, initial_indent: str = '',
 
     paragraphs = []
     for i, paragraph in enumerate(text.splitlines()):
-        paragraphs.extend(wrapper.wrap(f"{not i and initial_indent or ''}"
-                                       f"{i and subsequent_indent or ''}"
-                                       f"{paragraph}"))
+        paragraphs.extend(
+            wrapper.wrap(
+                f"{not i and initial_indent or ''}{i and subsequent_indent or ''}{paragraph}"
+            )
+        )
 
-    return '\n'.join(paragraphs)
+    return "\n".join(paragraphs)
 
 
 def get_createrepo_config(rel):
@@ -1391,59 +1425,72 @@ def get_createrepo_config(rel):
         A munchified object with createrepo_c settings.
     """
     configfile = None
-    configpath = config.get('createrepo_c_config')
+    configpath = config.get("createrepo_c_config")
     if os.path.exists(configpath):
         try:
             configfile = configparser.ConfigParser()
             configfile.read(configpath)
-            log.info(f'Loaded createrepo_c config from {configpath}.')
+            log.info(f"Loaded createrepo_c config from {configpath}.")
         except Exception:
             configfile = None
-            log.error(f'Error reading {configpath}.')
+            log.error(f"Error reading {configpath}.")
     if not configfile:
-        log.warning('No createrepo_c config file found.')
-        return munchify({'uinfo_comp': 'XZ',
-                         'repodata_comp': '',
-                         'general_comp': False,
-                         'zchunk': True,
-                         'drpms_enabled': True,
-                         'sqlite_enabled': True,
-                         'compatibility': False})
-    if f'release.{rel.name}' in configfile.sections():
-        log.info(f'Using custom createrepo_c config for {rel.name}.')
+        log.warning("No createrepo_c config file found.")
         return munchify(
-            {'uinfo_comp': configfile[f'release.{rel.name}'].get('updateinfo-compress-type'),
-             'repodata_comp':
-                 configfile[f'release.{rel.name}'].get('repodata-compress-type', None),
-             'general_comp': configfile[f'release.{rel.name}'].getboolean('general-compress'),
-             'zchunk': configfile[f'release.{rel.name}'].getboolean('zchunk'),
-             'drpms_enabled': configfile[f'release.{rel.name}'].getboolean('drpms_enabled'),
-             'sqlite_enabled': configfile[f'release.{rel.name}'].getboolean('sqlite_enabled'),
-             'compatibility': configfile[f'release.{rel.name}'].getboolean('compatibility')
-             }
+            {
+                "uinfo_comp": "XZ",
+                "repodata_comp": "",
+                "general_comp": False,
+                "zchunk": True,
+                "drpms_enabled": True,
+                "sqlite_enabled": True,
+                "compatibility": False,
+            }
         )
-    elif f'prefix.{rel.id_prefix}' in configfile.sections():
-        log.info(f'Using custom createrepo_c config for {rel.id_prefix}.')
+    if f"release.{rel.name}" in configfile.sections():
+        log.info(f"Using custom createrepo_c config for {rel.name}.")
         return munchify(
-            {'uinfo_comp': configfile[f'prefix.{rel.id_prefix}'].get('updateinfo-compress-type'),
-             'repodata_comp':
-                 configfile[f'prefix.{rel.id_prefix}'].get('repodata-compress-type', None),
-             'general_comp': configfile[f'prefix.{rel.id_prefix}'].getboolean('general-compress'),
-             'zchunk': configfile[f'prefix.{rel.id_prefix}'].getboolean('zchunk'),
-             'drpms_enabled': configfile[f'prefix.{rel.id_prefix}'].getboolean('drpms_enabled'),
-             'sqlite_enabled': configfile[f'prefix.{rel.id_prefix}'].getboolean('sqlite_enabled'),
-             'compatibility': configfile[f'prefix.{rel.id_prefix}'].getboolean('compatibility')
-             }
+            {
+                "uinfo_comp": configfile[f"release.{rel.name}"].get("updateinfo-compress-type"),
+                "repodata_comp": configfile[f"release.{rel.name}"].get(
+                    "repodata-compress-type", None
+                ),
+                "general_comp": configfile[f"release.{rel.name}"].getboolean("general-compress"),
+                "zchunk": configfile[f"release.{rel.name}"].getboolean("zchunk"),
+                "drpms_enabled": configfile[f"release.{rel.name}"].getboolean("drpms_enabled"),
+                "sqlite_enabled": configfile[f"release.{rel.name}"].getboolean("sqlite_enabled"),
+                "compatibility": configfile[f"release.{rel.name}"].getboolean("compatibility"),
+            }
+        )
+    elif f"prefix.{rel.id_prefix}" in configfile.sections():
+        log.info(f"Using custom createrepo_c config for {rel.id_prefix}.")
+        return munchify(
+            {
+                "uinfo_comp": configfile[f"prefix.{rel.id_prefix}"].get("updateinfo-compress-type"),
+                "repodata_comp": configfile[f"prefix.{rel.id_prefix}"].get(
+                    "repodata-compress-type", None
+                ),
+                "general_comp": configfile[f"prefix.{rel.id_prefix}"].getboolean(
+                    "general-compress"
+                ),
+                "zchunk": configfile[f"prefix.{rel.id_prefix}"].getboolean("zchunk"),
+                "drpms_enabled": configfile[f"prefix.{rel.id_prefix}"].getboolean("drpms_enabled"),
+                "sqlite_enabled": configfile[f"prefix.{rel.id_prefix}"].getboolean(
+                    "sqlite_enabled"
+                ),
+                "compatibility": configfile[f"prefix.{rel.id_prefix}"].getboolean("compatibility"),
+            }
         )
     else:
-        log.info('Using createrepo_c defaults config.')
+        log.info("Using createrepo_c defaults config.")
         return munchify(
-            {'uinfo_comp': configfile['DEFAULT'].get('updateinfo-compress-type'),
-             'repodata_comp': configfile['DEFAULT'].get('repodata-compress-type', None),
-             'general_comp': configfile['DEFAULT'].getboolean('general-compress'),
-             'zchunk': configfile['DEFAULT'].getboolean('zchunk'),
-             'drpms_enabled': configfile['DEFAULT'].getboolean('drpms_enabled'),
-             'sqlite_enabled': configfile['DEFAULT'].getboolean('sqlite_enabled'),
-             'compatibility': configfile['DEFAULT'].getboolean('compatibility')
-             }
+            {
+                "uinfo_comp": configfile["DEFAULT"].get("updateinfo-compress-type"),
+                "repodata_comp": configfile["DEFAULT"].get("repodata-compress-type", None),
+                "general_comp": configfile["DEFAULT"].getboolean("general-compress"),
+                "zchunk": configfile["DEFAULT"].getboolean("zchunk"),
+                "drpms_enabled": configfile["DEFAULT"].getboolean("drpms_enabled"),
+                "sqlite_enabled": configfile["DEFAULT"].getboolean("sqlite_enabled"),
+                "compatibility": configfile["DEFAULT"].getboolean("compatibility"),
+            }
         )

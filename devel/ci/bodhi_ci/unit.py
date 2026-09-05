@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Unit test jobs."""
+
 import os
 import shutil
 
@@ -30,7 +31,7 @@ class UnitJob(Job):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _label = 'unit'
+    _label = "unit"
     _dependencies = [BuildJob]
 
     def __init__(self, *args, **kwargs):
@@ -41,34 +42,34 @@ class UnitJob(Job):
         """
         super().__init__(*args, **kwargs)
 
-        pytest_flags = '--junit-xml=nosetests.xml -v tests'
+        pytest_flags = "--junit-xml=nosetests.xml -v tests"
         if self.options["failfast"]:
-            pytest_flags += ' -x'
+            pytest_flags += " -x"
         if self.options["only_tests"]:
-            pytest_flags += f' -k {self.options["only_tests"]}'
+            pytest_flags += f" -k {self.options['only_tests']}"
 
         modules = " ".join(self.options["modules"])
 
         test_command = (
             # Run poetry install in all 3 modules
-            f'for submodule in {" ".join(MODULES)}; do '
-            '  pushd $submodule; '
-            '  poetry install --only-root; '
-            '  popd; '
-            'done; '
+            f"for submodule in {' '.join(MODULES)}; do "
+            "  pushd $submodule; "
+            "  poetry install --only-root; "
+            "  popd; "
+            "done; "
             # Run the tests in each submodule
-            f'for submodule in {modules}; do '
-            '  mkdir -p /results/$submodule; '
-            '  cd $submodule; '
-            f'/usr/bin/python3 -m pytest {pytest_flags}; '
-            '  exitcode=$?; '
-            '  cp *.xml /results/$submodule/; '
-            '  cp -r htmlcov /results/$submodule/; '
-            '  test $exitcode -gt 0 && exit 1; '
-            '  cd ..; '
-            'done'
+            f"for submodule in {modules}; do "
+            "  mkdir -p /results/$submodule; "
+            "  cd $submodule; "
+            f"/usr/bin/python3 -m pytest {pytest_flags}; "
+            "  exitcode=$?; "
+            "  cp *.xml /results/$submodule/; "
+            "  cp -r htmlcov /results/$submodule/; "
+            "  test $exitcode -gt 0 && exit 1; "
+            "  cd ..; "
+            "done"
         )
-        self._command = ['/usr/bin/bash', '-c', test_command]
+        self._command = ["/usr/bin/bash", "-c", test_command]
 
         self._convert_command_for_container()
 
@@ -79,9 +80,8 @@ class UnitJob(Job):
         Returns:
             UnitJob: Returns self.
         """
-        if (
-            self.options["no_build"]
-            and os.path.exists(os.path.join(self.archive_dir, 'coverage.xml'))
+        if self.options["no_build"] and os.path.exists(
+            os.path.join(self.archive_dir, "coverage.xml")
         ):
             self.skip()
         else:
@@ -96,7 +96,7 @@ class UnitOldJob(UnitJob):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    only_releases = ['f42']
+    only_releases = ["f42"]
 
     def __init__(self, *args, **kwargs):
         """
@@ -106,42 +106,42 @@ class UnitOldJob(UnitJob):
         """
         super().__init__(*args, **kwargs)
 
-        pytest_flags = '--junit-xml=nosetests.xml -v tests'
+        pytest_flags = "--junit-xml=nosetests.xml -v tests"
         if self.options["failfast"]:
-            pytest_flags += ' -x'
+            pytest_flags += " -x"
         if self.options["only_tests"]:
-            pytest_flags += f' -k {self.options["only_tests"]}'
+            pytest_flags += f" -k {self.options['only_tests']}"
 
         modules = " ".join(self.options["modules"])
 
         test_command = (
             # Run poetry install in all 3 modules
-            f'for submodule in {" ".join(MODULES)}; do '
-            '  pushd $submodule; '
-            '  VERSION=( $(poetry version) ); '
-            '  poetry build -f sdist; '
-            '  FILENAME=( $(find dist/ -type f) ); '
-            '  FILENAME=${FILENAME##*/}; '
-            '  FILENAME=${FILENAME%-*}; '
+            f"for submodule in {' '.join(MODULES)}; do "
+            "  pushd $submodule; "
+            "  VERSION=( $(poetry version) ); "
+            "  poetry build -f sdist; "
+            "  FILENAME=( $(find dist/ -type f) ); "
+            "  FILENAME=${FILENAME##*/}; "
+            "  FILENAME=${FILENAME%-*}; "
             '  tar -xzvf "dist/$FILENAME-${VERSION[1]}.tar.gz" -C /tmp/; '
             '  pushd "/tmp/$FILENAME-${VERSION[1]}"; '
-            '  python setup.py develop; '
-            '  popd; '
-            '  popd; '
-            'done; '
+            "  python setup.py develop; "
+            "  popd; "
+            "  popd; "
+            "done; "
             # Run the tests in each submodule
-            f'for submodule in {modules}; do '
-            '  mkdir -p /results/$submodule; '
-            '  cd $submodule; '
-            f'/usr/bin/python3 -m pytest {pytest_flags}; '
-            '  exitcode=$?; '
-            '  cp *.xml /results/$submodule/; '
-            '  cp -r htmlcov /results/$submodule/; '
-            '  test $exitcode -gt 0 && exit 1; '
-            '  cd ..; '
-            'done'
+            f"for submodule in {modules}; do "
+            "  mkdir -p /results/$submodule; "
+            "  cd $submodule; "
+            f"/usr/bin/python3 -m pytest {pytest_flags}; "
+            "  exitcode=$?; "
+            "  cp *.xml /results/$submodule/; "
+            "  cp -r htmlcov /results/$submodule/; "
+            "  test $exitcode -gt 0 && exit 1; "
+            "  cd ..; "
+            "done"
         )
-        self._command = ['/usr/bin/bash', '-c', test_command]
+        self._command = ["/usr/bin/bash", "-c", test_command]
 
         self._convert_command_for_container()
 
@@ -153,7 +153,7 @@ class DiffCoverJob(Job):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _label = 'diff-cover'
+    _label = "diff-cover"
     _dependencies = [UnitJob]
 
     def __init__(self, *args, **kwargs):
@@ -164,15 +164,15 @@ class DiffCoverJob(Job):
         """
         super().__init__(*args, **kwargs)
 
-        if self.release == 'pip':
-            executable = '/usr/local/bin/diff-cover'
+        if self.release == "pip":
+            executable = "/usr/local/bin/diff-cover"
         else:
-            executable = '/usr/bin/diff-cover'
-        self._command = [executable] + [
-            f'/results/coverage-{m}.xml' for m in self.options["modules"]
-        ] + [
-            '--compare-branch=origin/develop', '--fail-under=100'
-        ]
+            executable = "/usr/bin/diff-cover"
+        self._command = (
+            [executable]
+            + [f"/results/coverage-{m}.xml" for m in self.options["modules"]]
+            + ["--compare-branch=origin/develop", "--fail-under=100"]
+        )
         self._convert_command_for_container(include_git=True)
 
     def _pre_start_hook(self):
@@ -181,5 +181,7 @@ class DiffCoverJob(Job):
         """
         super()._pre_start_hook()
         for module in self.options["modules"]:
-            shutil.copy(os.path.join(self.depends_on[0].archive_dir, module, 'coverage.xml'),
-                        os.path.join(self.archive_dir, f'coverage-{module}.xml'))
+            shutil.copy(
+                os.path.join(self.depends_on[0].archive_dir, module, "coverage.xml"),
+                os.path.join(self.archive_dir, f"coverage-{module}.xml"),
+            )

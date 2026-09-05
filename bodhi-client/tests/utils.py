@@ -17,17 +17,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains useful functions that helps with testing."""
 
-from io import BytesIO
 import difflib
 import re
+from io import BytesIO
 
 from requests import Response
 
 
 def prepare_text_for_comparison(text):
     """Transfer wrapped text output to one line."""
-    text = text.replace('\n', '')  # Remove newlines
-    text = re.sub(r' +:', '', text)  # Remove start of wrapped lines
+    text = text.replace("\n", "")  # Remove newlines
+    text = re.sub(r" +:", "", text)  # Remove start of wrapped lines
     text = "".join(text.split())  # Remove whitespaces
     return text
 
@@ -41,9 +41,8 @@ def compare_output(output, expected, debug_output=False):
     else:
         if debug_output:
             differ = difflib.Differ()
-            diff = differ.compare(output.splitlines(True),
-                                  expected.splitlines(True))
-            print(''.join(list(diff)))
+            diff = differ.compare(output.splitlines(True), expected.splitlines(True))
+            print("".join(list(diff)))
         return False
 
 

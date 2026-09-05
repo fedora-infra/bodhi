@@ -26,13 +26,11 @@ import re
 import typing
 import warnings
 
+from bodhi.messages.utils import MENTION_RE
 from fedora_messaging import message
 from fedora_messaging.schema_utils import user_avatar_url
 
-from bodhi.messages.utils import MENTION_RE
-
-
-SCHEMA_URL = 'https://bodhi.fedoraproject.org/message-schemas'
+SCHEMA_URL = "https://bodhi.fedoraproject.org/message-schemas"
 
 
 class BodhiMessage(message.Message):
@@ -61,7 +59,7 @@ class BodhiMessage(message.Message):
         return "bodhi"
 
     @property
-    def agent(self) -> typing.Union[str, None]:
+    def agent(self) -> str | None:
         """Return the agent's username for this message.
 
         Returns:
@@ -75,16 +73,16 @@ class BodhiMessage(message.Message):
         return self.agent_name
 
     @property
-    def agent_name(self) -> typing.Union[str, None]:
+    def agent_name(self) -> str | None:
         """Return the agent's username for this message.
 
         Returns:
             The agent's username, or None if the body has no agent key.
         """
-        return self.body.get('agent', None)
+        return self.body.get("agent", None)
 
     @property
-    def agent_avatar(self) -> typing.Union[None, str]:
+    def agent_avatar(self) -> None | str:
         """
         Return a URL to the avatar of the user who caused the action.
 
@@ -97,7 +95,7 @@ class BodhiMessage(message.Message):
         return user_avatar_url(username)
 
     @classmethod
-    def from_dict(cls, message: dict) -> 'BodhiMessage':
+    def from_dict(cls, message: dict) -> "BodhiMessage":
         """
         Generate a message based on the given message dictionary.
 
@@ -115,7 +113,7 @@ class BodhiMessage(message.Message):
         return cls(body=body)
 
     @property
-    def usernames(self) -> typing.List[str]:
+    def usernames(self) -> list[str]:
         """
         List of users affected by the action that generated this message.
 
@@ -126,8 +124,8 @@ class BodhiMessage(message.Message):
         if self.agent_name is not None:
             users.append(self.agent_name)
 
-        if 'comment' in self.body:
-            text = self.body['comment']['text']
+        if "comment" in self.body:
+            text = self.body["comment"]["text"]
             mentions = re.findall(MENTION_RE, text)
             for mention in mentions:
                 users.append(mention[1:])
@@ -180,21 +178,21 @@ class BuildV1(typing.NamedTuple):
     @property
     def package(self) -> str:
         """Return the name of the package that this build is associated with."""
-        return self.nvr.rsplit('-', 2)[0]
+        return self.nvr.rsplit("-", 2)[0]
 
     @staticmethod
     def schema() -> dict:  # pragma: no cover
         """Return a schema snippet for a Build."""
         return {
-            'type': 'object',
-            'description': 'A build',
-            'properties': {
-                'nvr': {
-                    'type': 'string',
-                    'description': 'The nvr the identifies the build in koji'
+            "type": "object",
+            "description": "A build",
+            "properties": {
+                "nvr": {
+                    "type": "string",
+                    "description": "The nvr the identifies the build in koji",
                 },
             },
-            'required': ['nvr']
+            "required": ["nvr"],
         }
 
 
@@ -212,15 +210,12 @@ class ReleaseV1(typing.NamedTuple):
     def schema() -> dict:  # pragma: no cover
         """Return a schema snippet for a Build."""
         return {
-            'type': 'object',
-            'description': 'A release',
-            'properties': {
-                'name': {
-                    'type': 'string',
-                    'description': 'The name of the release e.g. F32'
-                },
+            "type": "object",
+            "description": "A release",
+            "properties": {
+                "name": {"type": "string", "description": "The name of the release e.g. F32"},
             },
-            'required': ['name']
+            "required": ["name"],
         }
 
 
@@ -235,10 +230,10 @@ class UpdateV1(typing.NamedTuple):
 
     alias: str
     builds: typing.Iterable[BuildV1]
-    user: 'UserV1'
+    user: "UserV1"
     status: str
-    request: typing.Union[None, str]
-    release: 'ReleaseV1'
+    request: None | str
+    release: "ReleaseV1"
 
     @property
     def packages(self) -> typing.Iterable[str]:
@@ -249,33 +244,38 @@ class UpdateV1(typing.NamedTuple):
     def schema() -> dict:  # pragma: no cover
         """Return a schema snippet for an Update."""
         return {
-            'type': 'object',
-            'description': 'An update',
-            'properties': {
-                'alias': {
-                    'type': 'string',
-                    'description': 'The alias of the update'
+            "type": "object",
+            "description": "An update",
+            "properties": {
+                "alias": {"type": "string", "description": "The alias of the update"},
+                "builds": {
+                    "type": "array",
+                    "description": "A list of builds included in this update",
+                    "items": {"$ref": "#/definitions/build"},
                 },
-                'builds': {
-                    'type': 'array',
-                    'description': 'A list of builds included in this update',
-                    'items': {'$ref': '#/definitions/build'}
+                "release": ReleaseV1.schema(),
+                "request": {
+                    "type": ["null", "string"],
+                    "description": "The request of the update, if any",
+                    "enum": [None, "testing", "obsolete", "unpush", "revoke", "stable"],
                 },
-                'release': ReleaseV1.schema(),
-                'request': {
-                    'type': ['null', 'string'],
-                    'description': 'The request of the update, if any',
-                    'enum': [None, 'testing', 'obsolete', 'unpush', 'revoke', 'stable']
+                "status": {
+                    "type": "string",
+                    "description": "The current status of the update",
+                    "enum": [
+                        None,
+                        "pending",
+                        "testing",
+                        "stable",
+                        "unpushed",
+                        "obsolete",
+                        "side_tag_active",
+                        "side_tag_expired",
+                    ],
                 },
-                'status': {
-                    'type': 'string',
-                    'description': 'The current status of the update',
-                    'enum': [None, 'pending', 'testing', 'stable', 'unpushed', 'obsolete',
-                             'side_tag_active', 'side_tag_expired']
-                },
-                'user': UserV1.schema(),
+                "user": UserV1.schema(),
             },
-            'required': ['alias', 'builds', 'release', 'request', 'status', 'user']
+            "required": ["alias", "builds", "release", "request", "status", "user"],
         }
 
 
@@ -293,15 +293,12 @@ class UserV1(typing.NamedTuple):
     def schema() -> dict:  # pragma: no cover
         """Return a schema snippet for a User."""
         return {
-            'type': 'object',
-            'description': 'The user that submitted the override',
-            'properties': {
-                'name': {
-                    'type': 'string',
-                    'description': "The user's account name"
-                },
+            "type": "object",
+            "description": "The user that submitted the override",
+            "properties": {
+                "name": {"type": "string", "description": "The user's account name"},
             },
-            'required': ['name']
+            "required": ["name"],
         }
 
 

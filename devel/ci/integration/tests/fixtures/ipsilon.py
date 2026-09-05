@@ -41,11 +41,16 @@ def ipsilon_container(
     image = docker_backend.ImageClass(image_name)
     run_opts = [
         "--rm",
-        "--name", "ipsilon",
-        "--network", docker_network.get_id(),
-        "--network-alias", "ipsilon",
-        "--network-alias", "ipsilon.ci",
-        "--network-alias", "id.dev.fedoraproject.org",
+        "--name",
+        "ipsilon",
+        "--network",
+        docker_network.get_id(),
+        "--network-alias",
+        "ipsilon",
+        "--network-alias",
+        "ipsilon.ci",
+        "--network-alias",
+        "id.dev.fedoraproject.org",
     ]
     container = image.run_via_binary(additional_opts=run_opts)
     container.start()

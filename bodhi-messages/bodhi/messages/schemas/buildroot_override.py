@@ -23,7 +23,7 @@ messages.
 
 import typing
 
-from .base import BodhiMessage, BuildV1, SCHEMA_URL, UserV1
+from .base import SCHEMA_URL, BodhiMessage, BuildV1, UserV1
 
 
 class BuildrootOverrideMessage(BodhiMessage):
@@ -32,12 +32,12 @@ class BuildrootOverrideMessage(BodhiMessage):
     @property
     def build(self) -> BuildV1:
         """Return the build that was overridden."""
-        return BuildV1(self.body['override']['nvr'])
+        return BuildV1(self.body["override"]["nvr"])
 
     @property
     def submitter(self) -> UserV1:
         """Return the name of the submitter for the override."""
-        return UserV1(self.body['override']['submitter']['name'])
+        return UserV1(self.body["override"]["submitter"]["name"])
 
     @property
     def summary(self) -> str:
@@ -90,7 +90,7 @@ class BuildrootOverrideMessage(BodhiMessage):
         return self.submitter.name
 
     @property
-    def usernames(self) -> typing.List[str]:
+    def usernames(self) -> list[str]:
         """
         List of users affected by the action that generated this message.
 
@@ -104,24 +104,24 @@ class BuildrootOverrideTagV1(BuildrootOverrideMessage):
     """Sent when a buildroot override is added and tagged into the build root."""
 
     body_schema = {
-        'id': f'{SCHEMA_URL}/v1/bodhi.buildroot_override.tag#',
-        '$schema': 'http://json-schema.org/draft-04/schema#',
-        'description': 'Schema for message sent when buildroot overrides are tagged',
-        'type': 'object',
-        'properties': {
-            'override': {
-                'type': 'object',
-                'properties': {
-                    'nvr': {
-                        'type': 'string',
-                        'description': 'The NVR of the build that was overridden'
+        "id": f"{SCHEMA_URL}/v1/bodhi.buildroot_override.tag#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when buildroot overrides are tagged",
+        "type": "object",
+        "properties": {
+            "override": {
+                "type": "object",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The NVR of the build that was overridden",
                     },
-                    'submitter': UserV1.schema(),
+                    "submitter": UserV1.schema(),
                 },
-                'required': ['nvr', 'submitter']
+                "required": ["nvr", "submitter"],
             }
         },
-        'required': ['override'],
+        "required": ["override"],
     }
 
     topic = "bodhi.buildroot_override.tag"
@@ -132,24 +132,24 @@ class BuildrootOverrideUntagV1(BuildrootOverrideMessage):
     """Sent when a buildroot override is untagged from the build root."""
 
     body_schema = {
-        'id': f'{SCHEMA_URL}/v1/bodhi.buildroot_override.untag#',
-        '$schema': 'http://json-schema.org/draft-04/schema#',
-        'description': 'Schema for message sent when buildroot overrides are untagged',
-        'type': 'object',
-        'properties': {
-            'override': {
-                'type': 'object',
-                'properties': {
-                    'nvr': {
-                        'type': 'string',
-                        'description': 'The NVR of the build that had been overridden'
+        "id": f"{SCHEMA_URL}/v1/bodhi.buildroot_override.untag#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when buildroot overrides are untagged",
+        "type": "object",
+        "properties": {
+            "override": {
+                "type": "object",
+                "properties": {
+                    "nvr": {
+                        "type": "string",
+                        "description": "The NVR of the build that had been overridden",
                     },
-                    'submitter': UserV1.schema(),
+                    "submitter": UserV1.schema(),
                 },
-                'required': ['nvr', 'submitter']
+                "required": ["nvr", "submitter"],
             }
         },
-        'required': ['override'],
+        "required": ["override"],
     }
 
     topic = "bodhi.buildroot_override.untag"

@@ -27,7 +27,7 @@ from docker import errors
 
 from .conu_ext import DockerNetwork, PodmanNetwork
 
-multiprocessing.set_start_method('fork')
+multiprocessing.set_start_method("fork")
 
 
 @pytest.fixture(scope="session")

@@ -3,7 +3,7 @@
 
 from time import time
 
-from prometheus_client import Histogram, Gauge
+from prometheus_client import Gauge, Histogram
 from pyramid.interfaces import IRoutesMapper
 
 
@@ -13,28 +13,27 @@ def get_pattern(request):
 
     For example `/updates/FEDORA-2019-0c2e93b669` to `/updates/{id}`
     """
-    path_info_pattern = ''
+    path_info_pattern = ""
     if request.matched_route is None:
         routes_mapper = request.registry.queryUtility(IRoutesMapper)
         if routes_mapper:
             info = routes_mapper(request)
-            if info and info['route']:
-                path_info_pattern = info['route'].pattern
+            if info and info["route"]:
+                path_info_pattern = info["route"].pattern
     else:
         path_info_pattern = request.matched_route.pattern
     return path_info_pattern
 
 
 pyramid_request_ingress = Gauge(
-    'pyramid_request_ingress',
-    'Number of requests currrently processed',
-    labelnames=['method', 'path_info_pattern'],)
+    "pyramid_request_ingress",
+    "Number of requests currrently processed",
+    labelnames=["method", "path_info_pattern"],
+)
 
 
 pyramid_request = Histogram(
-    'pyramid_request',
-    'HTTP Requests',
-    labelnames=['method', 'status', 'path_info_pattern']
+    "pyramid_request", "HTTP Requests", labelnames=["method", "status", "path_info_pattern"]
 )
 
 
@@ -44,15 +43,16 @@ def histo_tween_factory(handler, registry):
 
     Collects metrics on individual requests.
     """
+
     def tween(request):
         gauge_labels = {
-            'method': request.method,
-            'path_info_pattern': get_pattern(request),
+            "method": request.method,
+            "path_info_pattern": get_pattern(request),
         }
         pyramid_request_ingress.labels(**gauge_labels).inc()
 
         start = time()
-        status = '500'
+        status = "500"
         try:
             response = handler(request)
             status = str(response.status_int)
@@ -65,4 +65,5 @@ def histo_tween_factory(handler, registry):
                 status=status,
             ).observe(duration)
             pyramid_request_ingress.labels(**gauge_labels).dec()
+
     return tween

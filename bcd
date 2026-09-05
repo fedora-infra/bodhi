@@ -24,20 +24,21 @@ def ansible(args):
             "ansible-playbook",
             f"{here}/devel/ansible-podman/playbook.yml",
             f"-e bodhi_dev_{args.subcommand}=true"
-        )
+        ),
+        check=False
     )
     sys.exit(ret.returncode)
 
 
 def logs(args):
     fullc = f"bodhi-dev-{args.container}"
-    ret = subprocess.run(("podman", "logs", fullc))
+    ret = subprocess.run(("podman", "logs", fullc), check=False)
     sys.exit(ret.returncode)
 
 
 def shell(args):
     fullc = f"bodhi-dev-{args.container}"
-    ret = subprocess.run(("podman", "exec", "-it", fullc, "/bin/bash"))
+    ret = subprocess.run(("podman", "exec", "-it", fullc, "/bin/bash"), check=False)
     sys.exit(ret.returncode)
 
 

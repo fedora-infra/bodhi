@@ -16,28 +16,34 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define a service endpoint for searching for packages."""
+
+# ruff: noqa: C408
+
 import math
 
-from cornice import Service
-from cornice.validators import colander_querystring_validator
-from sqlalchemy import distinct, func, LABEL_STYLE_TABLENAME_PLUS_COL
-from sqlalchemy.sql.expression import case
-
-from bodhi.server.models import Package
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
+from bodhi.server.models import Package
+from cornice import Service
+from cornice.validators import colander_querystring_validator
+from sqlalchemy import LABEL_STYLE_TABLENAME_PLUS_COL, distinct, func
+from sqlalchemy.sql.expression import case
 
-
-packages = Service(name='packages', path='/packages/',
-                   description='PkgDB packages',
-                   cors_origins=bodhi.server.security.cors_origins_ro)
+packages = Service(
+    name="packages",
+    path="/packages/",
+    description="PkgDB packages",
+    cors_origins=bodhi.server.security.cors_origins_ro,
+)
 
 
 @packages.get(
-    schema=bodhi.server.schemas.ListPackageSchema(), renderer='json',
+    schema=bodhi.server.schemas.ListPackageSchema(),
+    renderer="json",
     error_handler=bodhi.server.services.errors.json_handler,
-    validators=(colander_querystring_validator,))
+    validators=(colander_querystring_validator,),
+)
 def query_packages(request):
     """
     Search for packages via query string parameters.
@@ -63,29 +69,31 @@ def query_packages(request):
     data = request.validated
     query = db.query(Package)
 
-    name = data.get('name')
+    name = data.get("name")
     if name is not None:
         query = query.filter(Package.name == name)
 
-    like = data.get('like')
+    like = data.get("like")
     if like is not None:
-        query = query.filter(Package.name.like('%%%s%%' % like))
+        query = query.filter(Package.name.like(f"%{like}%"))
 
-    search = data.get('search')
+    search = data.get("search")
     if search is not None:
-        query = query.filter(Package.name.ilike('%%%s%%' % search))
+        query = query.filter(Package.name.ilike(f"%{search}%"))
         query = query.order_by(case((Package.name == search, Package.name)))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
-    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
-        .with_only_columns(func.count(distinct(Package.name)))\
+    count_query = (
+        query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL)
+        .statement.with_only_columns(func.count(distinct(Package.name)))
         .order_by(None)
+    )
     total = db.execute(count_query).scalar()
 
-    page = data.get('page')
-    rows_per_page = data.get('rows_per_page')
-    pages = int(math.ceil(total / float(rows_per_page)))
+    page = data.get("page")
+    rows_per_page = data.get("rows_per_page")
+    pages = math.ceil(total / int(rows_per_page))
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
     return dict(

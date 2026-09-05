@@ -22,22 +22,22 @@ Revision ID: d986618207bc
 Revises: 3a14c47250fb
 Create Date: 2018-12-11 21:52:14.081423
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'd986618207bc'
+revision = "d986618207bc"
 down_revision = None
 
 
 def upgrade():
     """Add a new composed_by_bodhi column to releases."""
     op.add_column(
-        'releases', sa.Column('composed_by_bodhi', sa.Boolean(), server_default='t', default=True)
+        "releases", sa.Column("composed_by_bodhi", sa.Boolean(), server_default="t", default=True)
     )
 
 
 def downgrade():
     """Drop the composed_by_bodhi column from the releases table."""
-    op.drop_column('releases', 'composed_by_bodhi')
+    op.drop_column("releases", "composed_by_bodhi")
