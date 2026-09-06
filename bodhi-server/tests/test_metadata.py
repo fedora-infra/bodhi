@@ -353,6 +353,45 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
             if record.title == title:
                 return record
 
+    @mock.patch('bodhi.server.metadata.shelve.open')
+    def test___init___closes_shelve_on_error(self, shelve_open):
+        """The shelve should be closed if __init__() raises after opening it."""
+        update = self.db.query(Update).one()
+
+        with mock.patch.object(UpdateInfoMetadata, '_fetch_updates',
+                               side_effect=IOError('Koji is having a day.')):
+            with pytest.raises(IOError):
+                UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo)
+
+        shelve_open.return_value.close.assert_called_once_with()
+
+    @mock.patch('bodhi.server.metadata.shelve.open')
+    def test___init___closes_shelve_on_error_despite_close_shelf(self, shelve_open):
+        """The shelve should be closed on error even when close_shelf is False.
+
+        close_shelf is a promise that the caller will close the shelve itself, but the caller
+        never receives the object when __init__() raises, so it has no way to keep that promise.
+        """
+        update = self.db.query(Update).one()
+
+        with mock.patch.object(UpdateInfoMetadata, '_fetch_updates',
+                               side_effect=IOError('Koji is having a day.')):
+            with pytest.raises(IOError):
+                UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
+                                   close_shelf=False)
+
+        shelve_open.return_value.close.assert_called_once_with()
+
+    @mock.patch('bodhi.server.metadata.shelve.open')
+    def test___init___does_not_close_shelve_when_asked_not_to(self, shelve_open):
+        """The shelve should be left open on success when close_shelf is False."""
+        update = self.db.query(Update).one()
+
+        UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
+                           close_shelf=False)
+
+        shelve_open.return_value.close.assert_not_called()
+
     @mock.patch('bodhi.server.util.log.info')
     def test___init___uses_bz2_for_epel(self, info):
         """Assert that the __init__() method sets the comp_type attribute to cr.BZ2 for EPEL."""
@@ -583,3 +622,47 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
 
         assert repomd_contents == 'test data'
         assert not os.path.exists(os.path.join(self.tempcompdir, 'garbage.zck'))
+
+
+class TestInsertUpdateinfo(UpdateInfoMetadataTestCase):
+    """Test the UpdateInfoMetadata.insert_updateinfo() method."""
+
+    def setup_method(self, method):
+        super().setup_method(method)
+        update = self.db.query(Update).one()
+        self.md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo)
+        self.temp_paths = []
+        real_mkstemp = tempfile.mkstemp
+
+        def recording_mkstemp(*args, **kwargs):
+            fd, path = real_mkstemp(*args, **kwargs)
+            self.temp_paths.append(path)
+            return fd, path
+
+        self.mkstemp = mock.patch('bodhi.server.metadata.tempfile.mkstemp',
+                                  side_effect=recording_mkstemp)
+
+    def test_temporary_file_removed_when_modifyrepo_raises(self):
+        """The temporary updateinfo file should not be left behind if modifyrepo() raises."""
+        with self.mkstemp:
+            with mock.patch('bodhi.server.metadata.modifyrepo',
+                            side_effect=IOError('No repo for you.')):
+                with pytest.raises(IOError):
+                    self.md.insert_updateinfo(self.tempcompdir)
+
+        assert len(self.temp_paths) == 1
+        assert not exists(self.temp_paths[0])
+
+    def test_no_descriptor_leaked_when_xml_dump_raises(self):
+        """The descriptor from mkstemp() should be closed if the updateinfo dump raises."""
+        self.md.uinfo = mock.MagicMock()
+        self.md.uinfo.xml_dump.side_effect = IOError('No updateinfo for you.')
+        fds_before = len(os.listdir('/proc/self/fd'))
+
+        with self.mkstemp:
+            with pytest.raises(IOError):
+                self.md.insert_updateinfo(self.tempcompdir)
+
+        assert len(os.listdir('/proc/self/fd')) == fds_before
+        assert len(self.temp_paths) == 1
+        assert not exists(self.temp_paths[0])
