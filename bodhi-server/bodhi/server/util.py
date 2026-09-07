@@ -305,18 +305,26 @@ def sanity_check_repodata(myurl, repo_type, drpms=True):
             # Test comps
             comps = libcomps.Comps()
             try:
+                # These are opened as context managers so that the file is closed on the way out
+                # even when parsing raises. Without that, the traceback keeps this frame -- and
+                # therefore the file object -- alive until it is dropped.
+                #
                 # createrepo_c >= 1.0 also compresses the comps file
                 if repo_info['group'].endswith('xz'):
-                    xml_content = lzma.open(repo_info['group']).read()
+                    with lzma.open(repo_info['group']) as comps_file:
+                        xml_content = comps_file.read()
                     ret = comps.fromxml_str(xml_content.decode())
                 elif repo_info['group'].endswith('gz'):
-                    xml_content = gzip.open(repo_info['group']).read()
+                    with gzip.open(repo_info['group']) as comps_file:
+                        xml_content = comps_file.read()
                     ret = comps.fromxml_str(xml_content.decode())
                 elif repo_info['group'].endswith('zst'):
-                    xml_content = zstandard.open(repo_info['group']).read()
+                    with zstandard.open(repo_info['group']) as comps_file:
+                        xml_content = comps_file.read()
                     ret = comps.fromxml_str(xml_content.decode())
                 elif repo_info['group'].endswith('bz2'):
-                    xml_content = bz2.open(repo_info['group']).read()
+                    with bz2.open(repo_info['group']) as comps_file:
+                        xml_content = comps_file.read()
                     ret = comps.fromxml_str(xml_content.decode())
                 else:
                     ret = comps.fromxml_f(repo_info['group'])
@@ -836,8 +844,13 @@ def cmd(cmd, cwd=None, raise_on_error=False):
         RuntimeError: If exception is True and the command's exit code is non-0.
     """
     log.debug('Running {}'.format(' '.join(cmd)))
-    p = subprocess.Popen(cmd, cwd=cwd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = p.communicate()
+    # Popen is used as a context manager so that stdout and stderr are closed and the child is
+    # reaped even if communicate() raises. Otherwise the Popen object would be abandoned with its
+    # pipes still open, and CPython would park the still-running child in subprocess._active,
+    # holding both file descriptors for the lifetime of this process.
+    with subprocess.Popen(cmd, cwd=cwd, shell=False, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE) as p:
+        out, err = p.communicate()
     output = '{}\n{}'.format(out, err)
     if p.returncode != 0:
         msg = '{} returned a non-0 exit code: {}'.format(' '.join(cmd), p.returncode)

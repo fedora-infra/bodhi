@@ -2238,6 +2238,9 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
     def test_request_not_stable(self, Popen):
         """Ensure that the correct destination tag is used for non-stable updates."""
+        # A real Popen.__enter__() returns self, so the mock should too, otherwise the code
+        # under test talks to a different object than the one configured here.
+        Popen.return_value.__enter__.return_value = Popen.return_value
         Popen.return_value.communicate.return_value = ('out', 'err')
         Popen.return_value.returncode = 0
         task = self._make_task(['--releases', 'F28C'])
@@ -2256,12 +2259,18 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                 for destination in config['container.destination_registry']:
                     mock_call = _expected_skopeo_call(config, source, destination, dtag)
                     expected_mock_calls.append(mock_call)
-                    expected_mock_calls.append(mock.call().communicate())
-        assert Popen.mock_calls == expected_mock_calls
+        # call_args_list holds only the direct calls to Popen, so this stays readable now
+        # that Popen is used as a context manager and mock_calls also records __enter__(),
+        # communicate() and __exit__() against the same mock.
+        assert Popen.call_args_list == expected_mock_calls
+        assert Popen.return_value.communicate.call_count == len(expected_mock_calls)
 
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
     def test_request_stable(self, Popen):
         """Ensure that the correct destination tag is used for stable updates."""
+        # A real Popen.__enter__() returns self, so the mock should too, otherwise the code
+        # under test talks to a different object than the one configured here.
+        Popen.return_value.__enter__.return_value = Popen.return_value
         Popen.return_value.communicate.return_value = ('out', 'err')
         Popen.return_value.returncode = 0
         ContainerBuild.query.first().update.request = UpdateRequest.stable
@@ -2281,12 +2290,18 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                 for destination in config['container.destination_registry']:
                     mock_call = _expected_skopeo_call(config, source, destination, dtag)
                     expected_mock_calls.append(mock_call)
-                    expected_mock_calls.append(mock.call().communicate())
-        assert Popen.mock_calls == expected_mock_calls
+        # call_args_list holds only the direct calls to Popen, so this stays readable now
+        # that Popen is used as a context manager and mock_calls also records __enter__(),
+        # communicate() and __exit__() against the same mock.
+        assert Popen.call_args_list == expected_mock_calls
+        assert Popen.return_value.communicate.call_count == len(expected_mock_calls)
 
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
     def test_skopeo_error_code(self, Popen):
         """Assert that a RuntimeError is raised if skopeo returns a non-0 exit code."""
+        # A real Popen.__enter__() returns self, so the mock should too, otherwise the code
+        # under test talks to a different object than the one configured here.
+        Popen.return_value.__enter__.return_value = Popen.return_value
         Popen.return_value.communicate.return_value = ('out', 'err')
         Popen.return_value.returncode = 1
         ContainerBuild.query.first().update.request = UpdateRequest.stable
@@ -2310,6 +2325,9 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
     def test_skopeo_extra_copy_flags(self, Popen):
         """Test the skopeo.extra_copy_flags setting."""
         config["skopeo.extra_copy_flags"] = "--dest-tls-verify=false"
+        # A real Popen.__enter__() returns self, so the mock should too, otherwise the code
+        # under test talks to a different object than the one configured here.
+        Popen.return_value.__enter__.return_value = Popen.return_value
         Popen.return_value.communicate.return_value = ('out', 'err')
         Popen.return_value.returncode = 0
         task = self._make_task(['--releases', 'F28C'])
@@ -2329,8 +2347,11 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                     mock_call = _expected_skopeo_call(config, source, destination, dtag,
                                                       extra_args=['--dest-tls-verify=false'])
                     expected_mock_calls.append(mock_call)
-                    expected_mock_calls.append(mock.call().communicate())
-        assert Popen.mock_calls == expected_mock_calls
+        # call_args_list holds only the direct calls to Popen, so this stays readable now
+        # that Popen is used as a context manager and mock_calls also records __enter__(),
+        # communicate() and __exit__() against the same mock.
+        assert Popen.call_args_list == expected_mock_calls
+        assert Popen.return_value.communicate.call_count == len(expected_mock_calls)
 
 
 class TestPungiComposerThread__compose_updates(ComposerThreadBaseTestCase):
@@ -2451,6 +2472,9 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
         We don't need extensive sets of tests since FlatpakComposerThread inherits
         all code from ContainerComposerThread.
         """
+        # A real Popen.__enter__() returns self, so the mock should too, otherwise the code
+        # under test talks to a different object than the one configured here.
+        Popen.return_value.__enter__.return_value = Popen.return_value
         Popen.return_value.communicate.return_value = ('out', 'err')
         Popen.return_value.returncode = 0
         task = self._make_task(['--releases', 'F28F'])
@@ -2468,8 +2492,11 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
                 for destination in config['container.destination_registry']:
                     mock_call = _expected_skopeo_call(config, source, destination, dtag)
                     expected_mock_calls.append(mock_call)
-                    expected_mock_calls.append(mock.call().communicate())
-        assert Popen.mock_calls == expected_mock_calls
+        # call_args_list holds only the direct calls to Popen, so this stays readable now
+        # that Popen is used as a context manager and mock_calls also records __enter__(),
+        # communicate() and __exit__() against the same mock.
+        assert Popen.call_args_list == expected_mock_calls
+        assert Popen.return_value.communicate.call_count == len(expected_mock_calls)
 
 
 class TestPungiComposerThread__abandon_pungi(ComposerThreadBaseTestCase):
@@ -3030,7 +3057,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             'fedora_testing_master_repomd':
                 'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
         })
-        urlopen.return_value.read.return_value = b'---\nyaml: rules'
+        urlopen.return_value.__enter__.return_value.read.return_value = b'---\nyaml: rules'
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3049,6 +3076,9 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             t._wait_for_sync()
 
         assert urlopen.call_count == 1
+        # The response is used as a context manager so that it is closed as soon as it has been
+        # read, rather than being left to the garbage collector.
+        urlopen.return_value.__exit__.assert_called_once()
         # Since os.listdir() isn't deterministic about the order of the items it returns, the test
         # won't be deterministic about which of these URLs get called. However, either one of them
         # would be correct so we will just assert that one of them is called.
@@ -3072,7 +3102,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             'fedora_testing_master_repomd':
                 'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
         })
-        urlopen.return_value.read.return_value = b'---\nyaml: rules'
+        urlopen.return_value.__enter__.return_value.read.return_value = b'---\nyaml: rules'
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3101,7 +3131,8 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             'fedora_testing_master_repomd':
                 'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
         })
-        urlopen.return_value.read.side_effect = [b'wrong', b'nope', b'---\nyaml: rules']
+        urlopen.return_value.__enter__.return_value.read.side_effect = [
+            b'wrong', b'nope', b'---\nyaml: rules']
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3123,12 +3154,9 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         # won't be deterministic about which of arch URL gets used. However, either one of them
         # would be correct so we will just assert that the one that is used is used correctly.
         arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
-        expected_calls = [
-            mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
-                      '{}/repodata.repomd.xml'.format(arch)),
-            mock.call().read()]
-        expected_calls = expected_calls * 3
-        urlopen.assert_has_calls(expected_calls)
+        expected_call = mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
+                                  '{}/repodata.repomd.xml'.format(arch))
+        assert urlopen.call_args_list == [expected_call] * 3
         sleep.assert_has_calls([mock.call(200), mock.call(200)])
         save.assert_called_with(ComposeState.syncing_repo)
 
@@ -3146,7 +3174,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         })
         mocked_log.exception = mock.MagicMock()
         fake_url = mock.MagicMock()
-        fake_url.read.return_value = b'---\nyaml: rules'
+        fake_url.__enter__.return_value.read.return_value = b'---\nyaml: rules'
         urlopen.side_effect = [HTTPError('url', 404, 'Not found', {}, None), fake_url]
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
@@ -3193,7 +3221,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         })
         mocked_log.exception = mock.MagicMock()
         fake_url = mock.MagicMock()
-        fake_url.read.return_value = b'---\nyaml: rules'
+        fake_url.__enter__.return_value.read.return_value = b'---\nyaml: rules'
         urlopen.side_effect = [ConnectionResetError(104, 'Connection reset by peer'), fake_url]
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
@@ -3238,7 +3266,8 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
                 'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
         })
         mocked_log.exception = mock.MagicMock()
-        urlopen.return_value.read.side_effect = [IncompleteRead('some_data'), b'---\nyaml: rules']
+        urlopen.return_value.__enter__.return_value.read.side_effect = [
+            IncompleteRead('some_data'), b'---\nyaml: rules']
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3260,13 +3289,9 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         # won't be deterministic about which of arch URL gets used. However, either one of them
         # would be correct so we will just assert that the one that is used is used correctly.
         arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
-        expected_calls = []
-        for i in range(2):
-            expected_calls.append(
-                mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
-                          '{}/repodata.repomd.xml'.format(arch)))
-            expected_calls.append(mock.call().read())
-        urlopen.assert_has_calls(expected_calls)
+        expected_call = mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
+                                  '{}/repodata.repomd.xml'.format(arch))
+        assert urlopen.call_args_list == [expected_call] * 2
         mocked_log.exception.assert_called_once_with('Error fetching repomd.xml')
         sleep.assert_called_once_with(200)
         save.assert_called_once_with(ComposeState.syncing_repo)
@@ -3347,7 +3372,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         })
         mocked_log.exception = mock.MagicMock()
         fake_url = mock.MagicMock()
-        fake_url.read.return_value = b'---\nyaml: rules'
+        fake_url.__enter__.return_value.read.return_value = b'---\nyaml: rules'
         urlopen.side_effect = [URLError('it broke'), fake_url]
         t = PungiComposerThread(self.semmock, self._make_task()['composes'][0],
                                 'bowlofeggs', self.Session, self.tempdir)
