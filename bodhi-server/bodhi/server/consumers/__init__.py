@@ -26,7 +26,7 @@ import logging
 
 import fedora_messaging
 
-from bodhi.server import bugs, buildsys, initialize_db
+from bodhi.server import bugs, buildsys, initialize_db, raise_open_file_limit
 from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.consumers.signed import SignedHandler
@@ -49,6 +49,7 @@ class Consumer:
         initialize_db(config)
         buildsys.setup_buildsystem(config)
         bugs.set_bugtracker()
+        raise_open_file_limit()
 
         self.handler_infos = [
             HandlerInfo('.buildsys.tag', "Signed", SignedHandler()),

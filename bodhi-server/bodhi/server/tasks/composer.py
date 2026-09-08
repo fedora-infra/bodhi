@@ -860,6 +860,29 @@ class ComposerThread(threading.Thread):
         updates.sort(key=lambda update: update.days_in_testing, reverse=True)
         return updates
 
+    def _release_db_connection(self):
+        """
+        Release connection to db before a long running operation to avoid timeout.
+
+        This is a no-op if self.db is not set (e.g. when this method is exercised in a
+        unit test that calls a method directly, without going through run()).
+        """
+        if getattr(self, 'db', None) is None:
+            return
+        log.debug('Releasing DB connection before a long-running operation')
+        self.db.close()
+
+    def _reacquire_compose(self):
+        """
+        Re-attach previous db session.
+
+        This is a no-op if self.db is not set, mirroring _release_db_connection().
+        """
+        if getattr(self, 'db', None) is None:
+            return
+        log.debug('Reacquiring compose object after long-running operation')
+        self.compose = Compose.from_dict(self.db, self._compose)
+
 
 class ContainerComposerThread(ComposerThread):
     """Use skopeo to copy and tag container images."""
@@ -873,18 +896,22 @@ class ContainerComposerThread(ComposerThread):
         Raises:
             RuntimeError: If skopeo returns a non-0 exit code during copy_container.
         """
-        for update in self.compose.updates:
+        self._release_db_connection()
+        try:
+            for update in self.compose.updates:
 
-            if update.request is UpdateRequest.stable:
-                destination_tag = 'latest'
-            else:
-                destination_tag = 'testing'
+                if update.request is UpdateRequest.stable:
+                    destination_tag = 'latest'
+                else:
+                    destination_tag = 'testing'
 
-            for build in update.builds:
-                # Using None as the destination tag on the first one will default to the
-                # version-release string.
-                for dtag in [None, build.nvr_version, destination_tag]:
-                    copy_container(build, destination_tag=dtag)
+                for build in update.builds:
+                    # Using None as the destination tag on the first one will default to the
+                    # version-release string.
+                    for dtag in [None, build.nvr_version, destination_tag]:
+                        copy_container(build, destination_tag=dtag)
+        finally:
+            self._reacquire_compose()
 
 
 class FlatpakComposerThread(ContainerComposerThread):
@@ -897,6 +924,8 @@ class PungiComposerThread(ComposerThread):
     """Compose update with Pungi."""
 
     pungi_template_config_key = None
+    #: Seconds to wait for an aborted Pungi to exit after SIGTERM before killing it.
+    pungi_abort_timeout = 60
 
     def __init__(self, max_concur_sem, compose, agent, db_factory, compose_dir, resume=False):
         """
@@ -951,29 +980,75 @@ class PungiComposerThread(ComposerThread):
 
         composedone = self._checkpoints.get('compose_done')
 
-        if not self.skip_compose and not composedone:
-            pungi_process = self._punge()
+        pungi_process = None
+        try:
+            if not self.skip_compose and not composedone:
+                pungi_process = self._punge()
 
-        # Things we can do while Pungi is running
-        self.generate_testing_digest()
+            # Things we can do while Pungi is running
+            self.generate_testing_digest()
 
-        if not self.skip_compose and not composedone:
-            uinfo = self._generate_updateinfo()
+            if not self.skip_compose and not composedone:
+                uinfo = self._generate_updateinfo()
 
-            self._wait_for_pungi(pungi_process)
+                self._wait_for_pungi(pungi_process)
+                pungi_process = None
 
-            uinfo.insert_updateinfo(self.path)
+                uinfo.insert_updateinfo(self.path)
 
-            self._sanity_check_repo()
-            self._wait_for_repo_signature()
-            self._stage_repo()
+                self._sanity_check_repo()
+                self._wait_for_repo_signature()
+                self._stage_repo()
 
-            self._checkpoints['compose_done'] = True
-            self.save_state()
+                self._checkpoints['compose_done'] = True
+                self.save_state()
 
-        if not self.skip_compose:
-            # Wait for the repo to hit the master mirror
-            self._wait_for_sync()
+            if not self.skip_compose:
+                # Wait for the repo to hit the master mirror
+                self._wait_for_sync()
+        finally:
+            # If we are leaving this method without having reaped Pungi (because
+            # something in between raised), we must not leak its stdout/stderr
+            # pipes. CPython keeps a still-running child alive in
+            # subprocess._active, which holds those file descriptors open. If
+            # Pungi has filled the 64kB pipe buffer it is blocked in write() and
+            # will never exit on its own, so the descriptors would be leaked for
+            # the lifetime of the worker process.
+            self._abandon_pungi(pungi_process)
+
+    def _abandon_pungi(self, pungi_process):
+        """
+        Terminate an unreaped Pungi child process and close its pipes.
+
+        This is a no-op if there is no process, or if it has already been reaped
+        by :meth:`_wait_for_pungi`.
+
+        Args:
+            pungi_process (subprocess.Popen or None): The Pungi process handle.
+        """
+        if pungi_process is None or pungi_process.returncode is not None:
+            return
+
+        log.warning('Compose aborted while Pungi (PID %s) was still running; '
+                    'terminating it and closing its pipes.', pungi_process.pid)
+        try:
+            pungi_process.terminate()
+        except OSError:
+            log.exception('Could not terminate Pungi process %s', pungi_process.pid)
+        try:
+            # Draining with a timeout both unblocks a Pungi that is stuck writing
+            # to a full pipe and reaps the child, so it cannot linger in
+            # subprocess._active.
+            pungi_process.communicate(timeout=self.pungi_abort_timeout)
+        except subprocess.TimeoutExpired:
+            log.error('Pungi process %s did not exit after SIGTERM; killing it.',
+                      pungi_process.pid)
+            pungi_process.kill()
+            pungi_process.communicate()
+        finally:
+            for stream in (pungi_process.stdout, pungi_process.stderr):
+                if stream is not None and not stream.closed:
+                    stream.close()
 
     def _copy_additional_pungi_files(self, pungi_conf_dir, template_env):
         """
@@ -1239,7 +1314,12 @@ class PungiComposerThread(ComposerThread):
             log.info('Not waiting for pungi process, as there was no pungi')
             return
         log.info('Waiting for pungi process to finish')
-        out, err = pungi_process.communicate()
+
+        self._release_db_connection()
+        try:
+            out, err = pungi_process.communicate()
+        finally:
+            self._reacquire_compose()
         out = out.decode()
         err = err.decode()
         if pungi_process.returncode != 0:
@@ -1283,17 +1363,21 @@ class PungiComposerThread(ComposerThread):
                                                  'repomd.xml.asc'))
 
             log.info('Waiting for signatures in %s', ', '.join(sigpaths))
-            while True:
-                missing = []
-                for path in sigpaths:
-                    if not os.path.exists(path):
-                        missing.append(path)
-                if len(missing) == 0:
-                    log.info('All signatures were created')
-                    break
-                else:
-                    log.info('Waiting on %s', ', '.join(missing))
-                    time.sleep(300)
+            self._release_db_connection()
+            try:
+                while True:
+                    missing = []
+                    for path in sigpaths:
+                        if not os.path.exists(path):
+                            missing.append(path)
+                    if len(missing) == 0:
+                        log.info('All signatures were created')
+                        break
+                    else:
+                        log.info('Waiting on %s', ', '.join(missing))
+                        time.sleep(300)
+            finally:
+                self._reacquire_compose()
         else:
             log.info('Not waiting for a repo signature')
 
@@ -1329,25 +1413,30 @@ class PungiComposerThread(ComposerThread):
 
         with open(repomd) as repomdf:
             checksum = hashlib.sha1(repomdf.read().encode('utf-8')).hexdigest()
-        while True:
-            try:
-                log.info('Polling %s' % master_repomd_url)
-                masterrepomd = urlopen(master_repomd_url)
-                newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
-            except (ConnectionResetError, IncompleteRead, URLError, HTTPError):
-                log.exception('Error fetching repomd.xml')
-                time.sleep(200)
-                continue
-            if newsum == checksum:
-                log.info("master repomd.xml matches!")
-                notifications.publish(compose_schemas.ComposeSyncDoneV1.from_dict(
-                    dict(repo=self.id, agent=self.agent)),
-                    force=True)
-                return
 
-            log.debug("master repomd.xml doesn't match! %s != %s for %r",
-                      checksum, newsum, self.id)
-            time.sleep(200)
+        self._release_db_connection()
+        try:
+            while True:
+                try:
+                    log.info('Polling %s' % master_repomd_url)
+                    masterrepomd = urlopen(master_repomd_url)
+                    newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
+                except (ConnectionResetError, IncompleteRead, URLError, HTTPError):
+                    log.exception('Error fetching repomd.xml')
+                    time.sleep(200)
+                    continue
+                if newsum == checksum:
+                    log.info("master repomd.xml matches!")
+                    break
+
+                log.debug("master repomd.xml doesn't match! %s != %s for %r",
+                          checksum, newsum, self.id)
+                time.sleep(200)
+        finally:
+            self._reacquire_compose()
+        notifications.publish(compose_schemas.ComposeSyncDoneV1.from_dict(
+            dict(repo=self.id, agent=self.agent)),
+            force=True)
 
 
 class RPMComposerThread(PungiComposerThread):

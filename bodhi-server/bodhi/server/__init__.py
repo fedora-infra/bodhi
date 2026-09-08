@@ -19,6 +19,7 @@
 from collections import defaultdict
 import importlib.metadata
 import logging as python_logging
+import resource
 
 from cornice.validators import DEFAULT_FILTERS
 from dogpile.cache import make_region
@@ -340,6 +341,15 @@ def main(global_config, testing=None, session=None, **settings):
         # the return value.
         generic._generate_home_page_stats()
 
+    raise_open_file_limit()
     log.info('Bodhi ready and at your service!')
     app = config.make_wsgi_app()
     return app
+
+
+def raise_open_file_limit() -> None:
+    """Set the soft limit on open files to the hard limit."""
+    soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
+    if soft_limit < hard_limit:
+        resource.setrlimit(resource.RLIMIT_NOFILE, (hard_limit, hard_limit))
+        log.info(f'Raised open file limit from {soft_limit} to {hard_limit}')

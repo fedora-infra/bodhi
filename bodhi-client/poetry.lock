@@ -603,28 +603,32 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "gssapi"
-version = "1.11.1"
+version = "1.12.0"
 description = "Python GSSAPI Wrapper"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "gssapi-1.11.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:126352502e15dc42f786a4635e5fb4dc8ae4bbc89354e85ab094c478a9e49beb"},
-    {file = "gssapi-1.11.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:25b3bcf75a0dd5638f02f939a9c40d1c907682ccca69ea1d05ea81ad58ea1022"},
-    {file = "gssapi-1.11.1-cp310-cp310-win32.whl", hash = "sha256:e5d01ac02df8fe67c32cd1684c0954e935d50158ebb956fdffbf9aad7695a3b3"},
-    {file = "gssapi-1.11.1-cp310-cp310-win_amd64.whl", hash = "sha256:0e8b4d76801f2a8f8e6d85746cb9048d47341c6706800b357c61ba09e4741c03"},
-    {file = "gssapi-1.11.1-cp311-abi3-macosx_10_9_x86_64.whl", hash = "sha256:2298e5909a8f2d27c29352885a24e4026cfd3fa24fc38d4a0a3743fa5a3e7667"},
-    {file = "gssapi-1.11.1-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:5b60b1f8d8d3e36c025bd3494105de1dfccee578e8de001f423cc094468e3022"},
-    {file = "gssapi-1.11.1-cp311-abi3-win32.whl", hash = "sha256:9738fe0ba163c28ccf521de7520640bde4b135c1b6e87a5ac5a90435369e89c0"},
-    {file = "gssapi-1.11.1-cp311-abi3-win_amd64.whl", hash = "sha256:96a102ad1ec266e2d843468bf03149982969fc70344f303f81ea20197b80d7a1"},
-    {file = "gssapi-1.11.1-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:82fba401e9514ad21749b8d8954e2de1c617b0a73204c8598ee84630e23c5810"},
-    {file = "gssapi-1.11.1-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:cb0250f27d288d4217d7f606d3b68ecb9a10fce9391106129cada96434a685b0"},
-    {file = "gssapi-1.11.1-cp314-cp314t-win32.whl", hash = "sha256:b17875d236b8b030a777ee3f3ece55f3d316a91937c37abbc771afe1493703cf"},
-    {file = "gssapi-1.11.1-cp314-cp314t-win_amd64.whl", hash = "sha256:da43c0e0ae84bb9f04c4e016eac6d3826c6357f827183042ba990ccedeeab052"},
-    {file = "gssapi-1.11.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:2982ca375bba548f7b2f6013ff55343f1a9f356b7e78426347ebe2b61f824b75"},
-    {file = "gssapi-1.11.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:8bbefb4d0356803fab14623c075c63e038470228e6f572e07240b5ab9b4a6ff2"},
-    {file = "gssapi-1.11.1-cp39-cp39-win32.whl", hash = "sha256:ca58947db846d1454dc9a48e1610f51521955b749497363d8b2e31482a0669da"},
-    {file = "gssapi-1.11.1-cp39-cp39-win_amd64.whl", hash = "sha256:4aa2a483eb7fe5dbee1313a262b18f336c4c2034b0a9ccc0e5bec1cc711ddb7f"},
-    {file = "gssapi-1.11.1.tar.gz", hash = "sha256:2049ee4b1d0c363163a1344b7282a363f9f4094e51d2c36de0cf01d4735e0ae2"},
+    {file = "gssapi-1.12.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:28cac97bc3bd0833802ba428a6f0a6e41255f0b21cea9df64553c261879dbf01"},
+    {file = "gssapi-1.12.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:7d335e7a89bf95cc1c797b38fc1ea9f0828d97843df63b23cdf806a5199ba9e2"},
+    {file = "gssapi-1.12.0-cp310-cp310-win32.whl", hash = "sha256:9e076c12310b203e02d302ff86586d0b80a9302ec7718713cfe24ead9df0d748"},
+    {file = "gssapi-1.12.0-cp310-cp310-win_amd64.whl", hash = "sha256:2616ba4498e7b735f7ad96567c08efed8f2ac9b48484f9a0671973883a986d77"},
+    {file = "gssapi-1.12.0-cp311-abi3-macosx_10_9_x86_64.whl", hash = "sha256:fbcf4213d72bde6f836dc96511d7410c4c95e0470ccc690bc7f85e402c9ff5ec"},
+    {file = "gssapi-1.12.0-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:ca29e1d31a6edd78d33ec37d0cf7bfde7e259b376051f742816c08380e23e973"},
+    {file = "gssapi-1.12.0-cp311-abi3-win32.whl", hash = "sha256:06f3363a5d201cf328e4964e491c37b0777636d67ef19549bbb96792b7293dca"},
+    {file = "gssapi-1.12.0-cp311-abi3-win_amd64.whl", hash = "sha256:a953e21f80169bd55fef0d0bf050109ce93d055931558c3b353e8c4e7751f08e"},
+    {file = "gssapi-1.12.0-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:82fa870b03277494d351912d2f48f55bd305fdc28953dd9c5fd3d82f07bf00c9"},
+    {file = "gssapi-1.12.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:ada649cbca078a8c2fb398257c93e66f4807a988d6ad36f8bb12744fb21aaf5a"},
+    {file = "gssapi-1.12.0-cp314-cp314t-win32.whl", hash = "sha256:89d747b301317e9ab2d5776eafa9bb5e1b37a736bf295eb789aeb57752f23fb0"},
+    {file = "gssapi-1.12.0-cp314-cp314t-win_amd64.whl", hash = "sha256:59c601325789d9aa34f14117f534f224031de455174ac01b64b7bbbdff6d2bd0"},
+    {file = "gssapi-1.12.0-cp315-cp315t-macosx_10_15_x86_64.whl", hash = "sha256:9d98f9ad2327ab20d7985d0fd413c02c0cce7459ed226952fd078b29c6a2a40b"},
+    {file = "gssapi-1.12.0-cp315-cp315t-macosx_11_0_arm64.whl", hash = "sha256:6e2bf66d0d02e6cafadc9dc944998a9c2edcd553138b9c68b57236bcc827bd15"},
+    {file = "gssapi-1.12.0-cp315-cp315t-win32.whl", hash = "sha256:8b6c966d70025e044aa1f67d4e333854aa5e426ac2a75f201f627ede6aacf0c9"},
+    {file = "gssapi-1.12.0-cp315-cp315t-win_amd64.whl", hash = "sha256:4f0811ba2df74bb600697d5af5db7e5aecf9361f8081998d7c2cee3f5e59c752"},
+    {file = "gssapi-1.12.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:892ac549291a4f96a9600b3a822dc91df6f081592f7171bf134076b3f0d95fd3"},
+    {file = "gssapi-1.12.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:5a8004c2ef9bd072d682772de8be89fe4b25c80a6ba16cbaf822b6838d10181b"},
+    {file = "gssapi-1.12.0-cp39-cp39-win32.whl", hash = "sha256:3cc29e17d5f0eab27a7e7803b56706c712e3c88c37ec5d64b6a5bb2a49d0f582"},
+    {file = "gssapi-1.12.0-cp39-cp39-win_amd64.whl", hash = "sha256:c909b97f68757a0fd15785bc4e32b958f5433397a03a5d75cbf51a8e788869ed"},
+    {file = "gssapi-1.12.0.tar.gz", hash = "sha256:0b48f17296f869db89221c3bde463fdff35152a4cb99ae4aaa42b0b64333fc6c"},
 ]
 
 [package.dependencies]
@@ -727,20 +731,22 @@ six = "*"
 
 [[package]]
 name = "krb5"
-version = "0.9.0"
+version = "0.10.0"
 description = "Kerberos API bindings for Python"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "krb5-0.9.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:b1bde451ddb3a1c064be1da967fa32b1976a06ca43969e9d80ed8b26506ac4e3"},
-    {file = "krb5-0.9.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:6e612e763304bfe4f6845f581030502327da2d0a19efccc840d7c051448ee209"},
-    {file = "krb5-0.9.0-cp311-abi3-macosx_10_9_x86_64.whl", hash = "sha256:7a021e869833bfed44ed4c9dfefd25813fab40a381ad4482b79ea36744545f62"},
-    {file = "krb5-0.9.0-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:2bca06e7ce1551f3eb7f674508bc34d9f44fa1c9056f24120878ec9ab8e430cb"},
-    {file = "krb5-0.9.0-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:ea2ee73bb5aa7818ce50895fb29c276c7fe478c6eda121a5b66b0cc45fe2d42e"},
-    {file = "krb5-0.9.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:f9da4558a47ec105a1a2c185bb4b2d1dd90b7c021e3116895171f913ef048d03"},
-    {file = "krb5-0.9.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:fecbd3b9187bf13c54955b534f7e938b17f43a7a006aa4158ab0eaeb938c692c"},
-    {file = "krb5-0.9.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:7e78201d4b5a33fb3d12922c05626ffe2791125d26ee7ccdab95c8436bb58912"},
-    {file = "krb5-0.9.0.tar.gz", hash = "sha256:4cdd2c85ff4770108edaf48fedf19888cf956ff374e2e97e40f8412b048caee6"},
+    {file = "krb5-0.10.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:bbb82e345b5977df328080c68e3725840fe1b5a65b814c352913f44c62323b22"},
+    {file = "krb5-0.10.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:1db7c0a50d3f8f74ef965c6c94426e5a4acc4e6cfa186086ae0606d120e75bd0"},
+    {file = "krb5-0.10.0-cp311-abi3-macosx_10_9_x86_64.whl", hash = "sha256:07c2de3a4f99ddf53f022e66e66583cd5ec938a8c1690881ee95a3225cd8c7ca"},
+    {file = "krb5-0.10.0-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:644f4c6080b7940a8006e3f48c762ac1845d2cbf8894e5c428f2ebc11fb7f0c3"},
+    {file = "krb5-0.10.0-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:d6bdedb24a94d2b82084cc196cb6dda1ee67c0ff0882bafdac56d2e7ea7dc454"},
+    {file = "krb5-0.10.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:f09545cfbf7a21f77738efe56428faf96fb9d14f2b7e462dadfe81e71a4ac1bc"},
+    {file = "krb5-0.10.0-cp315-cp315t-macosx_10_15_x86_64.whl", hash = "sha256:08eba9a21daf3e4b06f6262b5798dd67cfdb4ccba155357fb4c23691d7b290d9"},
+    {file = "krb5-0.10.0-cp315-cp315t-macosx_11_0_arm64.whl", hash = "sha256:4ad9a9de0ec606d35c972abfb642659d0754910f313fd7d3e11bafdbf66481b8"},
+    {file = "krb5-0.10.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:e1bcee0cf56a12b1d9c498cd5972fadd73733aedf601529fc1d54311b4658043"},
+    {file = "krb5-0.10.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:db37de673b60aefb9115a196f9ccf6d97d421ec60ac7d8d46db53d5fb7114cef"},
+    {file = "krb5-0.10.0.tar.gz", hash = "sha256:8f4711a0ab11ee43fda567371ef6d9487afdbd4f156ca093e8fb306f4cc685ae"},
 ]
 
 [[package]]
@@ -909,20 +915,20 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyspnego"
-version = "0.12.1"
+version = "0.12.2"
 description = "Windows Negotiate Authentication Client and Server"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "pyspnego-0.12.1-py3-none-any.whl", hash = "sha256:7237cb47985ccf5da512106ddb2731e4f9cefec00991f76c054488eb95fb1a2d"},
-    {file = "pyspnego-0.12.1.tar.gz", hash = "sha256:ff4fb6df38202a012ea2a0f43091ae9680878443f0ea61c9ea0e2e8152a4b810"},
+    {file = "pyspnego-0.12.2-py3-none-any.whl", hash = "sha256:04e7c9260ced15197b3f42b891ffa30fa98c37bb09372c5c2bf927bcdfe30b53"},
+    {file = "pyspnego-0.12.2.tar.gz", hash = "sha256:448a491a9bf0e5fb957567fe46e6809fa836aa40dfcccebcc740bb64acb1be1c"},
 ]
 
 [package.dependencies]
 cryptography = "*"
 gssapi = {version = ">=1.6.0", optional = true, markers = "sys_platform != \"win32\" and extra == \"kerberos\""}
 krb5 = {version = ">=0.3.0", optional = true, markers = "sys_platform != \"win32\" and extra == \"kerberos\""}
-sspilib = {version = ">=0.3.0", markers = "sys_platform == \"win32\""}
+sspilib = {version = ">=0.5.0", markers = "sys_platform == \"win32\""}
 
 [package.extras]
 kerberos = ["gssapi (>=1.6.0)", "krb5 (>=0.3.0)"]

@@ -23,7 +23,7 @@ import typing
 
 import celery
 
-from bodhi.server import bugs, buildsys, initialize_db
+from bodhi.server import bugs, buildsys, initialize_db, raise_open_file_limit
 from bodhi.server.config import config
 from bodhi.server.exceptions import ExternalCallException
 from bodhi.server.util import pyfile_to_module
@@ -47,6 +47,7 @@ def _do_init():
     initialize_db(config)
     buildsys.setup_buildsystem(config)
     bugs.set_bugtracker()
+    raise_open_file_limit()
 
 
 @app.task(name="compose", ignore_result=True)
