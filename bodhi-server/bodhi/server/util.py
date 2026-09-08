@@ -566,7 +566,7 @@ def markup(context, text, bodhi=True):
     if packaging.version.parse(bleach.__version__) >= packaging.version.parse("6.0.0"):
         markdown_tags = set(markdown_tags)
 
-    extensions = ['markdown.extensions.fenced_code', ]
+    extensions = ['pymdownx.superfences']
     if bodhi is True:
         extensions.append(ffmarkdown.BodhiExtension())
     markdown_text = markdown.markdown(text, extensions=extensions)
