@@ -78,17 +78,16 @@ class Runner:
         progress_reporter = ProgressReporter(jobs)
         progress_reporter.print_status()
 
-        processes = [asyncio.create_task(j.run()) for j in jobs]
+        processes = [asyncio.create_task(job.run()) for job in jobs]
 
-        return_when: str = asyncio.ALL_COMPLETED
+        return_when = asyncio.ALL_COMPLETED
         if self.options["failfast"]:
             return_when = asyncio.FIRST_EXCEPTION
-        future = asyncio.wait(processes, return_when=return_when)
         loop = asyncio.get_running_loop()
         loop.add_signal_handler(signal.SIGINT, functools.partial(_cancel_jobs, jobs))
 
         try:
-            done, pending = await future
+            done, pending = await asyncio.wait(processes, return_when=return_when,)
 
             results = await self._process_results(done, pending)
         finally:
@@ -123,16 +122,15 @@ class Runner:
         if pending:
             for task in pending:
                 task.cancel()
-            future = asyncio.wait(pending)
-            cancelled, pending = await future
+            cancelled, pending = await asyncio.wait(pending)
             done = done | cancelled
             returncode = -signal.SIGINT
 
         for task in done:
             try:
                 result = task.result()
-            except RuntimeError as e:
-                result = e.result
+            except RuntimeError as error:
+                result = error.result
             if not result.cancelled and result.returncode:
                 if result.output:
                     error_output = f'{error_output}\n{result.output}'
@@ -160,5 +158,4 @@ class Runner:
         # If you give run_until_complete a future with no tasks, you will haz a sad (that's the
         # technical wording for a ValueError).
         if stop_jobs:
-            stop_future = asyncio.wait(stop_jobs)
-            await stop_future
+            await asyncio.wait(stop_jobs)
