@@ -104,6 +104,20 @@ class ACLFactory(object):
         self.request = request
 
 
+class AuthenticatedACLFactory(ACLFactory):
+    """Define an ACLs for logged in users."""
+
+    def __acl__(self) -> list:
+        """
+        Generate our authenticated user ACL.
+
+        Returns:
+            A list of ACLs that allow all permissions for an authenticated user.
+        """
+        return [(Allow, Authenticated, ALL_PERMISSIONS)] + \
+               [DENY_ALL]
+
+
 class AdminACLFactory(ACLFactory):
     """Define the ACLs for the admin only views below."""
 

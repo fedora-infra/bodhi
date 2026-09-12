@@ -4266,6 +4266,8 @@ class TestUpdate(ModelTest):
 
     def test_comment_emails_other_commenters(self):
         """comment() should send e-mails to the other maintainers."""
+        lmacken = self.db.query(model.User).filter_by(name='lmacken').one()
+        lmacken.email = 'lmacken@fp.o'
         bowlofeggs = model.User(name='bowlofeggs', email='bowlofeggs@fp.o')
         self.db.add(bowlofeggs)
         self.db.flush()
@@ -4277,10 +4279,35 @@ class TestUpdate(ModelTest):
                 self.obj.comment(self.db, 'Here is a cool e-mail for you.', author='someoneelse')
 
         bodies = [c[1][2].decode('utf-8') for c in SMTP.return_value.sendmail.mock_calls]
-        assert 'lmacken' in bodies[0]
-        # In Python 2 this address is in the middle e-mail and in Python 3 it's in the last e-mail
-        assert 'bowlofeggs@fp.o' in '\n'.join(bodies)
-        assert 'someoneelse' in bodies[1]
+        assert len(bodies) == 2
+        mails = '\n'.join(bodies)
+        assert 'To: lmacken@fp.o' in mails
+        assert 'To: bowlofeggs@fp.o' in mails
+        assert all(['Here is a cool e-mail for you.' in b for b in bodies])
+
+    def test_comment_emails_user_pref_disabled(self):
+        """
+        comment() should send not e-mails to users which set their pref to disabled, except
+        for the update submitter.
+        """
+        lmacken = self.db.query(model.User).filter_by(name='lmacken').one()
+        assert lmacken.receive_emails is True
+        lmacken.email = 'lmacken@fp.o'
+        bowlofeggs = model.User(name='bowlofeggs', email='bowlofeggs@fp.o', receive_emails=False)
+        self.db.add(bowlofeggs)
+        self.db.flush()
+        self.obj.comment(self.db, 'im a commenter', author='bowlofeggs')
+
+        with mock.patch('bodhi.server.mail.smtplib.SMTP') as SMTP:
+            with mock.patch.dict('bodhi.server.models.config',
+                                 {'bodhi_email': 'bodhi@fp.o', 'smtp_server': 'smtp.fp.o'}):
+                self.obj.comment(self.db, 'Here is a cool e-mail for you.', author='someoneelse')
+
+        bodies = [c[1][2].decode('utf-8') for c in SMTP.return_value.sendmail.mock_calls]
+        assert len(bodies) == 1
+        mails = '\n'.join(bodies)
+        assert 'To: lmacken@fp.o' in mails
+        assert 'To: bowlofeggs@fp.o' not in mails
         assert all(['Here is a cool e-mail for you.' in b for b in bodies])
 
     def test_comment_no_author(self):
