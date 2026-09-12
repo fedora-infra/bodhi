@@ -6,6 +6,7 @@ $(document).ready(function() {
         minLength: 2,
         dynamic: true,
         delay: 600,
+        groupTemplate: '<div class="typeahead__group-header"><h3>{{group}}</h3></div>',
         group: {
             template: function (item) {
                 if (item.group == "overrides") {
