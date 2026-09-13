@@ -1,25 +1,23 @@
-from unittest import mock
 import time
+from unittest import mock
 
+import pytest
 from authlib import __version__ as authlib_version
 from authlib.oauth2.rfc6750 import InsufficientScopeError, InvalidTokenError
-from packaging.version import parse as parse_version
-from pyramid import testing
-import pytest
-
 from bodhi.server.auth import OAuth
 from bodhi.server.auth.fedora import (
     FedoraApp,
     IntrospectionToken,
     IntrospectTokenValidator,
 )
+from packaging.version import parse as parse_version
+from pyramid import testing
 
 from .. import base
 from ..utils import mock_send_value
 
-
 SERVER_METADATA = {
-    "token_endpoint": 'https://i.b/Token',
+    "token_endpoint": "https://i.b/Token",
 }
 INTROSPECTION_RESULT = {
     "active": True,
@@ -45,6 +43,7 @@ def make_fake_send(introspection_result=None):
         if req.url.endswith("/TokenInfo"):
             return mock_send_value(_introspection_result)
         raise ValueError(req.url)
+
     return fake_send
 
 
@@ -60,14 +59,14 @@ class TestFedoraAuth(base.BasePyTestCase):
             client_secret="test-client-secret",
             server_metadata_url=self.registry.settings["oidc.fedora.server_metadata_url"],
             client_kwargs={
-                'scope': "openid email profile",
-                'token_endpoint_auth_method': 'client_secret_post',
+                "scope": "openid email profile",
+                "token_endpoint_auth_method": "client_secret_post",
             },
             client_cls=FedoraApp,
         )
 
     def test_introspect_token(self):
-        with mock.patch('requests.sessions.Session.send', make_fake_send()):
+        with mock.patch("requests.sessions.Session.send", make_fake_send()):
             token = self.client.introspect_token("TOKEN")
         # We're adding the active token in the dict, check it and then compare
         assert token.pop("access_token") == "TOKEN"
@@ -75,13 +74,13 @@ class TestFedoraAuth(base.BasePyTestCase):
 
     def test_introspect_token_with_access_token_url(self):
         self.client.access_token_url = "https://i.b/Token"
-        with mock.patch('requests.sessions.Session.send', make_fake_send()):
+        with mock.patch("requests.sessions.Session.send", make_fake_send()):
             token = self.client.introspect_token("TOKEN")
         assert token["access_token"] == "TOKEN"
 
     def test_introspect_token_validator(self):
         validator = IntrospectTokenValidator(self.client)
-        with mock.patch('requests.sessions.Session.send', make_fake_send()):
+        with mock.patch("requests.sessions.Session.send", make_fake_send()):
             token = validator("TOKEN", scopes=["read write"], request=testing.DummyRequest())
         assert token.pop("access_token") == "TOKEN"
         assert token == INTROSPECTION_RESULT
@@ -91,7 +90,7 @@ class TestFedoraAuth(base.BasePyTestCase):
         answer = {
             "active": False,
         }
-        with mock.patch('requests.sessions.Session.send', make_fake_send(answer)):
+        with mock.patch("requests.sessions.Session.send", make_fake_send(answer)):
             with pytest.raises(InvalidTokenError):
                 validator("TOKEN", scopes=["read write"], request=testing.DummyRequest())
 
@@ -103,7 +102,7 @@ class TestFedoraAuth(base.BasePyTestCase):
 
     def test_introspect_token_insufficient_scopes(self):
         validator = IntrospectTokenValidator(self.client)
-        with mock.patch('requests.sessions.Session.send', make_fake_send({"scope": "read"})):
+        with mock.patch("requests.sessions.Session.send", make_fake_send({"scope": "read"})):
             with pytest.raises(InsufficientScopeError) as exc:
                 result = validator("TOKEN", scopes=["read write"], request=testing.DummyRequest())
                 print(result)

@@ -22,20 +22,20 @@ Revision ID: e5b3ddb35df3
 Revises: 9c0a34961768
 Create Date: 2019-02-16 07:02:20.196160
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'e5b3ddb35df3'
-down_revision = '9c0a34961768'
+revision = "e5b3ddb35df3"
+down_revision = "9c0a34961768"
 
 
 def upgrade():
     """Drop the greenwave_summary_string column from the updates table."""
-    op.drop_column('updates', 'greenwave_summary_string')
+    op.drop_column("updates", "greenwave_summary_string")
 
 
 def downgrade():
     """Restore the greenwave_summary_string removed in the upgrade() function."""
-    op.add_column('updates', sa.Column('greenwave_summary_string', sa.Unicode(255)))
+    op.add_column("updates", sa.Column("greenwave_summary_string", sa.Unicode(255)))

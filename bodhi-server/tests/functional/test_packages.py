@@ -18,53 +18,51 @@
 from bodhi.server.models import (
     RpmPackage,
 )
+
 from .. import base
 
 
 class TestRpmPackagesService(base.BasePyTestCase):
     def test_basic_json(self):
-        """ Test querying with no arguments... """
-        self.db.add(RpmPackage(name='a_second_package'))
+        """Test querying with no arguments..."""
+        self.db.add(RpmPackage(name="a_second_package"))
         self.db.commit()
-        resp = self.app.get('/packages/')
+        resp = self.app.get("/packages/")
         body = resp.json_body
-        assert len(body['packages']) == 2
+        assert len(body["packages"]) == 2
 
     def test_filter_by_name(self):
-        """ Test that filtering by name returns one package and not the other.
-        """
-        self.db.add(RpmPackage(name='a_second_package'))
+        """Test that filtering by name returns one package and not the other."""
+        self.db.add(RpmPackage(name="a_second_package"))
         self.db.commit()
-        resp = self.app.get('/packages/', dict(name='bodhi'))
+        resp = self.app.get("/packages/", dict(name="bodhi"))
         body = resp.json_body
-        assert len(body['packages']) == 1
+        assert len(body["packages"]) == 1
 
     def test_filter_by_like(self):
-        """ Test that filtering by like returns one package and not the other.
-        """
-        self.db.add(RpmPackage(name='a_second_package'))
+        """Test that filtering by like returns one package and not the other."""
+        self.db.add(RpmPackage(name="a_second_package"))
         self.db.commit()
-        resp = self.app.get('/packages/', dict(like='odh'))
+        resp = self.app.get("/packages/", dict(like="odh"))
         body = resp.json_body
-        assert len(body['packages']) == 1
+        assert len(body["packages"]) == 1
 
     def test_filter_by_search(self):
-        """ Test filtering by search
-        """
-        self.db.add(RpmPackage(name='a_second_package'))
+        """Test filtering by search"""
+        self.db.add(RpmPackage(name="a_second_package"))
         self.db.commit()
 
         # test search
-        resp = self.app.get('/packages/', dict(search='bodh'))
+        resp = self.app.get("/packages/", dict(search="bodh"))
         body = resp.json_body
-        assert len(body['packages']) == 1
+        assert len(body["packages"]) == 1
 
         # test the search is case-insensitive
-        resp = self.app.get('/packages/', dict(search='Bodh'))
+        resp = self.app.get("/packages/", dict(search="Bodh"))
         body = resp.json_body
-        assert len(body['packages']) == 1
+        assert len(body["packages"]) == 1
 
         # test a search that yields nothing
-        resp = self.app.get('/packages/', dict(search='corebird'))
+        resp = self.app.get("/packages/", dict(search="corebird"))
         body = resp.json_body
-        assert len(body['packages']) == 0
+        assert len(body["packages"]) == 0

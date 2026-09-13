@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.services.errors.py"""
+
 from unittest import mock
 
 import pytest
@@ -24,18 +25,16 @@ from .. import base
 
 
 class TestHTMLHandlerErrors(base.BasePyTestCase):
-
-    @mock.patch('bodhi.server.services.errors.log.error')
-    @mock.patch('bodhi.server.services.errors.status2summary',
-                side_effect=IOError('random error'))
+    @mock.patch("bodhi.server.services.errors.log.error")
+    @mock.patch("bodhi.server.services.errors.status2summary", side_effect=OSError("random error"))
     def test_template_render_exception(self, theexception, log_error):
         """
         Assert that we log an error if the error template renderer raises an exception
         """
         with pytest.raises(IOError) as exc:
-            self.app.get('/pants', headers={'Accept': 'text/html'}, status=404)
+            self.app.get("/pants", headers={"Accept": "text/html"}, status=404)
 
-        assert str(exc.value) == 'random error'
+        assert str(exc.value) == "random error"
         error_log_message = log_error.call_args[0][0]
         assert "Traceback (most recent call last):\n" in error_log_message
         assert "summary=status2summary(errors.status),\n" in error_log_message

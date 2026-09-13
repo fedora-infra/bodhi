@@ -23,9 +23,7 @@ This module provides Python bindings to the Bodhi REST API.
 .. moduleauthor:: Randy Barlow <bowlofeggs@fedoraproject.org>
 """
 
-from urllib.parse import urlparse
 import configparser
-from datetime import datetime, timedelta, timezone
 import functools
 import itertools
 import logging
@@ -33,17 +31,18 @@ import os
 import re
 import textwrap
 import typing
-
+from datetime import datetime, timedelta, timezone
+from urllib.parse import urlparse
 
 try:
     import dnf
 except ImportError:  # pragma: no cover
     # dnf is not available on EL 7.
     dnf = None  # pragma: no cover
-from munch import munchify
-from requests.exceptions import ConnectionError, RequestException
 import koji
 import requests
+from munch import munchify
+from requests.exceptions import ConnectionError, RequestException
 
 from .constants import (
     BASE_URL,
@@ -56,16 +55,15 @@ from .constants import (
 )
 from .oidcclient import JSONStorage, OIDCClient, OIDCClientError
 
-
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import munch  # noqa: F401
+    import munch
 
 
 log = logging.getLogger(__name__)
 
 
-UPDATE_ID_RE = r'FEDORA-(EPEL-|FLATPAK-)?\d{4,4}'
-UPDATE_TITLE_RE = r'(\.el|\.fc)\d\d?'
+UPDATE_ID_RE = r"FEDORA-(EPEL-|FLATPAK-)?\d{4,4}"
+UPDATE_TITLE_RE = r"(\.el|\.fc)\d\d?"
 
 
 class BodhiClientException(RequestException):
@@ -92,7 +90,7 @@ class UpdateNotFound(BodhiClientException):
         Returns:
             An error message.
         """
-        return f'Update not found: {self.update}'
+        return f"Update not found: {self.update}"
 
 
 class ComposeNotFound(BodhiClientException):
@@ -118,8 +116,9 @@ class ComposeNotFound(BodhiClientException):
         Returns:
             An error message.
         """
-        return (f'Compose with request "{self.release_request}" '
-                f'not found for release "{self.release}"')
+        return (
+            f'Compose with request "{self.release_request}" not found for release "{self.release}"'
+        )
 
 
 def errorhandled(method: typing.Callable) -> typing.Callable:
@@ -132,22 +131,22 @@ def errorhandled(method: typing.Callable) -> typing.Callable:
         # Due to this, an authentication error is not raised by the server if the client fails
         # to authenticate for any reason, and instead an error about needing a captcha key is
         # presented instead. If we see that error, we can just clear authentication and retry.
-        if 'errors' in result:
-            for error in result['errors']:
-                if 'name' in error and error['name'] == 'captcha_key':
+        if "errors" in result:
+            for error in result["errors"]:
+                if "name" in error and error["name"] == "captcha_key":
                     args[0].clear_auth()
                     result = method(*args, **kwargs)
 
-        if 'errors' not in result:
+        if "errors" not in result:
             return result
 
         # Otherwise, there was a problem...
-        problems = 'An unhandled error occurred in the BodhiClient'
         try:
-            problems = "\n".join([e['description'] for e in result['errors']])
-        except Exception:
-            pass
+            problems = "\n".join([e["description"] for e in result["errors"]])
+        except Exception:  # noqa: BLE001
+            problems = "An unhandled error occurred in the BodhiClient"
         raise BodhiClientException(problems)
+
     return wrapper
 
 
@@ -166,7 +165,7 @@ def _days_since(data_str: str) -> int:
     Returns:
         Number of days since the date in input.
     """
-    update_time = datetime.strptime(data_str, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+    update_time = datetime.strptime(data_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
     return (datetime.now(timezone.utc) - update_time).days
 
 
@@ -179,7 +178,7 @@ class BodhiClient:
         client_id: str = CLIENT_ID,
         id_provider: str = IDP,
         staging: bool = False,
-        oidc_storage_path: typing.Optional[str] = None,
+        oidc_storage_path: str | None = None,
     ):
         """
         Initialize the Bodhi client.
@@ -196,14 +195,12 @@ class BodhiClient:
             id_provider = STG_IDP
             client_id = STG_CLIENT_ID
 
-        if base_url[-1] != '/':
-            base_url = base_url + '/'
+        if base_url[-1] != "/":
+            base_url = base_url + "/"
         self.base_url = base_url
-        self.csrf_token = ''
-        self.oidc_storage_path = (
-            oidc_storage_path or os.path.join(
-                os.path.expanduser("~"), ".config", "bodhi", "client.json"
-            )
+        self.csrf_token = ""
+        self.oidc_storage_path = oidc_storage_path or os.path.join(
+            os.path.expanduser("~"), ".config", "bodhi", "client.json"
         )
         self._build_oidc_client(client_id, id_provider)
 
@@ -264,7 +261,7 @@ class BodhiClient:
         return self.oidc.username
 
     @errorhandled
-    def save(self, **kwargs) -> 'munch.Munch':
+    def save(self, **kwargs) -> "munch.Munch":
         """
         Save an update.
 
@@ -313,15 +310,14 @@ class BodhiClient:
         Returns:
             The Bodhi server's response to the request.
         """
-        kwargs['csrf_token'] = self.csrf()
-        if 'type_' in kwargs:
+        kwargs["csrf_token"] = self.csrf()
+        if "type_" in kwargs:
             # backwards compat
-            kwargs['type'] = kwargs['type_']
-        return self.send_request('updates/', verb='POST', auth=True,
-                                 data=kwargs)
+            kwargs["type"] = kwargs["type_"]
+        return self.send_request("updates/", verb="POST", auth=True, data=kwargs)
 
     @errorhandled
-    def request(self, update: str, request: str) -> 'munch.Munch':
+    def request(self, update: str, request: str) -> "munch.Munch":
         """
         Request an update state change.
 
@@ -334,10 +330,12 @@ class BodhiClient:
             UpdateNotFound: If the server returns a 404 error code.
         """
         try:
-            return self.send_request(f'updates/{update}/request',
-                                     verb='POST', auth=True,
-                                     data={'update': update, 'request': request,
-                                           'csrf_token': self.csrf()})
+            return self.send_request(
+                f"updates/{update}/request",
+                verb="POST",
+                auth=True,
+                data={"update": update, "request": request, "csrf_token": self.csrf()},
+            )
         except RequestException as exc:
             if exc.response is not None and exc.response.status_code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
@@ -346,8 +344,9 @@ class BodhiClient:
                 raise
 
     @errorhandled
-    def waive(self, update: str, comment: str,
-              tests: typing.Optional[typing.Iterable[str]] = None) -> 'munch.Munch':
+    def waive(
+        self, update: str, comment: str, tests: typing.Iterable[str] | None = None
+    ) -> "munch.Munch":
         """
         Waive unsatisfied requirements on an update.
 
@@ -361,10 +360,11 @@ class BodhiClient:
         Raises:
             UpdateNotFound: If the server returns a 404 error code.
         """
-        data = {'update': update, 'tests': tests, 'comment': comment, 'csrf_token': self.csrf()}
+        data = {"update": update, "tests": tests, "comment": comment, "csrf_token": self.csrf()}
         try:
-            return self.send_request(f'updates/{update}/waive-test-results',
-                                     verb='POST', auth=True, data=data)
+            return self.send_request(
+                f"updates/{update}/waive-test-results", verb="POST", auth=True, data=data
+            )
         except RequestException as exc:
             if exc.response is not None and exc.response.status_code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
@@ -373,7 +373,7 @@ class BodhiClient:
                 raise
 
     @errorhandled
-    def trigger_tests(self, update: str) -> 'munch.Munch':
+    def trigger_tests(self, update: str) -> "munch.Munch":
         """
         Trigger tests for update.
 
@@ -384,8 +384,11 @@ class BodhiClient:
         """
         try:
             return self.send_request(
-                f'updates/{update}/trigger-tests', verb='POST', auth=True,
-                data={'update': update, 'csrf_token': self.csrf()})
+                f"updates/{update}/trigger-tests",
+                verb="POST",
+                auth=True,
+                data={"update": update, "csrf_token": self.csrf()},
+            )
         except RequestException as exc:
             if exc.response is not None and exc.response.status_code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
@@ -394,7 +397,7 @@ class BodhiClient:
                 raise
 
     @errorhandled
-    def query(self, **kwargs) -> 'munch.Munch':
+    def query(self, **kwargs) -> "munch.Munch":
         """
         Query bodhi for a list of updates.
 
@@ -449,40 +452,40 @@ class BodhiClient:
             The response from Bodhi describing the query results.
         """
         # bodhi1 compat
-        if 'limit' in kwargs:
-            kwargs['rows_per_page'] = kwargs['limit']
-            del kwargs['limit']
+        if "limit" in kwargs:
+            kwargs["rows_per_page"] = kwargs["limit"]
+            del kwargs["limit"]
         # 'mine' may be in kwargs, but set False
-        if kwargs.get('mine'):
+        if kwargs.get("mine"):
             if self.username is None:
                 raise BodhiClientException("Could not get user info.")
-            kwargs['user'] = self.username
-        if 'package' in kwargs:
+            kwargs["user"] = self.username
+        if "package" in kwargs:
             # for Bodhi 1, 'package' could be a package name, build, or
             # update ID, so try and figure it out
-            if re.search(UPDATE_TITLE_RE, kwargs['package']):
-                kwargs['builds'] = kwargs['package']
-            elif re.search(UPDATE_ID_RE, kwargs['package']):
-                kwargs['updateid'] = kwargs['package']
+            if re.search(UPDATE_TITLE_RE, kwargs["package"]):
+                kwargs["builds"] = kwargs["package"]
+            elif re.search(UPDATE_ID_RE, kwargs["package"]):
+                kwargs["updateid"] = kwargs["package"]
             else:
-                kwargs['packages'] = kwargs['package']
-            del kwargs['package']
-        if 'release' in kwargs:
-            if isinstance(kwargs['release'], list):
-                kwargs['releases'] = kwargs['release']
+                kwargs["packages"] = kwargs["package"]
+            del kwargs["package"]
+        if "release" in kwargs:
+            if isinstance(kwargs["release"], list):
+                kwargs["releases"] = kwargs["release"]
             else:
-                kwargs['releases'] = [kwargs['release']]
-            del kwargs['release']
-        if 'type_' in kwargs:
-            kwargs['type'] = kwargs['type_']
-            del kwargs['type_']
+                kwargs["releases"] = [kwargs["release"]]
+            del kwargs["release"]
+        if "type_" in kwargs:
+            kwargs["type"] = kwargs["type_"]
+            del kwargs["type_"]
         # Old Bodhi CLI set bugs default to "", but new Bodhi API
         # checks for 'if bugs is not None', not 'if not bugs'
-        if 'bugs' in kwargs and kwargs['bugs'] == '':
-            kwargs['bugs'] = None
-        return self.send_request('updates/', verb='GET', params=kwargs)
+        if "bugs" in kwargs and kwargs["bugs"] == "":
+            kwargs["bugs"] = None
+        return self.send_request("updates/", verb="GET", params=kwargs)
 
-    def get_test_status(self, update: str) -> 'munch.Munch':
+    def get_test_status(self, update: str) -> "munch.Munch":
         """
         Query bodhi for the test status of the specified update..
 
@@ -491,10 +494,10 @@ class BodhiClient:
         Returns:
             The response from Bodhi describing the query results.
         """
-        return self.send_request(f'updates/{update}/get-test-results', verb='GET')
+        return self.send_request(f"updates/{update}/get-test-results", verb="GET")
 
     @errorhandled
-    def comment(self, update: str, comment: str, karma: int = 0) -> 'munch.Munch':
+    def comment(self, update: str, comment: str, karma: int = 0) -> "munch.Munch":
         """
         Add a comment to an update.
 
@@ -506,18 +509,22 @@ class BodhiClient:
             The response from the post to comments/.
         """
         return self.send_request(
-            'comments/', verb='POST', auth=True,
-            data={'update': update, 'text': comment, 'karma': karma, 'csrf_token': self.csrf()})
+            "comments/",
+            verb="POST",
+            auth=True,
+            data={"update": update, "text": comment, "karma": karma, "csrf_token": self.csrf()},
+        )
 
     @errorhandled
     def save_override(
-        self, nvr: str,
+        self,
+        nvr: str,
         notes: str,
-        duration: typing.Optional[int] = None,
-        expiration_date: typing.Optional[datetime] = None,
+        duration: int | None = None,
+        expiration_date: datetime | None = None,
         edit: bool = False,
-        expired: bool = False
-    ) -> 'munch.Munch':
+        expired: bool = False,
+    ) -> "munch.Munch":
         """
         Save a buildroot override.
 
@@ -543,19 +550,20 @@ class BodhiClient:
             )
         if duration:
             expiration_date = datetime.now(timezone.utc) + timedelta(days=duration)
-        data = {'nvr': nvr,
-                'expiration_date': expiration_date,
-                'notes': notes,
-                'csrf_token': self.csrf()}
+        data = {
+            "nvr": nvr,
+            "expiration_date": expiration_date,
+            "notes": notes,
+            "csrf_token": self.csrf(),
+        }
         if edit:
-            data['edited'] = nvr
+            data["edited"] = nvr
         if expired:
-            data['expired'] = expired
-        return self.send_request(
-            'overrides/', verb='POST', auth=True, data=data)
+            data["expired"] = expired
+        return self.send_request("overrides/", verb="POST", auth=True, data=data)
 
     @errorhandled
-    def get_compose(self, release: str, request: str) -> 'munch.Munch':
+    def get_compose(self, release: str, request: str) -> "munch.Munch":
         """
         Get information about compose.
 
@@ -568,7 +576,7 @@ class BodhiClient:
             ComposeNotFound: If the server returns a 404 error code.
         """
         try:
-            return self.send_request(f'composes/{release}/{request}', verb='GET')
+            return self.send_request(f"composes/{release}/{request}", verb="GET")
         except RequestException as exc:
             if exc.response is not None and exc.response.status_code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an ComposeNotFound.
@@ -577,21 +585,26 @@ class BodhiClient:
                 raise
 
     @errorhandled
-    def list_composes(self) -> 'munch.Munch':
+    def list_composes(self) -> "munch.Munch":
         """
         List composes.
 
         Returns:
             A dictionary-like representation of the Composes.
         """
-        return self.send_request('composes/', verb='GET')
+        return self.send_request("composes/", verb="GET")
 
     @errorhandled
     def list_overrides(
-            self, user: typing.Optional[str] = None, packages: typing.Optional[str] = None,
-            expired: typing.Optional[bool] = None, releases: typing.Optional[str] = None,
-            builds: typing.Optional[str] = None, rows_per_page: typing.Optional[int] = None,
-            page: typing.Optional[int] = None) -> 'munch.Munch':
+        self,
+        user: str | None = None,
+        packages: str | None = None,
+        expired: bool | None = None,
+        releases: str | None = None,
+        builds: str | None = None,
+        rows_per_page: int | None = None,
+        page: int | None = None,
+    ) -> "munch.Munch":
         """
         List buildroot overrides.
 
@@ -607,22 +620,22 @@ class BodhiClient:
         Returns:
             A dictionary-like representation of the Overrides.
         """
-        params: typing.MutableMapping[str, typing.Union[int, str, None]] = {}
+        params: typing.MutableMapping[str, int | str | None] = {}
         if user:
-            params['user'] = user
+            params["user"] = user
         if packages:
-            params['packages'] = packages
+            params["packages"] = packages
         if expired is not None:
-            params['expired'] = expired
+            params["expired"] = expired
         if releases:
-            params['releases'] = releases
+            params["releases"] = releases
         if builds:
-            params['builds'] = builds
+            params["builds"] = builds
         if rows_per_page:
-            params['rows_per_page'] = rows_per_page
+            params["rows_per_page"] = rows_per_page
         if page:
-            params['page'] = page
-        return self.send_request('overrides/', verb='GET', params=params)
+            params["page"] = page
+        return self.send_request("overrides/", verb="GET", params=params)
 
     @errorhandled
     def csrf(self) -> str:
@@ -638,11 +651,10 @@ class BodhiClient:
             The CSRF token.
         """
         if not self.csrf_token:
-            self.csrf_token = self.send_request(
-                'csrf', verb='GET', auth=True)['csrf_token']
+            self.csrf_token = self.send_request("csrf", verb="GET", auth=True)["csrf_token"]
         return self.csrf_token
 
-    def parse_file(self, input_file: str) -> typing.List[typing.Dict[str, typing.Any]]:
+    def parse_file(self, input_file: str) -> list[dict[str, typing.Any]]:
         """
         Parse an update template file.
 
@@ -657,7 +669,7 @@ class BodhiClient:
         if not os.path.exists(input_file):
             raise ValueError(f"No such file or directory: {input_file}")
 
-        defaults = dict(severity='unspecified', suggest='unspecified')
+        defaults = {"severity": "unspecified", "suggest": "unspecified"}
         config = configparser.ConfigParser(defaults=defaults)
         read = config.read(input_file)
 
@@ -668,27 +680,27 @@ class BodhiClient:
 
         for section in config.sections():
             update = {
-                'builds': section,
-                'bugs': config.get(section, 'bugs', raw=True),
-                'close_bugs': config.getboolean(section, 'close_bugs'),
-                'display_name': config.get(section, 'display_name', raw=True, fallback=None),
-                'type': config.get(section, 'type', raw=True),
-                'type_': config.get(section, 'type', raw=True),
-                'request': config.get(section, 'request', raw=True),
-                'severity': config.get(section, 'severity', raw=True),
-                'notes': config.get(section, 'notes', raw=True),
-                'autokarma': config.get(section, 'autokarma', raw=True),
-                'stable_karma': config.get(section, 'stable_karma', raw=True),
-                'unstable_karma': config.get(
-                    section, 'unstable_karma', raw=True),
-                'suggest': config.get(section, 'suggest', raw=True)}
+                "builds": section,
+                "bugs": config.get(section, "bugs", raw=True),
+                "close_bugs": config.getboolean(section, "close_bugs"),
+                "display_name": config.get(section, "display_name", raw=True, fallback=None),
+                "type": config.get(section, "type", raw=True),
+                "type_": config.get(section, "type", raw=True),
+                "request": config.get(section, "request", raw=True),
+                "severity": config.get(section, "severity", raw=True),
+                "notes": config.get(section, "notes", raw=True),
+                "autokarma": config.get(section, "autokarma", raw=True),
+                "stable_karma": config.get(section, "stable_karma", raw=True),
+                "unstable_karma": config.get(section, "unstable_karma", raw=True),
+                "suggest": config.get(section, "suggest", raw=True),
+            }
 
             updates.append(update)
 
         return updates
 
     @errorhandled
-    def latest_builds(self, package: str) -> 'munch.Munch':
+    def latest_builds(self, package: str) -> "munch.Munch":
         """
         Get the latest builds for a package.
 
@@ -697,7 +709,7 @@ class BodhiClient:
         Returns:
             A dict-like object of the release dist tag to the latest build.
         """
-        return self.send_request('latest_builds', params={'package': package})
+        return self.send_request("latest_builds", params={"package": package})
 
     def testable(self) -> typing.Iterator[dict]:
         """
@@ -715,23 +727,23 @@ class BodhiClient:
             RuntimeError: If the dnf Python bindings are not installed.
         """
         if dnf is None:
-            raise RuntimeError('dnf is required by this method and is not installed.')
+            raise RuntimeError("dnf is required by this method and is not installed.")
 
         base = dnf.Base()
         sack = base.fill_sack(load_system_repo=True)
         query = sack.query()
         installed = query.installed()
-        with open('/etc/fedora-release', 'r') as f:
+        with open("/etc/fedora-release", "r") as f:
             fedora = f.readlines()[0].split()[2]
-        tag = f'f{fedora}-updates-testing'
+        tag = f"f{fedora}-updates-testing"
         builds = self.get_koji_session().listTagged(tag, latest=True)
         for build in builds:
-            pkgs = installed.filter(name=build['name'], version=build['version'],
-                                    release=build['release']).run()
+            pkgs = installed.filter(
+                name=build["name"], version=build["version"], release=build["release"]
+            ).run()
             if len(pkgs):
-                update_list = self.query(builds=build['nvr'])['updates']
-                for update in update_list:
-                    yield update
+                update_list = self.query(builds=build["nvr"])["updates"]
+                yield from update_list
 
     @staticmethod
     def compose_str(compose: dict, minimal: bool = True) -> str:
@@ -745,8 +757,8 @@ class BodhiClient:
         Returns:
             A human readable string describing the compose.
         """
-        line_formatter = '{0:<16}: {1}'
-        security = '*' if compose['security'] else ' '
+        line_formatter = "{0:<16}: {1}"
+        security = "*" if compose["security"] else " "
         title = f"{security}{compose['release']['name']}-{compose['request']}"
         details = f"{len(compose['update_summary']):3d} updates ({compose['state']}) "
         minimal_repr = line_formatter.format(title, details)
@@ -754,25 +766,25 @@ class BodhiClient:
         if minimal:
             return minimal_repr
 
-        line_formatter = '{0:>12}: {1}\n'
+        line_formatter = "{0:>12}: {1}\n"
 
-        compose_lines = [f'{"=":=^80}\n', f'     {minimal_repr}\n', f'{"=":=^80}\n']
+        compose_lines = [f"{'=':=^80}\n", f"     {minimal_repr}\n", f"{'=':=^80}\n"]
 
         compose_lines += [
-            line_formatter.format('Content Type', compose['content_type']),
-            line_formatter.format('Started', compose['date_created']),
-            line_formatter.format('Updated', compose['state_date']),
+            line_formatter.format("Content Type", compose["content_type"]),
+            line_formatter.format("Started", compose["date_created"]),
+            line_formatter.format("Updated", compose["state_date"]),
         ]
 
-        if 'error_message' in compose and compose['error_message']:
-            compose_lines.append(line_formatter.format('Error', compose['error_message']))
+        if compose.get("error_message"):
+            compose_lines.append(line_formatter.format("Error", compose["error_message"]))
 
-        compose_lines += ['\nUpdates:\n\n']
-        line_formatter = f'\t{line_formatter}'
-        for s in compose['update_summary']:
-            compose_lines.append(line_formatter.format(s['alias'], s['title']))
+        compose_lines += ["\nUpdates:\n\n"]
+        line_formatter = f"\t{line_formatter}"
+        for s in compose["update_summary"]:
+            compose_lines.append(line_formatter.format(s["alias"], s["title"]))
 
-        return ''.join(compose_lines)
+        return "".join(compose_lines)
 
     @staticmethod
     def override_str(override: dict, minimal: bool = True) -> str:
@@ -790,12 +802,20 @@ class BodhiClient:
             return override
 
         if minimal:
-            return (f"{override['submitter']['name']}'s {override['build']['nvr']} override "
-                    f"(expires {override['expiration_date']})")
+            return (
+                f"{override['submitter']['name']}'s {override['build']['nvr']} override "
+                f"(expires {override['expiration_date']})"
+            )
 
-        divider = '=' * 60
-        nvr = '\n'.join(textwrap.wrap(override['build']['nvr'].replace(',', ', '), width=60,
-                        initial_indent=' ' * 5, subsequent_indent=' ' * 5))
+        divider = "=" * 60
+        nvr = "\n".join(
+            textwrap.wrap(
+                override["build"]["nvr"].replace(",", ", "),
+                width=60,
+                initial_indent=" " * 5,
+                subsequent_indent=" " * 5,
+            )
+        )
         val = f"{divider}\n{nvr}\n{divider}\n"
         val += f"  Submitter: {override['submitter']['name']}\n"
         val += f"  Expiration Date: {override['expiration_date']}\n"
@@ -819,19 +839,27 @@ class BodhiClient:
             return update
         if minimal:
             val = ""
-            security = '*' if update['type'] == 'security' else ' '
-            date = update['date_pushed'] and update['date_pushed'].split()[0] \
-                or update['date_submitted'].split()[0]
-            days_in_status = _days_since(update['date_pushed']) if update['date_pushed'] \
-                else _days_since(update['date_submitted'])
-            if update['builds']:
-                title = update['builds'][0]['nvr']
+            security = "*" if update["type"] == "security" else " "
+            date = (
+                update["date_pushed"]
+                and update["date_pushed"].split()[0]
+                or update["date_submitted"].split()[0]
+            )
+            days_in_status = (
+                _days_since(update["date_pushed"])
+                if update["date_pushed"]
+                else _days_since(update["date_submitted"])
+            )
+            if update["builds"]:
+                title = update["builds"][0]["nvr"]
             else:
-                title = update['title'] or update['alias']
-            content_type = update['content_type'] or 'unspecified'
-            val += (f"{security}{title:40} {content_type:9}  "
-                    f"{update['status']:8}  {date:>10} ({days_in_status})")
-            for build in update['builds'][1:]:
+                title = update["title"] or update["alias"]
+            content_type = update["content_type"] or "unspecified"
+            val += (
+                f"{security}{title:40} {content_type:9}  "
+                f"{update['status']:8}  {date:>10} ({days_in_status})"
+            )
+            for build in update["builds"][1:]:
                 val += f"\n  {build['nvr']}"
             return val
 
@@ -842,125 +870,123 @@ class BodhiClient:
         #  |-->          80 chars in total         <--|
         wrap_width = 66
         wrap_line = functools.partial(textwrap.wrap, width=wrap_width)
-        line_formatter = '{0:>12}: {1}\n'
+        line_formatter = "{0:>12}: {1}\n"
 
-        update_lines = [f'{"=":=^80}\n']
+        update_lines = [f"{'=':=^80}\n"]
         update_lines += [
-            line + '\n' for line in textwrap.wrap(
-                update['title'],
-                width=80,
-                initial_indent=' ' * 5,
-                subsequent_indent=' ' * 5)
+            line + "\n"
+            for line in textwrap.wrap(
+                update["title"], width=80, initial_indent=" " * 5, subsequent_indent=" " * 5
+            )
         ]
-        update_lines.append(f'{"=":=^80}\n')
+        update_lines.append(f"{'=':=^80}\n")
 
-        update_lines.append(
-            line_formatter.format('Update ID', update['alias']))
+        update_lines.append(line_formatter.format("Update ID", update["alias"]))
 
         update_lines += [
-            line_formatter.format('Content Type', update['content_type']),
-            line_formatter.format('Release', update['release']['long_name']),
-            line_formatter.format('Status', update['status']),
-            line_formatter.format('Type', update['type']),
-            line_formatter.format('Severity', update['severity']),
-            line_formatter.format('Karma', update['karma']),
+            line_formatter.format("Content Type", update["content_type"]),
+            line_formatter.format("Release", update["release"]["long_name"]),
+            line_formatter.format("Status", update["status"]),
+            line_formatter.format("Type", update["type"]),
+            line_formatter.format("Severity", update["severity"]),
+            line_formatter.format("Karma", update["karma"]),
             line_formatter.format(
-                'Autokarma',
-                f"{update['autokarma']}  [{update['unstable_karma']}, {update['stable_karma']}]"),
-            line_formatter.format('Autotime', update['autotime'])
+                "Autokarma",
+                f"{update['autokarma']}  [{update['unstable_karma']}, {update['stable_karma']}]",
+            ),
+            line_formatter.format("Autotime", update["autotime"]),
         ]
 
         try:
-            test_status = self.get_test_status(update['alias'])
+            test_status = self.get_test_status(update["alias"])
         except RequestException as err:
-            log.debug('ERROR while retrieving CI status: %s', err)
+            log.debug("ERROR while retrieving CI status: %s", err)
             test_status = None
 
         if test_status:
             info = None
             waivers = None
-            if 'errors' in test_status:
-                info = '\n'.join([el.description for el in test_status.errors])
-            elif 'decision' in test_status:
+            if "errors" in test_status:
+                info = "\n".join([el.description for el in test_status.errors])
+            elif "decision" in test_status:
                 info = test_status.decision.summary
                 waivers = test_status.decision.waivers
-            elif 'decisions' in test_status:
-                info = '\n'.join([d.summary for d in test_status.decisions])
+            elif "decisions" in test_status:
+                info = "\n".join([d.summary for d in test_status.decisions])
                 waivers = list(itertools.chain(*(d.waivers for d in test_status.decisions)))
             else:
-                log.debug('No `errors` nor `decision` in the data returned')
+                log.debug("No `errors` nor `decision` in the data returned")
             if info:
-                update_lines.append(line_formatter.format('CI Status', info))
+                update_lines.append(line_formatter.format("CI Status", info))
             if waivers:
                 waivers_lines = []
                 for waiver in waivers:
-                    dt = datetime.strptime(waiver['timestamp'], '%Y-%m-%dT%H:%M:%S.%f')
+                    dt = datetime.strptime(waiver["timestamp"] + "+0000", "%Y-%m-%dT%H:%M:%S.%f%z")
                     waivers_lines.append(
                         f"{waiver['username']} - {dt.strftime('%Y-%m-%d %H:%M:%S')}")
-                    waivers_lines += wrap_line(waiver['comment'])
+                    waivers_lines += wrap_line(waiver["comment"])
                     waivers_lines.append(f"build: {waiver['subject_identifier']}")
                     waivers_lines.append(f"testcase: {waiver['testcase']}")
 
-                update_lines.append(line_formatter.format('Waivers', waivers_lines[0]))
-                waiver_line_formatter = line_formatter.replace(': ', '  ')
+                update_lines.append(line_formatter.format("Waivers", waivers_lines[0]))
+                waiver_line_formatter = line_formatter.replace(": ", "  ")
                 update_lines += [
                     waiver_line_formatter.format(indent, line)
                     for indent, line in zip(
-                        itertools.repeat(' ', len(waivers_lines) - 1),
-                        waivers_lines[1:])
+                        itertools.repeat(" ", len(waivers_lines) - 1), waivers_lines[1:]
+                    )
                 ]
 
-        if update['request'] is not None:
-            update_lines.append(line_formatter.format('Request', update['request']))
+        if update["request"] is not None:
+            update_lines.append(line_formatter.format("Request", update["request"]))
 
-        if len(update['bugs']):
-            bugs = list(itertools.chain(*[
-                wrap_line(f"{bug['bug_id']} - {bug['title']}")
-                for bug in update['bugs']
-            ]))
-            indent_lines = ['Bugs'] + [' '] * (len(bugs) - 1)
+        if len(update["bugs"]):
+            bugs = list(
+                itertools.chain(
+                    *[wrap_line(f"{bug['bug_id']} - {bug['title']}") for bug in update["bugs"]]
+                )
+            )
+            indent_lines = ["Bugs"] + [" "] * (len(bugs) - 1)
             update_lines += [
-                line_formatter.format(indent, line)
-                for indent, line in zip(indent_lines, bugs)
+                line_formatter.format(indent, line) for indent, line in zip(indent_lines, bugs)
             ]
 
-        if update['notes']:
-            notes_lines = list(itertools.chain(
-                *[wrap_line(line) for line in update['notes'].splitlines()]
-            ))
-            indent_lines = ['Notes'] + [' '] * (len(notes_lines) - 1)
+        if update["notes"]:
+            notes_lines = list(
+                itertools.chain(*[wrap_line(line) for line in update["notes"].splitlines()])
+            )
+            indent_lines = ["Notes"] + [" "] * (len(notes_lines) - 1)
             for indent, line in zip(indent_lines, notes_lines):
                 update_lines.append(line_formatter.format(indent, line))
 
         update_lines += [
-            line_formatter.format('Submitter', update['user']['name']),
-            line_formatter.format('Submitted', update['date_submitted']),
+            line_formatter.format("Submitter", update["user"]["name"]),
+            line_formatter.format("Submitted", update["date_submitted"]),
         ]
 
-        if len(update['comments']):
+        if len(update["comments"]):
             comments_lines = []
-            for comment in update['comments']:
+            for comment in update["comments"]:
                 comments_lines.append(
-                    f"{comment['user']['name']} - {comment['timestamp']} "
-                    f"(karma {comment['karma']})")
-                comments_lines += wrap_line(comment['text'])
+                    f"{comment['user']['name']} - {comment['timestamp']} (karma {comment['karma']})"
+                )
+                comments_lines += wrap_line(comment["text"])
 
-            update_lines.append(line_formatter.format('Comments', comments_lines[0]))
-            comment_line_formatter = line_formatter.replace(': ', '  ')
+            update_lines.append(line_formatter.format("Comments", comments_lines[0]))
+            comment_line_formatter = line_formatter.replace(": ", "  ")
             update_lines += [
                 comment_line_formatter.format(indent, line)
                 for indent, line in zip(
-                    itertools.repeat(' ', len(comments_lines) - 1),
-                    comments_lines[1:])
+                    itertools.repeat(" ", len(comments_lines) - 1), comments_lines[1:]
+                )
             ]
 
-        update_lines.append(
-            f"\n  {self.base_url}updates/{update['alias']}\n")
+        update_lines.append(f"\n  {self.base_url}updates/{update['alias']}\n")
 
-        return ''.join(update_lines)
+        return "".join(update_lines)
 
     @errorhandled
-    def get_releases(self, **kwargs) -> 'munch.Munch':
+    def get_releases(self, **kwargs) -> "munch.Munch":
         """
         Return a list of bodhi releases.
 
@@ -975,7 +1001,7 @@ class BodhiClient:
         Returns:
             A dictionary describing Bodhi's release objects.
         """
-        return self.send_request('releases/', verb='GET', params=kwargs)
+        return self.send_request("releases/", verb="GET", params=kwargs)
 
     def get_koji_session(self) -> koji.ClientSession:
         """
@@ -985,12 +1011,12 @@ class BodhiClient:
             An initialized authenticated koji client.
         """
         config = configparser.ConfigParser()
-        koji_conf = os.path.join(os.path.expanduser('~'), '.koji', 'config')
+        koji_conf = os.path.join(os.path.expanduser("~"), ".koji", "config")
         if not os.path.exists(koji_conf):
-            koji_conf = '/etc/koji.conf'
+            koji_conf = "/etc/koji.conf"
         with open(koji_conf) as fh:
             config.read_file(fh)
-        session = koji.ClientSession(config.get('koji', 'server'))
+        session = koji.ClientSession(config.get("koji", "server"))
         return session
 
     koji_session = property(fget=get_koji_session)
@@ -1006,11 +1032,11 @@ class BodhiClient:
         builds = []
         data = self.get_releases()
         koji = self.get_koji_session()
-        for release in data['releases']:
+        for release in data["releases"]:
             try:
-                for build in koji.listTagged(release['candidate_tag'], latest=True):
-                    if build['owner_name'] == self.username:
+                for build in koji.listTagged(release["candidate_tag"], latest=True):
+                    if build["owner_name"] == self.username:
                         builds.append(build)
             except Exception:
-                log.exception('Unable to query candidate builds for %s', release)
+                log.exception("Unable to query candidate builds for %s", release)
         return builds

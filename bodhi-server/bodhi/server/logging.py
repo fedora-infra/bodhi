@@ -19,9 +19,8 @@
 
 import logging
 
-from pyramid import paster
-
 from bodhi.server import config
+from pyramid import paster
 
 
 def setup():
@@ -86,7 +85,7 @@ class RateLimiter(logging.Filter):
         Returns:
             True if the record should be emitted, False otherwise.
         """
-        key = "{}:{}".format(record.pathname, record.lineno)
+        key = f"{record.pathname}:{record.lineno}"
         try:
             if self.rate > record.created - self._sent[key]:
                 return False

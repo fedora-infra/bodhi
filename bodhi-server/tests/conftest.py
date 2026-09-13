@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Pytest configuration."""
 
-from unittest import mock
 import json
 import os
 import tempfile
+from unittest import mock
 
 import pytest
 
@@ -28,8 +28,9 @@ import pytest
 # Set BODHI_CONFIG to our testing ini file.
 @pytest.fixture(autouse=True)
 def mock_settings_env_vars():
-    with mock.patch.dict(os.environ, {"BODHI_CONFIG": os.path.join(os.path.dirname(__file__),
-                                                                   "testing.ini")}):
+    with mock.patch.dict(
+        os.environ, {"BODHI_CONFIG": os.path.join(os.path.dirname(__file__), "testing.ini")}
+    ):
         yield
 
 
@@ -44,13 +45,17 @@ def always_fail_publish():
     notifications._publish_with_retry.
     """
     try:
-        with mock.patch("fedora_messaging.api._twisted_publish",
-                        side_effect=ValueError("Non-mocked message publish attempted!")):
+        with mock.patch(
+            "fedora_messaging.api._twisted_publish",
+            side_effect=ValueError("Non-mocked message publish attempted!"),
+        ):
             yield
     except AttributeError:
         # fedora-messaging >= 3.6.0 changed api method name
-        with mock.patch("fedora_messaging.api._twisted_publish_wrapper",
-                        side_effect=ValueError("Non-mocked message publish attempted!")):
+        with mock.patch(
+            "fedora_messaging.api._twisted_publish_wrapper",
+            side_effect=ValueError("Non-mocked message publish attempted!"),
+        ):
             yield
 
 
@@ -63,25 +68,25 @@ def critpath_json_config(request):
     for critpath.type=json and yield the path, file names, and sample
     data.
     """
-    tempdir = tempfile.TemporaryDirectory(suffix='bodhi')
-    f35file = os.path.join(tempdir.name, 'f35.json')
-    with open(f35file, 'w', encoding='utf-8') as f35filefh:
+    tempdir = tempfile.TemporaryDirectory(suffix="bodhi")
+    f35file = os.path.join(tempdir.name, "f35.json")
+    with open(f35file, "w", encoding="utf-8") as f35filefh:
         f35filefh.write("This is not JSON")
-    f36file = os.path.join(tempdir.name, 'f36.json')
+    f36file = os.path.join(tempdir.name, "f36.json")
     testdata = {
-        'rpm': {
-            'core': [
-                'ModemManager-glib',
-                'NetworkManager',
-                'TurboGears',
+        "rpm": {
+            "core": [
+                "ModemManager-glib",
+                "NetworkManager",
+                "TurboGears",
             ],
-            'critical-path-apps': [
-                'abattis-cantarell-fonts',
-                'adobe-source-code-pro-fonts',
-            ]
+            "critical-path-apps": [
+                "abattis-cantarell-fonts",
+                "adobe-source-code-pro-fonts",
+            ],
         }
     }
-    with open(f36file, 'w', encoding='utf-8') as f36filefh:
+    with open(f36file, "w", encoding="utf-8") as f36filefh:
         json.dump(testdata, f36filefh)
     yield (tempdir.name, testdata)
     tempdir.cleanup()
@@ -95,38 +100,35 @@ def ccp_json_config(request):
     Set up one valid (f36) and one invalid (f35) configuration file
     and yield the path, file names, and sample data.
     """
-    tempdir = tempfile.TemporaryDirectory(suffix='bodhi')
-    f35file = os.path.join(tempdir.name, 'f35-ccp-source.json')
-    with open(f35file, 'w', encoding='utf-8') as f35filefh:
+    tempdir = tempfile.TemporaryDirectory(suffix="bodhi")
+    f35file = os.path.join(tempdir.name, "f35-ccp-source.json")
+    with open(f35file, "w", encoding="utf-8") as f35filefh:
         f35filefh.write("This is not JSON")
-    f36file = os.path.join(tempdir.name, 'f36-ccp-source.json')
+    f36file = os.path.join(tempdir.name, "f36-ccp-source.json")
     testdata = {
-        'rpm': {
-            'Everything': {
-                'aarch64': {
-                    'buildroot': [
-                        'acl',
-                        'attr',
+        "rpm": {
+            "Everything": {
+                "aarch64": {
+                    "buildroot": [
+                        "acl",
+                        "attr",
                     ],
-                    'image': [
-                        'ModemManager',
-                        'NetworkManager',
+                    "image": [
+                        "ModemManager",
+                        "NetworkManager",
                     ],
                 },
-                'x86_64': {
-                    'buildroot': [
-                        'authselect',
-                        'bash',
+                "x86_64": {
+                    "buildroot": [
+                        "authselect",
+                        "bash",
                     ],
-                    'image': [
-                        'abseil-cpp',
-                        'accountsservice'
-                    ],
+                    "image": ["abseil-cpp", "accountsservice"],
                 },
             },
         },
     }
-    with open(f36file, 'w', encoding='utf-8') as f36filefh:
+    with open(f36file, "w", encoding="utf-8") as f36filefh:
         json.dump(testdata, f36filefh)
     yield (tempdir.name, testdata)
     tempdir.cleanup()

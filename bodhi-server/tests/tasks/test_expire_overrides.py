@@ -22,11 +22,12 @@ This module contains tests for the bodhi.server.tasks.expire_overrides module.
 from datetime import timedelta
 from unittest import mock
 
-from fedora_messaging import api, testing as fml_testing
-
 from bodhi.server import models
 from bodhi.server.tasks import expire_overrides_task
 from bodhi.server.tasks.expire_overrides import main as expire_overrides_main
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
+
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
 
@@ -48,7 +49,7 @@ class TestTask(BasePyTestCase):
         main_function.assert_called_with()
 
 
-@mock.patch('bodhi.server.tasks.expire_overrides.log')
+@mock.patch("bodhi.server.tasks.expire_overrides.log")
 class TestMain(BaseTaskTestCase):
     """
     This class contains tests for the main() function.
@@ -79,8 +80,13 @@ class TestMain(BaseTaskTestCase):
         with fml_testing.mock_sends(api.Message):
             expire_overrides_main()
 
-        log.info.assert_has_calls([mock.call('Expiring %d buildroot overrides...', 1),
-                                   mock.call('Expired bodhi-2.0-1.fc17')], any_order=True)
+        log.info.assert_has_calls(
+            [
+                mock.call("Expiring %d buildroot overrides...", 1),
+                mock.call("Expired bodhi-2.0-1.fc17"),
+            ],
+            any_order=True,
+        )
         assert buildrootoverride.expired_date is not None
 
     def test_exception(self, log):

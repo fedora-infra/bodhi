@@ -22,23 +22,24 @@ Revision ID: d399493275b6
 Revises: 559acf7e2c16
 Create Date: 2021-07-27 12:53:28.303972
 """
-from alembic import op
+
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'd399493275b6'
-down_revision = '559acf7e2c16'
+revision = "d399493275b6"
+down_revision = "559acf7e2c16"
 
 
 def upgrade():
     """Add the eol column."""
     op.add_column(
-        'releases',
-        sa.Column('eol', sa.Date, nullable=True),
+        "releases",
+        sa.Column("eol", sa.Date, nullable=True),
     )
     # ### end Alembic commands ###
 
 
 def downgrade():
     """Drop the eol column."""
-    op.drop_column('releases', 'eol')
+    op.drop_column("releases", "eol")

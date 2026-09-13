@@ -17,17 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for the compatibility scripts."""
 
-from unittest.mock import patch, Mock
-
-from click.testing import CliRunner
+from unittest.mock import Mock, patch
 
 from bodhi.server.scripts import compat
+from click.testing import CliRunner
+
 from ..base import BasePyTestCase
 
 
 # Don't muck around with global log level.
-@patch('bodhi.server.scripts.compat.logging.basicConfig',
-       new=lambda *p, **k: None)
+@patch("bodhi.server.scripts.compat.logging.basicConfig", new=lambda *p, **k: None)
 class TestCompat(BasePyTestCase):
     """This class contains tests for the compatibility scripts."""
 
@@ -40,7 +39,7 @@ class TestCompat(BasePyTestCase):
     def test_approve_testing(self):
         """Ensure the approve_testing task is called."""
         cli = CliRunner()
-        with patch('bodhi.server.tasks.approve_testing_task', self.task_mock):
+        with patch("bodhi.server.tasks.approve_testing_task", self.task_mock):
             result = cli.invoke(compat.approve_testing)
         assert result.exit_code == 0
         self.task_mock.delay.assert_called_with()
@@ -49,7 +48,7 @@ class TestCompat(BasePyTestCase):
     def test_check_policies(self):
         """Ensure the check_policies task is called."""
         cli = CliRunner()
-        with patch('bodhi.server.tasks.check_policies_task', self.task_mock):
+        with patch("bodhi.server.tasks.check_policies_task", self.task_mock):
             result = cli.invoke(compat.check_policies)
         assert result.exit_code == 0
         self.task_mock.delay.assert_called_with()
@@ -58,7 +57,7 @@ class TestCompat(BasePyTestCase):
     def test_clean_old_composes(self):
         """Ensure the clean_old_composes task is called."""
         cli = CliRunner()
-        with patch('bodhi.server.tasks.clean_old_composes_task', self.task_mock):
+        with patch("bodhi.server.tasks.clean_old_composes_task", self.task_mock):
             result = cli.invoke(compat.clean_old_composes)
         assert result.exit_code == 0
         self.task_mock.delay.assert_called_with(num_to_keep=10)
@@ -67,7 +66,7 @@ class TestCompat(BasePyTestCase):
     def test_expire_overrides(self):
         """Ensure the expire_overrides task is called."""
         cli = CliRunner()
-        with patch('bodhi.server.tasks.expire_overrides_task', self.task_mock):
+        with patch("bodhi.server.tasks.expire_overrides_task", self.task_mock):
             result = cli.invoke(compat.expire_overrides)
         assert result.exit_code == 0
         self.task_mock.delay.assert_called_with()
@@ -77,7 +76,7 @@ class TestCompat(BasePyTestCase):
         """Ensure the exceptions cause the script to exit with a non-zero status."""
         self.task_result.get.side_effect = RuntimeError("Kaboom!")
         cli = CliRunner()
-        with patch('bodhi.server.tasks.expire_overrides_task', self.task_mock):
+        with patch("bodhi.server.tasks.expire_overrides_task", self.task_mock):
             result = cli.invoke(compat.expire_overrides)
         assert result.exit_code == 1
         assert "Kaboom!" in result.output
@@ -88,7 +87,7 @@ class TestCompat(BasePyTestCase):
         """Ensure the path to the configuration file can be passed."""
         get_appsettings.return_value = {"foo": "bar"}
         cli = CliRunner()
-        with patch('bodhi.server.tasks.expire_overrides_task', self.task_mock):
+        with patch("bodhi.server.tasks.expire_overrides_task", self.task_mock):
             result = cli.invoke(compat.expire_overrides, ["test-config.ini"])
         assert result.exit_code == 0
         get_appsettings.assert_called_with("test-config.ini")
@@ -99,12 +98,13 @@ class TestCompat(BasePyTestCase):
         cli = CliRunner()
         # mock.patch.dict() fails because the conf object is too complex, mock manually:
         import bodhi.server.tasks
+
         app = bodhi.server.tasks.app
         old_result_backend = app.conf.result_backend
         app.conf.result_backend = None
 
         try:
-            with patch('bodhi.server.tasks.expire_overrides_task', self.task_mock):
+            with patch("bodhi.server.tasks.expire_overrides_task", self.task_mock):
                 result = cli.invoke(compat.expire_overrides)
         finally:
             app.conf.result_backend = old_result_backend

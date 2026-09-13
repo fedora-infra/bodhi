@@ -15,7 +15,6 @@ from subprocess import run
 
 def test_debug(bodhi_container, ipsilon_container):
     print(
-        "OK you can now debug the integration testing environment. "
-        "Exit the shell when you're done."
+        "OK you can now debug the integration testing environment. Exit the shell when you're done."
     )
     run(["bash"])

@@ -22,12 +22,11 @@ import asyncio
 import datetime
 import os
 import subprocess
-import typing
 
 import click
 
-from .constants import (CONTAINER_LABEL, CONTAINER_NAME, LABEL_TEMPLATE,
-                        PROJECT_PATH)
+from .constants import CONTAINER_LABEL, CONTAINER_NAME, LABEL_TEMPLATE, PROJECT_PATH
+from typing import Mapping, Optional, Union
 
 
 class EmptySemaphore:
@@ -41,11 +40,9 @@ class EmptySemaphore:
 
     async def __aenter__(self, *args, **kwargs):
         """Calls pass."""
-        pass
 
     async def __aexit__(self, *args, **kwargs):
         """Calls pass."""
-        pass
 
 
 class Job:
@@ -70,18 +67,18 @@ class Job:
     """
 
     # Subclasses should override this to set the command to run.
-    _command = []  # type: typing.MutableSequence[str]
+    _command: list[str] = []
     # A template to name the image that is built. CONTAINER_NAME and the release gets substituted
     # into the {}'s.
-    _container_image_template = '{}/{}'
+    _container_image_template = "{}/{}"
     # Subclasses should define this to set the label that the job gets reported under.
-    _label = ''
+    _label = ""
     # Dependent job classes
-    _dependencies = []  # type: typing.List[typing.Type['Job']]
+    _dependencies: list[type["Job"]] = []
     # Only run on these releases (None means all releases):
-    only_releases = None  # type: typing.Union[typing.List[str], None]
+    only_releases: Optional[list[str]] = None
     # Do not run on these releases:
-    skip_releases = []  # type: typing.List[str]
+    skip_releases: list[str] = []
     # Limit how many Jobs can run at once. This is set by _set_concurrency().
     concurrency_semaphore = EmptySemaphore()
     # Jobs can set this if they want to have some additional limitations on how many of them can
@@ -100,29 +97,29 @@ class Job:
         self.release = release
         self.options = options
 
-        self.depends_on: typing.List['Job'] = []
+        self.depends_on: list[Job] = []
         self.cancelled = False
         # Used to block dependent processes until this Job is done.
         self.complete = asyncio.Event()
         self.started = False
         self.returncode = None
         self.skipped = False
-        self._popen_kwargs = {'shell': False}  # type: typing.Mapping[str, typing.Union[bool, int]]
+        self._popen_kwargs: Mapping[str, Union[bool, int]] = {"shell": False}
         if options["buffer_output"]:
             # Let's buffer the output so the user doesn't see a jumbled mess.
-            self._popen_kwargs['stdout'] = subprocess.PIPE
-            self._popen_kwargs['stderr'] = subprocess.STDOUT
-        self._stdout = b''
+            self._popen_kwargs["stdout"] = subprocess.PIPE
+            self._popen_kwargs["stderr"] = subprocess.STDOUT
+        self._stdout = b""
         self._start_time = self._finish_time = None
-        self.archive_dir: typing.Union[str, None] = None
+        self.archive_dir: str | None = None
 
     def __repr__(self):
         return f"<{self.__class__.__name__} release={self.release!r}>"
 
     def _get_container_name(self):
-        if self.options["container_runtime"] == 'podman':
+        if self.options["container_runtime"] == "podman":
             # Workaround for https://github.com/containers/buildah/issues/1034
-            return f'localhost/{CONTAINER_NAME}'
+            return f"localhost/{CONTAINER_NAME}"
         return CONTAINER_NAME
 
     def _get_container_image(self):
@@ -155,9 +152,9 @@ class Job:
             str: The output from the process.
         """
         if not self._stdout:
-            return ''
+            return ""
         output = self._stdout.decode()
-        return '\n'.join([f'{self.label}\t{line}' for line in output.split('\n')])
+        return "\n".join([f"{self.label}\t{line}" for line in output.split("\n")])
 
     @property
     def duration(self):
@@ -222,11 +219,9 @@ class Job:
         self.started = True
         self._pre_start_hook()
         if not self._popen_kwargs["shell"]:
-            process = await asyncio.create_subprocess_exec(
-                *self._command, **self._popen_kwargs)
+            process = await asyncio.create_subprocess_exec(*self._command, **self._popen_kwargs)
         else:
-            process = await asyncio.create_subprocess_shell(
-                *self._command, **self._popen_kwargs)
+            process = await asyncio.create_subprocess_shell(*self._command, **self._popen_kwargs)
 
         try:
             self._stdout, stderr = await process.communicate()
@@ -250,10 +245,7 @@ class Job:
             self.returncode = process.returncode
 
     def get_dependencies(self):
-        return [
-            (dep_class, dict(release=self.release))
-            for dep_class in self._dependencies
-        ]
+        return [(dep_class, dict(release=self.release)) for dep_class in self._dependencies]
 
     def _convert_command_for_container(self, include_git: bool = False, network: str = "none"):
         """
@@ -269,26 +261,35 @@ class Job:
                 the container. This is needed for the diff-cover and pre-commit tests.
                 Default: False.
         """
-        args = [self.options["container_runtime"], 'run', '--network', network, '--rm',
-                '--label', CONTAINER_LABEL, '--init']
+        args = [
+            self.options["container_runtime"],
+            "run",
+            "--network",
+            network,
+            "--rm",
+            "--label",
+            CONTAINER_LABEL,
+            "--init",
+        ]
 
         if self.options["tty"] and not self.options["buffer_output"]:
             # Don't request a TTY when outputing to pipes.
             # https://github.com/containers/podman/issues/9718
-            args.append('-t')
+            args.append("-t")
 
         if self.options["archive"]:
-            self.archive_dir = f'{self.options["archive_path"]}/{self.release}-{self._label}'
-            args.extend(['-v', f'{self.archive_dir}:/results:z'])
+            self.archive_dir = f"{self.options['archive_path']}/{self.release}-{self._label}"
+            args.extend(["-v", f"{self.archive_dir}:/results:z"])
 
         if include_git:
-            mount_flags = ['ro']
+            mount_flags = ["ro"]
             if self.options["z"]:
-                mount_flags.append('Z')
+                mount_flags.append("Z")
             else:
-                mount_flags.append('z')
-            args.extend([
-                '-v', f"{os.path.join(PROJECT_PATH, '.git')}:/bodhi/.git:{','.join(mount_flags)}"])
+                mount_flags.append("z")
+            args.extend(
+                ["-v", f"{os.path.join(PROJECT_PATH, '.git')}:/bodhi/.git:{','.join(mount_flags)}"]
+            )
 
         args.append(self._container_image)
         args.extend(self._command)
@@ -312,12 +313,12 @@ class BuildJob(Job):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _label = 'build'
+    _label = "build"
     # A template for finding the name of the Dockerfile to be used for this BuildJob. The release
     # gets substituted into the {}'s.
-    _dockerfile_template = 'Dockerfile-{}'
+    _dockerfile_template = "Dockerfile-{}"
     # Extra arguments to be passed to the container build command.
-    _build_args = ['--force-rm', '--pull']
+    _build_args = ["--force-rm", "--pull"]
 
     def __init__(self, *args, **kwargs):
         """
@@ -327,10 +328,18 @@ class BuildJob(Job):
         """
         super().__init__(*args, **kwargs)
 
-        dockerfile = os.path.join(PROJECT_PATH, 'devel', 'ci',
-                                  self._dockerfile_template.format(self.release))
-        self._command = [self.options["container_runtime"], 'build', '-t', self._container_image,
-                         '-f', dockerfile, '.']
+        dockerfile = os.path.join(
+            PROJECT_PATH, "devel", "ci", self._dockerfile_template.format(self.release)
+        )
+        self._command = [
+            self.options["container_runtime"],
+            "build",
+            "-t",
+            self._container_image,
+            "-f",
+            dockerfile,
+            ".",
+        ]
         if self._build_args:
             for arg in reversed(self._build_args):
                 self._command.insert(2, arg)
@@ -356,7 +365,7 @@ class BuildJob(Job):
         Returns:
             bool: True if a build exists, False otherwise.
         """
-        args = [self.options["container_runtime"], 'images', self._container_image]
+        args = [self.options["container_runtime"], "images", self._container_image]
         images = subprocess.check_output(args).decode()
         if self._container_image in images:
             return True
@@ -370,7 +379,7 @@ class CleanJob(Job):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _label = 'clean'
+    _label = "clean"
 
     def __init__(self, *args, **kwargs):
         """
@@ -380,7 +389,7 @@ class CleanJob(Job):
         """
         super().__init__(*args, **kwargs)
 
-        self._command = [self.options["container_runtime"], 'rmi', self._container_image]
+        self._command = [self.options["container_runtime"], "rmi", self._container_image]
 
 
 class StopJob(Job):
@@ -390,7 +399,7 @@ class StopJob(Job):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _label = 'stop'
+    _label = "stop"
 
     def __init__(self, *args, **kwargs):
         """
@@ -400,9 +409,8 @@ class StopJob(Job):
         """
         super().__init__(*args, **kwargs)
 
-        self._command = [self.options["container_runtime"], 'stop', self.release]
-        self._popen_kwargs['stdout'] = subprocess.DEVNULL
+        self._command = [self.options["container_runtime"], "stop", self.release]
+        self._popen_kwargs["stdout"] = subprocess.DEVNULL
 
     def _pre_start_hook(self):
         """Do not announce this Job; it is noisy."""
-        pass

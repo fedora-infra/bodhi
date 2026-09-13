@@ -17,26 +17,28 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines service endpoints for our message schemas."""
 
-from importlib import metadata
-import typing
 
+import typing
+from importlib import metadata
+
+from bodhi.server import security
+from bodhi.server.services import errors
 from cornice.resource import resource, view
 from pyramid import httpexceptions
 from pyramid.authorization import Allow, Everyone
 
-from bodhi.server import security
-from bodhi.server.services import errors
-
-
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import pyramid.request.Request  # noqa: F401
+    import pyramid.request.Request
 
 
-READ_ACL = 'view_schemas'
+READ_ACL = "view_schemas"
 
 
-@resource(collection_path='/message-schemas/v1/', path='/message-schemas/v1/{topic}',
-          description='Message schemas')
+@resource(
+    collection_path="/message-schemas/v1/",
+    path="/message-schemas/v1/{topic}",
+    description="Message schemas",
+)
 class MessageSchemasV1:
     """
     Defines resources for serving Bodhi's message schemas.
@@ -45,7 +47,7 @@ class MessageSchemasV1:
     on a single schema are served at ``/message-schemas/v1/<topic>``.
     """
 
-    def __init__(self, request: 'pyramid.request.Request', context: None = None):
+    def __init__(self, request: "pyramid.request.Request", context: None = None):
         """
         Initialize the MessageSchemas resource.
 
@@ -56,7 +58,7 @@ class MessageSchemasV1:
         self.request = request
 
     @staticmethod
-    def __acl__() -> typing.Iterable[typing.Tuple[str, str, str]]:
+    def __acl__() -> typing.Iterable[tuple[str, str, str]]:
         """
         Define ACLs for the MessageSchemas resource.
 
@@ -66,9 +68,12 @@ class MessageSchemasV1:
         return [(Allow, Everyone, READ_ACL)]
 
     @view(
-        accept=('application/json', 'text/json'), renderer='json',
-        cors_origins=security.cors_origins_ro, error_handler=errors.json_handler,
-        permission=READ_ACL)
+        accept=("application/json", "text/json"),
+        renderer="json",
+        cors_origins=security.cors_origins_ro,
+        error_handler=errors.json_handler,
+        permission=READ_ACL,
+    )
     def collection_get(self) -> typing.Iterable[str]:
         """
         List schemas.
@@ -78,12 +83,19 @@ class MessageSchemasV1:
         Returns:
             A list of message topics that Bodhi supports.
         """
-        return [m.load().topic for m in metadata.entry_points(group='fedora.messages')
-                if m.value.startswith('bodhi.')]
+        return [
+            m.load().topic
+            for m in metadata.entry_points(group="fedora.messages")
+            if m.value.startswith("bodhi.")
+        ]
 
-    @view(accept=('application/json', 'text/json'), renderer='json',
-          cors_origins=security.cors_origins_ro, error_handler=errors.json_handler,
-          permission=READ_ACL)
+    @view(
+        accept=("application/json", "text/json"),
+        renderer="json",
+        cors_origins=security.cors_origins_ro,
+        error_handler=errors.json_handler,
+        permission=READ_ACL,
+    )
     def get(self) -> dict:
         """
         Retrieve and render a single message schema.
@@ -94,8 +106,9 @@ class MessageSchemasV1:
             The requested message schema.
         """
         try:
-            (ep,) = metadata.entry_points(group='fedora.messages',
-                                          name=f"{self.request.matchdict['topic']}.v1")
+            (ep,) = metadata.entry_points(
+                group="fedora.messages", name=f"{self.request.matchdict['topic']}.v1"
+            )
             return ep.load().body_schema
         except ValueError:
             # The user has requested a topic that does not exist

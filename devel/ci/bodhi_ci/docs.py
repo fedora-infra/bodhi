@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 """Documentation build job."""
+
 from .constants import MODULES
 from .job import BuildJob, Job
 
@@ -29,19 +30,21 @@ class DocsJob(Job):
     """
 
     _command = [
-        '/usr/bin/bash', '-cx',
+        "/usr/bin/bash",
+        "-cx",
         (
-            'for submodule in ' + ' '.join(MODULES) + '; do '
-            '  pushd $submodule; '
-            '  poetry install --only-root; '
-            '  popd; '
-            'done;'
-            'make -C docs clean && '
-            'make -C docs html PYTHON=/usr/bin/python3 && '
-            'make -C docs man PYTHON=/usr/bin/python3 && '
-            'cp -rv docs/_build/* /results/'
-        )]
-    _label = 'docs'
+            "for submodule in " + " ".join(MODULES) + "; do "
+            "  pushd $submodule; "
+            "  poetry install --only-root; "
+            "  popd; "
+            "done;"
+            "make -C docs clean && "
+            "make -C docs html PYTHON=/usr/bin/python3 && "
+            "make -C docs man PYTHON=/usr/bin/python3 && "
+            "cp -rv docs/_build/* /results/"
+        ),
+    ]
+    _label = "docs"
     _dependencies = [BuildJob]
 
     def __init__(self, *args, **kwargs):
@@ -69,24 +72,26 @@ class DocsOldJob(DocsJob):
     """
 
     _command = [
-        '/usr/bin/bash', '-cx',
+        "/usr/bin/bash",
+        "-cx",
         (
-            'for submodule in ' + ' '.join(MODULES) + '; do '
-            '  pushd $submodule; '
-            '  VERSION=( $(poetry version) ); '
-            '  poetry build -f sdist; '
-            '  FILENAME=( $(find dist/ -type f) ); '
-            '  FILENAME=${FILENAME##*/}; '
-            '  FILENAME=${FILENAME%-*}; '
+            "for submodule in " + " ".join(MODULES) + "; do "
+            "  pushd $submodule; "
+            "  VERSION=( $(poetry version) ); "
+            "  poetry build -f sdist; "
+            "  FILENAME=( $(find dist/ -type f) ); "
+            "  FILENAME=${FILENAME##*/}; "
+            "  FILENAME=${FILENAME%-*}; "
             '  tar -xzvf "dist/$FILENAME-${VERSION[1]}.tar.gz" -C /tmp/; '
             '  pushd "/tmp/$FILENAME-${VERSION[1]}"; '
-            '  python setup.py develop; '
-            '  popd; '
-            '  popd; '
-            'done;'
-            'make -C docs clean && '
-            'make -C docs html PYTHON=/usr/bin/python3 && '
-            'make -C docs man PYTHON=/usr/bin/python3 && '
-            'cp -rv docs/_build/* /results/'
-        )]
-    only_releases = ['f42']
+            "  python setup.py develop; "
+            "  popd; "
+            "  popd; "
+            "done;"
+            "make -C docs clean && "
+            "make -C docs html PYTHON=/usr/bin/python3 && "
+            "make -C docs man PYTHON=/usr/bin/python3 && "
+            "cp -rv docs/_build/* /results/"
+        ),
+    ]
+    only_releases = ["f42"]

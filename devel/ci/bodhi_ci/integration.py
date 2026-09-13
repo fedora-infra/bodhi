@@ -41,25 +41,32 @@ class IntegrationAppBuildJob(BuildJob):
         """
         self._app_name = app_name
         super().__init__(*args, **kwargs)
-        self._label = f'integration-build-{app_name}'
+        self._label = f"integration-build-{app_name}"
         dockerfile = os.path.join(
-            PROJECT_PATH, 'devel', 'ci', 'integration', app_name, 'Dockerfile'
+            PROJECT_PATH, "devel", "ci", "integration", app_name, "Dockerfile"
         )
-        self._command = [self.options["container_runtime"], 'build', '--force-rm', '--pull',
-                         '-t', self._container_image, '-f', dockerfile, '.']
+        self._command = [
+            self.options["container_runtime"],
+            "build",
+            "--force-rm",
+            "--pull",
+            "-t",
+            self._container_image,
+            "-f",
+            dockerfile,
+            ".",
+        ]
 
     def __repr__(self):
         return f"<{self.__class__.__name__} app={self._app_name!r}>"
 
     def _get_container_image(self):
-        return f'{self._get_container_name()}-integration-{self._app_name}'
+        return f"{self._get_container_name()}-integration-{self._app_name}"
 
     def get_dependencies(self):
         deps = super().get_dependencies()
         if self._app_name in ["waiverdb", "bodhi"]:
-            deps.append(
-                (IntegrationDumpDownloadJob, dict(app_name=self._app_name, release="prod"))
-            )
+            deps.append((IntegrationDumpDownloadJob, dict(app_name=self._app_name, release="prod")))
         return deps
 
 
@@ -81,20 +88,29 @@ class IntegrationBodhiBuildJob(IntegrationAppBuildJob):
         super().__init__(*args, app_name="bodhi", **kwargs)
 
         dockerfile = os.path.join(
-            PROJECT_PATH, 'devel', 'ci', 'integration', 'bodhi',
-            'Dockerfile-{}'.format(self.release),
+            PROJECT_PATH,
+            "devel",
+            "ci",
+            "integration",
+            "bodhi",
+            f"Dockerfile-{self.release}",
         )
         self._command = [
             self.options["container_runtime"],
-            'build', '--force-rm', '-t', self._container_image,
-            '-f', dockerfile, '.'
+            "build",
+            "--force-rm",
+            "-t",
+            self._container_image,
+            "-f",
+            dockerfile,
+            ".",
         ]
 
     def __repr__(self):
         return Job.__repr__(self)
 
     def _get_container_image(self):
-        return '{}-integration-bodhi/{}'.format(self._get_container_name(), self.release)
+        return f"{self._get_container_name()}-integration-bodhi/{self.release}"
 
 
 class IntegrationDumpDownloadJob(BuildJob):
@@ -113,22 +129,22 @@ class IntegrationDumpDownloadJob(BuildJob):
         super().__init__(*args, **kwargs)
 
         self._app_name = app_name
-        self._label = f'integration-dump-download-{self._app_name}'
+        self._label = f"integration-dump-download-{self._app_name}"
         if self._app_name == "bodhi":
             db_name = "bodhi2"
         else:
             db_name = self._app_name
-        self.filepath = os.path.join(
-            "devel", "ci", "integration", "dumps", f"{db_name}.dump")
+        self.filepath = os.path.join("devel", "ci", "integration", "dumps", f"{db_name}.dump")
         url = f"https://infrastructure.fedoraproject.org/infra/db-dumps/{db_name}.dump.xz"
-        self._popen_kwargs['shell'] = True
+        self._popen_kwargs["shell"] = True
         self._command = [
-            (f"curl -f -o {self.filepath}.xz {url} && xz -d --keep --force {self.filepath}.xz")]
+            (f"curl -f -o {self.filepath}.xz {url} && xz -d --keep --force {self.filepath}.xz")
+        ]
 
     def __repr__(self):
         return f"<{self.__class__.__name__} app={self._app_name!r}>"
 
-    async def run(self) -> 'IntegrationDumpDownloadJob':
+    async def run(self) -> "IntegrationDumpDownloadJob":
         """
         Run the download, unless we already have the file and it's recent enough.
 
@@ -152,6 +168,7 @@ class IntegrationDumpDownloadJob(BuildJob):
 
 class IntegrationBuildJob(Job):
     """Build the apps required for integration testing."""
+
     def get_dependencies(self):
         for app_name in INTEGRATION_APPS:
             yield (IntegrationAppBuildJob, dict(app_name=app_name, release="prod"))
@@ -165,8 +182,8 @@ class IntegrationJob(Job):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _label = 'integration'
-    skip_releases = ['pip']
+    _label = "integration"
+    skip_releases = ["pip"]
     _dependencies = [IntegrationBuildJob]
 
     def __init__(self, *args, **kwargs):
@@ -183,20 +200,26 @@ class IntegrationJob(Job):
         """
         super().__init__(*args, **kwargs)
 
-        self._command = [sys.executable, '-m', 'pytest', '-vv', '--no-cov',
-                         'devel/ci/integration/tests/']
-        bodhi_container_image = f'{self._get_container_name()}-integration-bodhi/{self.release}'
+        self._command = [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-vv",
+            "--no-cov",
+            "devel/ci/integration/tests/",
+        ]
+        bodhi_container_image = f"{self._get_container_name()}-integration-bodhi/{self.release}"
         self._popen_kwargs["env"] = os.environ.copy()
         self._popen_kwargs["env"]["BODHI_INTEGRATION_IMAGE"] = bodhi_container_image
         self._popen_kwargs["env"]["CONTAINER_RUNTIME"] = self.options["container_runtime"]
         if self.options["failfast"]:
-            self._command.append('-x')
+            self._command.append("-x")
         if self.options["only_tests"]:
-            self._command.extend(['-k', self.options["only_tests"]])
+            self._command.extend(["-k", self.options["only_tests"]])
         if self.options["archive"]:
             self._command.append(
-                f'--junit-xml={self.options["archive_path"]}/'
-                f'{self.release}-{self._label}/nosetests.xml'
+                f"--junit-xml={self.options['archive_path']}/"
+                f"{self.release}-{self._label}/nosetests.xml"
             )
 
 
@@ -215,14 +238,14 @@ class IntegrationCleanAppJob(Job):
         """
         super().__init__(*args, **kwargs)
         self._app_name = app_name
-        self._label = f'integration-clean-{self._app_name}'
-        self._command = [self.options["container_runtime"], 'rmi', self._container_image]
+        self._label = f"integration-clean-{self._app_name}"
+        self._command = [self.options["container_runtime"], "rmi", self._container_image]
 
     def __repr__(self):
         return f"<{self.__class__.__name__} app={self._app_name!r} release={self.release!r}>"
 
     def _get_container_image(self):
-        name = f'{self._get_container_name()}-integration-{self._app_name}'
+        name = f"{self._get_container_name()}-integration-{self._app_name}"
         if self._app_name == "bodhi":
             name = f"{name}/{self.release}"
         return name
@@ -230,6 +253,7 @@ class IntegrationCleanAppJob(Job):
 
 class IntegrationCleanJob(Job):
     """Clean the app builds required for integration testing."""
+
     def get_dependencies(self):
         for app_name in INTEGRATION_APPS:
             yield (IntegrationCleanAppJob, dict(app_name=app_name, release="prod"))
