@@ -19,10 +19,12 @@
 
 from unittest import mock
 
-from fedora_messaging import api, testing as fml_testing, exceptions as fml_exceptions
-
 from bodhi.messages.schemas import compose as compose_schemas
-from bodhi.server import notifications, Session
+from bodhi.server import Session, notifications
+from fedora_messaging import api
+from fedora_messaging import exceptions as fml_exceptions
+from fedora_messaging import testing as fml_testing
+
 from . import base
 
 
@@ -31,36 +33,39 @@ class TestPublish(base.BasePyTestCase):
 
     def test_publish_force(self):
         """Assert that fedora-messaging messages respect the force flag."""
-        message = compose_schemas.ComposeSyncWaitV1.from_dict({'agent': 'double O seven',
-                                                               'repo': 'f30'})
+        message = compose_schemas.ComposeSyncWaitV1.from_dict(
+            {"agent": "double O seven", "repo": "f30"}
+        )
         with fml_testing.mock_sends(message):
             notifications.publish(message, force=True)
 
     def test_publish(self):
         """Assert publish places the message inside the session info dict."""
-        message = compose_schemas.ComposeSyncWaitV1.from_dict({'agent': 'double O seven',
-                                                               'repo': 'f30'})
+        message = compose_schemas.ComposeSyncWaitV1.from_dict(
+            {"agent": "double O seven", "repo": "f30"}
+        )
 
         notifications.publish(message)
 
         session = Session()
-        assert 'messages' in session.info
-        assert len(session.info['messages']) == 1
-        msg = session.info['messages'][0]
+        assert "messages" in session.info
+        assert len(session.info["messages"]) == 1
+        msg = session.info["messages"][0]
         assert msg == message
 
     def test_publish_sqlalchemy_object(self):
         """Assert publish places the message inside the session info dict."""
-        message = compose_schemas.ComposeSyncWaitV1.from_dict({'agent': 'double O seven',
-                                                               'repo': 'f30'})
+        message = compose_schemas.ComposeSyncWaitV1.from_dict(
+            {"agent": "double O seven", "repo": "f30"}
+        )
         Session.remove()
 
         notifications.publish(message)
 
         session = Session()
-        assert 'messages' in session.info
-        assert len(session.info['messages']) == 1
-        msg = session.info['messages'][0]
+        assert "messages" in session.info
+        assert len(session.info["messages"]) == 1
+        msg = session.info["messages"][0]
         assert msg == message
 
 
@@ -75,22 +80,23 @@ class TestSendMessagesAfterCommit(base.BasePyTestCase):
     def test_clear_messages_on_send(self):
         """Assert the message queue is cleared after the event handler runs."""
         session = Session()
-        session.info['messages'] = [api.Message()]
+        session.info["messages"] = [api.Message()]
 
         with fml_testing.mock_sends(api.Message()):
             notifications.send_messages_after_commit(session)
 
-        assert session.info['messages'] == []
+        assert session.info["messages"] == []
 
-    @mock.patch('bodhi.server.notifications.api.publish')
-    @mock.patch('bodhi.server.notifications._log')
+    @mock.patch("bodhi.server.notifications.api.publish")
+    @mock.patch("bodhi.server.notifications._log")
     def test_error_logged(self, mock_log, mock_pub):
         session = Session()
         message = api.Message()
-        session.info['messages'] = [message]
+        session.info["messages"] = [message]
         mock_pub.side_effect = fml_exceptions.BaseException()
 
         notifications.send_messages_after_commit(session)
 
         mock_log.exception.assert_called_once_with(
-            "An error occurred publishing %r after a database commit", message)
+            "An error occurred publishing %r after a database commit", message
+        )

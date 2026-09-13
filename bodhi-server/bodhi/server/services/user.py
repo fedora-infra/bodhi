@@ -16,42 +16,62 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines API services that pertain to users."""
+
+# ruff: noqa: C408
+
 import math
 
-from cornice import Service
-from cornice.validators import colander_querystring_validator
-from pyramid.exceptions import HTTPNotFound
-from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
-from sqlalchemy.sql import or_
-
-from bodhi.server.models import Group, Update, User
-from bodhi.server.validators import (validate_updates, validate_groups)
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
 import bodhi.server.services.updates
+from bodhi.server.models import Group, Update, User
+from bodhi.server.validators import validate_groups, validate_updates
+from cornice import Service
+from cornice.validators import colander_querystring_validator
+from pyramid.exceptions import HTTPNotFound
+from sqlalchemy import LABEL_STYLE_TABLENAME_PLUS_COL, distinct, func
+from sqlalchemy.sql import or_
+
+user = Service(
+    name="user",
+    path=r"/users/{name:\S+}",
+    description="Bodhi users",
+    # These we leave wide-open since these are only GETs
+    cors_origins=bodhi.server.security.cors_origins_ro,
+)
+
+users = Service(
+    name="users",
+    path="/users/",
+    description="Bodhi users",
+    # These we leave wide-open since these are only GETs
+    cors_origins=bodhi.server.security.cors_origins_ro,
+)
+
+users_rss = Service(
+    name="users_rss",
+    path="/rss/users/",
+    description="Bodhi users RSS feed",
+    cors_origins=bodhi.server.security.cors_origins_ro,
+)
 
 
-user = Service(name='user', path=r'/users/{name:\S+}',
-               description='Bodhi users',
-               # These we leave wide-open since these are only GETs
-               cors_origins=bodhi.server.security.cors_origins_ro)
-
-users = Service(name='users', path='/users/',
-                description='Bodhi users',
-                # These we leave wide-open since these are only GETs
-                cors_origins=bodhi.server.security.cors_origins_ro)
-
-users_rss = Service(name='users_rss', path='/rss/users/', description='Bodhi users RSS feed',
-                    cors_origins=bodhi.server.security.cors_origins_ro)
-
-
-@user.get(accept=("application/json", "text/json"), renderer="json",
-          error_handler=bodhi.server.services.errors.json_handler)
-@user.get(accept=("application/javascript"), renderer="jsonp",
-          error_handler=bodhi.server.services.errors.json_handler)
-@user.get(accept="text/html", renderer="user.html",
-          error_handler=bodhi.server.services.errors.html_handler)
+@user.get(
+    accept=("application/json", "text/json"),
+    renderer="json",
+    error_handler=bodhi.server.services.errors.json_handler,
+)
+@user.get(
+    accept=("application/javascript"),
+    renderer="jsonp",
+    error_handler=bodhi.server.services.errors.json_handler,
+)
+@user.get(
+    accept="text/html",
+    renderer="user.html",
+    error_handler=bodhi.server.services.errors.html_handler,
+)
 def get_user(request):
     """
     Return a user given by username.
@@ -63,11 +83,11 @@ def get_user(request):
             object. "urls" maps to various URLs that describe various other objects related to the
             user.
     """
-    id = request.matchdict.get('name')
+    id = request.matchdict.get("name")
     user = User.get(id)
 
     if not user:
-        request.errors.add('body', 'name', 'No such user')
+        request.errors.add("body", "name", "No such user")
         request.errors.status = HTTPNotFound.code
         return
 
@@ -76,14 +96,14 @@ def get_user(request):
     # Throw some extra information in there
     rurl = request.route_url  # Just shorthand
     urls = {
-        'comments_by': rurl('comments') + '?user=%s' % id,
-        'comments_on': rurl('comments') + '?update_owner=%s' % id,
-        'recent_updates': rurl('updates') + '?user=%s' % id,
-        'recent_overrides': rurl('overrides') + '?user=%s' % id,
-        'comments_by_rss': rurl('comments_rss') + '?user=%s' % id,
-        'comments_on_rss': rurl('comments_rss') + '?update_owner=%s' % id,
-        'recent_updates_rss': rurl('updates_rss') + '?user=%s' % id,
-        'recent_overrides_rss': rurl('overrides_rss') + '?user=%s' % id,
+        "comments_by": rurl("comments") + f"?user={id}",
+        "comments_on": rurl("comments") + f"?update_owner={id}",
+        "recent_updates": rurl("updates") + f"?user={id}",
+        "recent_overrides": rurl("overrides") + f"?user={id}",
+        "comments_by_rss": rurl("comments_rss") + f"?user={id}",
+        "comments_on_rss": rurl("comments_rss") + f"?update_owner={id}",
+        "recent_updates_rss": rurl("updates_rss") + f"?user={id}",
+        "recent_overrides_rss": rurl("overrides_rss") + f"?user={id}",
     }
 
     return dict(user=user, urls=urls)
@@ -96,21 +116,33 @@ validators = (
 )
 
 
-@users.get(schema=bodhi.server.schemas.ListUserSchema(),
-           accept=("application/json", "text/json"), renderer="json",
-           error_handler=bodhi.server.services.errors.json_handler,
-           validators=validators)
-@users.get(schema=bodhi.server.schemas.ListUserSchema(),
-           accept=("application/javascript"), renderer="jsonp",
-           error_handler=bodhi.server.services.errors.jsonp_handler,
-           validators=validators)
-@users.get(schema=bodhi.server.schemas.ListUserSchema(), renderer="rss",
-           accept=('application/atom+xml',),
-           error_handler=bodhi.server.services.errors.html_handler,
-           validators=validators)
-@users_rss.get(schema=bodhi.server.schemas.ListUserSchema(), renderer="rss",
-               error_handler=bodhi.server.services.errors.html_handler,
-               validators=validators)
+@users.get(
+    schema=bodhi.server.schemas.ListUserSchema(),
+    accept=("application/json", "text/json"),
+    renderer="json",
+    error_handler=bodhi.server.services.errors.json_handler,
+    validators=validators,
+)
+@users.get(
+    schema=bodhi.server.schemas.ListUserSchema(),
+    accept=("application/javascript"),
+    renderer="jsonp",
+    error_handler=bodhi.server.services.errors.jsonp_handler,
+    validators=validators,
+)
+@users.get(
+    schema=bodhi.server.schemas.ListUserSchema(),
+    renderer="rss",
+    accept=("application/atom+xml",),
+    error_handler=bodhi.server.services.errors.html_handler,
+    validators=validators,
+)
+@users_rss.get(
+    schema=bodhi.server.schemas.ListUserSchema(),
+    renderer="rss",
+    error_handler=bodhi.server.services.errors.html_handler,
+    validators=validators,
+)
 def query_users(request):
     """
     Search for users by various criteria.
@@ -129,26 +161,24 @@ def query_users(request):
     data = request.validated
     query = db.query(User)
 
-    like = data.get('like')
+    like = data.get("like")
     if like is not None:
-        query = query.filter(or_(*[
-            User.name.like('%%%s%%' % like)
-        ]))
+        query = query.filter(or_(*[User.name.like(f"%{like}%")]))
 
-    search = data.get('search')
+    search = data.get("search")
     if search is not None:
-        query = query.filter(User.name.ilike('%%%s%%' % search))
+        query = query.filter(User.name.ilike(f"%{search}%"))
 
-    name = data.get('name')
+    name = data.get("name")
     if name is not None:
         query = query.filter(User.name.like(name))
 
-    groups = data.get('groups')
+    groups = data.get("groups")
     if groups is not None:
         query = query.join(User.groups)
         query = query.filter(or_(*[Group.id == grp.id for grp in groups]))
 
-    updates = data.get('updates')
+    updates = data.get("updates")
     if updates is not None:
         query = query.join(User.updates)
         args = [Update.alias == update.alias for update in updates]
@@ -156,14 +186,16 @@ def query_users(request):
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
-    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
-        .with_only_columns(func.count(distinct(User.id)))\
+    count_query = (
+        query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL)
+        .statement.with_only_columns(func.count(distinct(User.id)))
         .order_by(None)
+    )
     total = request.db.execute(count_query).scalar()
 
-    page = data.get('page')
-    rows_per_page = data.get('rows_per_page')
-    pages = int(math.ceil(total / float(rows_per_page)))
+    page = data.get("page")
+    rows_per_page = data.get("rows_per_page")
+    pages = math.ceil(total / int(rows_per_page))
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
     return dict(

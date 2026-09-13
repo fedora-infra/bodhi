@@ -38,22 +38,25 @@ def db_container(docker_backend, docker_network):
     """
     image = docker_backend.ImageClass(
         os.environ.get("BODHI_INTEGRATION_POSTGRESQL_IMAGE", "quay.io/bodhi-ci/postgresql"),
-        tag="latest"
+        tag="latest",
     )
     run_opts = [
         "--rm",
-        "-e", "POSTGRES_HOST_AUTH_METHOD=trust",
-        "--name", "database",
-        "--network", docker_network.get_id(),
-        "--network-alias", "db",
-        "--network-alias", "db.ci",
+        "-e",
+        "POSTGRES_HOST_AUTH_METHOD=trust",
+        "--name",
+        "database",
+        "--network",
+        docker_network.get_id(),
+        "--network-alias",
+        "db",
+        "--network-alias",
+        "db.ci",
     ]
     container = image.run_via_binary(additional_opts=run_opts)
     container.start()
     print(container.get_metadata())
     container.wait_for_port(5432, timeout=64)
-    container.execute(
-        ["/usr/bin/pg_isready", "-q", "-t", "64"]
-    )
+    container.execute(["/usr/bin/pg_isready", "-q", "-t", "64"])
     yield container
     stop_and_delete(container)

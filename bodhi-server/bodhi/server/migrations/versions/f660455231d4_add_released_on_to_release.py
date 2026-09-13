@@ -22,23 +22,23 @@ Revision ID: f660455231d4
 Revises: e3988e00b338
 Create Date: 2023-09-06 15:33:36.185933
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'f660455231d4'
-down_revision = 'e3988e00b338'
+revision = "f660455231d4"
+down_revision = "e3988e00b338"
 
 
 def upgrade():
     """Add the released_on column."""
     op.add_column(
-        'releases',
-        sa.Column('released_on', sa.Date, nullable=True),
+        "releases",
+        sa.Column("released_on", sa.Date, nullable=True),
     )
 
 
 def downgrade():
     """Drop the released_on column."""
-    op.drop_column('releases', 'released_on')
+    op.drop_column("releases", "released_on")

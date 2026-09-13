@@ -21,36 +21,30 @@ Each message is defined as a Python class. For details, see `fedora-messaging
 messages.
 """
 
-from .base import BodhiMessage, SCHEMA_URL
+from .base import SCHEMA_URL, BodhiMessage
 
 
 class ComposeCompleteV1(BodhiMessage):
     """Sent when a compose task completes."""
 
     body_schema = {
-        'id': f'{SCHEMA_URL}/v1/bodhi.compose.complete#',
-        '$schema': 'http://json-schema.org/draft-04/schema#',
-        'description': 'Schema for message sent when composes finish',
-        'type': 'object',
-        'properties': {
-            'agent': {
-                'type': 'string',
-                'description': 'The name of the user who started this compose.'
+        "id": f"{SCHEMA_URL}/v1/bodhi.compose.complete#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when composes finish",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The name of the user who started this compose.",
             },
-            'repo': {
-                'type': 'string',
-                'description': 'The name of the repository being composed.'
+            "repo": {"type": "string", "description": "The name of the repository being composed."},
+            "success": {
+                "type": "boolean",
+                "description": "true if the compose was successful, false otherwise.",
             },
-            'success': {
-                'type': 'boolean',
-                'description': 'true if the compose was successful, false otherwise.'
-            },
-            'ctype': {
-                'type': 'string',
-                'description': 'Type of the compose.'
-            }
+            "ctype": {"type": "string", "description": "Type of the compose."},
         },
-        'required': ['agent', 'repo', 'success'],
+        "required": ["agent", "repo", "success"],
     }
 
     topic = "bodhi.compose.complete"
@@ -58,17 +52,17 @@ class ComposeCompleteV1(BodhiMessage):
     @property
     def repo(self) -> str:
         """Return the name of the repository being composed."""
-        return self.body.get('repo')
+        return self.body.get("repo")
 
     @property
     def success(self) -> bool:
         """Return the name of the repository being composed."""
-        return self.body.get('success')
+        return self.body.get("success")
 
     @property
     def ctype(self) -> str:
         """Return the compose type."""
-        return self.body.get('ctype')
+        return self.body.get("ctype")
 
     @property
     def summary(self) -> str:
@@ -103,21 +97,18 @@ class ComposeComposingV1(BodhiMessage):
     """Sent when the compose task composes."""
 
     body_schema = {
-        'id': f'{SCHEMA_URL}/v1/bodhi.compose.composing#',
-        '$schema': 'http://json-schema.org/draft-04/schema#',
-        'description': 'Schema for message sent when composes start',
-        'type': 'object',
-        'properties': {
-            'agent': {
-                'type': 'string',
-                'description': 'The name of the user who started this compose.'
+        "id": f"{SCHEMA_URL}/v1/bodhi.compose.composing#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when composes start",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The name of the user who started this compose.",
             },
-            'repo': {
-                'type': 'string',
-                'description': 'The name of the repository being composed.'
-            },
+            "repo": {"type": "string", "description": "The name of the repository being composed."},
         },
-        'required': ['agent', 'repo'],
+        "required": ["agent", "repo"],
     }
 
     topic = "bodhi.compose.composing"
@@ -125,7 +116,7 @@ class ComposeComposingV1(BodhiMessage):
     @property
     def repo(self) -> str:
         """Return the name of the repository being composed."""
-        return self.body.get('repo')
+        return self.body.get("repo")
 
     @property
     def summary(self) -> str:
@@ -157,17 +148,17 @@ class ComposeStartV1(BodhiMessage):
     """Sent when a compose task starts."""
 
     body_schema = {
-        'id': f'{SCHEMA_URL}/v1/bodhi.compose.start#',
-        '$schema': 'http://json-schema.org/draft-04/schema#',
-        'description': 'Schema for message sent when composes start',
-        'type': 'object',
-        'properties': {
-            'agent': {
-                'type': 'string',
-                'description': 'The name of the user who started this compose.'
+        "id": f"{SCHEMA_URL}/v1/bodhi.compose.start#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when composes start",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The name of the user who started this compose.",
             },
         },
-        'required': ['agent'],
+        "required": ["agent"],
     }
 
     topic = "bodhi.compose.start"
@@ -202,22 +193,20 @@ class ComposeSyncDoneV1(BodhiMessage):
     """Sent when a compose task sync is done."""
 
     body_schema = {
-        'id': f'{SCHEMA_URL}/v1/bodhi.compose.sync.done#',
-        '$schema': 'http://json-schema.org/draft-04/schema#',
-        'description': ('Schema for message sent when the composer is done waiting to sync to '
-                        'mirrors'),
-        'type': 'object',
-        'properties': {
-            'agent': {
-                'type': 'string',
-                'description': 'The name of the user who started this compose.'
+        "id": f"{SCHEMA_URL}/v1/bodhi.compose.sync.done#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": (
+            "Schema for message sent when the composer is done waiting to sync to mirrors"
+        ),
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The name of the user who started this compose.",
             },
-            'repo': {
-                'type': 'string',
-                'description': 'The name of the repository being composed.'
-            },
+            "repo": {"type": "string", "description": "The name of the repository being composed."},
         },
-        'required': ['agent', 'repo'],
+        "required": ["agent", "repo"],
     }
 
     topic = "bodhi.compose.sync.done"
@@ -225,7 +214,7 @@ class ComposeSyncDoneV1(BodhiMessage):
     @property
     def repo(self) -> str:
         """Return the name of the repository being composed."""
-        return self.body.get('repo')
+        return self.body.get("repo")
 
     @property
     def summary(self) -> str:
@@ -257,21 +246,18 @@ class ComposeSyncWaitV1(BodhiMessage):
     """Sent when a compose task sync is waiting."""
 
     body_schema = {
-        'id': f'{SCHEMA_URL}/v1/bodhi.compose.sync.wait#',
-        '$schema': 'http://json-schema.org/draft-04/schema#',
-        'description': 'Schema for message sent when the composer is waiting to sync to mirrors',
-        'type': 'object',
-        'properties': {
-            'agent': {
-                'type': 'string',
-                'description': 'The name of the user who started this compose.'
+        "id": f"{SCHEMA_URL}/v1/bodhi.compose.sync.wait#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when the composer is waiting to sync to mirrors",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The name of the user who started this compose.",
             },
-            'repo': {
-                'type': 'string',
-                'description': 'The name of the repository being composed.'
-            },
+            "repo": {"type": "string", "description": "The name of the repository being composed."},
         },
-        'required': ['agent', 'repo'],
+        "required": ["agent", "repo"],
     }
 
     topic = "bodhi.compose.sync.wait"
@@ -279,7 +265,7 @@ class ComposeSyncWaitV1(BodhiMessage):
     @property
     def repo(self) -> str:
         """Return the name of the repository being composed."""
-        return self.body.get('repo')
+        return self.body.get("repo")
 
     @property
     def summary(self) -> str:
@@ -311,25 +297,25 @@ class RepoDoneV1(BodhiMessage):
     """Sent when a repo is created and ready to be signed or otherwise processed."""
 
     body_schema = {
-        'id': f'{SCHEMA_URL}/v1/bodhi.repo.done#',
-        '$schema': 'http://json-schema.org/draft-04/schema#',
-        'description': 'Schema for message sent when a repo is created and ready to be signed',
-        'type': 'object',
-        'properties': {
-            'agent': {
-                'type': 'string',
-                'description': 'The name of the user who started this compose.'
+        "id": f"{SCHEMA_URL}/v1/bodhi.repo.done#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when a repo is created and ready to be signed",
+        "type": "object",
+        "properties": {
+            "agent": {
+                "type": "string",
+                "description": "The name of the user who started this compose.",
             },
-            'path': {
-                'type': 'string',
-                'description': 'The path of the repository that was composed.'
+            "path": {
+                "type": "string",
+                "description": "The path of the repository that was composed.",
             },
-            'repo': {
-                'type': 'string',
-                'description': 'The name of the repository that was composed.'
+            "repo": {
+                "type": "string",
+                "description": "The name of the repository that was composed.",
             },
         },
-        'required': ['agent', 'path', 'repo'],
+        "required": ["agent", "path", "repo"],
     }
 
     topic = "bodhi.repo.done"
@@ -337,7 +323,7 @@ class RepoDoneV1(BodhiMessage):
     @property
     def repo(self) -> str:
         """Return the name of the repository being composed."""
-        return self.body.get('repo')
+        return self.body.get("repo")
 
     @property
     def summary(self) -> str:

@@ -17,53 +17,62 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines API endpoints related to Release objects."""
 
+# ruff: noqa: C408
+
 import math
 
-from cornice import Service
-from cornice.validators import colander_body_validator, colander_querystring_validator
-from pyramid.exceptions import HTTPNotFound
-from sqlalchemy import func, distinct, LABEL_STYLE_TABLENAME_PLUS_COL
-from sqlalchemy.exc import MultipleResultsFound, NoResultFound
-from sqlalchemy.sql import or_
-
+import bodhi.server.schemas
+import bodhi.server.services.errors
 from bodhi.server import log, security
 from bodhi.server.models import (
-    Update,
-    UpdateStatus,
-    UpdateType,
-    UpdateRequest,
     Build,
     BuildrootOverride,
     Package,
     Release,
     ReleaseState,
     TestGatingStatus,
+    Update,
+    UpdateRequest,
+    UpdateStatus,
+    UpdateType,
 )
 from bodhi.server.validators import (
-    validate_tags,
     validate_enums,
-    validate_updates,
+    validate_eol_date,
     validate_packages,
     validate_release,
-    validate_eol_date,
     validate_release_date,
+    validate_tags,
+    validate_updates,
 )
-import bodhi.server.schemas
-import bodhi.server.services.errors
+from cornice import Service
+from cornice.validators import colander_body_validator, colander_querystring_validator
+from pyramid.exceptions import HTTPNotFound
+from sqlalchemy import LABEL_STYLE_TABLENAME_PLUS_COL, distinct, func
+from sqlalchemy.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy.sql import or_
 
-
-release = Service(name='release', path='/releases/{name}',
-                  description='Fedora Releases',
-                  cors_origins=bodhi.server.security.cors_origins_ro)
-releases = Service(name='releases', path='/releases/',
-                   description='Fedora Releases',
-                   factory=security.AdminACLFactory,
-                   # Note, this 'rw' is not a typo. The @releases service has
-                   # a ``post`` section at the bottom.
-                   cors_origins=bodhi.server.security.cors_origins_rw)
-list_releases = Service(name='list_releases', path='/list_releases/',
-                        description='Fedora Releases',
-                        cors_origins=bodhi.server.security.cors_origins_ro)
+release = Service(
+    name="release",
+    path="/releases/{name}",
+    description="Fedora Releases",
+    cors_origins=bodhi.server.security.cors_origins_ro,
+)
+releases = Service(
+    name="releases",
+    path="/releases/",
+    description="Fedora Releases",
+    factory=security.AdminACLFactory,
+    # Note, this 'rw' is not a typo. The @releases service has
+    # a ``post`` section at the bottom.
+    cors_origins=bodhi.server.security.cors_origins_rw,
+)
+list_releases = Service(
+    name="list_releases",
+    path="/list_releases/",
+    description="Fedora Releases",
+    cors_origins=bodhi.server.security.cors_origins_ro,
+)
 
 
 def _resolve_rawhide_release(db, id: str):
@@ -72,24 +81,25 @@ def _resolve_rawhide_release(db, id: str):
 
     If the passed id is not 'rawhide', assume it's already the real id.
     """
-    if id == 'rawhide':
+    if id == "rawhide":
         try:
-            id = db.query(
-                Release.name
-            ).filter(
-                Release.state == ReleaseState.pending
-            ).filter(
-                Release.id_prefix == 'FEDORA'
-            ).filter(
-                Release.branch == 'rawhide'
-            ).one()[0]
+            id = (
+                db.query(Release.name)
+                .filter(Release.state == ReleaseState.pending)
+                .filter(Release.id_prefix == "FEDORA")
+                .filter(Release.branch == "rawhide")
+                .one()[0]
+            )
         except (NoResultFound, MultipleResultsFound):
             log.exception("None or multiple values found for Fedora Rawhide release.")
     return Release.get(id)
 
 
-@release.get(accept="text/html", renderer="release.html",
-             error_handler=bodhi.server.services.errors.html_handler)
+@release.get(
+    accept="text/html",
+    renderer="release.html",
+    error_handler=bodhi.server.services.errors.html_handler,
+)
 def get_release_html(request):
     """
     Render a release given by id as HTML.
@@ -100,23 +110,27 @@ def get_release_html(request):
         str: An HTML representation of the requested Release.
     """
     db = request.db
-    id = request.matchdict.get('name')
+    id = request.matchdict.get("name")
     release = _resolve_rawhide_release(db, id)
     if not release:
-        request.errors.add('body', 'name', 'No such release')
+        request.errors.add("body", "name", "No such release")
         request.errors.status = HTTPNotFound.code
-    updates = db.query(Update).filter(Update.release == release).order_by(
-        Update.date_submitted.desc())
+    updates = (
+        db.query(Update).filter(Update.release == release).order_by(Update.date_submitted.desc())
+    )
 
-    updates_count = db.query(Update.date_submitted, Update.type).filter(
-        Update.release == release).order_by(Update.date_submitted.asc())
+    updates_count = (
+        db.query(Update.date_submitted, Update.type)
+        .filter(Update.release == release)
+        .order_by(Update.date_submitted.asc())
+    )
 
     date_commits = {}
     dates = set()
 
     for update in updates_count.all():
         d = update.date_submitted
-        yearmonth = str(d.year) + '/' + str(d.month).zfill(2)
+        yearmonth = str(d.year) + "/" + str(d.month).zfill(2)
         dates.add(yearmonth)
         if update.type.description not in date_commits:
             date_commits[update.type.description] = {}
@@ -125,87 +139,76 @@ def get_release_html(request):
         else:
             date_commits[update.type.description][yearmonth] = 0
 
-    base_count_query = db.query(Update)\
-        .filter(Update.release == release)
+    base_count_query = db.query(Update).filter(Update.release == release)
 
-    num_updates_pending = base_count_query\
-        .filter(Update.status == UpdateStatus.pending).count()
-    num_updates_testing = base_count_query\
-        .filter(Update.status == UpdateStatus.testing).count()
-    num_updates_stable = base_count_query\
-        .filter(Update.status == UpdateStatus.stable).count()
-    num_updates_unpushed = base_count_query\
-        .filter(Update.status == UpdateStatus.unpushed).count()
-    num_updates_obsolete = base_count_query\
-        .filter(Update.status == UpdateStatus.obsolete).count()
+    num_updates_pending = base_count_query.filter(Update.status == UpdateStatus.pending).count()
+    num_updates_testing = base_count_query.filter(Update.status == UpdateStatus.testing).count()
+    num_updates_stable = base_count_query.filter(Update.status == UpdateStatus.stable).count()
+    num_updates_unpushed = base_count_query.filter(Update.status == UpdateStatus.unpushed).count()
+    num_updates_obsolete = base_count_query.filter(Update.status == UpdateStatus.obsolete).count()
 
-    num_updates_security = base_count_query\
-        .filter(Update.type == UpdateType.security).count()
-    num_updates_bugfix = base_count_query\
-        .filter(Update.type == UpdateType.bugfix).count()
-    num_updates_enhancement = base_count_query\
-        .filter(Update.type == UpdateType.enhancement).count()
-    num_updates_newpackage = base_count_query\
-        .filter(Update.type == UpdateType.newpackage).count()
+    num_updates_security = base_count_query.filter(Update.type == UpdateType.security).count()
+    num_updates_bugfix = base_count_query.filter(Update.type == UpdateType.bugfix).count()
+    num_updates_enhancement = base_count_query.filter(Update.type == UpdateType.enhancement).count()
+    num_updates_newpackage = base_count_query.filter(Update.type == UpdateType.newpackage).count()
 
-    num_active_overrides = db.query(
-        BuildrootOverride
-    ).filter(
-        BuildrootOverride.expired_date.is_(None)
-    ).join(
-        BuildrootOverride.build
-    ).join(
-        Build.release
-    ).filter(
-        Build.release == release
-    ).count()
+    num_active_overrides = (
+        db.query(BuildrootOverride)
+        .filter(BuildrootOverride.expired_date.is_(None))
+        .join(BuildrootOverride.build)
+        .join(Build.release)
+        .filter(Build.release == release)
+        .count()
+    )
 
-    num_expired_overrides = db.query(
-        BuildrootOverride
-    ).filter(
-        BuildrootOverride.expired_date.isnot(None)
-    ).join(
-        BuildrootOverride.build
-    ).join(
-        Build.release
-    ).filter(
-        Build.release == release
-    ).count()
+    num_expired_overrides = (
+        db.query(BuildrootOverride)
+        .filter(BuildrootOverride.expired_date.isnot(None))
+        .join(BuildrootOverride.build)
+        .join(Build.release)
+        .filter(Build.release == release)
+        .count()
+    )
 
     num_gating_passed = base_count_query.filter(
-        Update.test_gating_status == TestGatingStatus.passed).count()
+        Update.test_gating_status == TestGatingStatus.passed
+    ).count()
     num_gating_ignored = base_count_query.filter(
-        Update.test_gating_status == TestGatingStatus.ignored).count()
+        Update.test_gating_status == TestGatingStatus.ignored
+    ).count()
 
-    return dict(release=release,
-                latest_updates=updates.limit(25).all(),
-                count=updates.count(),
-                date_commits=date_commits,
-                dates=sorted(dates),
-
-                num_updates_pending=num_updates_pending,
-                num_updates_testing=num_updates_testing,
-                num_updates_stable=num_updates_stable,
-                num_updates_unpushed=num_updates_unpushed,
-                num_updates_obsolete=num_updates_obsolete,
-
-                num_updates_security=num_updates_security,
-                num_updates_bugfix=num_updates_bugfix,
-                num_updates_enhancement=num_updates_enhancement,
-                num_updates_newpackage=num_updates_newpackage,
-
-                num_active_overrides=num_active_overrides,
-                num_expired_overrides=num_expired_overrides,
-
-                num_gating_passed=num_gating_passed,
-                num_gating_ignored=num_gating_ignored,
-                )
+    return dict(
+        release=release,
+        latest_updates=updates.limit(25).all(),
+        count=updates.count(),
+        date_commits=date_commits,
+        dates=sorted(dates),
+        num_updates_pending=num_updates_pending,
+        num_updates_testing=num_updates_testing,
+        num_updates_stable=num_updates_stable,
+        num_updates_unpushed=num_updates_unpushed,
+        num_updates_obsolete=num_updates_obsolete,
+        num_updates_security=num_updates_security,
+        num_updates_bugfix=num_updates_bugfix,
+        num_updates_enhancement=num_updates_enhancement,
+        num_updates_newpackage=num_updates_newpackage,
+        num_active_overrides=num_active_overrides,
+        num_expired_overrides=num_expired_overrides,
+        num_gating_passed=num_gating_passed,
+        num_gating_ignored=num_gating_ignored,
+    )
 
 
-@release.get(accept=('application/json', 'text/json'), renderer='json',
-             error_handler=bodhi.server.services.errors.json_handler)
-@release.get(accept=('application/javascript'), renderer='jsonp',
-             error_handler=bodhi.server.services.errors.jsonp_handler)
+@release.get(
+    accept=("application/json", "text/json"),
+    renderer="json",
+    error_handler=bodhi.server.services.errors.json_handler,
+)
+@release.get(
+    accept=("application/javascript"),
+    renderer="jsonp",
+    error_handler=bodhi.server.services.errors.jsonp_handler,
+)
 def get_release_json(request):
     """
     Return JSON for a release given by name.
@@ -216,22 +219,29 @@ def get_release_json(request):
         bodhi.server.models.Release: The matched Release.
     """
     db = request.db
-    id = request.matchdict.get('name')
+    id = request.matchdict.get("name")
     release = _resolve_rawhide_release(db, id)
     if not release:
-        request.errors.add('body', 'name', 'No such release')
+        request.errors.add("body", "name", "No such release")
         request.errors.status = HTTPNotFound.code
     return release
 
 
-releases_get_validators = (colander_querystring_validator, validate_release, validate_updates,
-                           validate_packages)
+releases_get_validators = (
+    colander_querystring_validator,
+    validate_release,
+    validate_updates,
+    validate_packages,
+)
 
 
-@releases.get(accept="text/html", schema=bodhi.server.schemas.ListReleaseSchema(),
-              renderer='releases.html',
-              error_handler=bodhi.server.services.errors.html_handler,
-              validators=releases_get_validators)
+@releases.get(
+    accept="text/html",
+    schema=bodhi.server.schemas.ListReleaseSchema(),
+    renderer="releases.html",
+    error_handler=bodhi.server.services.errors.html_handler,
+    validators=releases_get_validators,
+)
 def query_releases_html(request):
     """
     Return all releases, collated by state, rendered as HTML.
@@ -242,6 +252,7 @@ def query_releases_html(request):
         dict: A dictionary with a single key, releases, mapping another dictionary that maps release
             states to a list of Release objects that are in that state.
     """
+
     def _get_status_counts(basequery, status):
         """
         Return a dictionary with the counts of objects found in the basequery.
@@ -263,7 +274,7 @@ def query_releases_html(request):
         """
         basequery = basequery.filter(Update.status == status)
         return {
-            '{}_updates_total'.format(status.description): basequery.count(),
+            f"{status.description}_updates_total": basequery.count(),
         }
 
     def get_update_counts(releaseid, stable_only: bool = False):
@@ -297,27 +308,33 @@ def query_releases_html(request):
 
     release_updates_counts = {}
     releases = Release.all_releases()
-    active = data.get('active')
+    active = data.get("active")
     if active is False:
-        for release in (releases['archived'] + releases['disabled']):
-            release_updates_counts[release["name"]] = get_update_counts(release["name"],
-                                                                        stable_only=True)
+        for release in releases["archived"] + releases["disabled"]:
+            release_updates_counts[release["name"]] = get_update_counts(
+                release["name"], stable_only=True
+            )
     else:
-        for release in (releases['current'] + releases['pending'] + releases['frozen']):
+        for release in releases["current"] + releases["pending"] + releases["frozen"]:
             release_updates_counts[release["name"]] = get_update_counts(release["name"])
 
-    return {"release_updates_counts": release_updates_counts,
-            "active": active}
+    return {"release_updates_counts": release_updates_counts, "active": active}
 
 
-@list_releases.get(accept=('application/json', 'text/json'),
-                   schema=bodhi.server.schemas.ListReleaseSchema(), renderer='json',
-                   error_handler=bodhi.server.services.errors.json_handler,
-                   validators=releases_get_validators)
-@releases.get(accept=('application/json', 'text/json'),
-              schema=bodhi.server.schemas.ListReleaseSchema(), renderer='json',
-              error_handler=bodhi.server.services.errors.json_handler,
-              validators=releases_get_validators)
+@list_releases.get(
+    accept=("application/json", "text/json"),
+    schema=bodhi.server.schemas.ListReleaseSchema(),
+    renderer="json",
+    error_handler=bodhi.server.services.errors.json_handler,
+    validators=releases_get_validators,
+)
+@releases.get(
+    accept=("application/json", "text/json"),
+    schema=bodhi.server.schemas.ListReleaseSchema(),
+    renderer="json",
+    error_handler=bodhi.server.services.errors.json_handler,
+    validators=releases_get_validators,
+)
 def query_releases_json(request):
     """
     Search releases by given criteria, returning the results as JSON.
@@ -336,30 +353,30 @@ def query_releases_json(request):
     data = request.validated
     query = db.query(Release)
 
-    ids = data.get('ids')
+    ids = data.get("ids")
     if ids is not None:
         query = query.filter(or_(*[Release.id == _id for _id in ids]))
 
-    name = data.get('name')
+    name = data.get("name")
     if name is not None:
         query = query.filter(Release.name.like(name))
 
-    updates = data.get('updates')
+    updates = data.get("updates")
     if updates is not None:
         query = query.join(Release.builds).join(Build.update)
         args = [Update.alias == update.alias for update in updates]
         query = query.filter(or_(*args))
 
-    packages = data.get('packages')
+    packages = data.get("packages")
     if packages is not None:
         query = query.join(Release.builds).join(Build.package)
         query = query.filter(or_(*[Package.id == p.id for p in packages]))
 
-    exclude_archived = data.get('exclude_archived')
+    exclude_archived = data.get("exclude_archived")
     if exclude_archived:
         query = query.filter(Release.state != ReleaseState.archived)
 
-    state = data.get('state')
+    state = data.get("state")
     if state is not None:
         query = query.filter(or_(*[Release.state == ReleaseState.from_string(s) for s in state]))
 
@@ -367,14 +384,16 @@ def query_releases_json(request):
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
-    count_query = query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL).statement\
-        .with_only_columns(func.count(distinct(Release.id)))\
+    count_query = (
+        query.set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL)
+        .statement.with_only_columns(func.count(distinct(Release.id)))
         .order_by(None)
+    )
     total = db.execute(count_query).scalar()
 
-    page = data.get('page')
-    rows_per_page = data.get('rows_per_page')
-    pages = int(math.ceil(total / float(rows_per_page)))
+    page = data.get("page")
+    rows_per_page = data.get("rows_per_page")
+    pages = math.ceil(total / int(rows_per_page))
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
     return dict(
@@ -386,14 +405,19 @@ def query_releases_json(request):
     )
 
 
-@releases.post(schema=bodhi.server.schemas.SaveReleaseSchema(),
-               permission='admin', renderer='json',
-               error_handler=bodhi.server.services.errors.json_handler,
-               validators=(colander_body_validator,
-                           validate_tags,
-                           validate_enums,
-                           validate_eol_date,
-                           validate_release_date))
+@releases.post(
+    schema=bodhi.server.schemas.SaveReleaseSchema(),
+    permission="admin",
+    renderer="json",
+    error_handler=bodhi.server.services.errors.json_handler,
+    validators=(
+        colander_body_validator,
+        validate_tags,
+        validate_enums,
+        validate_eol_date,
+        validate_release_date,
+    ),
+)
 def save_release(request):
     """
     Save a release.
@@ -413,57 +437,61 @@ def save_release(request):
 
     # This has already been validated at this point, but we need to ditch
     # it since the models don't care about a csrf argument.
-    data.pop('csrf_token', None)
+    data.pop("csrf_token", None)
 
     try:
         if edited is None:
-            log.info("Creating a new release: %s" % data['name'])
+            log.info(f"Creating a new release: {data['name']}")
             r = Release(**data)
         else:
-            log.info("Editing release: %s" % edited)
+            log.info(f"Editing release: {edited}")
             r = request.db.query(Release).filter(Release.name == edited).one()
             for k, v in data.items():
                 # We have to change updates status to obsolete
                 # if state of release changes to archived
-                if k == "state" and v == ReleaseState.archived and \
-                        r.state != ReleaseState.archived:
-                    updates = request.db.query(Update).filter(Update.release_id == r.id).filter(
-                        Update.status.notin_(
-                            [UpdateStatus.obsolete, UpdateStatus.stable, UpdateStatus.unpushed]
+                if k == "state" and v == ReleaseState.archived and r.state != ReleaseState.archived:
+                    updates = (
+                        request.db.query(Update)
+                        .filter(Update.release_id == r.id)
+                        .filter(
+                            Update.status.notin_(
+                                [UpdateStatus.obsolete, UpdateStatus.stable, UpdateStatus.unpushed]
+                            )
                         )
-                    ).all()
+                        .all()
+                    )
                     for u in updates:
                         u.status = UpdateStatus.obsolete
                         u.request = None
                         u.comment(
                             request.db,
-                            'This update is marked obsolete because '
-                            'the {} release is archived.'.format(u.release.name),
-                            author='bodhi',
+                            "This update is marked obsolete because "
+                            f"the {u.release.name} release is archived.",
+                            author="bodhi",
                         )
                 # Inform user that update requested for stable
                 # will be pushed to stable after the freeze is over.
-                if k == "state" and v == ReleaseState.frozen and \
-                        r.state != ReleaseState.frozen:
-                    updates = request.db.query(Update).filter(Update.release_id == r.id).filter(
-                        Update.request == UpdateRequest.stable
-                    ).filter(
-                        Update.locked.is_(False)
-                    ).all()
+                if k == "state" and v == ReleaseState.frozen and r.state != ReleaseState.frozen:
+                    updates = (
+                        request.db.query(Update)
+                        .filter(Update.release_id == r.id)
+                        .filter(Update.request == UpdateRequest.stable)
+                        .filter(Update.locked.is_(False))
+                        .all()
+                    )
                     for u in updates:
                         u.comment(
                             request.db,
-                            'There is an ongoing freeze; this will be pushed to'
-                            ' stable after the freeze is over, or possibly'
-                            ' sooner if a bug it fixes is an accepted blocker'
-                            ' or freeze exception.',
-                            author='bodhi',
+                            "There is an ongoing freeze; this will be pushed to"
+                            " stable after the freeze is over, or possibly"
+                            " sooner if a bug it fixes is an accepted blocker"
+                            " or freeze exception.",
+                            author="bodhi",
                         )
                 setattr(r, k, v)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         log.exception(e)
-        request.errors.add('body', 'release',
-                           'Unable to create/edit release: %s' % e)
+        request.errors.add("body", "release", f"Unable to create/edit release: {e}")
         return
 
     request.db.add(r)

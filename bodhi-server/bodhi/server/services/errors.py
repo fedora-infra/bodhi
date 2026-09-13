@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define utilities for handling errors in the service modules."""
 
+
 import logging
 import re
 
@@ -24,22 +25,23 @@ import mako.exceptions
 import mako.lookup
 import pyramid.httpexceptions
 import pyramid.response
-
 from bodhi.server.config import config
 from bodhi.server.util import get_absolute_path
 
 try:  # pragma: no cover
     from cornice.util import json_error
+
     json_handler = json_error
     jsonp_handler = json_error
 except ImportError:  # pragma: no cover
     from cornice.renderer import CorniceRenderer
+
     renderer = CorniceRenderer()
     json_handler = renderer.render_errors
     jsonp_handler = renderer.render_errors
 
 
-log = logging.getLogger('bodhi')
+log = logging.getLogger("bodhi")
 
 
 def camel2space(camel):
@@ -51,8 +53,8 @@ def camel2space(camel):
     Returns:
         str: A space separated version of the given camel cased text.
     """
-    regexp = r'([A-Z][a-z0-9]+|[a-z0-9]+|[A-Z0-9]+)'
-    return ' '.join(re.findall(regexp, camel))
+    regexp = r"([A-Z][a-z0-9]+|[a-z0-9]+|[A-Z0-9]+)"
+    return " ".join(re.findall(regexp, camel))
 
 
 def status2summary(status):
@@ -84,15 +86,15 @@ class html_handler(pyramid.httpexceptions.HTTPError):
         Args:
             request (pyramid.request.Request): The current Request.
         """
-        location = config.get('mako.directories')
+        location = config.get("mako.directories")
         directory = get_absolute_path(location)
 
         lookup = mako.lookup.TemplateLookup(
             directories=[directory],
-            output_encoding='utf-8',
-            input_encoding='utf-8',
+            output_encoding="utf-8",
+            input_encoding="utf-8",
         )
-        template = lookup.get_template('errors.html')
+        template = lookup.get_template("errors.html")
         errors = request.errors
 
         try:
@@ -113,4 +115,4 @@ class html_handler(pyramid.httpexceptions.HTTPError):
         pyramid.response.Response.__init__(self, body)
 
         self.status = errors.status
-        self.content_type = 'text/html'
+        self.content_type = "text/html"

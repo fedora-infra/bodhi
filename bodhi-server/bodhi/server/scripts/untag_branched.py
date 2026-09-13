@@ -24,15 +24,15 @@ those stable updates with the testing tags for 1 day before untagging.
 https://github.com/fedora-infra/bodhi/issues/576
 """
 
-from datetime import datetime, timedelta, timezone
+import logging
 import os
 import sys
-import logging
+from datetime import datetime, timedelta, timezone
 
+from bodhi.server import Session, buildsys, initialize_db
+from bodhi.server.logging import setup as setup_logging
 from pyramid.paster import get_appsettings
 
-from bodhi.server import buildsys, Session, initialize_db
-from bodhi.server.logging import setup as setup_logging
 from ..models import Release, ReleaseState, Update, UpdateStatus
 
 
@@ -44,8 +44,7 @@ def usage(argv):
         argv (list): The arguments passed to the script.
     """
     cmd = os.path.basename(argv[0])
-    print('usage: %s <config_uri>\n'
-          '(example: "%s development.ini")' % (cmd, cmd))
+    print(f'usage: {cmd} <config_uri>\n(example: "{cmd} development.ini")')
     sys.exit(1)
 
 
@@ -72,11 +71,11 @@ def main(argv=sys.argv):
     now = datetime.now(timezone.utc)
 
     try:
-        for release in db.query(Release).filter_by(
-                state=ReleaseState.pending).all():
+        for release in db.query(Release).filter_by(state=ReleaseState.pending).all():
             log.info(release.name)
-            for update in db.query(Update).filter_by(
-                    release=release, status=UpdateStatus.stable).all():
+            for update in (
+                db.query(Update).filter_by(release=release, status=UpdateStatus.stable).all()
+            ):
                 if now - update.date_stable > one_day:
                     for build in update.builds:
                         tags = build.get_tags()
@@ -85,19 +84,19 @@ def main(argv=sys.argv):
                         pending_signing_tag = release.pending_signing_tag
                         pending_testing_tag = release.pending_testing_tag
                         if stable_tag not in tags:
-                            log.error('%s not tagged as stable %s' % (build.nvr, tags))
+                            log.error(f"{build.nvr} not tagged as stable {tags}")
                             continue
                         if testing_tag in tags:
-                            log.info('Removing %s from %s' % (testing_tag, build.nvr))
+                            log.info(f"Removing {testing_tag} from {build.nvr}")
                             koji.untagBuild(testing_tag, build.nvr)
                         if pending_signing_tag in tags:
-                            log.info('Removing %s from %s' % (pending_signing_tag, build.nvr))
+                            log.info(f"Removing {pending_signing_tag} from {build.nvr}")
                             koji.untagBuild(pending_signing_tag, build.nvr)
                         if pending_testing_tag in tags:
-                            log.info('Removing %s from %s' % (pending_testing_tag, build.nvr))
+                            log.info(f"Removing {pending_testing_tag} from {build.nvr}")
                             koji.untagBuild(pending_testing_tag, build.nvr)
         db.commit()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         log.error(e)
         db.rollback()
         Session.remove()

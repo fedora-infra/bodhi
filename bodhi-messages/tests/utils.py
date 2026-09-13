@@ -17,12 +17,11 @@
 
 import typing
 
-
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.messages.schemas.base import BodhiMessage  # noqa: F401
+    from bodhi.messages.schemas.base import BodhiMessage
 
 
-def check_message(msg: 'BodhiMessage', expected: typing.Mapping[str, typing.Any]):
+def check_message(msg: "BodhiMessage", expected: typing.Mapping[str, typing.Any]):
     """
     Assert that the given message matches the information described in the expected mapping.
 
@@ -39,8 +38,10 @@ def check_message(msg: 'BodhiMessage', expected: typing.Mapping[str, typing.Any]
         if prop == "__str__":
             assert str(msg) == expected_value, (
                 f"string representation does not match: msg has {str(msg)!r}, "
-                f"expected is {expected_value!r}")
+                f"expected is {expected_value!r}"
+            )
         else:
             assert getattr(msg, prop) == expected_value, (
                 f"key {prop} does not match: msg has {getattr(msg, prop)!r}, "
-                f"expected is {expected_value!r}")
+                f"expected is {expected_value!r}"
+            )

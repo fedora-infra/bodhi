@@ -17,23 +17,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define tools for interacting with the build system and a fake build system for development."""
 
-from functools import wraps
 import hashlib
-from threading import Lock
 import logging
 import os
 import time
 import typing
+from collections.abc import Mapping
+from functools import wraps
+from threading import Lock
+from typing import Any, ClassVar
 
 import backoff
 import koji
 
-
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.server.config import BodhiConfig  # noqa: F401
+    from bodhi.server.config import BodhiConfig
 
 
-log = logging.getLogger('bodhi')
+log = logging.getLogger("bodhi")
 _buildsystem = None
 _buildsystem_login_lock = Lock()
 # URL of the koji hub
@@ -51,6 +52,7 @@ def multicall_enabled(func: typing.Callable[..., typing.Any]) -> typing.Callable
     Returns:
         A wrapped version of func.
     """
+
     @wraps(func)
     def wrapper(self, *args, **kwargs) -> typing.Any:
         """
@@ -67,38 +69,43 @@ def multicall_enabled(func: typing.Callable[..., typing.Any]) -> typing.Callable
         result = func(self, *args, **kwargs)
         self.multicall_result.append([result])
         self._multicall = True
+
     return wrapper
 
 
 class DevBuildsys:
     """A dummy buildsystem instance used during development and testing."""
 
-    _side_tag_data = [{'id': 1234, 'name': 'f17-build-side-1234'},
-                      {'id': 7777, 'name': 'f17-build-side-7777'}]
+    _side_tag_data: ClassVar[tuple[dict[str, object]]] = (
+        {"id": 1234, "name": "f17-build-side-1234"},
+        {"id": 7777, "name": "f17-build-side-7777"},
+    )
 
-    __untag__ = []  # type: typing.List[typing.Tuple[str, str]]
-    __moved__ = []  # type: typing.List[typing.Tuple[str, str, str]]
-    __added__ = []  # type: typing.List[typing.Tuple[str, str]]
-    __tagged__ = {}  # type: typing.Mapping[str, typing.List[str]]
-    __rpms__ = []  # type: typing.List[typing.Dict[str, object]]
-    __tags__ = []  # type: typing.List[typing.Tuple[str, typing.Mapping[str, typing.Any]]]
-    __side_tags__ = _side_tag_data  # type: typing.List[typing.Dict[str, object]]
-    __removed_side_tags__ = []  # type: typing.List[typing.Dict[str, object]]
+    __untag__: ClassVar[list[tuple[str, str]]] = []
+    __moved__: ClassVar[list[tuple[str, str, str]]] = []
+    __added__: ClassVar[list[tuple[str, str]]] = []
+    __tagged__: ClassVar[Mapping[str, list[str]]] = {}
+    __rpms__: ClassVar[list[dict[str, object]]] = []
+    __tags__: ClassVar[list[tuple[str, Mapping[str, Any]]]] = []
+    __side_tags__: ClassVar[list[dict[str, object]]] = _side_tag_data
+    __removed_side_tags__: ClassVar[list[dict[str, object]]] = []
 
-    _build_data = {'build_id': 16058,
-                   'completion_time': '2007-08-24 23:26:10.890319',
-                   'completion_ts': 1187997970,
-                   'creation_event_id': 151517,
-                   'creation_time': '2007-08-24 19:38:29.422344',
-                   'extra': None,
-                   'epoch': None,
-                   'owner_id': 388,
-                   'owner_name': 'lmacken',
-                   'package_id': 8,
-                   'source': 'git+https://src.fedoraproject.org/rpms/foo.git#abc',
-                   'state': 1,
-                   'tag_id': 19,
-                   'task_id': 127621}
+    _build_data: ClassVar[dict[str, object]] = {
+        "build_id": 16058,
+        "completion_time": "2007-08-24 23:26:10.890319",
+        "completion_ts": 1187997970,
+        "creation_event_id": 151517,
+        "creation_time": "2007-08-24 19:38:29.422344",
+        "extra": None,
+        "epoch": None,
+        "owner_id": 388,
+        "owner_name": "lmacken",
+        "package_id": 8,
+        "source": "git+https://src.fedoraproject.org/rpms/foo.git#abc",
+        "state": 1,
+        "tag_id": 19,
+        "task_id": 127621,
+    }
 
     def __init__(self):
         """Initialize the DevBuildsys."""
@@ -107,9 +114,11 @@ class DevBuildsys:
 
     @property
     def _side_tag_ids_names(self):
-        return {id_or_name
-                for taginfo in self._side_tag_data
-                for id_or_name in (taginfo['id'], taginfo['name'])}
+        return {
+            id_or_name
+            for taginfo in self._side_tag_data
+            for id_or_name in (taginfo["id"], taginfo["name"])
+        }
 
     @property
     def multicall(self) -> bool:
@@ -142,6 +151,7 @@ class DevBuildsys:
         cls.__rpms__ = []
         cls.__tags__ = []
         cls.__side_tags__ = list(cls._side_tag_data)
+        cls.__removed_side_tags__ = []
 
     def multiCall(self):
         """Emulate Koji's multiCall."""
@@ -152,29 +162,29 @@ class DevBuildsys:
     def moveBuild(self, from_tag: str, to_tag: str, build: str, *args, **kw):
         """Emulate Koji's moveBuild."""
         if to_tag is None:
-            raise RuntimeError('Attempt to tag {} with None.'.format(build))
-        log.debug("moveBuild(%s, %s, %s)" % (from_tag, to_tag, build))
+            raise RuntimeError(f"Attempt to tag {build} with None.")
+        log.debug(f"moveBuild({from_tag}, {to_tag}, {build})")
         DevBuildsys.__moved__.append((from_tag, to_tag, build))
 
     @multicall_enabled
     def tagBuild(self, tag: str, build: str, *args, **kw):
         """Emulate Koji's tagBuild."""
         if tag is None:
-            raise RuntimeError('Attempt to tag {} with None.'.format(build))
-        log.debug("tagBuild(%s, %s)" % (tag, build))
+            raise RuntimeError(f"Attempt to tag {build} with None.")
+        log.debug(f"tagBuild({tag}, {build})")
         DevBuildsys.__added__.append((tag, build))
 
     @multicall_enabled
     def untagBuild(self, tag: str, build: str, *args, **kw):
         """Emulate Koji's untagBuild."""
         if tag is None:
-            raise RuntimeError('Attempt to untag {} with None.'.format(build))
-        log.debug("untagBuild(%s, %s)" % (tag, build))
+            raise RuntimeError(f"Attempt to untag {build} with None.")
+        log.debug(f"untagBuild({tag}, {build})")
         DevBuildsys.__untag__.append((tag, build))
 
     def ssl_login(self, *args, **kw):
         """Emulate Koji's ssl_login."""
-        log.debug("ssl_login(%s, %s)" % (args, kw))
+        log.debug(f"ssl_login({args}, {kw})")
 
     def taskFinished(self, task: int) -> bool:
         """Emulate Koji's taskFinished."""
@@ -182,37 +192,41 @@ class DevBuildsys:
 
     def getTaskInfo(self, task: int) -> typing.Mapping[str, int]:
         """Emulate Koji's getTaskInfo."""
-        return {'state': koji.TASK_STATES['CLOSED']}
+        return {"state": koji.TASK_STATES["CLOSED"]}
 
-    def getTaskRequest(self, task_id: int) -> typing.List[typing.Union[str, typing.Mapping]]:
+    def getTaskRequest(self, task_id: int) -> list[str | typing.Mapping]:
         """Emulate Koji's getTaskRequest."""
         return [
-            'git://pkgs.fedoraproject.org/rpms/bodhi?#2e994ca8b3296e62e8b0aadee1c5c0649559625a',
-            'f17-candidate', {}]
+            "git://pkgs.fedoraproject.org/rpms/bodhi?#2e994ca8b3296e62e8b0aadee1c5c0649559625a",
+            "f17-candidate",
+            {},
+        ]
 
-    def listPackages(self) -> typing.List[typing.Mapping[str, typing.Union[int, str]]]:
+    def listPackages(self) -> list[typing.Mapping[str, int | str]]:
         """Emulate Koji's listPackages."""
         return [
-            {'package_id': 2625, 'package_name': 'nethack'},
+            {"package_id": 2625, "package_name": "nethack"},
         ]
 
     @multicall_enabled
-    def getBuild(self, build='TurboGears-1.0.2.2-2.fc17', other=False, testing=False):
+    def getBuild(self, build="TurboGears-1.0.2.2-2.fc17", other=False, testing=False):
         """Emulate Koji's getBuild."""
         # needed to test against non-existent builds
-        if 'youdontknowme' in build:
+        if "youdontknowme" in build:
             return None
 
-        if 'gnome-backgrounds-3.0-1.fc17' in build:
-            return {'name': 'gnome-backgrounds',
-                    'nvr': 'gnome-backgrounds-3.0-1.fc17',
-                    'package_name': 'gnome-backgrounds',
-                    'release': '1.fc17',
-                    'tag_name': 'f17-build-side-7777',
-                    'version': '3.0',
-                    'id': 16061,
-                    'task_id': 15051,
-                    'source': 'git+https://src.fedoraproject.org/rpms/gnome-backgrounds.git#abc'}
+        if "gnome-backgrounds-3.0-1.fc17" in build:
+            return {
+                "name": "gnome-backgrounds",
+                "nvr": "gnome-backgrounds-3.0-1.fc17",
+                "package_name": "gnome-backgrounds",
+                "release": "1.fc17",
+                "tag_name": "f17-build-side-7777",
+                "version": "3.0",
+                "id": 16061,
+                "task_id": 15051,
+                "source": "git+https://src.fedoraproject.org/rpms/gnome-backgrounds.git#abc",
+            }
 
         theid = 16058
         if other and not testing:
@@ -221,89 +235,88 @@ class DevBuildsys:
             theid = 16060
 
         data = self._build_data.copy()
-        data['id'] = theid
-        if 'noowner' in build:
-            del data['owner_name']
+        data["id"] = theid
+        if "noowner" in build:
+            del data["owner_name"]
 
         name, version, release = build.rsplit("-", 2)
         release_tokens = release.split(".")
-        data['source'] = f'git+https://src.fedoraproject.org/rpms/{name}.git#abc'
+        data["source"] = f"git+https://src.fedoraproject.org/rpms/{name}.git#abc"
 
         for token in release_tokens:
             # Starting to hardcode some dev buildsys bits for docker.
             # See https://github.com/fedora-infra/bodhi/pull/1543
-            if token.endswith("container") or token.endswith("flatpak"):
-                fedora_release = "f" + (token
-                                        .replace("fc", "")
-                                        .replace("flatpak", "")
-                                        .replace("container", ""))
-                tag = "%s-updates-testing" % fedora_release
+            if token.endswith(("container", "flatpak")):
+                fedora_release = "f" + (
+                    token.replace("fc", "").replace("flatpak", "").replace("container", "")
+                )
+                tag = f"{fedora_release}-updates-testing"
 
                 format_data = {
-                    'registry': 'candidate-registry.fedoraproject.org',
+                    "registry": "candidate-registry.fedoraproject.org",
                     # We make up a fake digest for the image manifest using a
                     # digest of the version-release string
-                    'hash': hashlib.sha256(f"{version}-{release}".encode("UTF-8")).hexdigest(),
-                    'version': version,
-                    'release': release
+                    "hash": hashlib.sha256(f"{version}-{release}".encode()).hexdigest(),
+                    "version": version,
+                    "release": release,
                 }
 
                 if token.endswith("flatpak"):
-                    format_data['repository'] = name
-                    data['source'] = f'git+https://src.fedoraproject.org/flatpaks/{name}.git#abc'
+                    format_data["repository"] = name
+                    data["source"] = f"git+https://src.fedoraproject.org/flatpaks/{name}.git#abc"
                 else:
-                    tag = "f%s-updates-testing" % token.replace("fc", "").replace("container", "")
-                    format_data['repository'] = "{}/{}".format(fedora_release, name)
-                    data['source'] = f'https://src.fedoraproject.org/container/{name}.git#abc'
+                    tag = f"f{token.replace('fc', '').replace('container', '')}-updates-testing"
+                    format_data["repository"] = f"{fedora_release}/{name}"
+                    data["source"] = f"https://src.fedoraproject.org/container/{name}.git#abc"
 
-                data['extra'] = {
-                    'typeinfo': {
-                        'image': {
-                            'index': {
-                                'pull': ['{registry}/{repository}@sha256:{hash}'
-                                         .format(**format_data),
-                                         '{registry}/{repository}:{version}-{release}'
-                                         .format(**format_data)],
+                data["extra"] = {
+                    "typeinfo": {
+                        "image": {
+                            "index": {
+                                "pull": [
+                                    "{registry}/{repository}@sha256:{hash}".format(**format_data),
+                                    "{registry}/{repository}:{version}-{release}".format(
+                                        **format_data
+                                    ),
+                                ],
                             }
                         },
                     },
                 }
 
                 if token.endswith("flatpak"):
-                    data['extra']['typeinfo']['image']['flatpak'] = True
+                    data["extra"]["typeinfo"]["image"]["flatpak"] = True
 
                 break
 
             # Hardcoding for modules in the dev buildsys
             if token.startswith("2017"):
                 tag = "f27M-updates-testing"
-                data['extra'] = {
-                    'typeinfo': {'module': {'more': 'mbs stuff goes here'}}
-                }
-                data['source'] = f'https://src.fedoraproject.org/modules/{name}.git?#abc'
+                data["extra"] = {"typeinfo": {"module": {"more": "mbs stuff goes here"}}}
+                data["source"] = f"https://src.fedoraproject.org/modules/{name}.git?#abc"
                 break
 
             if token.startswith("fc"):
                 if testing:
-                    tag = "f%s-updates-testing" % token.replace("fc", "")
+                    tag = f"f{token.replace('fc', '')}-updates-testing"
                     break
                 else:
-                    tag = "f%s-updates-candidate" % token.replace("fc", "")
+                    tag = f"f{token.replace('fc', '')}-updates-candidate"
                     break
 
             if token.startswith("el"):
-                tag = "dist-%sE-epel-testing-candidate" % token.replace("el", "")
+                tag = f"dist-{token.replace('el', '')}E-epel-testing-candidate"
                 break
 
-            if name == 'fedora-release':
+            if name == "fedora-release":
                 if testing:
-                    tag = f'f{version}-updates-testing'
+                    tag = f"f{version}-updates-testing"
                     break
                 else:
-                    tag = f'f{version}-updates-candidate'
+                    tag = f"f{version}-updates-candidate"
                     break
         else:
-            raise ValueError("Couldn't determine dist for build '%s'" % build)
+            raise ValueError(f"Couldn't determine dist for build '{build}'")
 
         if other:
             if testing:
@@ -311,136 +324,202 @@ class DevBuildsys:
             else:
                 release_tokens[0] = str(int(release_tokens[0]) + 1)
             release = ".".join(release_tokens)
-            build = "%s-%s-%s" % (name, version, release)
+            build = f"{name}-{version}-{release}"
 
-        data.update({'name': name,
-                     'nvr': build,
-                     'package_name': name,
-                     'release': release,
-                     'tag_name': tag,
-                     'version': version})
+        data.update(
+            {
+                "name": name,
+                "nvr": build,
+                "package_name": name,
+                "release": release,
+                "tag_name": tag,
+                "version": version,
+            }
+        )
 
-        if 'testmissingnvr' in build:
-            del data['nvr']
+        if "testmissingnvr" in build:
+            del data["nvr"]
 
         return data
 
-    def listBuildRPMs(self, id: int, *args, **kw) -> typing.List[typing.Dict[str, object]]:
+    def listBuildRPMs(self, id: int, *args, **kw) -> list[dict[str, object]]:
         """Emulate Koji's listBuildRPMs."""
-        rpms = [{'arch': 'src',
-                 'build_id': 6475,
-                 'buildroot_id': 1883,
-                 'buildtime': 1178868422,
-                 'epoch': None,
-                 'id': 62330,
-                 'name': 'TurboGears',
-                 'nvr': 'TurboGears-1.0.2.2-2.fc17',
-                 'payloadhash': '6787febe92434a9be2a8f309d0e2014e',
-                 'release': '2.fc17',
-                 'size': 761742,
-                 'version': '1.0.2.2'},
-                {'arch': 'noarch',
-                 'build_id': 6475,
-                 'buildroot_id': 1883,
-                 'buildtime': 1178868537,
-                 'epoch': None,
-                 'id': 62331,
-                 'name': 'TurboGears',
-                 'nvr': 'TurboGears-1.0.2.2-2.fc17',
-                 'payloadhash': 'f3ec9bdce453816f94283a15a47cb952',
-                 'release': '2.fc17',
-                 'size': 1993385,
-                 'version': '1.0.2.2'},
-                ]
+        rpms = [
+            {
+                "arch": "src",
+                "build_id": 6475,
+                "buildroot_id": 1883,
+                "buildtime": 1178868422,
+                "epoch": None,
+                "id": 62330,
+                "name": "TurboGears",
+                "nvr": "TurboGears-1.0.2.2-2.fc17",
+                "payloadhash": "6787febe92434a9be2a8f309d0e2014e",
+                "release": "2.fc17",
+                "size": 761742,
+                "version": "1.0.2.2",
+            },
+            {
+                "arch": "noarch",
+                "build_id": 6475,
+                "buildroot_id": 1883,
+                "buildtime": 1178868537,
+                "epoch": None,
+                "id": 62331,
+                "name": "TurboGears",
+                "nvr": "TurboGears-1.0.2.2-2.fc17",
+                "payloadhash": "f3ec9bdce453816f94283a15a47cb952",
+                "release": "2.fc17",
+                "size": 1993385,
+                "version": "1.0.2.2",
+            },
+        ]
         if id == 16059:  # for updateinfo.xml tests
-            rpms[0]['nvr'] = rpms[1]['nvr'] = 'TurboGears-1.0.2.2-3.fc17'
-            rpms[0]['release'] = rpms[1]['release'] = '3.fc17'
+            rpms[0]["nvr"] = rpms[1]["nvr"] = "TurboGears-1.0.2.2-3.fc17"
+            rpms[0]["release"] = rpms[1]["release"] = "3.fc17"
         rpms += DevBuildsys.__rpms__
         return rpms
 
-    def listTags(self, build: str, *args, **kw) -> typing.List[typing.Dict[str, object]]:
+    def listTags(self, build: str, *args, **kw) -> list[dict[str, object]]:
         """Emulate Koji's listTags."""
-        if 'el5' in build or 'el6' in build:
-            release = build.split('.')[-1].replace('el', '')
+        if "el5" in build or "el6" in build:
+            release = build.split(".")[-1].replace("el", "")
             result = [
-                {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                 'name': 'dist-%sE-epel-testing-candidate' % release, 'perm': None,
-                 'perm_id': None},
-                {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                 'name': 'dist-%sE-epel-testing-candidate' % release, 'perm': None,
-                 'perm_id': None},
-                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                 'name': 'dist-%sE-epel' % release, 'perm': None, 'perm_id': None}]
-        elif 'el7' in build:
-            release = build.split('.')[-1].replace('el', 'epel')
+                {
+                    "arches": "i386 x86_64 ppc ppc64",
+                    "id": 10,
+                    "locked": True,
+                    "name": f"dist-{release}E-epel-testing-candidate",
+                    "perm": None,
+                    "perm_id": None,
+                },
+                {
+                    "arches": "i386 x86_64 ppc ppc64",
+                    "id": 10,
+                    "locked": True,
+                    "name": f"dist-{release}E-epel-testing-candidate",
+                    "perm": None,
+                    "perm_id": None,
+                },
+                {
+                    "arches": "i386 x86_64 ppc ppc64",
+                    "id": 5,
+                    "locked": True,
+                    "name": f"dist-{release}E-epel",
+                    "perm": None,
+                    "perm_id": None,
+                },
+            ]
+        elif "el7" in build:
+            release = build.split(".")[-1].replace("el", "epel")
             result = [
-                {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                 'name': '%s-testing-candidate' % release, 'perm': None, 'perm_id': None},
-                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True, 'name': '%s' % release,
-                 'perm': None, 'perm_id': None},
-                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                 'name': '%s-testing' % release, 'perm': None, 'perm_id': None}]
-        elif '-master-' in build or build.startswith(('nodejs-6-', 'nodejs-8-', 'nodejs-9-')):
+                {
+                    "arches": "i386 x86_64 ppc ppc64",
+                    "id": 10,
+                    "locked": True,
+                    "name": f"{release}-testing-candidate",
+                    "perm": None,
+                    "perm_id": None,
+                },
+                {
+                    "arches": "i386 x86_64 ppc ppc64",
+                    "id": 5,
+                    "locked": True,
+                    "name": f"{release}",
+                    "perm": None,
+                    "perm_id": None,
+                },
+                {
+                    "arches": "i386 x86_64 ppc ppc64",
+                    "id": 5,
+                    "locked": True,
+                    "name": f"{release}-testing",
+                    "perm": None,
+                    "perm_id": None,
+                },
+            ]
+        elif "-master-" in build or build.startswith(("nodejs-6-", "nodejs-8-", "nodejs-9-")):
             # Hardcoding for modules in the dev buildsys
             result = [
-                {'arches': 'x86_64', 'id': 15, 'locked': True,
-                 'name': 'f27M-updates-candidate'},
-                {'arches': 'x86_64', 'id': 16, 'locked': True,
-                 'name': 'f27M-updates-testing'},
-                {'arches': 'x86_64', 'id': 17, 'locked': True,
-                 'name': 'f27M'},
+                {"arches": "x86_64", "id": 15, "locked": True, "name": "f27M-updates-candidate"},
+                {"arches": "x86_64", "id": 16, "locked": True, "name": "f27M-updates-testing"},
+                {"arches": "x86_64", "id": 17, "locked": True, "name": "f27M"},
             ]
         elif build.endswith("container"):
             result = [
-                {'arches': 'x86_64', 'id': 15, 'locked': True,
-                 'name': 'f28C-updates-candidate'},
-                {'arches': 'x86_64', 'id': 16, 'locked': True,
-                 'name': 'f28C-updates-testing'},
-                {'arches': 'x86_64', 'id': 17, 'locked': True,
-                 'name': 'f28C'},
+                {"arches": "x86_64", "id": 15, "locked": True, "name": "f28C-updates-candidate"},
+                {"arches": "x86_64", "id": 16, "locked": True, "name": "f28C-updates-testing"},
+                {"arches": "x86_64", "id": 17, "locked": True, "name": "f28C"},
             ]
-        elif 'flatpak' in build:
+        elif "flatpak" in build:
             result = [
-                {'arches': 'x86_64', 'id': 15, 'locked': True,
-                 'name': 'f28F-updates-candidate'},
-                {'arches': 'x86_64', 'id': 16, 'locked': True,
-                 'name': 'f28F-updates-testing'},
-                {'arches': 'x86_64', 'id': 17, 'locked': True,
-                 'name': 'f28F'},
+                {"arches": "x86_64", "id": 15, "locked": True, "name": "f28F-updates-candidate"},
+                {"arches": "x86_64", "id": 16, "locked": True, "name": "f28F-updates-testing"},
+                {"arches": "x86_64", "id": 17, "locked": True, "name": "f28F"},
             ]
         else:
-            if build.startswith('fedora-release'):
-                release = f'f{build.split("-")[2]}'
+            if build.startswith("fedora-release"):
+                release = f"f{build.split('-')[2]}"
             else:
-                release = build.split('.')[-1].replace('fc', 'f').replace('~bootstrap', '')
+                release = build.split(".")[-1].replace("fc", "f").replace("~bootstrap", "")
             result = [
-                {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                 'name': '%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
-                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True, 'name': '%s' % release,
-                 'perm': None, 'perm_id': None},
-                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
-                 'name': '%s-updates-testing' % release, 'perm': None, 'perm_id': None}]
+                {
+                    "arches": "i386 x86_64 ppc ppc64",
+                    "id": 10,
+                    "locked": True,
+                    "name": f"{release}-updates-candidate",
+                    "perm": None,
+                    "perm_id": None,
+                },
+                {
+                    "arches": "i386 x86_64 ppc ppc64",
+                    "id": 5,
+                    "locked": True,
+                    "name": f"{release}",
+                    "perm": None,
+                    "perm_id": None,
+                },
+                {
+                    "arches": "i386 x86_64 ppc ppc64",
+                    "id": 5,
+                    "locked": True,
+                    "name": f"{release}-updates-testing",
+                    "perm": None,
+                    "perm_id": None,
+                },
+            ]
         if build in DevBuildsys.__tagged__:
             for tag in DevBuildsys.__tagged__[build]:
-                result += [{'name': tag}]
-        if build.startswith('gnome-backgrounds-3.0-'):
-            result += [{'maven_support': False, 'locked': False, 'name': 'f17-build-side-7777',
-                        'extra': {'sidetag_user': 'guest', 'sidetag': True},
-                        'perm': None, 'perm_id': None, 'arches': None, 'maven_include_all': False,
-                        'id': 7777}]
+                result += [{"name": tag}]
+        if build.startswith("gnome-backgrounds-3.0-"):
+            result += [
+                {
+                    "maven_support": False,
+                    "locked": False,
+                    "name": "f17-build-side-7777",
+                    "extra": {"sidetag_user": "guest", "sidetag": True},
+                    "perm": None,
+                    "perm_id": None,
+                    "arches": None,
+                    "maven_include_all": False,
+                    "id": 7777,
+                }
+            ]
         return result
 
     @multicall_enabled
-    def listTagged(self, tag: str, *args, **kw) -> typing.List[typing.Any]:
+    def listTagged(self, tag: str, *args, **kw) -> list[typing.Any]:
         """List updates tagged with the given tag."""
-        latest = kw.get('latest', False)
+        latest = kw.get("latest", False)
         if tag in self._side_tag_ids_names:
             return [self.getBuild(build="gnome-backgrounds-3.0-1.fc17")]
         builds = []
 
-        all_builds = [self.getBuild(),
-                      self.getBuild(other=True),
-                      self.getBuild(other=True, testing=True)]
+        all_builds = [
+            self.getBuild(),
+            self.getBuild(other=True),
+            self.getBuild(other=True, testing=True),
+        ]
 
         if latest:
             # Delete all older builds which aren't the latest for their tag.
@@ -448,10 +527,10 @@ class DevBuildsys:
             del all_builds[0]
 
         for build in all_builds:
-            if build['nvr'] in self.__untag__:
-                log.debug('Pruning koji build %s' % build['nvr'])
+            if build["nvr"] in self.__untag__:
+                log.debug(f"Pruning koji build {build['nvr']}")
                 continue
-            elif build['tag_name'] == tag:
+            elif build["tag_name"] == tag:
                 builds.append(build)
         for build in DevBuildsys.__tagged__:
             for tag_ in DevBuildsys.__tagged__[build]:
@@ -459,7 +538,7 @@ class DevBuildsys:
                     builds.append(self.getBuild(build))
         return builds
 
-    def getLatestBuilds(self, *args, **kw) -> typing.List[typing.Any]:
+    def getLatestBuilds(self, *args, **kw) -> list[typing.Any]:
         """
         Return a list of the output from self.getBuild().
 
@@ -483,37 +562,54 @@ class DevBuildsys:
             koji.GenericError: If strict is True and epel is requested.
         """
         if isinstance(taginfo, int):
-            taginfo = "f%d" % taginfo
+            taginfo = f"f{taginfo}"
 
         if taginfo.startswith("epel"):
             if kw.get("strict", False):
-                raise koji.GenericError("Invalid tagInfo: '%s'" % taginfo)
+                raise koji.GenericError(f"Invalid tagInfo: '{taginfo}'")
 
             else:
                 return None
 
         # These tags needs to be created
-        if taginfo in ["f32-build-side-1234-signing-pending",
-                       "f32-build-side-1234-testing-pending"]:
+        if taginfo in [
+            "f32-build-side-1234-signing-pending",
+            "f32-build-side-1234-testing-pending",
+        ]:
             return None
 
         # emulate a side-tag response
         if taginfo in self._side_tag_ids_names:
             for sidetag in self.__side_tags__:
-                if taginfo in (sidetag['id'], sidetag['name']):
-                    return {'maven_support': False, 'locked': False, 'name': sidetag['name'],
-                            'extra': {'sidetag_user': 'dudemcpants', 'sidetag': True},
-                            'perm': None, 'perm_id': None, 'arches': None,
-                            'maven_include_all': False, 'id': sidetag['id']}
+                if taginfo in (sidetag["id"], sidetag["name"]):
+                    return {
+                        "maven_support": False,
+                        "locked": False,
+                        "name": sidetag["name"],
+                        "extra": {"sidetag_user": "dudemcpants", "sidetag": True},
+                        "perm": None,
+                        "perm_id": None,
+                        "arches": None,
+                        "maven_include_all": False,
+                        "id": sidetag["id"],
+                    }
 
-            if kw.get('strict'):
-                raise koji.GenericError("Invalid tagInfo: '%s'" % taginfo)
+            if kw.get("strict"):
+                raise koji.GenericError(f"Invalid tagInfo: '{taginfo}'")
             else:
                 return None
 
-        return {'maven_support': False, 'locked': False, 'name': taginfo,
-                'extra': {}, 'perm': None, 'id': 246, 'arches': None,
-                'maven_include_all': False, 'perm_id': None}
+        return {
+            "maven_support": False,
+            "locked": False,
+            "name": taginfo,
+            "extra": {},
+            "perm": None,
+            "id": 246,
+            "arches": None,
+            "maven_include_all": False,
+            "perm_id": None,
+        }
 
     def getFullInheritance(self, taginfo, **kw):
         """
@@ -524,47 +620,88 @@ class DevBuildsys:
         Returns:
             list: A list of dicts of tag information
         """
-        return [{'intransitive': False, 'name': 'f17-build', 'pkg_filter': '', 'priority': 0,
-                 'parent_id': 6448, 'maxdepth': None, 'noconfig': False, 'child_id': 7715,
-                 'nextdepth': None, 'filter': [], 'currdepth': 1},
-                {'intransitive': False, 'name': 'f17-override', 'pkg_filter': '', 'priority': 0,
-                 'parent_id': 6447, 'maxdepth': None, 'noconfig': False, 'child_id': 6448,
-                 'nextdepth': None, 'filter': [], 'currdepth': 2},
-                {'intransitive': False, 'name': 'f17-updates', 'pkg_filter': '', 'priority': 0,
-                 'parent_id': 6441, 'maxdepth': None, 'noconfig': False, 'child_id': 6447,
-                 'nextdepth': None, 'filter': [], 'currdepth': 3},
-                {'intransitive': False, 'name': 'f17', 'pkg_filter': '', 'priority': 0,
-                 'parent_id': 6438, 'maxdepth': None, 'noconfig': False, 'child_id': 6441,
-                 'nextdepth': None, 'filter': [], 'currdepth': 4}]
+        return [
+            {
+                "intransitive": False,
+                "name": "f17-build",
+                "pkg_filter": "",
+                "priority": 0,
+                "parent_id": 6448,
+                "maxdepth": None,
+                "noconfig": False,
+                "child_id": 7715,
+                "nextdepth": None,
+                "filter": [],
+                "currdepth": 1,
+            },
+            {
+                "intransitive": False,
+                "name": "f17-override",
+                "pkg_filter": "",
+                "priority": 0,
+                "parent_id": 6447,
+                "maxdepth": None,
+                "noconfig": False,
+                "child_id": 6448,
+                "nextdepth": None,
+                "filter": [],
+                "currdepth": 2,
+            },
+            {
+                "intransitive": False,
+                "name": "f17-updates",
+                "pkg_filter": "",
+                "priority": 0,
+                "parent_id": 6441,
+                "maxdepth": None,
+                "noconfig": False,
+                "child_id": 6447,
+                "nextdepth": None,
+                "filter": [],
+                "currdepth": 3,
+            },
+            {
+                "intransitive": False,
+                "name": "f17",
+                "pkg_filter": "",
+                "priority": 0,
+                "parent_id": 6438,
+                "maxdepth": None,
+                "noconfig": False,
+                "child_id": 6441,
+                "nextdepth": None,
+                "filter": [],
+                "currdepth": 4,
+            },
+        ]
 
     def listSideTags(self, **kw):
         """Return a list of side-tags."""
-        if kw.get('user', None) == 'unknown':
+        if kw.get("user", None) == "unknown":
             raise koji.GenericError("No such user: 'unknown'")
         else:
             return self.__side_tags__
 
     def createTag(self, tag: str, **opts):
         """Emulate tag adding."""
-        if 'parent' not in opts:
-            raise ValueError('No parent in tag options')
+        if "parent" not in opts:
+            raise ValueError("No parent in tag options")
         for nr in self.__tags__:
             if self.__tags__[0] == tag:
-                raise ValueError('Tag %s already exists' % tag)
-        opts['locked'] = False
-        opts['maven_support'] = False
-        opts['name'] = tag
-        opts['perm'] = 'admin'
-        opts['arches'] = None
-        opts['maven_include_all'] = False
-        opts['perm_id'] = 1
+                raise ValueError(f"Tag {tag} already exists")
+        opts["locked"] = False
+        opts["maven_support"] = False
+        opts["name"] = tag
+        opts["perm"] = "admin"
+        opts["arches"] = None
+        opts["maven_include_all"] = False
+        opts["perm_id"] = 1
         self.__tags__.append((tag, opts))
 
     def editTag2(self, *args, **kw):
         """Edit a tag."""
-        pass
 
-    def deleteTag(self, tagid: typing.Union[str, int]):
+    def deleteTag(self, tagid: str | int):
         """Emulate tag deletion."""
         if isinstance(tagid, str):
             for tid, tinfo in self.__tags__:
@@ -574,8 +711,7 @@ class DevBuildsys:
         else:
             del self.__tags__[tagid]
 
-    def getRPMHeaders(self, rpmID: str,
-                      headers: typing.Any) -> typing.Union[typing.Mapping[str, str], None]:
+    def getRPMHeaders(self, rpmID: str, headers: typing.Any) -> typing.Mapping[str, str] | None:
         """
         Return headers for the given RPM.
 
@@ -585,64 +721,78 @@ class DevBuildsys:
         Returns:
             A dictionary of RPM headers, or None if the rpmID is not found.
         """
-        if rpmID == 'raise-exception.src':
-            raise Exception
-        elif rpmID == 'do-not-find-anything.src':
+        if rpmID == "raise-exception.src":
+            raise Exception  # noqa: TRY002
+        elif rpmID == "do-not-find-anything.src":
             return None
         else:
             headers = {
-                'description': (
+                "description": (
                     "The libseccomp library provides an easy to use interface to the "
                     "Linux Kernel's\nsyscall filtering mechanism, seccomp. The "
                     "libseccomp API allows an application\nto specify which "
                     "syscalls, and optionally which syscall arguments, the\n"
                     "application is allowed to execute, all of which are "
-                    "enforced by the Linux\nKernel."),
-                'url': 'http://libseccomp.sourceforge.net',
-                'changelogname': [
-                    'Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.1.0-1',
-                    'Paul Moore <pmoore@redhat.com> - 2.1.0-0',
-                    'Paul Moore <pmoore@redhat.com> - 2.0.0-0',
-                    'Paul Moore <pmoore@redhat.com> - 1.0.1-0',
-                    'Paul Moore <pmoore@redhat.com> - 1.0.0-0',
-                    'Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.1.0-2',
-                    'Paul Moore <pmoore@redhat.com> - 0.1.0-1',
-                    'Paul Moore <pmoore@redhat.com> - 0.1.0-0'],
-                'summary': 'Enhanced seccomp library',
-                'version': '2.1.0',
-                'changelogtime': [
-                    1375531200, 1370952000, 1359374400, 1352808000, 1343736000,
-                    1342699200, 1341921600, 1339502400],
-                'changelogtext': [
-                    '- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild',
-                    '- New upstream version\n- Added support for the ARM architecture\n'
-                    '- Added the scmp_sys_resolver tool',
-                    '- New upstream version',
-                    '- New upstream version with several important fixes',
-                    '- New upstream version\n- Remove verbose build patch as it is no '
-                    'longer needed\n- Enable _smp_mflags during build stage',
-                    '- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild',
-                    '- Limit package to x86/x86_64 platforms (RHBZ #837888)',
-                    '- Initial version'],
-                'release': '1.fc20',
-                'name': 'libseccomp'
+                    "enforced by the Linux\nKernel."
+                ),
+                "url": "http://libseccomp.sourceforge.net",
+                "changelogname": [
+                    "Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.1.0-1",
+                    "Paul Moore <pmoore@redhat.com> - 2.1.0-0",
+                    "Paul Moore <pmoore@redhat.com> - 2.0.0-0",
+                    "Paul Moore <pmoore@redhat.com> - 1.0.1-0",
+                    "Paul Moore <pmoore@redhat.com> - 1.0.0-0",
+                    "Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.1.0-2",
+                    "Paul Moore <pmoore@redhat.com> - 0.1.0-1",
+                    "Paul Moore <pmoore@redhat.com> - 0.1.0-0",
+                ],
+                "summary": "Enhanced seccomp library",
+                "version": "2.1.0",
+                "changelogtime": [
+                    1375531200,
+                    1370952000,
+                    1359374400,
+                    1352808000,
+                    1343736000,
+                    1342699200,
+                    1341921600,
+                    1339502400,
+                ],
+                "changelogtext": [
+                    "- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild",
+                    (
+                        "- New upstream version\n- Added support for the ARM architecture\n"
+                        "- Added the scmp_sys_resolver tool"
+                    ),
+                    "- New upstream version",
+                    "- New upstream version with several important fixes",
+                    (
+                        "- New upstream version\n- Remove verbose build patch as it is no "
+                        "longer needed\n- Enable _smp_mflags during build stage"
+                    ),
+                    "- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild",
+                    "- Limit package to x86/x86_64 platforms (RHBZ #837888)",
+                    "- Initial version",
+                ],
+                "release": "1.fc20",
+                "name": "libseccomp",
             }
             if rpmID == "TurboGears-2.0.0.0-1.fc17.src":
-                headers['changelogname'].insert(0, 'Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1')
-                headers['changelogtext'].insert(0, '- Added some bowlofeggs charm.')
-                headers['changelogtime'].insert(0, 1375531201)
-            elif rpmID == 'TurboGears-1.9.1-1.fc17.src':
-                headers['changelogtext'] = []
-            elif rpmID == 'TurboGears-1.9.1-42.fc17.src':
+                headers["changelogname"].insert(0, "Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1")
+                headers["changelogtext"].insert(0, "- Added some bowlofeggs charm.")
+                headers["changelogtime"].insert(0, 1375531201)
+            elif rpmID == "TurboGears-1.9.1-1.fc17.src":
+                headers["changelogtext"] = []
+            elif rpmID == "TurboGears-1.9.1-42.fc17.src":
                 # Make sure only a single changelog entry is present
-                headers['changelogname'] = ['Randy Barlow <bowlofeggs@fp.o> - 1.9.1-42']
-                headers['changelogtext'] = ["- Hope I didn't break anything!"]
-                headers['changelogtime'] = [1375531200]
+                headers["changelogname"] = ["Randy Barlow <bowlofeggs@fp.o> - 1.9.1-42"]
+                headers["changelogtext"] = ["- Hope I didn't break anything!"]
+                headers["changelogtime"] = [1375531200]
             return headers
 
 
 @backoff.on_exception(backoff.expo, koji.AuthError, max_time=600)
-def koji_login(config: 'BodhiConfig', authenticate: bool) -> koji.ClientSession:
+def koji_login(config: "BodhiConfig", authenticate: bool) -> koji.ClientSession:
     """
     Login to Koji and return the session.
 
@@ -653,21 +803,21 @@ def koji_login(config: 'BodhiConfig', authenticate: bool) -> koji.ClientSession:
         An authenticated Koji ClientSession that is ready to use.
     """
     koji_options = {
-        'krb_rdns': False,
-        'max_retries': 30,
-        'retry_interval': 10,
-        'offline_retry': True,
-        'offline_retry_interval': 10,
-        'anon_retry': True,
+        "krb_rdns": False,
+        "max_retries": 30,
+        "retry_interval": 10,
+        "offline_retry": True,
+        "offline_retry_interval": 10,
+        "anon_retry": True,
     }
 
     koji_client = koji.ClientSession(_koji_hub, koji_options)
     if authenticate and not koji_client.gssapi_login(**get_krb_conf(config)):
-        log.error('Koji gssapi_login failed')
+        log.error("Koji gssapi_login failed")
     return koji_client
 
 
-def get_krb_conf(config: 'BodhiConfig') -> typing.Mapping[str, str]:
+def get_krb_conf(config: "BodhiConfig") -> typing.Mapping[str, str]:
     """
     Return arguments for gssapi_login.
 
@@ -679,21 +829,21 @@ def get_krb_conf(config: 'BodhiConfig') -> typing.Mapping[str, str]:
             keytab: The kerberos keytab to use.
             ccache: The kerberos ccache to use.
     """
-    principal = config.get('krb_principal')
-    keytab = config.get('krb_keytab')
-    ccache = config.get('krb_ccache')
+    principal = config.get("krb_principal")
+    keytab = config.get("krb_keytab")
+    ccache = config.get("krb_ccache")
     args = {}
     if principal:
-        args['principal'] = principal
+        args["principal"] = principal
     if keytab:
-        args['keytab'] = keytab
+        args["keytab"] = keytab
     if ccache:
-        ccache = ccache.replace('%{uid}', str(os.geteuid()))
-        args['ccache'] = ccache
+        ccache = ccache.replace("%{uid}", str(os.geteuid()))
+        args["ccache"] = ccache
     return args
 
 
-def get_session() -> typing.Union[koji.ClientSession, DevBuildsys]:
+def get_session() -> koji.ClientSession | DevBuildsys:
     """
     Get a new buildsystem instance.
 
@@ -703,7 +853,7 @@ def get_session() -> typing.Union[koji.ClientSession, DevBuildsys]:
         RuntimeError: If the build system has not been initialized. See setup_buildsystem().
     """
     if _buildsystem is None:
-        raise RuntimeError('Buildsys needs to be setup')
+        raise RuntimeError("Buildsys needs to be setup")
     with _buildsystem_login_lock:
         return _buildsystem()
 
@@ -715,7 +865,7 @@ def teardown_buildsystem():
     DevBuildsys.clear()
 
 
-def setup_buildsystem(settings: 'BodhiConfig', authenticate: bool = True):
+def setup_buildsystem(settings: "BodhiConfig", authenticate: bool = True):
     """
     Initialize the buildsystem client.
 
@@ -729,28 +879,27 @@ def setup_buildsystem(settings: 'BodhiConfig', authenticate: bool = True):
     if _buildsystem:
         return
 
-    _koji_hub = settings.get('koji_hub')
-    buildsys = settings.get('buildsystem')
+    _koji_hub = settings.get("koji_hub")
+    buildsys = settings.get("buildsystem")
 
-    if buildsys == 'koji':
-        log.debug('Using Koji Buildsystem')
+    if buildsys == "koji":
+        log.debug("Using Koji Buildsystem")
 
         def get_koji_login():
             """Call koji_login with settings and return the result."""
             return koji_login(config=settings, authenticate=authenticate)
 
         _buildsystem = get_koji_login
-    elif buildsys in ('dev', 'dummy', None):
-        log.debug('Using DevBuildsys')
+    elif buildsys in ("dev", "dummy", None):
+        log.debug("Using DevBuildsys")
         _buildsystem = DevBuildsys
     else:
-        raise ValueError('Buildsys %s not known' % buildsys)
+        raise ValueError(f"Buildsys {buildsys} not known")
 
 
 def wait_for_tasks(
-        tasks: typing.List[typing.Any],
-        session: typing.Union[koji.ClientSession, None] = None,
-        sleep: int = 300) -> typing.List[typing.Any]:
+    tasks: list[typing.Any], session: koji.ClientSession | None = None, sleep: int = 300
+) -> list[typing.Any]:
     """
     Wait for a list of koji tasks to complete.
 
@@ -762,20 +911,22 @@ def wait_for_tasks(
     Returns:
         A list of failed tasks. An empty list indicates that all tasks completed successfully.
     """
-    log.debug("Waiting for %d tasks to complete: %s" % (len(tasks), tasks))
+    log.debug(f"Waiting for {len(tasks)} tasks to complete: {tasks}")
     failed_tasks = []
     if not session:
         session = get_session()
     for task in tasks:
         if not task:
-            log.debug("Skipping task: %s" % task)
+            log.debug(f"Skipping task: {task}")
             continue
         while not session.taskFinished(task):
             time.sleep(sleep)
         task_info = session.getTaskInfo(task)
-        if task_info['state'] != koji.TASK_STATES['CLOSED']:
-            log.error("Koji task %d failed" % task)
+        if task_info["state"] != koji.TASK_STATES["CLOSED"]:
+            log.error(f"Koji task {task:d} failed")
             failed_tasks.append(task)
-    log.debug("%d tasks completed successfully, %d tasks failed." % (
-        len(tasks) - len(failed_tasks), len(failed_tasks)))
+    log.debug(
+        f"{(len(tasks) - len(failed_tasks)):d} tasks completed successfully, "
+        f"{len(failed_tasks):d} tasks failed."
+    )
     return failed_tasks

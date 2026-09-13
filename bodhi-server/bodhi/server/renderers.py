@@ -16,19 +16,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define special view renderers, such as RSS."""
+
 import logging
 import operator
 import re
 
+from bodhi.server.util import markup
 from feedgen.feed import FeedGenerator
 from pyramid.exceptions import HTTPBadRequest
 
-from bodhi.server.util import markup
-
-
 log = logging.getLogger(__name__)
 INVALID_CHARS_RE = re.compile(
-    '[^\u0020-\uD7FF\u0009\u000A\u000D\uE000-\uFFFD\U00010000-\U0010FFFF]+'
+    "[^\u0020-\ud7ff\u0009\u000a\u000d\ue000-\ufffd\U00010000-\U0010ffff]+"
 )
 
 
@@ -41,6 +40,7 @@ def rss(info):
     Returns:
         function: A function that can be used to render a RSS view.
     """
+
     def render(data, system):
         """
         Render the given data as an RSS view.
@@ -55,52 +55,53 @@ def rss(info):
         Returns:
             str: An RSS document representing the given data.
         """
-        request = system.get('request')
+        request = system.get("request")
         if request is not None:
             response = request.response
             ct = response.content_type
             if ct == response.default_content_type:
-                response.content_type = 'application/rss+xml'
+                response.content_type = "application/rss+xml"
 
-        if 'updates' in data:
-            key = 'updates'
-            feed_title = 'Released updates'
-        elif 'users' in data:
-            key = 'users'
-            feed_title = 'Bodhi users'
-        elif 'comments' in data:
-            key = 'comments'
-            feed_title = 'User comments'
-        elif 'overrides' in data:
-            key = 'overrides'
-            feed_title = 'Update overrides'
+        if "updates" in data:
+            key = "updates"
+            feed_title = "Released updates"
+        elif "users" in data:
+            key = "users"
+            feed_title = "Bodhi users"
+        elif "comments" in data:
+            key = "comments"
+            feed_title = "User comments"
+        elif "overrides" in data:
+            key = "overrides"
+            feed_title = "Update overrides"
         else:
             # This is a request we don't know how to render. Let's return BadRequest and log.
-            log.debug('Unable to render RSS feed for data: %s', data)
+            log.debug("Unable to render RSS feed for data: %s", data)
             # See if we have a request so we can set a code without raising an Exception
             if request is not None:
                 response.status = HTTPBadRequest.code
-                return 'Invalid RSS feed request'
+                return "Invalid RSS feed request"
             else:
-                raise HTTPBadRequest('Invalid RSS feed request')
+                raise HTTPBadRequest("Invalid RSS feed request")
 
         feed_description_list = []
         for k in request.GET.keys():
-            feed_description_list.append('%s(%s)' % (k, request.GET[k]))
+            feed_description_list.append("%s(%s)" % (k, request.GET[k]))
         if feed_description_list:
-            feed_description = 'Filtered on: ' + ', '.join(feed_description_list)
+            feed_description = "Filtered on: " + ", ".join(feed_description_list)
         else:
             feed_description = "All %s" % (key)
 
         feed = FeedGenerator()
         feed.title(feed_title)
-        feed.link(href=request.url, rel='self')
+        feed.link(href=request.url, rel="self")
         feed.description(feed_description)
-        feed.language('en')
+        feed.language("en")
 
         def linker(route, param, key):
             def link_dict(obj):
                 return dict(href=request.route_url(route, **{param: obj[key]}))
+
             return link_dict
 
         def describe_update(alias, notes, builds):
@@ -125,40 +126,44 @@ def rss(info):
             Returns:
                 function: A function which accepts a dict representing an update as parameter.
             """
+
             def describe(*args, **kwargs):
-                text = f'# {alias(*args, **kwargs)}\n'
-                text += '## Packages in this update:\n'
+                text = f"# {alias(*args, **kwargs)}\n"
+                text += "## Packages in this update:\n"
                 for p in builds(*args, **kwargs):
-                    text += f'* {p.nvr}\n'
-                text += f'## Update description:\n{notes(*args, **kwargs)}'
+                    text += f"* {p.nvr}\n"
+                text += f"## Update description:\n{notes(*args, **kwargs)}"
                 return markup(None, text, bodhi=False)
+
             return describe
 
         getters = {
-            'updates': {
-                'title': operator.itemgetter('title'),
-                'link': linker('update', 'id', 'alias'),
-                'description': describe_update(operator.itemgetter('alias'),
-                                               operator.itemgetter('notes'),
-                                               operator.itemgetter('builds')),
-                'pubDate': lambda obj: obj['date_submitted'],
+            "updates": {
+                "title": operator.itemgetter("title"),
+                "link": linker("update", "id", "alias"),
+                "description": describe_update(
+                    operator.itemgetter("alias"),
+                    operator.itemgetter("notes"),
+                    operator.itemgetter("builds"),
+                ),
+                "pubDate": lambda obj: obj["date_submitted"],
             },
-            'users': {
-                'title': operator.itemgetter('name'),
-                'link': linker('user', 'name', 'name'),
-                'description': operator.itemgetter('name'),
+            "users": {
+                "title": operator.itemgetter("name"),
+                "link": linker("user", "name", "name"),
+                "description": operator.itemgetter("name"),
             },
-            'comments': {
-                'title': operator.itemgetter('rss_title'),
-                'link': linker('comment', 'id', 'id'),
-                'description': operator.itemgetter('text'),
-                'pubDate': lambda obj: obj['timestamp'],
+            "comments": {
+                "title": operator.itemgetter("rss_title"),
+                "link": linker("comment", "id", "id"),
+                "description": operator.itemgetter("text"),
+                "pubDate": lambda obj: obj["timestamp"],
             },
-            'overrides': {
-                'title': operator.itemgetter('nvr'),
-                'link': linker('override', 'nvr', 'nvr'),
-                'description': operator.itemgetter('notes'),
-                'pubDate': lambda obj: obj['submission_date'],
+            "overrides": {
+                "title": operator.itemgetter("nvr"),
+                "link": linker("override", "nvr", "nvr"),
+                "description": operator.itemgetter("notes"),
+                "pubDate": lambda obj: obj["submission_date"],
             },
         }
 

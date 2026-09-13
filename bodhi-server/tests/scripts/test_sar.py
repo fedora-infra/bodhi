@@ -19,17 +19,15 @@
 This module contains tests for the bodhi.server.scripts.sar module.
 """
 
+import os
 from datetime import datetime, timezone
 from unittest import mock
-import os
-
-from click import testing
 
 from bodhi.server import models
 from bodhi.server.scripts import sar
+from click import testing
 
 from ..base import BasePyTestCase
-
 
 EXPECTED_USER_DATA_OUTPUT = """\
 ==========> User account data for: guest <==========
@@ -111,7 +109,7 @@ class TestSar(BasePyTestCase):
         comment.timestamp = now
         self.db.commit()
         expected_output = EXPECTED_JSON_OUTPUT.replace("1984-11-02 00:00:00", now_str, 1)
-        expected_output = expected_output.replace('ALIAS', comment.update.alias)
+        expected_output = expected_output.replace("ALIAS", comment.update.alias)
 
         runner = testing.CliRunner()
         r = runner.invoke(sar.get_user_data, ["--username=" + "guest"])
@@ -128,7 +126,7 @@ class TestSar(BasePyTestCase):
         comment.timestamp = now
         self.db.commit()
         expected_output = EXPECTED_JSON_OUTPUT.replace("1984-11-02 00:00:00", now_str, 1)
-        expected_output = expected_output.replace('ALIAS', comment.update.alias)
+        expected_output = expected_output.replace("ALIAS", comment.update.alias)
 
         runner = testing.CliRunner()
         r = runner.invoke(sar.get_user_data)

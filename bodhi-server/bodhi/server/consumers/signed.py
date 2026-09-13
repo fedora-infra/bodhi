@@ -25,15 +25,14 @@ from the pending-signing to pending-updates-testing tag by RoboSignatory.
 import logging
 
 import fedora_messaging
-from sqlalchemy import func
-
 from bodhi.server.models import Build, UpdateRequest, UpdateStatus
 from bodhi.server.util import transactional_session_maker
+from sqlalchemy import func
 
-log = logging.getLogger('bodhi')
+log = logging.getLogger("bodhi")
 
 
-class SignedHandler(object):
+class SignedHandler:
     """
     The Bodhi Signed Handler.
 
@@ -73,10 +72,10 @@ class SignedHandler(object):
             message: The incoming message in the format described above.
         """
         message = message.body
-        build_nvr = '%(name)s-%(version)s-%(release)s' % message
-        tag = message['tag']
+        build_nvr = "{name}-{version}-{release}".format(**message)
+        tag = message["tag"]
 
-        log.info("%s tagged into %s" % (build_nvr, tag))
+        log.info(f"{build_nvr} tagged into {tag}")
 
         with self.db_factory() as dbsession:
             build = Build.get(build_nvr)
@@ -85,12 +84,14 @@ class SignedHandler(object):
                 return
 
             if not build.release:
-                log.info('Build is not assigned to release, skipping')
+                log.info("Build is not assigned to release, skipping")
                 return
 
-            if build.update \
-                    and build.update.from_tag \
-                    and not build.update.release.composed_by_bodhi:
+            if (
+                build.update
+                and build.update.from_tag
+                and not build.update.release.composed_by_bodhi
+            ):
                 koji_testing_tag = build.release.get_pending_testing_side_tag(build.update.from_tag)
                 if tag != koji_testing_tag:
                     log.info("Tag is not testing side tag, skipping")
@@ -109,23 +110,27 @@ class SignedHandler(object):
             log.info("Build has been signed, marking")
             build.signed = True
             dbsession.flush()
-            log.info("Build %s has been marked as signed" % build_nvr)
+            log.info(f"Build {build_nvr} has been marked as signed")
 
             # Finally, set request to testing for non-rawhide side-tag updates
-            if build.update \
-                    and build.update.release.composed_by_bodhi \
-                    and build.update.from_tag \
-                    and build.update.signed:
+            if (
+                build.update
+                and build.update.release.composed_by_bodhi
+                and build.update.from_tag
+                and build.update.signed
+            ):
                 log.info(f"Setting request for new side-tag update {build.update.alias}.")
                 req = UpdateRequest.testing
-                build.update.set_request(dbsession, req, 'bodhi')
+                build.update.set_request(dbsession, req, "bodhi")
                 return
 
             # For rawhide updates, if every build in update is signed change status to testing
-            if build.update \
-                    and build.update.status != UpdateStatus.obsolete \
-                    and not build.update.release.composed_by_bodhi \
-                    and build.update.signed:
+            if (
+                build.update
+                and build.update.status != UpdateStatus.obsolete
+                and not build.update.release.composed_by_bodhi
+                and build.update.signed
+            ):
                 log.info("Every build in update is signed, set status to testing")
 
                 build.update.status = UpdateStatus.testing

@@ -31,20 +31,20 @@ class PyramidIntegration(PyramidIntegrationMixin, FrameworkIntegration):
         if request_token_url:
             return dict(request.GET)
 
-        if request.method == 'GET':
-            error = request.GET.get('error')
+        if request.method == "GET":
+            error = request.GET.get("error")
             if error:
-                description = request.GET.get('error_description')
+                description = request.GET.get("error_description")
                 raise OAuthError(error=error, description=description)
 
             params = {
-                'code': request.GET.get('code'),
-                'state': request.GET.get('state'),
+                "code": request.GET.get("code"),
+                "state": request.GET.get("state"),
             }
         else:
             params = {
-                'code': request.POST.get('code'),
-                'state': request.POST.get('state'),
+                "code": request.POST.get("code"),
+                "state": request.POST.get("state"),
             }
         return params
 
@@ -61,9 +61,9 @@ class PyramidRemoteApp(PyramidAppMixin, RemoteApp):
         params = self.retrieve_access_token_params(request)
         params.update(kwargs)
         token = self.fetch_access_token(**params)
-        if 'id_token' in token:
+        if "id_token" in token:
             userinfo = self.parse_id_token(request, token)
-            token['userinfo'] = userinfo
+            token["userinfo"] = userinfo
         return token
 
     def parse_id_token(self, request, token, claims_options=None, leeway=120):

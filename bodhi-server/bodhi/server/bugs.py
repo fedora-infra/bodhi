@@ -17,28 +17,27 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines utilities for accessing Bugzilla."""
 
-from collections import namedtuple
-from xmlrpc import client as xmlrpc_client
 import logging
 import typing
+from collections import namedtuple
+from xmlrpc import client as xmlrpc_client
 
 import bugzilla
-
 from bodhi.server.config import config
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.server import models  # noqa: F401
+    from bodhi.server import models
 
 
-bugtracker: typing.Union['Bugzilla', 'FakeBugTracker', None] = None
-log = logging.getLogger('bodhi')
-FakeBug = namedtuple('FakeBug', ['bug_id'])
+bugtracker: typing.Union["Bugzilla", "FakeBugTracker", None] = None
+log = logging.getLogger("bodhi")
+FakeBug = namedtuple("FakeBug", ["bug_id"])
 
 
-class FakeBugTracker(object):
+class FakeBugTracker:
     """Provide an API similar to bugzilla.base.Bugzilla without doing anything."""
 
-    def getbug(self, bug_id: typing.Union[str, int], *args, **kw) -> FakeBug:
+    def getbug(self, bug_id: str | int, *args, **kw) -> FakeBug:
         """
         Return a FakeBug representing the requested bug id.
 
@@ -57,7 +56,7 @@ class FakeBugTracker(object):
             args: The list of args passed to the method.
             kwargs: The kwargs passed to the method.
         """
-        log.debug('__noop__(%s)' % str(args))
+        log.debug("__noop__(%s)", str(args))
 
     comment = update_details = modified = close = on_qa = __noop__
 
@@ -66,7 +65,7 @@ class InvalidComment(Exception):
     """Exception thrown when the comment posted is invalid (for example too long)."""
 
 
-class Bugzilla(object):
+class Bugzilla:
     """Provide methods for Bodhi's frequent Bugzilla operations."""
 
     def __init__(self) -> None:
@@ -75,20 +74,20 @@ class Bugzilla(object):
 
     def _connect(self) -> None:
         """Create a Bugzilla client instance and store it on self._bz."""
-        user = config.get('bodhi_email')
-        password = config.get('bodhi_password')
+        user = config.get("bodhi_email")
+        password = config.get("bodhi_password")
         url = config.get("bz_server")
-        log.info("Using BZ URL %s" % url)
-        if config['bugzilla_api_key']:
-            self._bz = bugzilla.Bugzilla(url=url, api_key=config.get('bugzilla_api_key'),
-                                         cookiefile=None, tokenfile=None)
+        log.info("Using BZ URL %s", url)
+        if config["bugzilla_api_key"]:
+            self._bz = bugzilla.Bugzilla(
+                url=url, api_key=config.get("bugzilla_api_key"), cookiefile=None, tokenfile=None
+            )
         elif user and password:
-            self._bz = bugzilla.Bugzilla(url=url,
-                                         user=user, password=password,
-                                         cookiefile=None, tokenfile=None)
+            self._bz = bugzilla.Bugzilla(
+                url=url, user=user, password=password, cookiefile=None, tokenfile=None
+            )
         else:
-            self._bz = bugzilla.Bugzilla(url=url,
-                                         cookiefile=None, tokenfile=None)
+            self._bz = bugzilla.Bugzilla(url=url, cookiefile=None, tokenfile=None)
 
     @property
     def bz(self) -> bugzilla.Bugzilla:
@@ -102,7 +101,7 @@ class Bugzilla(object):
             self._connect()
         return self._bz
 
-    def getbug(self, bug_id: int) -> 'bugzilla.bug.Bug':
+    def getbug(self, bug_id: int) -> "bugzilla.bug.Bug":
         """
         Retrieve a bug from Bugzilla.
 
@@ -137,17 +136,19 @@ class Bugzilla(object):
                         f" \nFault string: {e.faultString}"
                     )
         except InvalidComment:
-            log.error(
-                "Comment too long for bug #%d:  %s" % (bug_id, comment))
+            log.error("Comment too long for bug #%d:  %s", bug_id, comment)
         except xmlrpc_client.Fault as err:
             if err.faultCode == 102:
-                log.info('Cannot retrieve private bug #%d.', bug_id)
+                log.info("Cannot retrieve private bug #%d.", bug_id)
             else:
                 log.exception(
                     "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
-                    bug_id, err.faultCode, err.faultString)
+                    bug_id,
+                    err.faultCode,
+                    err.faultString,
+                )
         except Exception:
-            log.exception("Unable to add comment to bug #%d" % bug_id)
+            log.exception("Unable to add comment to bug #%d", bug_id)
 
     def on_qa(self, bug_id: int, comment: str) -> None:
         """
@@ -165,23 +166,26 @@ class Bugzilla(object):
         """
         try:
             bug = self.bz.getbug(bug_id)
-            if bug.product not in config.get('bz_products'):
-                log.info("Skipping set on_qa on {0!r} bug #{1}".format(bug.product, bug_id))
+            if bug.product not in config.get("bz_products"):
+                log.info(f"Skipping set on_qa on {bug.product!r} bug #{bug_id}")
                 return
-            if bug.bug_status not in ('ON_QA', 'VERIFIED', 'CLOSED'):
-                log.debug("Setting Bug #%d to ON_QA" % bug_id)
-                bug.setstatus('ON_QA', comment=comment)
+            if bug.bug_status not in ("ON_QA", "VERIFIED", "CLOSED"):
+                log.debug("Setting Bug #%d to ON_QA", bug_id)
+                bug.setstatus("ON_QA", comment=comment)
             else:
                 bug.addcomment(comment)
         except xmlrpc_client.Fault as err:
             if err.faultCode == 102:
-                log.info('Cannot retrieve private bug #%d.', bug_id)
+                log.info("Cannot retrieve private bug #%d.", bug_id)
             else:
                 log.exception(
                     "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
-                    bug_id, err.faultCode, err.faultString)
+                    bug_id,
+                    err.faultCode,
+                    err.faultString,
+                )
         except Exception:
-            log.exception("Unable to alter bug #%d" % bug_id)
+            log.exception("Unable to alter bug #%d", bug_id)
 
     def close(self, bug_id: int, versions: typing.Mapping[str, str], comment: str) -> None:
         """
@@ -195,11 +199,11 @@ class Bugzilla(object):
             versions: A mapping of package names to nvrs of those packages that close the bug.
             comment: A comment to leave on the bug when closing it.
         """
-        args = {'comment': comment}
+        args = {"comment": comment}
         try:
             bug = self.bz.getbug(bug_id)
-            if bug.product not in config.get('bz_products'):
-                log.info("Skipping set closed on {0!r} bug #{1}".format(bug.product, bug_id))
+            if bug.product not in config.get("bz_products"):
+                log.info(f"Skipping set closed on {bug.product!r} bug #{bug_id}")
                 return
             # If this bug is for one of these builds...
             if bug.component in versions:
@@ -219,19 +223,23 @@ class Bugzilla(object):
                 # but only if resultant string length is lower than 256 chars
                 # See https://github.com/fedora-infra/bodhi/issues/1430
                 if (version not in fixedin) and ((len(fixedin_str) + len(version)) < 255):
-                    args['fixedin'] = " ".join([fixedin_str, version]).strip()
+                    args["fixedin"] = f"{fixedin_str} {version}".strip()
 
-            bug.close('ERRATA', **args)
+            bug.close("ERRATA", **args)
         except xmlrpc_client.Fault as err:
             if err.faultCode == 102:
-                log.info('Cannot retrieve private bug #%d.', bug_id)
+                log.info("Cannot retrieve private bug #%d.", bug_id)
             else:
                 log.exception(
                     "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
-                    bug_id, err.faultCode, err.faultString)
+                    bug_id,
+                    err.faultCode,
+                    err.faultString,
+                )
 
-    def update_details(self, bug: typing.Union['bugzilla.bug.Bug', None],
-                       bug_entity: 'models.Bug') -> None:
+    def update_details(
+        self, bug: typing.Union["bugzilla.bug.Bug", None], bug_entity: "models.Bug"
+    ) -> None:
         """
         Update the details on bug_entity to match what is found in Bugzilla.
 
@@ -245,28 +253,31 @@ class Bugzilla(object):
                 bug = self.bz.getbug(bug_entity.bug_id)
             except xmlrpc_client.Fault as err:
                 if err.faultCode == 102:
-                    log.info('Cannot retrieve private bug #%d.', bug_entity.bug_id)
-                    bug_entity.title = 'Private bug'
+                    log.info("Cannot retrieve private bug #%d.", bug_entity.bug_id)
+                    bug_entity.title = "Private bug"
                 else:
                     log.exception(
                         "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
-                        bug_entity.bug_id, err.faultCode, err.faultString)
-                    bug_entity.title = 'Invalid bug number'
+                        bug_entity.bug_id,
+                        err.faultCode,
+                        err.faultString,
+                    )
+                    bug_entity.title = "Invalid bug number"
                 return
             except Exception:
                 log.exception("Unknown exception from Bugzilla")
                 return
-        if bug.product == 'Security Response':
+        if bug.product == "Security Response":
             bug_entity.parent = True
         bug_entity.title = bug.short_desc
         if isinstance(bug.keywords, str):
             keywords = bug.keywords.split()
         else:  # python-bugzilla 0.8.0+
             keywords = bug.keywords
-        if 'security' in [keyword.lower() for keyword in keywords]:
+        if "security" in [keyword.lower() for keyword in keywords]:
             bug_entity.security = True
 
-    def modified(self, bug_id: typing.Union[int, str], comment: str) -> None:
+    def modified(self, bug_id: int | str, comment: str) -> None:
         """
         Change the status of this bug to MODIFIED if not already MODIFIED, VERIFIED, or CLOSED.
 
@@ -281,31 +292,34 @@ class Bugzilla(object):
         """
         try:
             bug = self.bz.getbug(bug_id)
-            if bug.product not in config.get('bz_products'):
-                log.info("Skipping set modified on {0!r} bug #{1}".format(bug.product, bug_id))
+            if bug.product not in config.get("bz_products"):
+                log.info(f"Skipping set modified on {bug.product!r} bug #{bug_id}")
                 return
-            if bug.bug_status not in ('MODIFIED', 'VERIFIED', 'CLOSED'):
-                log.info('Setting bug #%s status to MODIFIED' % bug_id)
-                bug.setstatus('MODIFIED', comment=comment)
+            if bug.bug_status not in ("MODIFIED", "VERIFIED", "CLOSED"):
+                log.info("Setting bug #%d status to MODIFIED", bug_id)
+                bug.setstatus("MODIFIED", comment=comment)
             else:
                 bug.addcomment(comment)
         except xmlrpc_client.Fault as err:
             if err.faultCode == 102:
-                log.info('Cannot retrieve private bug #%d.', bug_id)
+                log.info("Cannot retrieve private bug #%d.", bug_id)
             else:
                 log.exception(
                     "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
-                    bug_id, err.faultCode, err.faultString)
+                    bug_id,
+                    err.faultCode,
+                    err.faultString,
+                )
         except Exception:
-            log.exception("Unable to alter bug #%s" % bug_id)
+            log.exception("Unable to alter bug #%d", bug_id)
 
 
 def set_bugtracker() -> None:
     """Set the module-level bugtracker attribute to the correct bugtracker, based on the config."""
     global bugtracker
-    if config.get('bugtracker') == 'bugzilla':
-        log.info('Using python-bugzilla')
+    if config.get("bugtracker") == "bugzilla":
+        log.info("Using python-bugzilla")
         bugtracker = Bugzilla()
     else:
-        log.info('Using the FakeBugTracker')
+        log.info("Using the FakeBugTracker")
         bugtracker = FakeBugTracker()

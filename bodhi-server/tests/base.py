@@ -16,21 +16,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Contains a useful base test class that helps with common testing needs for bodhi.server."""
-from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
-from unittest import mock
+
 import os
 import subprocess
 import unittest
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
+from unittest import mock
 
-from pyramid import testing
-from pyramid.paster import get_appsettings
-from sqlalchemy import event
-from sqlalchemy.orm.exc import NoResultFound
-from webtest import TestApp
 import createrepo_c
-
 from bodhi.server import (
+    Session,
     bugs,
     buildsys,
     config,
@@ -38,16 +34,19 @@ from bodhi.server import (
     main,
     metadata,
     models,
-    Session,
     webapp,
 )
-
+from pyramid import testing
+from pyramid.paster import get_appsettings
+from sqlalchemy import event
+from sqlalchemy.orm.exc import NoResultFound
+from webtest import TestApp
 
 original_config = config.config.copy()
 engine = None
 _app = None
 _settings = None
-PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
+PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 
 
 def _configure_test_db(test_config):
@@ -67,7 +66,7 @@ def _configure_test_db(test_config):
     global engine
     engine = initialize_db(test_config)
 
-    if test_config["sqlalchemy.url"].startswith('sqlite://'):
+    if test_config["sqlalchemy.url"].startswith("sqlite://"):
         # Necessary to get nested transactions working with SQLite. See:
         # http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html\
         # #serializable-isolation-savepoints-transactional-ddl
@@ -81,9 +80,9 @@ def _configure_test_db(test_config):
         @event.listens_for(engine, "begin")
         def begin_event(conn):
             """Emit our own 'BEGIN' instead of letting pysqlite do it."""
-            conn.exec_driver_sql('BEGIN')
+            conn.exec_driver_sql("BEGIN")
 
-    @event.listens_for(Session, 'after_transaction_end')
+    @event.listens_for(Session, "after_transaction_end")
     def restart_savepoint(session, transaction):
         """Allow tests to call rollback on the session."""
         if transaction.nested and not transaction._parent.nested:
@@ -93,7 +92,7 @@ def _configure_test_db(test_config):
     return engine
 
 
-def create_update(session, build_nvrs, release_name='F17'):
+def create_update(session, build_nvrs, release_name="F17"):
     """
     Use the given session to create and return an Update with the given iterable of build_nvrs.
 
@@ -112,11 +111,11 @@ def create_update(session, build_nvrs, release_name='F17'):
         bodhi.server.models.Update: The generated update.
     """
     release = session.query(models.Release).filter_by(name=release_name).one()
-    user = session.query(models.User).filter_by(name='guest').one()
+    user = session.query(models.User).filter_by(name="guest").one()
 
     builds = []
     for nvr in build_nvrs:
-        name, version, rel = nvr.rsplit('-', 2)
+        name, version, rel = nvr.rsplit("-", 2)
         try:
             package = session.query(models.RpmPackage).filter_by(name=name).one()
         except NoResultFound:
@@ -124,9 +123,9 @@ def create_update(session, build_nvrs, release_name='F17'):
             session.add(package)
 
         try:
-            testcase = session.query(models.TestCase).filter_by(name='Wat').one()
+            testcase = session.query(models.TestCase).filter_by(name="Wat").one()
         except NoResultFound:
-            testcase = models.TestCase(name='Wat')
+            testcase = models.TestCase(name="Wat")
             session.add(testcase)
 
         build = models.RpmBuild(nvr=nvr, release=release, package=package, signed=True)
@@ -137,17 +136,23 @@ def create_update(session, build_nvrs, release_name='F17'):
         # Add a buildroot override for this build
         expiration_date = datetime.now(timezone.utc)
         expiration_date = expiration_date + timedelta(days=1)
-        override = models.BuildrootOverride(build=build, submitter=user,
-                                            notes='blah blah blah',
-                                            expiration_date=expiration_date)
+        override = models.BuildrootOverride(
+            build=build, submitter=user, notes="blah blah blah", expiration_date=expiration_date
+        )
         session.add(override)
 
-    with mock.patch('bodhi.server.models.notifications'):
+    with mock.patch("bodhi.server.models.notifications"):
         update = models.Update(
-            builds=builds, user=user, request=models.UpdateRequest.testing,
-            notes='Useful details!', type=models.UpdateType.bugfix,
+            builds=builds,
+            user=user,
+            request=models.UpdateRequest.testing,
+            notes="Useful details!",
+            type=models.UpdateType.bugfix,
             date_submitted=datetime(1984, 11, 2, tzinfo=timezone.utc),
-            stable_karma=3, unstable_karma=-3, release=release)
+            stable_karma=3,
+            unstable_karma=-3,
+            release=release,
+        )
     session.add(update)
     return update
 
@@ -159,36 +164,42 @@ def populate(db):
     Args:
         db (sqlalchemy.orm.session.Session): The database session.
     """
-    user = models.User(name='guest', email='guest@bodhi-dev.example.com')
+    user = models.User(name="guest", email="guest@bodhi-dev.example.com")
     db.add(user)
-    anonymous = models.User(name='anonymous')
+    anonymous = models.User(name="anonymous")
     db.add(anonymous)
-    provenpackager = models.Group(name='provenpackager')
+    provenpackager = models.Group(name="provenpackager")
     db.add(provenpackager)
-    packager = models.Group(name='packager')
+    packager = models.Group(name="packager")
     db.add(packager)
-    ci = models.Group(name='fedora-ci-users')
+    ci = models.Group(name="fedora-ci-users")
     db.add(ci)
     user.groups.append(packager)
     release = models.Release(
-        name='F17', long_name='Fedora 17',
-        id_prefix='FEDORA', version='17',
-        dist_tag='f17', stable_tag='f17-updates',
-        testing_tag='f17-updates-testing',
-        candidate_tag='f17-updates-candidate',
-        pending_signing_tag='f17-updates-signing-pending',
-        pending_testing_tag='f17-updates-testing-pending',
-        pending_stable_tag='f17-updates-pending',
-        override_tag='f17-override',
-        branch='f17', state=models.ReleaseState.current,
+        name="F17",
+        long_name="Fedora 17",
+        id_prefix="FEDORA",
+        version="17",
+        dist_tag="f17",
+        stable_tag="f17-updates",
+        testing_tag="f17-updates-testing",
+        candidate_tag="f17-updates-candidate",
+        pending_signing_tag="f17-updates-signing-pending",
+        pending_testing_tag="f17-updates-testing-pending",
+        pending_stable_tag="f17-updates-pending",
+        override_tag="f17-override",
+        branch="f17",
+        state=models.ReleaseState.current,
         create_automatic_updates=True,
-        package_manager=models.PackageManager.unspecified, testing_repository=None)
+        package_manager=models.PackageManager.unspecified,
+        testing_repository=None,
+    )
     db.add(release)
     db.flush()
     # This mock will help us generate a consistent update alias.
-    with mock.patch(target='uuid.uuid4', return_value='wat'):
-        with mock.patch('bodhi.server.models.notifications'):
-            update = create_update(db, ['bodhi-2.0-1.fc17'])
+    with mock.patch(target="uuid.uuid4", return_value="wat"):
+        with mock.patch("bodhi.server.models.notifications"):
+            update = create_update(db, ["bodhi-2.0-1.fc17"])
     update.type = models.UpdateType.bugfix
     update.severity = models.UpdateSeverity.medium
     bug = models.Bug(bug_id=12345)
@@ -255,15 +266,16 @@ class BaseTestCaseMixin:
         self.db = Session()
         self.db.begin_nested()
 
-        buildsys.setup_buildsystem({'buildsystem': 'dev'})
+        buildsys.setup_buildsystem({"buildsystem": "dev"})
 
         if self._populate_db:
             populate(self.db)
 
         bugs.set_bugtracker()
 
-        self._request_sesh = mock.patch('bodhi.server.webapp._complete_database_session',
-                                        webapp._rollback_or_commit)
+        self._request_sesh = mock.patch(
+            "bodhi.server.webapp._complete_database_session", webapp._rollback_or_commit
+        )
         self._request_sesh.start()
 
         # Create the test WSGI app one time. We should avoid creating too many
@@ -275,8 +287,8 @@ class BaseTestCaseMixin:
             # We don't want to call Session.remove() during the unit tests, because that will
             # trigger the restart_savepoint() callback defined above which will remove the data
             # added by populate().
-            with mock.patch('bodhi.server.Session.remove'):
-                _app = TestApp(main({}, testing='guest', session=self.db, **self.app_settings))
+            with mock.patch("bodhi.server.Session.remove"):
+                _app = TestApp(main({}, testing="guest", session=self.db, **self.app_settings))
         self.app = _app
         self.registry = self.app.app.registry
 
@@ -295,10 +307,11 @@ class BaseTestCaseMixin:
         """
         if not app:
             app = self.app
-        return app.get('/csrf', headers={'Accept': 'application/json'}).json_body['csrf_token']
+        return app.get("/csrf", headers={"Accept": "application/json"}).json_body["csrf_token"]
 
-    def get_update(self, builds='bodhi-2.0-1.fc17', from_tag=None,
-                   stable_karma=3, unstable_karma=-3):
+    def get_update(
+        self, builds="bodhi-2.0-1.fc17", from_tag=None, stable_karma=3, unstable_karma=-3
+    ):
         """
         Return a dict describing an update.
 
@@ -311,26 +324,26 @@ class BaseTestCaseMixin:
             unstable_karma (int): The unstable karma threshold to use on the update.
         """
         update = {
-            'bugs': '',
-            'notes': 'this is a test update',
-            'type': 'bugfix',
-            'autokarma': True,
-            'stable_karma': stable_karma,
-            'unstable_karma': unstable_karma,
-            'require_bugs': False,
-            'require_testcases': True,
-            'csrf_token': self.get_csrf_token(),
+            "bugs": "",
+            "notes": "this is a test update",
+            "type": "bugfix",
+            "autokarma": True,
+            "stable_karma": stable_karma,
+            "unstable_karma": unstable_karma,
+            "require_bugs": False,
+            "require_testcases": True,
+            "csrf_token": self.get_csrf_token(),
         }
 
         if builds:
             if isinstance(builds, list):
-                builds = ','.join(builds)
+                builds = ",".join(builds)
             if not isinstance(builds, str):
-                builds = builds.encode('utf-8')
-            update['builds'] = builds
+                builds = builds.encode("utf-8")
+            update["builds"] = builds
 
         if from_tag:
-            update['from_tag'] = from_tag
+            update["from_tag"] = from_tag
 
         return update
 
@@ -343,7 +356,7 @@ class BaseTestCaseMixin:
         Session.remove()
         testing.tearDown()
 
-    def create_update(self, build_nvrs, release_name='F17'):
+    def create_update(self, build_nvrs, release_name="F17"):
         """
         Create and return an Update with the given iterable of build_nvrs.
 
@@ -377,19 +390,24 @@ class BaseTestCaseMixin:
             bodhi.server.models.Release: A new release.
         """
         release = models.Release(
-            name='F{}'.format(version), long_name='Fedora {}'.format(version),
-            id_prefix='FEDORA', version='{}'.format(version.replace('M', '')),
-            dist_tag='f{}'.format(version), stable_tag='f{}-updates'.format(version),
-            testing_tag='f{}-updates-testing'.format(version),
-            candidate_tag='f{}-updates-candidate'.format(version),
-            pending_signing_tag='f{}-updates-testing-signing'.format(version),
-            pending_testing_tag='f{}-updates-testing-pending'.format(version),
-            pending_stable_tag='f{}-updates-pending'.format(version),
-            override_tag='f{}-override'.format(version),
-            branch='f{}'.format(version), state=models.ReleaseState.current,
+            name=f"F{version}",
+            long_name=f"Fedora {version}",
+            id_prefix="FEDORA",
+            version="{}".format(version.replace("M", "")),
+            dist_tag=f"f{version}",
+            stable_tag=f"f{version}-updates",
+            testing_tag=f"f{version}-updates-testing",
+            candidate_tag=f"f{version}-updates-candidate",
+            pending_signing_tag=f"f{version}-updates-testing-signing",
+            pending_testing_tag=f"f{version}-updates-testing-pending",
+            pending_stable_tag=f"f{version}-updates-pending",
+            override_tag=f"f{version}-override",
+            branch=f"f{version}",
+            state=models.ReleaseState.current,
             create_automatic_updates=create_automatic_updates,
             package_manager=models.PackageManager.unspecified,
-            testing_repository=None)
+            testing_repository=None,
+        )
         self.db.add(release)
         models.Release.all_releases.invalidate()
         models.Release.get_tags.invalidate()
@@ -398,10 +416,10 @@ class BaseTestCaseMixin:
 
 
 class BasePyTestCase(BaseTestCaseMixin):
-    """Wraps BaseTestCaseMixin for pytest users.
+    f"""Wraps BaseTestCaseMixin for pytest users.
 
-    {}
-    """.format(BaseTestCaseMixin.__doc__)
+    {BaseTestCaseMixin.__doc__}
+    """
 
     def setup_method(self, method):
         """Set up Bodhi for testing."""
@@ -413,12 +431,12 @@ class BasePyTestCase(BaseTestCaseMixin):
 
 
 class BaseTestCase(unittest.TestCase, BaseTestCaseMixin):
-    """Wrap BaseTestCaseMixin for old-style unittest.TestCase users.
+    f"""Wrap BaseTestCaseMixin for old-style unittest.TestCase users.
 
     Don't derive new tests from this.
 
-    {}
-    """.format(BaseTestCaseMixin.__doc__)
+    {BaseTestCaseMixin.__doc__}
+    """
 
     def setUp(self):
         """Dispatch to BasePyTestCase.setup_method()."""
@@ -429,7 +447,7 @@ class BaseTestCase(unittest.TestCase, BaseTestCaseMixin):
         return self._teardown_method()
 
 
-class DummyUser(object):
+class DummyUser:
     """
     A fake user, suitable for passing to pyramid.testing.DummyRequest.
 
@@ -442,7 +460,7 @@ class DummyUser(object):
         name (str): The name of the user. Defaults to 'guest'.
     """
 
-    def __init__(self, name='guest'):
+    def __init__(self, name="guest"):
         """
         Set the name attribute.
 
@@ -452,7 +470,7 @@ class DummyUser(object):
         self.name = name
 
 
-class TransactionalSessionMaker(object):
+class TransactionalSessionMaker:
     """
     Mimic the behavior of bodhi.server.utils.TransactionalSessionMaker.
 
@@ -486,7 +504,7 @@ class TransactionalSessionMaker(object):
             raise
 
 
-def mkmetadatadir(path, updateinfo=None, comps=None, source=False, compress_type='xz'):
+def mkmetadatadir(path, updateinfo=None, comps=None, source=False, compress_type="xz"):
     """
     Generate package metadata for a given directory.
 
@@ -500,7 +518,7 @@ def mkmetadatadir(path, updateinfo=None, comps=None, source=False, compress_type
         comps (str or None): The comps to insert instead of example.
         source (True): If True, do not insert comps or prestodelta. Defaults to False.
     """
-    compsfile = '''<?xml version="1.0" encoding="UTF-8"?>
+    compsfile = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE comps PUBLIC "-//Red Hat, Inc.//DTD Comps info//EN" "comps.dtd">
 <comps>
   <group>
@@ -511,37 +529,43 @@ def mkmetadatadir(path, updateinfo=None, comps=None, source=False, compress_type
       <packagereq>testpkg</packagereq>
     </packagelist>
   </group>
-</comps>'''
+</comps>"""
 
-    updateinfofile = '''<?xml version="1.0" encoding="UTF-8"?>
+    updateinfofile = """<?xml version="1.0" encoding="UTF-8"?>
 <updates>
   <update>
     <id>someID</id>
     <title>something</title>
   </update>
-</updates>'''
+</updates>"""
 
     if not os.path.isdir(path):
         os.makedirs(path)
     if not comps and not source:
-        comps = os.path.join(path, 'comps.xml')
-        with open(comps, 'w') as f:
+        comps = os.path.join(path, "comps.xml")
+        with open(comps, "w") as f:
             f.write(compsfile)
     if updateinfo is None:
-        updateinfo = os.path.join(path, 'updateinfo.xml')
-        with open(updateinfo, 'w') as f:
+        updateinfo = os.path.join(path, "updateinfo.xml")
+        with open(updateinfo, "w") as f:
             f.write(updateinfofile)
 
-    createrepo_command = ['createrepo_c', '--database', '--quiet', path]
+    createrepo_command = ["createrepo_c", "--database", "--quiet", path]
 
     if compress_type:
-        createrepo_command.insert(1, f'--compress-type={compress_type}')
+        createrepo_command.insert(1, f"--compress-type={compress_type}")
 
     if not source:
-        for arg in ('comps.xml', '--groupfile'):
+        for arg in ("comps.xml", "--groupfile"):
             createrepo_command.insert(1, arg)
 
     subprocess.check_call(createrepo_command)
     if updateinfo is not False:
-        metadata.insert_in_repo(createrepo_c.XZ, os.path.join(path, 'repodata'), 'updateinfo',
-                                'xml', os.path.join(path, 'updateinfo.xml'), True)
+        metadata.insert_in_repo(
+            createrepo_c.XZ,
+            os.path.join(path, "repodata"),
+            "updateinfo",
+            "xml",
+            os.path.join(path, "updateinfo.xml"),
+            True,
+        )

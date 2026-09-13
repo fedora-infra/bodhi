@@ -20,23 +20,22 @@ from bodhi.server import schemas
 
 
 class TestSchemas:
-
     def test_schema_unflattening_for_comments(self):
         expected = {
-            'text': 'this is an update comment',
-            'karma': -1,
-            'karma_critpath': 1,
-            'bug_feedback': [{'bug_id': 1, 'karma': 1}],
-            'testcase_feedback': [{'testcase_name': "wat", 'karma': -1}],
+            "text": "this is an update comment",
+            "karma": -1,
+            "karma_critpath": 1,
+            "bug_feedback": [{"bug_id": 1, "karma": 1}],
+            "testcase_feedback": [{"testcase_name": "wat", "karma": -1}],
         }
         flat_structure = {
-            'text': 'this is an update comment',
-            'karma': -1,
-            'karma_critpath': 1,
-            'bug_feedback.0.bug_id': 1,
-            'bug_feedback.0.karma': 1,
-            'testcase_feedback.0.testcase_name': 'wat',
-            'testcase_feedback.0.karma': -1,
+            "text": "this is an update comment",
+            "karma": -1,
+            "karma_critpath": 1,
+            "bug_feedback.0.bug_id": 1,
+            "bug_feedback.0.karma": 1,
+            "testcase_feedback.0.testcase_name": "wat",
+            "testcase_feedback.0.karma": -1,
         }
         schema = schemas.SaveCommentSchema()
         nested_structure = schema.unflatten(flat_structure)

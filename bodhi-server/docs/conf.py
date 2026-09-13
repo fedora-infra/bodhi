@@ -11,31 +11,45 @@
 import datetime
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = 'bodhi'
-copyright = '2007-{}, Red Hat, Inc.'.format(datetime.datetime.now(datetime.timezone.utc).year)
+project = "bodhi"
+copyright = f"2007-{datetime.datetime.now(datetime.timezone.utc).year}, Red Hat, Inc."
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ["_build"]
 
 # -- Options for manual page output --------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('man_pages/bodhi-push', 'bodhi-push', 'push Fedora updates', ['Randy Barlow'], 1),
-    ('man_pages/initialize_bodhi_db', 'initialize_bodhi_db', 'initialize bodhi\'s database',
-     ['Randy Barlow'], 1),
-    ('man_pages/bodhi-sar', 'bodhi-sar', 'display user data', ['Randy Barlow'], 1),
-    ('man_pages/bodhi-shell', 'bodhi-shell', 'run python shell initialized with Bodhi models',
-     ['Randy Barlow', 'Sebastian Wojciechowski'], 1),
-    ('man_pages/bodhi-untag-branched', 'bodhi-untag-branched',
-     'Remove the pending and testing tags from updates in a branched release.',
-     ['Randy Barlow'], 1),
+    ("man_pages/bodhi-push", "bodhi-push", "push Fedora updates", ["Randy Barlow"], 1),
+    (
+        "man_pages/initialize_bodhi_db",
+        "initialize_bodhi_db",
+        "initialize bodhi's database",
+        ["Randy Barlow"],
+        1,
+    ),
+    ("man_pages/bodhi-sar", "bodhi-sar", "display user data", ["Randy Barlow"], 1),
+    (
+        "man_pages/bodhi-shell",
+        "bodhi-shell",
+        "run python shell initialized with Bodhi models",
+        ["Randy Barlow", "Sebastian Wojciechowski"],
+        1,
+    ),
+    (
+        "man_pages/bodhi-untag-branched",
+        "bodhi-untag-branched",
+        "Remove the pending and testing tags from updates in a branched release.",
+        ["Randy Barlow"],
+        1,
+    ),
 ]

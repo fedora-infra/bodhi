@@ -19,7 +19,6 @@
 """Report progress."""
 
 import asyncio
-import typing
 
 import click
 
@@ -33,12 +32,12 @@ class ProgressReporter:
         jobs: A list of the Jobs to report on.
     """
 
-    def __init__(self, jobs: typing.List['Job']):
+    def __init__(self, jobs: list["Job"]):
         """
         Args:
             jobs: A list of the Jobs to report on.
         """
-        self._jobs = []  # type: typing.List[Job]
+        self._jobs: list[type["Job"]] = []
         for job in jobs:
             self.register_job(job)
 
@@ -68,7 +67,7 @@ class ProgressReporter:
         """Print a status report on all the jobs."""
         for job in self._jobs:
             click.echo(self.get_job_summary(job))
-        click.echo('\n')
+        click.echo("\n")
 
     def get_job_summary(self, job):
         """
@@ -81,26 +80,26 @@ class ProgressReporter:
         Returns:
             str: A summary line suitable to print at the end of the process.
         """
-        blue_start = '\033[0;34m' if job.options["tty"] else ''
-        yellow_start = '\033[0;33m' if job.options["tty"] else ''
-        green_start = '\033[0;32m' if job.options["tty"] else ''
-        red_start = '\033[0;31m' if job.options["tty"] else ''
-        color_end = '\033[0m' if job.options["tty"] else ''
+        blue_start = "\033[0;34m" if job.options["tty"] else ""
+        yellow_start = "\033[0;33m" if job.options["tty"] else ""
+        green_start = "\033[0;32m" if job.options["tty"] else ""
+        red_start = "\033[0;31m" if job.options["tty"] else ""
+        color_end = "\033[0m" if job.options["tty"] else ""
         if not job.complete.is_set():
             if not job.started:
-                return f'{job.label}:  {blue_start}WAITING{color_end}'
+                return f"{job.label}:  {blue_start}WAITING{color_end}"
             else:
-                return f'{job.label}:  {yellow_start}RUNNING{color_end}'
+                return f"{job.label}:  {yellow_start}RUNNING{color_end}"
         if job.cancelled:
             if job._start_time is not None:
-                return f'{job.label}:  {yellow_start}CANCELED{color_end}  [{job.duration}]'
-            return f'{job.label}:  {yellow_start}CANCELED{color_end}'
+                return f"{job.label}:  {yellow_start}CANCELED{color_end}  [{job.duration}]"
+            return f"{job.label}:  {yellow_start}CANCELED{color_end}"
         if job.skipped:
-            return f'{job.label}:  {blue_start}SKIPPED{color_end}'
+            return f"{job.label}:  {blue_start}SKIPPED{color_end}"
         if job.returncode == 0:
-            return f'{job.label}:  {green_start}SUCCESS!{color_end}  [{job.duration}]'
+            return f"{job.label}:  {green_start}SUCCESS!{color_end}  [{job.duration}]"
         else:
             return (
-                f'{job.label}:  {red_start}FAILED{color_end}    [{job.duration}] '
-                f'(exited with code: {job.returncode})'
+                f"{job.label}:  {red_start}FAILED{color_end}    [{job.duration}] "
+                f"(exited with code: {job.returncode})"
             )

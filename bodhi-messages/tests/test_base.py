@@ -20,7 +20,6 @@
 import json
 
 import pytest
-
 from bodhi.messages.schemas import base
 from bodhi.messages.schemas.update import UpdateCompleteStableV1
 
@@ -32,16 +31,16 @@ class TestFedMsgEncoder:
 
     def test_default(self):
         """Assert normal types are encoded the same way as the default encoder."""
-        assert json.dumps('a string') == json.dumps('a string', cls=base.FedMsgEncoder)
+        assert json.dumps("a string") == json.dumps("a string", cls=base.FedMsgEncoder)
 
     def test_default_obj_with_json(self):
         """Assert classes with a ``__json__`` function encode as the return of ``__json__``."""
 
-        class JsonClass(object):
+        class JsonClass:
             def __json__(self):
-                return {'my': 'json'}
+                return {"my": "json"}
 
-        assert {'my': 'json'} == base.FedMsgEncoder().default(JsonClass())
+        assert {"my": "json"} == base.FedMsgEncoder().default(JsonClass())
 
     def test_default_other(self):
         """Fallback to the superclasses' default."""
@@ -50,24 +49,27 @@ class TestFedMsgEncoder:
 
 
 class TestAgentDeprecationWarning:
-    """ Test the agent deprecation warning """
+    """Test the agent deprecation warning"""
+
     expected = {
-        "agent": 'mohanboddu',
-        "agent_name": 'mohanboddu',
+        "agent": "mohanboddu",
+        "agent_name": "mohanboddu",
     }
     msg = UpdateCompleteStableV1(
         body={
             "update": {
                 "alias": "FEDORA-2019-d64d0caab3",
-                "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
-                           {'nvr': 'texworks-0.6.3-1.fc29'}],
+                "builds": [
+                    {"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
+                    {"nvr": "texworks-0.6.3-1.fc29"},
+                ],
                 "title": "fedmsg-0.2.7-2.el6",
-                'release': {"name": "F29"},
-                'request': None,
+                "release": {"name": "F29"},
+                "request": None,
                 "status": "stable",
-                "user": {"name": "eclipseo"}
+                "user": {"name": "eclipseo"},
             },
-            'agent': 'mohanboddu'
+            "agent": "mohanboddu",
         }
     )
     with pytest.warns(DeprecationWarning) as w:

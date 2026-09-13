@@ -22,13 +22,13 @@ Revision ID: ff834fa4f23e
 Revises: d3f8bd499ecd
 Create Date: 2019-11-19 18:24:14.246099
 """
+
 from alembic import op
 from sqlalchemy import Unicode
 
-
 # revision identifiers, used by Alembic.
-revision = 'ff834fa4f23e'
-down_revision = 'd3f8bd499ecd'
+revision = "ff834fa4f23e"
+down_revision = "d3f8bd499ecd"
 
 
 def upgrade():

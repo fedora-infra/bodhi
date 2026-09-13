@@ -68,42 +68,102 @@ def _set_concurrency(ctx, param, value):
 
 
 archive_option = click.option(
-    '--archive/--no-archive', is_flag=True, default=True, callback=_set_context, expose_value=False,
-    help=("Collect *.xml from the tests and put them into test_results/."))
+    "--archive/--no-archive",
+    is_flag=True,
+    default=True,
+    callback=_set_context,
+    expose_value=False,
+    help=("Collect *.xml from the tests and put them into test_results/."),
+)
 archive_path_option = click.option(
-    '--archive-path', envvar='BODHI_CI_ARCHIVE_PATH', callback=_set_context, expose_value=False,
-    help='Define where test results should be placed if -a is used.')
+    "--archive-path",
+    envvar="BODHI_CI_ARCHIVE_PATH",
+    callback=_set_context,
+    expose_value=False,
+    help="Define where test results should be placed if -a is used.",
+)
 concurrency_option = click.option(
-    '--concurrency', '-j', type=int, callback=_set_concurrency, expose_value=False,
-    help=('Number of concurrent processes to run. Integration test runs are separately limited due '
-          'to resource contention. Defaults to the number of cores detected'))
+    "--concurrency",
+    "-j",
+    type=int,
+    callback=_set_concurrency,
+    expose_value=False,
+    help=(
+        "Number of concurrent processes to run. Integration test runs are separately limited due "
+        "to resource contention. Defaults to the number of cores detected"
+    ),
+)
 container_runtime_option = click.option(
-    '--container-runtime', '-c', default='docker', type=click.Choice(['docker', 'podman']),
-    callback=_set_context, expose_value=False,
-    help='Select the container runtime to use. Defaults to docker.')
+    "--container-runtime",
+    "-c",
+    default="docker",
+    type=click.Choice(["docker", "podman"]),
+    callback=_set_context,
+    expose_value=False,
+    help="Select the container runtime to use. Defaults to docker.",
+)
 failfast_option = click.option(
-    '--failfast', '-x', is_flag=True, callback=_set_context, expose_value=False,
-    help='Exit immediately upon error.')
+    "--failfast",
+    "-x",
+    is_flag=True,
+    callback=_set_context,
+    expose_value=False,
+    help="Exit immediately upon error.",
+)
 onlytests_option = click.option(
-    '--only-tests', '-k', metavar="EXPRESSION", callback=_set_context, expose_value=False,
-    help='only run tests which match the given substring expression. '
-         'See the pytest documentation for the -k option for details.')
+    "--only-tests",
+    "-k",
+    metavar="EXPRESSION",
+    callback=_set_context,
+    expose_value=False,
+    help="only run tests which match the given substring expression. "
+    "See the pytest documentation for the -k option for details.",
+)
 no_build_option = click.option(
-    '--no-build', is_flag=True, callback=_set_context, expose_value=False,
-    help='Do not run docker build if the image already exists.')
+    "--no-build",
+    is_flag=True,
+    callback=_set_context,
+    expose_value=False,
+    help="Do not run docker build if the image already exists.",
+)
 releases_option = click.option(
-    '--release', '-r', "releases", default=list(RELEASES), multiple=True,
-    help=("Limit to a particular release. May be specified multiple times. "
-          "Acceptable values: {}".format(', '.join(RELEASES))))
+    "--release",
+    "-r",
+    "releases",
+    default=list(RELEASES),
+    multiple=True,
+    help=(
+        "Limit to a particular release. May be specified multiple times. "
+        "Acceptable values: {}".format(", ".join(RELEASES))
+    ),
+)
 modules_option = click.option(
-    '--module', '-m', 'modules', default=list(MODULES), type=click.Choice(MODULES), multiple=True,
-    show_default=True, callback=_set_context, expose_value=False,
-    help='The Bodhi modules to run CI for (can be specified multiple times).')
-tty_option = click.option('--tty/--no-tty', default=True, help='Allocate a pseudo-TTY.',
-                          callback=_set_context, expose_value=False)
+    "--module",
+    "-m",
+    "modules",
+    default=list(MODULES),
+    type=click.Choice(MODULES),
+    multiple=True,
+    show_default=True,
+    callback=_set_context,
+    expose_value=False,
+    help="The Bodhi modules to run CI for (can be specified multiple times).",
+)
+tty_option = click.option(
+    "--tty/--no-tty",
+    default=True,
+    help="Allocate a pseudo-TTY.",
+    callback=_set_context,
+    expose_value=False,
+)
 z_option = click.option(
-    '-Z', default=False, callback=_set_context, expose_value=False, is_flag=True,
-    help="Use the container runtime's Z flag when bind mounting the .git folder")
+    "-Z",
+    default=False,
+    callback=_set_context,
+    expose_value=False,
+    is_flag=True,
+    help="Use the container runtime's Z flag when bind mounting the .git folder",
+)
 
 
 @click.group()

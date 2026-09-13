@@ -22,20 +22,20 @@ Revision ID: 9991cf10ec50
 Revises: d986618207bc
 Create Date: 2019-02-19 15:54:53.058707
 """
+
 from alembic import op
 
-
 # revision identifiers, used by Alembic.
-revision = '9991cf10ec50'
-down_revision = 'd986618207bc'
+revision = "9991cf10ec50"
+down_revision = "d986618207bc"
 
 
 def upgrade():
     """Set the bugs.private column to be nullable."""
-    op.alter_column('bugs', 'private', nullable=True)
+    op.alter_column("bugs", "private", nullable=True)
 
 
 def downgrade():
     """Set the bugs.private column to be non-nullable."""
     op.execute("""UPDATE bugs SET private = FALSE WHERE private = NULL""")
-    op.alter_column('bugs', 'private', nullable=False)
+    op.alter_column("bugs", "private", nullable=False)

@@ -22,21 +22,23 @@ Revision ID: 8e9dc57e082d
 Revises: 8c4d6aad9b78
 Create Date: 2019-01-06 13:04:35.158562
 """
+
 from alembic import op
 
-
 # revision identifiers, used by Alembic.
-revision = '8e9dc57e082d'
-down_revision = '8c4d6aad9b78'
+revision = "8e9dc57e082d"
+down_revision = "8c4d6aad9b78"
 
 
 def upgrade():
     """Set archived releases updates status to 'obsolete'."""
-    op.execute("UPDATE updates SET status='obsolete' WHERE release_id in \
+    op.execute(
+        "UPDATE updates SET status='obsolete' WHERE release_id in \
                 (SELECT id FROM releases WHERE state='archived') AND status NOT IN \
-                ('unpushed', 'obsolete', 'stable')")
+                ('unpushed', 'obsolete', 'stable')"
+    )
 
 
 def downgrade():
     """Raise an exception explaining that this migration cannot be reversed."""
-    raise NotImplementedError('This migration cannot be reversed.')
+    raise NotImplementedError("This migration cannot be reversed.")
