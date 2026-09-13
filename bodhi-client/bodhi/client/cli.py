@@ -775,6 +775,7 @@ def comment(update: str, text: str, karma: int, url: str, id_provider: str, clie
 @click.option('--updateid', help='Download update(s) by ID(s) (comma-separated list)')
 @click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
 @click.option('--gpg/--no-gpg', help='Download GPG-signed packages', default=True)
+@click.option('--fatal/--no-fatal', help='Fail if any package download fails', default=False)
 @url_option
 @add_options(openid_options)
 @debug_option
@@ -800,11 +801,13 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
     requested_arch = kwargs['arch']
     debuginfo = kwargs['debuginfo']
     gpg = kwargs['gpg']
+    fatal = kwargs['fatal']
 
     del kwargs['staging']
     del kwargs['arch']
     del kwargs['debuginfo']
     del kwargs['gpg']
+    del kwargs['fatal']
     # At this point we need to have reduced the kwargs dict to only our
     # query options (updateid or builds)
     if not any(kwargs.values()):
@@ -895,7 +898,10 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
 
                     if not keyid:
                         click.echo('WARNING: could not find GPG key, packages will be unsigned')
+                # counter for builds which do not match requested arch(es)
+                nonmatchbuilds = 0
                 for build in update['builds']:
+                    click.echo(f"Downloading packages from {build['nvr']}...")
                     args = ['koji', 'download-build']
                     if keyid:
                         args.append(f'--key={keyid}')
@@ -914,9 +920,26 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
                         if 'all' not in requested_arch:
                             args.extend(['--arch=noarch',
                                          f'--arch={requested_arch}', build['nvr']])
-                    ret = subprocess.call(args)
-                    if ret:
-                        click.echo(f"WARNING: download of {build['nvr']} failed!", err=True)
+                    ret = subprocess.run(args, capture_output=True, text=True)
+                    if ret.returncode:
+                        errmsg = f"download of {build['nvr']} failed!\n"
+                        errmsg += ret.stderr
+                        if f"available for {build['nvr']}" in ret.stderr:
+                            # this means this specific build contains no
+                            # packages of any requested arch, it's fine
+                            # unless this affects *all* builds
+                            # full example message for reference:
+                            # No x86_64 or noarch packages available for ppc64-diag-2.7.11-1.fc44
+                            nonmatchbuilds += 1
+                            if nonmatchbuilds >= len(update['builds']):
+                                errmsg = "no builds matched specified arch(es), nothing downloaded!"
+                            else:
+                                continue
+                        # at this point we definitely have a 'real' error
+                        if fatal:
+                            click.echo(f"ERROR: {errmsg}", err=True)
+                            sys.exit(1)
+                        click.echo(f"WARNING: {errmsg}", err=True)
 
 
 def _get_notes(**kwargs) -> str:
