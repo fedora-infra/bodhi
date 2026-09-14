@@ -129,20 +129,32 @@ class UpdateInfoMetadata(object):
         self._from = config.get('bodhi_email')
         if config.get('cache_dir'):
             self.shelf = shelve.open(os.path.join(config.get('cache_dir'), '%s.shelve' % self.tag))
+            shelf_is_open = True
         else:
             # If we have no cache dir, let's at least cache in-memory.
             self.shelf = {}
+            shelf_is_open = False
             close_shelf = False
-        self._fetch_updates()
 
-        self.uinfo = cr.UpdateInfo()
+        try:
+            self._fetch_updates()
 
-        createrepo_c_settings = util.get_createrepo_config(release)
-        self.comp_type = getattr(cr, createrepo_c_settings.uinfo_comp)
-        self.zchunk = createrepo_c_settings.zchunk
+            self.uinfo = cr.UpdateInfo()
 
-        for update in self.updates:
-            self.add_update(update)
+            createrepo_c_settings = util.get_createrepo_config(release)
+            self.comp_type = getattr(cr, createrepo_c_settings.uinfo_comp)
+            self.zchunk = createrepo_c_settings.zchunk
+
+            for update in self.updates:
+                self.add_update(update)
+        except Exception:
+            # Everything between here and the shelve.open() above talks to Koji, and
+            # get_rpm_header() re-raises after three failed attempts. Since __init__ is not going
+            # to return, the caller is never handed a reference it could use to close the shelve
+            # itself, so we have to do it here regardless of close_shelf.
+            if shelf_is_open:
+                self.shelf.close()
+            raise
 
         if close_shelf:
             self.shelf.close()
@@ -296,12 +308,16 @@ class UpdateInfoMetadata(object):
             compose_path (str): The path to the compose where the metadata will be inserted.
         """
         fd, tmp_file_path = tempfile.mkstemp()
-        os.write(fd, self.uinfo.xml_dump().encode('utf-8'))
-        os.close(fd)
-        modifyrepo(self.comp_type,
-                   compose_path,
-                   'updateinfo',
-                   'xml',
-                   tmp_file_path,
-                   self.zchunk)
-        os.unlink(tmp_file_path)
+        try:
+            # xml_dump() can raise, which used to leak the descriptor returned by mkstemp(), and
+            # modifyrepo() can raise, which used to leave the temporary file behind on disk.
+            with os.fdopen(fd, 'wb') as tmp_file:
+                tmp_file.write(self.uinfo.xml_dump().encode('utf-8'))
+            modifyrepo(self.comp_type,
+                       compose_path,
+                       'updateinfo',
+                       'xml',
+                       tmp_file_path,
+                       self.zchunk)
+        finally:
+            os.unlink(tmp_file_path)

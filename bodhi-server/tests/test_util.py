@@ -1156,6 +1156,31 @@ class TestUtils(base.BasePyTestCase):
             util.cmd('false', raise_on_error=True)
         assert str(exc.value) == "f a l s e returned a non-0 exit code: 1"
 
+    def test_cmd_closes_pipes_when_communicate_raises(self):
+        """The child's stdout and stderr should be closed even if communicate() raises.
+
+        Otherwise the Popen object is abandoned with its pipes still open, and CPython parks the
+        still running child in subprocess._active, which holds both descriptors for the lifetime
+        of this process.
+        """
+        processes = []
+
+        class RecordingPopen(subprocess.Popen):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                processes.append(self)
+
+            def communicate(self, *args, **kwargs):
+                raise OSError('The pipes, the pipes are calling.')
+
+        with mock.patch('bodhi.server.util.subprocess.Popen', RecordingPopen):
+            with pytest.raises(OSError):
+                util.cmd(['true'])
+
+        assert len(processes) == 1
+        assert processes[0].stdout.closed
+        assert processes[0].stderr.closed
+
     def test_sorted_updates_async_removal(self):
         u1 = self.create_update(['bodhi-1.0-1.fc24', 'somepkg-2.0-3.fc24'])
         u2 = self.create_update(['somepkg-1.0-3.fc24'])
@@ -1224,8 +1249,10 @@ class TestCMDFunctions:
         """
         Verify behavior without any output and a zero exit code.
         """
-        mock_popen.return_value = mock.Mock()
+        mock_popen.return_value = mock.MagicMock()
         mock_popen_obj = mock_popen.return_value
+        # A real Popen.__enter__() returns self, so the mock should too.
+        mock_popen_obj.__enter__.return_value = mock_popen_obj
         mock_popen_obj.communicate.return_value = (None, None)
         mock_popen_obj.returncode = 0
 
@@ -1246,8 +1273,10 @@ class TestCMDFunctions:
         Ensures proper behavior when there is err output and the exit code isn't 0.
         See https://github.com/fedora-infra/bodhi/issues/1412
         """
-        mock_popen.return_value = mock.Mock()
+        mock_popen.return_value = mock.MagicMock()
         mock_popen_obj = mock_popen.return_value
+        # A real Popen.__enter__() returns self, so the mock should too.
+        mock_popen_obj.__enter__.return_value = mock_popen_obj
         mock_popen_obj.communicate.return_value = ('output', 'error')
         mock_popen_obj.returncode = 1
 
@@ -1271,8 +1300,10 @@ class TestCMDFunctions:
         Ensures proper behavior when there is no err output and the exit code is 0.
         See https://github.com/fedora-infra/bodhi/issues/1412
         """
-        mock_popen.return_value = mock.Mock()
+        mock_popen.return_value = mock.MagicMock()
         mock_popen_obj = mock_popen.return_value
+        # A real Popen.__enter__() returns self, so the mock should too.
+        mock_popen_obj.__enter__.return_value = mock_popen_obj
         mock_popen_obj.communicate.return_value = ('output', None)
         mock_popen_obj.returncode = 0
 
@@ -1293,8 +1324,10 @@ class TestCMDFunctions:
         Ensures proper behavior when there is err output, but the exit code is 0.
         See https://github.com/fedora-infra/bodhi/issues/1412
         """
-        mock_popen.return_value = mock.Mock()
+        mock_popen.return_value = mock.MagicMock()
         mock_popen_obj = mock_popen.return_value
+        # A real Popen.__enter__() returns self, so the mock should too.
+        mock_popen_obj.__enter__.return_value = mock_popen_obj
         mock_popen_obj.communicate.return_value = ('output', 'error')
         mock_popen_obj.returncode = 0
 
