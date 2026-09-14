@@ -52,19 +52,14 @@ class Runner:
 
     def __init__(self, options: dict):
         self.options = options
-        try:
-            _eventloop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
-        except RuntimeError:
-            _eventloop = asyncio.new_event_loop()
-        asyncio.set_event_loop(_eventloop)
-        self.loop = _eventloop
 
     def run_jobs(self, job_names, releases):
         """Get the jobs list and run them."""
         jobs = build_jobs_list(job_names, releases=releases, options=self.options)
-        self._run_jobs(jobs)
+        with asyncio.Runner() as runner:
+            runner.run(self._run_jobs(jobs))
 
-    def _run_jobs(self, jobs: typing.List[Job]):
+    async def _run_jobs(self, jobs: typing.List[Job]):
         """
         Run the given jobs in parallel.
 
@@ -83,27 +78,27 @@ class Runner:
         progress_reporter = ProgressReporter(jobs)
         progress_reporter.print_status()
 
-        processes = [self.loop.create_task(j.run()) for j in jobs]
+        processes = [asyncio.create_task(job.run()) for job in jobs]
 
-        return_when: str = asyncio.ALL_COMPLETED
+        return_when = asyncio.ALL_COMPLETED
         if self.options["failfast"]:
             return_when = asyncio.FIRST_EXCEPTION
-        future = asyncio.wait(processes, return_when=return_when)
-        self.loop.add_signal_handler(signal.SIGINT, functools.partial(_cancel_jobs, jobs))
+        loop = asyncio.get_running_loop()
+        loop.add_signal_handler(signal.SIGINT, functools.partial(_cancel_jobs, jobs))
 
         try:
-            done, pending = self.loop.run_until_complete(future)
+            done, pending = await asyncio.wait(processes, return_when=return_when,)
 
-            results = self._process_results(done, pending)
+            results = await self._process_results(done, pending)
         finally:
-            self._stop_all_jobs()
+            await self._stop_all_jobs()
 
         # Now it's time to print any error output we collected, then exit or return.
         if results['returncode']:
             click.echo(results['error_output'], err=True)
             sys.exit(results['returncode'])
 
-    def _process_results(self, done, pending):
+    async def _process_results(self, done, pending):
         """
         Process the finished and pendings tasks and return error output and an exit code.
 
@@ -127,16 +122,15 @@ class Runner:
         if pending:
             for task in pending:
                 task.cancel()
-            future = asyncio.wait(pending)
-            cancelled, pending = self.loop.run_until_complete(future)
+            cancelled, pending = await asyncio.wait(pending)
             done = done | cancelled
             returncode = -signal.SIGINT
 
         for task in done:
             try:
                 result = task.result()
-            except RuntimeError as e:
-                result = e.result
+            except RuntimeError as error:
+                result = error.result
             if not result.cancelled and result.returncode:
                 if result.output:
                     error_output = f'{error_output}\n{result.output}'
@@ -145,7 +139,7 @@ class Runner:
 
         return {'error_output': error_output, 'returncode': returncode}
 
-    def _stop_all_jobs(self):
+    async def _stop_all_jobs(self):
         """
         Stop all running docker jobs with the CONTAINER_LABEL.
 
@@ -156,7 +150,7 @@ class Runner:
         args = [self.options["container_runtime"], 'ps', f'--filter=label={CONTAINER_LABEL}', '-q']
         processes = subprocess.check_output(args).decode()
         stop_jobs = [
-            self.loop.create_task(StopJob(process).run())
+            asyncio.create_task(StopJob(process).run())
             for process in processes.split('\n')
             if process
         ]
@@ -164,5 +158,4 @@ class Runner:
         # If you give run_until_complete a future with no tasks, you will haz a sad (that's the
         # technical wording for a ValueError).
         if stop_jobs:
-            stop_future = asyncio.wait(stop_jobs)
-            self.loop.run_until_complete(stop_future)
+            await asyncio.wait(stop_jobs)
