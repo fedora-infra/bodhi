@@ -834,7 +834,7 @@ update_bug_table = Table(
 
 build_testcase_table = Table(
     'build_testcase_table', metadata,
-    Column('build_id', Integer, ForeignKey('builds.id')),
+    Column('build_id', Integer, ForeignKey('builds.id'), index=True),
     Column('testcase_id', Integer, ForeignKey('testcases.id')))
 
 
@@ -1496,7 +1496,7 @@ class Build(Base):
 
     # Many-to-many relationships
     testcases = relationship('TestCase', secondary=build_testcase_table,
-                             back_populates='builds', order_by='TestCase.name')
+                             back_populates='builds', order_by='TestCase.name', lazy='selectin')
 
     type = Column(ContentType.db_type(), nullable=False)
     __mapper_args__ = {
