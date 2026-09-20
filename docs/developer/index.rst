@@ -87,6 +87,20 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
 * If you think that the changes you make should be in release notes, add a file in the ``news``
   directory with the format explained below.
 
+Artificial Intelligence note
+----------------------------
+
+Help of AI in writing code is not forbidden, provided that **YOU** fully understand the provided
+code.
+
+In the end, **YOU** will take full responsibility and you must be sure that the code is safe and
+follows the standards of this repository.
+
+Whenever the code you submit is fully or in part written by an AI agent, be transparent on that
+and put an acknowledgement in the commit in the form::
+
+    Assisted-by: <AI-AGENT>
+
 Release Notes
 -------------
 
