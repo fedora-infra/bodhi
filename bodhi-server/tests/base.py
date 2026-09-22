@@ -198,7 +198,7 @@ def populate(db):
     db.flush()
     # This mock will help us generate a consistent update alias.
     with (
-        mock.patch(target="uuid.uuid4", return_value="wat"),
+        mock.patch(target="secrets.token_hex", return_value="a3bbe1a8f2"),
         mock.patch("bodhi.server.models.notifications"),
     ):
         update = create_update(db, ["bodhi-2.0-1.fc17"])
