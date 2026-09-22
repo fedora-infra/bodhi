@@ -21,9 +21,9 @@
 import hashlib
 import json
 import re
+import secrets
 import time
 import typing
-import uuid
 import warnings
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
@@ -2143,8 +2143,7 @@ class Update(Base):
             raise ValueError("You must specify a Release when creating an Update.")
         prefix = kwargs["release"].id_prefix
         year = time.localtime()[0]
-        id = hashlib.sha1(str(uuid.uuid4()).encode("utf-8")).hexdigest()[:10]
-        alias = f"{prefix}-{year}-{id}"
+        alias = f"{prefix}-{year}-{secrets.token_hex(5)}"
         self.alias = alias
         self.release_id = kwargs["release"].id
         # we need this to be set for message publishing to work
