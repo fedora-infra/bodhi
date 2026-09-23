@@ -4094,30 +4094,6 @@ class Update(Base):
             self.autotime = False
             text = config.get("disable_automatic_push_to_stable")
             self.comment(db, text, author="bodhi")
-        # If update with autopush reaches threshold, set request stable
-        if (
-            self.stable_karma
-            and self.karma >= self.stable_karma
-            and self.release.composed_by_bodhi
-            and self.autokarma
-        ):
-            # Updates for releases not "composed by Bodhi" (Rawhide,
-            # ELN...) are pushed stable only by approve_testing.py
-            if config.get("test_gating.required") and not self.test_gating_passed:
-                log.info(
-                    "%s reached stable karma threshold, but does not meet gating requirements",
-                    self.alias,
-                )
-                return
-            if not self.date_approved:
-                self.date_approved = datetime.now(timezone.utc)
-            log.info("Automatically marking %s as stable", self.alias)
-            self.set_request(db, UpdateRequest.stable, agent)
-            notifications.publish(
-                update_schemas.UpdateKarmaThresholdV1.from_dict(
-                    {"update": self, "status": "stable"}
-                )
-            )
 
     @property
     def builds_json(self):
