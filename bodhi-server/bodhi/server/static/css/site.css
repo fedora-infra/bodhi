@@ -75,12 +75,12 @@ pre {
     border: none;
 }
 
-#bodhi-searchbar .typeahead__group > a {
+#bodhi-searchbar .typeahead__group {
     background: none;
     padding: 0 .5rem;
 }
 
-#bodhi-searchbar .typeahead__group > a > h3 {
+#bodhi-searchbar .typeahead__group > h3 {
     margin-top: .75rem;
     margin-bottom: 0;
     text-transform: capitalize;
