@@ -28,9 +28,9 @@ class TestCompleteDatabaseSession:
     def test_cleanup_exception(self):
         """Test for rollback() when there is an Exception."""
         request = mock.Mock()
-        request.exception = IOError('The Internet ran out of cats.')
+        request.exception = OSError("The Internet ran out of cats.")
 
-        with mock.patch('bodhi.server.Session') as Session_mock:
+        with mock.patch("bodhi.server.Session") as Session_mock:
             webapp._complete_database_session(request)
 
         # Since there was an Exception, the session should have been rolled back and closed.
@@ -44,7 +44,7 @@ class TestCompleteDatabaseSession:
         request = mock.Mock()
         request.exception = None
 
-        with mock.patch('bodhi.server.Session') as Session:
+        with mock.patch("bodhi.server.Session") as Session:
             webapp._complete_database_session(request)
 
         # Since there was no Exception, the session should have been committed and closed.
@@ -63,4 +63,5 @@ class TestPrepareRequest:
         webapp._prepare_request(event)
 
         event.request.add_finished_callback.assert_called_once_with(
-            webapp._complete_database_session)
+            webapp._complete_database_session
+        )

@@ -6,13 +6,15 @@ CLIENT_ID = "bodhi-client"
 STG_BASE_URL = "https://bodhi.stg.fedoraproject.org/"
 STG_IDP = "https://id.stg.fedoraproject.org/openidc"
 STG_CLIENT_ID = "bodhi-client"
-SCOPE = " ".join([
-    "openid",
-    "email",
-    "profile",
-    "https://id.fedoraproject.org/scope/groups",
-    "https://id.fedoraproject.org/scope/agreements",
-])
-UPDATE_TYPES = ['security', 'bugfix', 'enhancement', 'newpackage', 'unspecified']
-REQUEST_TYPES = ['testing', 'stable', 'unpush']
-SUGGEST_TYPES = ['unspecified', 'reboot', 'logout']
+SCOPE = " ".join(  # noqa: FLY002
+    [
+        "openid",
+        "email",
+        "profile",
+        "https://id.fedoraproject.org/scope/groups",
+        "https://id.fedoraproject.org/scope/agreements",
+    ]
+)
+UPDATE_TYPES = ["security", "bugfix", "enhancement", "newpackage", "unspecified"]
+REQUEST_TYPES = ["testing", "stable", "unpush"]
+SUGGEST_TYPES = ["unspecified", "reboot", "logout"]

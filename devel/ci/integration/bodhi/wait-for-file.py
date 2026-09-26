@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import time
 import sys
+import time
 from argparse import ArgumentParser
-
 
 DEFAULT_TIMEOUT = 120
 
@@ -21,9 +20,13 @@ def wait_for_file(path: str, dir_not_empty: bool, timeout: int):
         timeout: How long to wait before throwing an exception.
     """
     while timeout > 0:
-        if os.path.exists(path):
-            if not dir_not_empty or (os.path.isdir(path) and len(os.listdir(path)) > 0):
-                break
+        if (
+            os.path.exists(path)
+            and not dir_not_empty
+            or (os.path.isdir(path) and len(os.listdir(path)) > 0)
+        ):
+            break
+
         time.sleep(1)
         timeout = timeout - 1
     if timeout == 0:

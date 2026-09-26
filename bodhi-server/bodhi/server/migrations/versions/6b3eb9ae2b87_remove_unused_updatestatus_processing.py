@@ -22,23 +22,23 @@ Revision ID: 6b3eb9ae2b87
 Revises: aae0d29d49b7
 Create Date: 2019-02-09 12:17:18.444588
 """
+
 from alembic import op
 from sqlalchemy import exc
 
-
 # revision identifiers, used by Alembic.
-revision = '6b3eb9ae2b87'
-down_revision = 'aae0d29d49b7'
+revision = "6b3eb9ae2b87"
+down_revision = "aae0d29d49b7"
 
 
 def upgrade():
     """Remove processing enum from the update_status enum."""
-    op.execute('COMMIT')  # See https://bitbucket.org/zzzeek/alembic/issue/123
+    op.execute("COMMIT")  # See https://bitbucket.org/zzzeek/alembic/issue/123
     try:
         # This will raise a ProgrammingError if the DB server doesn't use BDR.
-        op.execute('SHOW bdr.permit_ddl_locking')
+        op.execute("SHOW bdr.permit_ddl_locking")
         # This server uses BDR, so let's ask for a DDL lock.
-        op.execute('SET LOCAL bdr.permit_ddl_locking = true')
+        op.execute("SET LOCAL bdr.permit_ddl_locking = true")
     except exc.ProgrammingError:
         # This server doesn't use BDR, so no problem.
         pass
@@ -46,21 +46,23 @@ def upgrade():
     op.execute("ALTER TYPE ck_update_status RENAME TO ck_update_status_old")
     op.execute(
         "CREATE TYPE ck_update_status AS ENUM('testing', 'side_tag_active'"
-        ", 'side_tag_expired', 'obsolete', 'stable', 'unpushed', 'pending')")
+        ", 'side_tag_expired', 'obsolete', 'stable', 'unpushed', 'pending')"
+    )
     op.execute(
         "ALTER TABLE updates ALTER COLUMN status TYPE ck_update_status "
-        "USING status::text::ck_update_status")
+        "USING status::text::ck_update_status"
+    )
     op.execute("DROP TYPE ck_update_status_old")
 
 
 def downgrade():
     """Add processing enum to the update_status enum."""
-    op.execute('COMMIT')  # See https://bitbucket.org/zzzeek/alembic/issue/123
+    op.execute("COMMIT")  # See https://bitbucket.org/zzzeek/alembic/issue/123
     try:
         # This will raise a ProgrammingError if the DB server doesn't use BDR.
-        op.execute('SHOW bdr.permit_ddl_locking')
+        op.execute("SHOW bdr.permit_ddl_locking")
         # This server uses BDR, so let's ask for a DDL lock.
-        op.execute('SET LOCAL bdr.permit_ddl_locking = true')
+        op.execute("SET LOCAL bdr.permit_ddl_locking = true")
     except exc.ProgrammingError:
         # This server doesn't use BDR, so no problem.
         pass

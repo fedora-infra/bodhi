@@ -1,18 +1,18 @@
 """A generic OIDC client that can use OOB or not."""
-from functools import partial
-from http.server import BaseHTTPRequestHandler, HTTPServer
+
 import json
 import os
 import re
 import threading
+from functools import partial
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
+import click
+import requests
 from authlib.integrations.base_client.errors import OAuthError
 from authlib.integrations.requests_client import OAuth2Session
 from authlib.oidc.discovery.well_known import get_well_known_url
-from requests_kerberos import HTTPKerberosAuth, OPTIONAL
-import click
-import requests
-
+from requests_kerberos import OPTIONAL, HTTPKerberosAuth
 
 PORT = 45678  # Hopefully nothing else uses this on the host...
 
@@ -46,7 +46,11 @@ class OIDCClient:
     """A client for OpenID Connect authentication."""
 
     def __init__(
-        self, client_id, scope, id_provider, storage,
+        self,
+        client_id,
+        scope,
+        id_provider,
+        storage,
     ):
         """Initialize OIDCClient.
 
@@ -130,7 +134,7 @@ class OIDCClient:
             click.ClickException: When authentication was cancelled.
         """
         authorization_endpoint = self.metadata["authorization_endpoint"]
-        uri, state_ = self.client.create_authorization_url(authorization_endpoint)
+        uri, _state = self.client.create_authorization_url(authorization_endpoint)
         # 1. use_kerberos is True and Kerberos succeeds -> print success
         # 2. use_kerberos is True and Kerberos fails -> browser login follows
         # 3. use_kerberos is False -> browser login only
@@ -141,7 +145,7 @@ class OIDCClient:
                 click.secho(
                     f"Kerberos authentication failed ({e}). "
                     f"Proceeding with browser-based authentication.",
-                    fg="red"
+                    fg="red",
                 )
         if not self.is_logged_in:
             self.login_with_browser(uri)
@@ -199,15 +203,12 @@ class OIDCClient:
             response.raise_for_status()
         except requests.RequestException as e:
             raise OIDCClientError(
-                f"There was an issue while performing Kerberos authentication: {e}")
-        try:
-            value = re.findall(
-                r"<title>\s*(code=[\w\-_=;&]+)\s*</title>", response.text
-            )[0]
-        except IndexError:
-            raise OIDCClientError(
-                f'Unable to locate OIDC code in the response from "{uri}".'
+                f"There was an issue while performing Kerberos authentication: {e}"
             )
+        try:
+            value = re.findall(r"<title>\s*(code=[\w\-_=;&]+)\s*</title>", response.text)[0]
+        except IndexError:
+            raise OIDCClientError(f'Unable to locate OIDC code in the response from "{uri}".')
         self.auth_callback(f"?{value}")
 
     def _run_http_server(self):
@@ -326,7 +327,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         """Handle GET requests."""
         try:
             self.callback(self.path)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             click.echo(e, err=True)
             self.send_error(500, str(e))
         else:

@@ -40,10 +40,14 @@ def greenwave_container(docker_backend, docker_network, rabbitmq_container):
     image = docker_backend.ImageClass(image_name)
     run_opts = [
         "--rm",
-        "--name", "greenwave",
-        "--network", docker_network.get_id(),
-        "--network-alias", "greenwave",
-        "--network-alias", "greenwave.ci",
+        "--name",
+        "greenwave",
+        "--network",
+        docker_network.get_id(),
+        "--network-alias",
+        "greenwave",
+        "--network-alias",
+        "greenwave.ci",
     ]
     container = image.run_via_binary(additional_opts=run_opts)
     container.start()

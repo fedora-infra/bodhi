@@ -23,7 +23,6 @@ import functools
 import signal
 import subprocess
 import sys
-import typing
 
 import click
 
@@ -33,7 +32,7 @@ from .job_registry import build_jobs_list
 from .reporter import ProgressReporter
 
 
-def _cancel_jobs(jobs: typing.List[Job]):
+def _cancel_jobs(jobs: list[Job]):
     """
     Mark the given jobs as cancelled.
 
@@ -64,7 +63,7 @@ class Runner:
         jobs = build_jobs_list(job_names, releases=releases, options=self.options)
         self._run_jobs(jobs)
 
-    def _run_jobs(self, jobs: typing.List[Job]):
+    def _run_jobs(self, jobs: list[Job]):
         """
         Run the given jobs in parallel.
 
@@ -99,9 +98,9 @@ class Runner:
             self._stop_all_jobs()
 
         # Now it's time to print any error output we collected, then exit or return.
-        if results['returncode']:
-            click.echo(results['error_output'], err=True)
-            sys.exit(results['returncode'])
+        if results["returncode"]:
+            click.echo(results["error_output"], err=True)
+            sys.exit(results["returncode"])
 
     def _process_results(self, done, pending):
         """
@@ -122,7 +121,7 @@ class Runner:
                 'returncode': The exit code that bodhi-ci should exit with.
         """
         returncode = 0
-        error_output = ''
+        error_output = ""
 
         if pending:
             for task in pending:
@@ -139,11 +138,11 @@ class Runner:
                 result = e.result
             if not result.cancelled and result.returncode:
                 if result.output:
-                    error_output = f'{error_output}\n{result.output}'
+                    error_output = f"{error_output}\n{result.output}"
                 if not returncode:
                     returncode = result.returncode
 
-        return {'error_output': error_output, 'returncode': returncode}
+        return {"error_output": error_output, "returncode": returncode}
 
     def _stop_all_jobs(self):
         """
@@ -153,11 +152,11 @@ class Runner:
         signals through to the container, so we will do a final cleanup to make sure all the jobs
         we started in this process have been told to stop.
         """
-        args = [self.options["container_runtime"], 'ps', f'--filter=label={CONTAINER_LABEL}', '-q']
+        args = [self.options["container_runtime"], "ps", f"--filter=label={CONTAINER_LABEL}", "-q"]
         processes = subprocess.check_output(args).decode()
         stop_jobs = [
             self.loop.create_task(StopJob(process).run())
-            for process in processes.split('\n')
+            for process in processes.split("\n")
             if process
         ]
 
