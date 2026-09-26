@@ -147,7 +147,14 @@ class Runner:
         we started in this process have been told to stop.
         """
         args = [self.options["container_runtime"], "ps", f"--filter=label={CONTAINER_LABEL}", "-q"]
-        processes = subprocess.check_output(args).decode()
+        proc = await asyncio.create_subprocess_exec(
+            *args,
+            stdout=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await proc.communicate()
+        if proc.returncode != 0:
+            raise subprocess.CalledProcessError(proc.returncode, args, output=stdout)
+        processes = stdout.decode()
         stop_jobs = [
             asyncio.create_task(StopJob(process).run())
             for process in processes.split('\n')
