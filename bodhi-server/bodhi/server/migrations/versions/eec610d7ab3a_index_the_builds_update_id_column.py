@@ -22,19 +22,19 @@ Revision ID: eec610d7ab3a
 Revises: e5b3ddb35df3
 Create Date: 2019-02-20 20:18:02.474734
 """
+
 from alembic import op
 
-
 # revision identifiers, used by Alembic.
-revision = 'eec610d7ab3a'
-down_revision = 'e5b3ddb35df3'
+revision = "eec610d7ab3a"
+down_revision = "e5b3ddb35df3"
 
 
 def upgrade():
     """Add an index on builds.update_id."""
-    op.create_index(op.f('ix_builds_update_id'), 'builds', ['update_id'], unique=False)
+    op.create_index(op.f("ix_builds_update_id"), "builds", ["update_id"], unique=False)
 
 
 def downgrade():
     """Drop the index on builds.update_id."""
-    op.drop_index(op.f('ix_builds_update_id'), table_name='builds')
+    op.drop_index(op.f("ix_builds_update_id"), table_name="builds")

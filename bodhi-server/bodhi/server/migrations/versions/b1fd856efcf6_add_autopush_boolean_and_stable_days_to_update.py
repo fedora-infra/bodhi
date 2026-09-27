@@ -22,29 +22,29 @@ Revision ID: b1fd856efcf6
 Revises: 5703ddfe855d
 Create Date: 2019-03-22 09:51:53.941289
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'b1fd856efcf6'
-down_revision = '5703ddfe855d'
+revision = "b1fd856efcf6"
+down_revision = "5703ddfe855d"
 
 
 def upgrade():
     """Add the autotime boolean and stable_days integer to the updates table."""
     # autotime
-    op.add_column('updates', sa.Column('autotime', sa.Boolean()))
-    op.execute('UPDATE updates SET autotime=FALSE')
-    op.alter_column('updates', 'autotime', existing_type=sa.Boolean(), nullable=False)
+    op.add_column("updates", sa.Column("autotime", sa.Boolean()))
+    op.execute("UPDATE updates SET autotime=FALSE")
+    op.alter_column("updates", "autotime", existing_type=sa.Boolean(), nullable=False)
 
     # stable_days
-    op.add_column('updates', sa.Column('stable_days', sa.Integer()))
-    op.execute('UPDATE updates SET stable_days=0')
-    op.alter_column('updates', 'stable_days', existing_type=sa.Integer(), nullable=False)
+    op.add_column("updates", sa.Column("stable_days", sa.Integer()))
+    op.execute("UPDATE updates SET stable_days=0")
+    op.alter_column("updates", "stable_days", existing_type=sa.Integer(), nullable=False)
 
 
 def downgrade():
     """Drop the autotime boolean and the stable_days integer from the updates table."""
-    op.drop_column('updates', 'autotime')
-    op.drop_column('updates', 'stable_days')
+    op.drop_column("updates", "autotime")
+    op.drop_column("updates", "stable_days")

@@ -16,71 +16,89 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.validators."""
-from unittest import mock
+
 from datetime import date, datetime, timedelta, timezone
+from unittest import mock
 
-from cornice.errors import Errors
-from fedora_messaging import api, testing as fml_testing
 import koji
-from pyramid import exceptions
 import pytest
-
 from bodhi.server import buildsys, models, validators
 from bodhi.server.exceptions import BodhiException
+from cornice.errors import Errors
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
+from pyramid import exceptions
+
 from .base import BasePyTestCase
 
 
 class TestValidateCSRFToken(BasePyTestCase):
     """Test the validate_csrf_token() function."""
+
     def test_invalid_token(self):
         update = models.Update.query.one()
         """colander.Invalid should be raised if the CSRF token doesn't match."""
-        comment = {'update': update.title, 'text': 'invalid CSRF', 'karma': 0,
-                   'csrf_token': 'wrong_token'}
+        comment = {
+            "update": update.title,
+            "text": "invalid CSRF",
+            "karma": 0,
+            "csrf_token": "wrong_token",
+        }
 
-        r = self.app.post_json('/comments/', comment, status=400)
+        r = self.app.post_json("/comments/", comment, status=400)
 
         expected_response = {
-            'status': 'error',
-            'errors': [
-                {'description':
-                 ('CSRF tokens do not match.  This happens if you have the page open for a long '
-                  'time. Please reload the page and try to submit your data again. Make sure to '
-                  'save your input somewhere before reloading. '),
-                 'location': 'body', 'name': 'csrf_token'}]}
+            "status": "error",
+            "errors": [
+                {
+                    "description": (
+                        "CSRF tokens do not match.  This happens if you have the page open for "
+                        "a long time. Please reload the page and try to submit your data again. "
+                        "Make sure to save your input somewhere before reloading. "
+                    ),
+                    "location": "body",
+                    "name": "csrf_token",
+                }
+            ],
+        }
         assert r.json == expected_response
 
     def test_valid_token(self):
         """No exception should be raised with a valid token."""
         update = models.Update.query.one()
         """colander.Invalid should be raised if the CSRF token doesn't match."""
-        comment = {'update': update.alias, 'text': 'invalid CSRF', 'karma': 0,
-                   'csrf_token': self.get_csrf_token()}
+        comment = {
+            "update": update.alias,
+            "text": "invalid CSRF",
+            "karma": 0,
+            "csrf_token": self.get_csrf_token(),
+        }
 
         # This should not cause any error.
         with fml_testing.mock_sends(api.Message):
-            self.app.post_json('/comments/', comment, status=200)
+            self.app.post_json("/comments/", comment, status=200)
 
 
 @mock.patch.dict(
-    'bodhi.server.validators.config',
-    {'admin_packager_groups': ['provenpackager'], 'qa_groups': ['fedora-ci-users']})
+    "bodhi.server.validators.config",
+    {"admin_packager_groups": ["provenpackager"], "qa_groups": ["fedora-ci-users"]},
+)
 class TestValidateQAAcls(BasePyTestCase):
-    """ Test the validate_acls() function."""
+    """Test the validate_acls() function."""
+
     def get_mock_request(self):
         """
         A helper function that creates a mock request.
         :return: a Mock object representing a request
         """
-        update = self.db.query(models.Build).filter_by(
-            nvr='bodhi-2.0-1.fc17').one().update
+        update = self.db.query(models.Build).filter_by(nvr="bodhi-2.0-1.fc17").one().update
         user = self.db.query(models.User).filter_by(id=1).one()
         mock_request = mock.Mock()
         mock_request.identity = user
         mock_request.db = self.db
         mock_request.errors = Errors()
-        mock_request.validated = {'update': update}
-        mock_request.buildinfo = {'bodhi-2.0-1.fc17': {}}
+        mock_request.validated = {"update": update}
+        mock_request.buildinfo = {"bodhi-2.0-1.fc17": {}}
         return mock_request
 
     def test_validate_qa_acls_no_identity(self):
@@ -88,43 +106,44 @@ class TestValidateQAAcls(BasePyTestCase):
         mock_request = self.get_mock_request()
         mock_request.identity = None
         validators.validate_qa_acls(mock_request)
-        error = [{
-            'location': 'cookies',
-            'name': 'user',
-            'description': 'No ACLs for anonymous user'
-        }]
+        error = [
+            {"location": "cookies", "name": "user", "description": "No ACLs for anonymous user"}
+        ]
         assert mock_request.errors == error
 
     def test_validate_qa_acls_archived_release(self):
         """Test validate_acls when trying to edit an Update for an archived Release."""
         mock_request = self.get_mock_request()
-        mock_request.validated['update'].release.state = models.ReleaseState.archived
+        mock_request.validated["update"].release.state = models.ReleaseState.archived
         validators.validate_qa_acls(mock_request)
-        error = [{
-            'location': 'body',
-            'name': 'update',
-            'description': 'cannot edit Update for an archived Release'
-        }]
+        error = [
+            {
+                "location": "body",
+                "name": "update",
+                "description": "cannot edit Update for an archived Release",
+            }
+        ]
         assert mock_request.errors == error
 
     def test_validate_qa_acls_no_update(self):
         """An update in submitted data is mandatory."""
         mock_request = self.get_mock_request()
-        mock_request.validated.pop('update', None)
+        mock_request.validated.pop("update", None)
         validators.validate_qa_acls(mock_request)
-        error = [{
-            'location': 'body',
-            'name': 'update',
-            'description': 'ACL validation mechanism was unable to determine ACLs.'
-        }]
+        error = [
+            {
+                "location": "body",
+                "name": "update",
+                "description": "ACL validation mechanism was unable to determine ACLs.",
+            }
+        ]
         assert mock_request.errors == error
 
-    @mock.patch('bodhi.server.validators.validate_acls')
+    @mock.patch("bodhi.server.validators.validate_acls")
     def test_validate_qa_acls_admin_group(self, mock_acls):
         """A user in admin group has full control."""
         user = self.db.query(models.User).filter_by(id=1).one()
-        group = self.db.query(models.Group).filter_by(
-            name='provenpackager').one()
+        group = self.db.query(models.Group).filter_by(name="provenpackager").one()
         user.groups.pop(0)
         user.groups.append(group)
         self.db.flush()
@@ -133,12 +152,11 @@ class TestValidateQAAcls(BasePyTestCase):
         assert not len(mock_request.errors)
         mock_acls.assert_not_called()
 
-    @mock.patch('bodhi.server.validators.validate_acls')
+    @mock.patch("bodhi.server.validators.validate_acls")
     def test_validate_qa_acls_ci_group(self, mock_acls):
         """A user in CI group can edit."""
         user = self.db.query(models.User).filter_by(id=1).one()
-        group = self.db.query(models.Group).filter_by(
-            name='fedora-ci-users').one()
+        group = self.db.query(models.Group).filter_by(name="fedora-ci-users").one()
         user.groups.pop(0)
         user.groups.append(group)
         self.db.flush()
@@ -147,7 +165,7 @@ class TestValidateQAAcls(BasePyTestCase):
         assert not len(mock_request.errors)
         mock_acls.assert_not_called()
 
-    @mock.patch('bodhi.server.validators.validate_acls')
+    @mock.patch("bodhi.server.validators.validate_acls")
     def test_validate_qa_acls_fallback(self, mock_acls):
         """Any other user falls back to standard ACLs validation."""
         mock_request = self.get_mock_request()
@@ -157,46 +175,55 @@ class TestValidateQAAcls(BasePyTestCase):
 
 
 @mock.patch.dict(
-    'bodhi.server.validators.config',
-    {'pagure_url': 'http://domain.local', 'admin_packager_groups': ['provenpackager'],
-     'mandatory_packager_groups': ['packager']})
+    "bodhi.server.validators.config",
+    {
+        "pagure_url": "http://domain.local",
+        "admin_packager_groups": ["provenpackager"],
+        "mandatory_packager_groups": ["packager"],
+    },
+)
 class TestValidateAcls(BasePyTestCase):
-    """ Test the validate_acls() function.
-    """
+    """Test the validate_acls() function."""
+
     def get_mock_request(self, sidetag=False):
         """
         A helper function that creates a mock request.
         :return: a Mock object representing a request
         """
-        update = self.db.query(models.Build).filter_by(
-            nvr='bodhi-2.0-1.fc17').one().update
+        update = self.db.query(models.Build).filter_by(nvr="bodhi-2.0-1.fc17").one().update
         user = self.db.query(models.User).filter_by(id=1).one()
         mock_request = mock.Mock()
         mock_request.identity = user
         mock_request.db = self.db
         mock_request.errors = Errors()
         if not sidetag:
-            mock_request.validated = {'update': update}
+            mock_request.validated = {"update": update}
         else:
-            mock_request.validated = {'update': update,
-                                      'from_tag': 'f33-build-side-0000',
-                                      'sidetag_owner': user.name}
-        mock_request.buildinfo = {'bodhi-2.0-1.fc17': {}}
+            mock_request.validated = {
+                "update": update,
+                "from_tag": "f33-build-side-0000",
+                "sidetag_owner": user.name,
+            }
+        mock_request.buildinfo = {"bodhi-2.0-1.fc17": {}}
         return mock_request
 
     def test_unable_to_infer_content_type(self):
         """Test the error handler for when Bodhi cannot determine the content type of a build."""
         request = self.get_mock_request()
         request.koji = buildsys.get_session()
-        request.validated = {'builds': [b.nvr for b in models.Build.query.all()]}
+        request.validated = {"builds": [b.nvr for b in models.Build.query.all()]}
 
-        with mock.patch('bodhi.server.validators.ContentType.infer_content_class',
-                        side_effect=IOError('oh no')):
+        with mock.patch(
+            "bodhi.server.validators.ContentType.infer_content_class", side_effect=OSError("oh no")
+        ):
             validators.validate_acls(request)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'builds',
-             'description': "Unable to infer content_type.  'oh no'"}
+            {
+                "location": "body",
+                "name": "builds",
+                "description": "Unable to infer content_type.  'oh no'",
+            }
         ]
         assert request.errors.status == 400
 
@@ -204,52 +231,58 @@ class TestValidateAcls(BasePyTestCase):
         """Test error handler when Bodhi can't determine the content type due to NotImplemented."""
         request = self.get_mock_request()
         request.koji = buildsys.get_session()
-        request.validated = {'builds': [b.nvr for b in models.Build.query.all()]}
+        request.validated = {"builds": [b.nvr for b in models.Build.query.all()]}
 
-        with mock.patch('bodhi.server.validators.ContentType.infer_content_class',
-                        side_effect=NotImplementedError('oh no')):
+        with mock.patch(
+            "bodhi.server.validators.ContentType.infer_content_class",
+            side_effect=NotImplementedError("oh no"),
+        ):
             validators.validate_acls(request)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'builds',
-             'description': "Unable to infer content_type.  'oh no'"}
+            {
+                "location": "body",
+                "name": "builds",
+                "description": "Unable to infer content_type.  'oh no'",
+            }
         ]
         assert request.errors.status == 501
 
-    @pytest.mark.parametrize('access', (False, True))
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['guest'], []))
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    @pytest.mark.parametrize("access", (False, True))
+    @mock.patch(
+        "bodhi.server.models.Package.get_pkg_committers_from_pagure", return_value=(["guest"], [])
+    )
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "pagure"})
     def test_validate_acls_pagure(self, mock_gpcfp, access):
-        """ Test validate_acls when the acl system is Pagure.
-        """
+        """Test validate_acls when the acl system is Pagure."""
         mock_request = self.get_mock_request()
-        with mock.patch('bodhi.server.models.Package.hascommitaccess', return_value=access):
+        with mock.patch("bodhi.server.models.Package.hascommitaccess", return_value=access):
             validators.validate_acls(mock_request)
         if access:
             assert not len(mock_request.errors)
             mock_gpcfp.assert_called_once()
         else:
-            error = [{
-                'location': 'body',
-                'name': 'builds',
-                'description': 'guest does not have commit access to bodhi'
-            }]
+            error = [
+                {
+                    "location": "body",
+                    "name": "builds",
+                    "description": "guest does not have commit access to bodhi",
+                }
+            ]
             assert mock_request.errors == error
             mock_gpcfp.assert_not_called()
 
-    @mock.patch('bodhi.server.models.Package.hascommitaccess',
-                return_value=False)
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['tbrady'], []))
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    @mock.patch("bodhi.server.models.Package.hascommitaccess", return_value=False)
+    @mock.patch(
+        "bodhi.server.models.Package.get_pkg_committers_from_pagure", return_value=(["tbrady"], [])
+    )
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "pagure"})
     def test_validate_acls_admin_group(self, mock_gpcfp, mock_access):
-        """ Test validate_acls when the acl system is Pagure when the user is
+        """Test validate_acls when the acl system is Pagure when the user is
         in and admin group but doesn't have access through Pagure.
         """
         user = self.db.query(models.User).filter_by(id=1).one()
-        group = self.db.query(models.Group).filter_by(
-            name='provenpackager').one()
+        group = self.db.query(models.Group).filter_by(name="provenpackager").one()
         user.groups.pop(0)
         user.groups.append(group)
         self.db.flush()
@@ -259,13 +292,13 @@ class TestValidateAcls(BasePyTestCase):
         mock_access.assert_not_called()
         mock_gpcfp.assert_not_called()
 
-    @mock.patch('bodhi.server.models.Package.hascommitaccess',
-                return_value=False)
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['guest'], []))
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    @mock.patch("bodhi.server.models.Package.hascommitaccess", return_value=False)
+    @mock.patch(
+        "bodhi.server.models.Package.get_pkg_committers_from_pagure", return_value=(["guest"], [])
+    )
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "pagure"})
     def test_validate_acls_pagure_not_a_packager(self, mock_gpcfp, mock_access):
-        """ Test validate_acls when the acl system is Pagure when the user is
+        """Test validate_acls when the acl system is Pagure when the user is
         not a packager but has access through Pagure. This should not be
         allowed.
         """
@@ -274,125 +307,125 @@ class TestValidateAcls(BasePyTestCase):
         self.db.flush()
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
-        error = [{
-            'location': 'body',
-            'name': 'builds',
-            'description': ('guest is not a member of "packager", which is a '
-                            'mandatory packager group')
-        }]
+        error = [
+            {
+                "location": "body",
+                "name": "builds",
+                "description": (
+                    'guest is not a member of "packager", which is a mandatory packager group'
+                ),
+            }
+        ]
         assert mock_request.errors == error
         mock_access.assert_not_called()
         mock_gpcfp.assert_not_called()
 
-    @mock.patch('bodhi.server.models.Package.hascommitaccess',
-                return_value=True)
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    @mock.patch("bodhi.server.models.Package.hascommitaccess", return_value=True)
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "pagure"})
     def test_validate_acls_pagure_runtime_error(self, mock_access):
-        """ Test validate_acls when the acl system is Pagure and a RuntimeError
+        """Test validate_acls when the acl system is Pagure and a RuntimeError
         is raised.
         """
         mock_request = self.get_mock_request()
-        mock_access.side_effect = RuntimeError('some error')
+        mock_access.side_effect = RuntimeError("some error")
         validators.validate_acls(mock_request)
         assert len(mock_request.errors) == 1
-        expected_error = [{
-            'location': 'body',
-            'name': 'builds',
-            'description': 'some error'
-        }]
+        expected_error = [{"location": "body", "name": "builds", "description": "some error"}]
         assert mock_request.errors == expected_error
         mock_access.assert_called_once()
 
-    @mock.patch('bodhi.server.models.Package.hascommitaccess',
-                return_value=True)
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    @mock.patch("bodhi.server.models.Package.hascommitaccess", return_value=True)
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "pagure"})
     def test_validate_acls_pagure_exception(self, mock_access):
-        """ Test validate_acls when the acl system is Pagure and an exception
+        """Test validate_acls when the acl system is Pagure and an exception
         that isn't a RuntimeError is raised.
         """
         mock_request = self.get_mock_request()
-        mock_access.side_effect = ValueError('some error')
+        mock_access.side_effect = ValueError("some error")
         validators.validate_acls(mock_request)
         assert len(mock_request.errors) == 1
-        expected_error = [{
-            'location': 'body',
-            'name': 'builds',
-            'description': ('Unable to access Pagure to check ACLs. Please '
-                            'try again later.')
-        }]
+        expected_error = [
+            {
+                "location": "body",
+                "name": "builds",
+                "description": ("Unable to access Pagure to check ACLs. Please try again later."),
+            }
+        ]
         assert mock_request.errors == expected_error
         mock_access.assert_called_once()
 
-    @mock.patch('bodhi.server.models.Package.hascommitaccess',
-                return_value=True)
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['guest'], []))
-    @mock.patch('bodhi.server.models.log.warning')
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    @mock.patch("bodhi.server.models.Package.hascommitaccess", return_value=True)
+    @mock.patch(
+        "bodhi.server.models.Package.get_pkg_committers_from_pagure", return_value=(["guest"], [])
+    )
+    @mock.patch("bodhi.server.models.log.warning")
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "pagure"})
     def test_validate_acls_pagure_committers_exception(self, warning, mock_gpcfp, mock_access):
-        """ Test validate_acls when an Exception is raised on getting package committers."""
+        """Test validate_acls when an Exception is raised on getting package committers."""
         mock_request = self.get_mock_request()
-        mock_gpcfp.side_effect = ValueError('some error')
+        mock_gpcfp.side_effect = ValueError("some error")
         validators.validate_acls(mock_request)
         assert len(mock_request.errors) == 0
         mock_access.assert_called_once()
         mock_gpcfp.assert_called_once()
-        warning.assert_called_once_with(
-            'Unable to retrieve committers list from Pagure for bodhi.'
-        )
+        warning.assert_called_once_with("Unable to retrieve committers list from Pagure for bodhi.")
 
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
     def test_validate_acls_dummy(self):
-        """ Test validate_acls when the acl system is dummy.
-        """
+        """Test validate_acls when the acl system is dummy."""
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
         assert not len(mock_request.errors)
 
-    @mock.patch.dict('bodhi.server.validators.config',
-                     {'acl_system': 'dummy', 'acl_dummy_committer': 'mattia'})
+    @mock.patch.dict(
+        "bodhi.server.validators.config", {"acl_system": "dummy", "acl_dummy_committer": "mattia"}
+    )
     def test_validate_acls_dummy_committer(self):
-        """ Test validate_acls when the acl system is dummy and a user
+        """Test validate_acls when the acl system is dummy and a user
         adds himself to the committers list by the development.ini file.
         """
         user = self.db.query(models.User).filter_by(id=1).one()
-        user.name = 'mattia'
+        user.name = "mattia"
         self.db.flush()
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
         assert not len(mock_request.errors)
 
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
     def test_validate_acls_archived_release(self):
-        """ Test validate_acls when trying to edit an Update for an archived Release.
-        """
+        """Test validate_acls when trying to edit an Update for an archived Release."""
         mock_request = self.get_mock_request()
-        mock_request.validated['update'].release.state = models.ReleaseState.archived
+        mock_request.validated["update"].release.state = models.ReleaseState.archived
         validators.validate_acls(mock_request)
-        error = [{
-            'location': 'body',
-            'name': 'update',
-            'description': 'cannot edit Update for an archived Release'
-        }]
+        error = [
+            {
+                "location": "body",
+                "name": "update",
+                "description": "cannot edit Update for an archived Release",
+            }
+        ]
         assert mock_request.errors == error
 
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'nonexistent'})
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "nonexistent"})
     def test_validate_acls_invalid_acl_system(self):
-        """ Test validate_acls when the acl system is invalid.
+        """Test validate_acls when the acl system is invalid.
         This will ensure that the user does not have rights.
         """
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
-        error = [{
-            'location': 'body',
-            'name': 'builds',
-            'description': 'guest does not have commit access to bodhi'
-        }]
+        error = [
+            {
+                "location": "body",
+                "name": "builds",
+                "description": "guest does not have commit access to bodhi",
+            }
+        ]
         assert mock_request.errors == error
 
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['guest'], []))
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    @mock.patch(
+        "bodhi.server.models.Package.get_pkg_committers_from_pagure", return_value=(["guest"], [])
+    )
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "pagure"})
     def test_validate_acls_sidetag(self, mock_gpcfp):
         """Validate acls against sidetag ownership."""
         mock_request = self.get_mock_request(sidetag=True)
@@ -400,82 +433,90 @@ class TestValidateAcls(BasePyTestCase):
         assert not len(mock_request.errors)
         mock_gpcfp.assert_not_called()
 
-    @mock.patch('bodhi.server.models.Package.hascommitaccess',
-                return_value=False)
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['guest'], []))
-    @mock.patch('bodhi.server.validators.log.warning')
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    @mock.patch("bodhi.server.models.Package.hascommitaccess", return_value=False)
+    @mock.patch(
+        "bodhi.server.models.Package.get_pkg_committers_from_pagure", return_value=(["guest"], [])
+    )
+    @mock.patch("bodhi.server.validators.log.warning")
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "pagure"})
     def test_validate_acls_sidetag_wrong_owner(self, log_warning, mock_gpcfp, mock_access):
         """Test that a user can submit updates only for sidetags they owns."""
         mock_request = self.get_mock_request(sidetag=True)
-        mock_request.validated['sidetag_owner'] = 'mattia'
+        mock_request.validated["sidetag_owner"] = "mattia"
         validators.validate_acls(mock_request)
-        error = [{
-            'location': 'body',
-            'name': 'builds',
-            'description': 'guest does not have commit access to bodhi'
-        }]
+        error = [
+            {
+                "location": "body",
+                "name": "builds",
+                "description": "guest does not have commit access to bodhi",
+            }
+        ]
         assert mock_request.errors == error
         mock_gpcfp.assert_not_called()
-        log_warning.assert_called_once_with('guest does not own f33-build-side-0000 side-tag')
+        log_warning.assert_called_once_with("guest does not own f33-build-side-0000 side-tag")
 
-    @mock.patch('bodhi.server.models.Package.hascommitaccess',
-                return_value=False)
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['guest'], []))
-    @mock.patch('bodhi.server.validators.log.warning')
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    @mock.patch("bodhi.server.models.Package.hascommitaccess", return_value=False)
+    @mock.patch(
+        "bodhi.server.models.Package.get_pkg_committers_from_pagure", return_value=(["guest"], [])
+    )
+    @mock.patch("bodhi.server.validators.log.warning")
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "pagure"})
     def test_validate_acls_sidetag_owner_not_set(self, log_warning, mock_gpcfp, mock_access):
         """If side-tag update, sidetag_owner must be present in request."""
         mock_request = self.get_mock_request(sidetag=True)
-        mock_request.validated['sidetag_owner'] = None
+        mock_request.validated["sidetag_owner"] = None
         validators.validate_acls(mock_request)
-        error = [{
-            'location': 'body',
-            'name': 'builds',
-            'description': 'guest does not have commit access to bodhi'
-        }]
+        error = [
+            {
+                "location": "body",
+                "name": "builds",
+                "description": "guest does not have commit access to bodhi",
+            }
+        ]
         assert mock_request.errors == error
         mock_gpcfp.assert_not_called()
         log_warning.assert_called_once_with(
-            'Update appear to be from side-tag, but we cannot determine the side-tag owner'
+            "Update appear to be from side-tag, but we cannot determine the side-tag owner"
         )
 
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['guest'], []))
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    @mock.patch(
+        "bodhi.server.models.Package.get_pkg_committers_from_pagure", return_value=(["guest"], [])
+    )
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "pagure"})
     def test_validate_acls_sidetag_update_can_view_edit_page(self, mock_gpcfp):
         """Test that a user can display the edit form."""
         mock_request = self.get_mock_request()
-        mock_request.validated['update'].from_tag = 'f33-build-side-0000'
+        mock_request.validated["update"].from_tag = "f33-build-side-0000"
         validators.validate_acls(mock_request)
         assert not len(mock_request.errors)
         mock_gpcfp.assert_not_called()
 
-    @mock.patch('bodhi.server.models.Package.hascommitaccess',
-                return_value=False)
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['guest'], []))
-    @mock.patch('bodhi.server.validators.log.warning')
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
-    def test_validate_acls_sidetag_update_cannot_view_edit_page(self, log_warning, mock_gpcfp,
-                                                                mock_access):
+    @mock.patch("bodhi.server.models.Package.hascommitaccess", return_value=False)
+    @mock.patch(
+        "bodhi.server.models.Package.get_pkg_committers_from_pagure", return_value=(["guest"], [])
+    )
+    @mock.patch("bodhi.server.validators.log.warning")
+    @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "pagure"})
+    def test_validate_acls_sidetag_update_cannot_view_edit_page(
+        self, log_warning, mock_gpcfp, mock_access
+    ):
         """Test that a user can display the edit form."""
         user = self.db.query(models.User).filter_by(id=2).one()
         self.db.flush()
         mock_request = self.get_mock_request()
-        mock_request.validated['update'].from_tag = 'f33-build-side-0000'
-        mock_request.validated['update'].user = user
+        mock_request.validated["update"].from_tag = "f33-build-side-0000"
+        mock_request.validated["update"].user = user
         validators.validate_acls(mock_request)
-        error = [{
-            'location': 'body',
-            'name': 'builds',
-            'description': 'guest does not have commit access to bodhi'
-        }]
+        error = [
+            {
+                "location": "body",
+                "name": "builds",
+                "description": "guest does not have commit access to bodhi",
+            }
+        ]
         assert mock_request.errors == error
         mock_gpcfp.assert_not_called()
-        log_warning.assert_called_once_with('guest does not own f33-build-side-0000 side-tag')
+        log_warning.assert_called_once_with("guest does not own f33-build-side-0000 side-tag")
 
 
 class TestValidateBugFeedback(BasePyTestCase):
@@ -486,14 +527,19 @@ class TestValidateBugFeedback(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.validated = {'bug_feedback': [{'bug_id': 'invalid'}],
-                             'update': models.Update.query.first()}
+        request.validated = {
+            "bug_feedback": [{"bug_id": "invalid"}],
+            "update": models.Update.query.first(),
+        }
 
         validators.validate_bug_feedback(request)
 
         assert request.errors == [
-            {'location': 'querystring', 'name': 'bug_feedback',
-             'description': 'Invalid bug ids specified: invalid'}
+            {
+                "location": "querystring",
+                "name": "bug_feedback",
+                "description": "Invalid bug ids specified: invalid",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -502,7 +548,7 @@ class TestValidateBugFeedback(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.validated = {'update': models.Update.query.first()}
+        request.validated = {"update": models.Update.query.first()}
 
         validators.validate_bug_feedback(request)
 
@@ -516,13 +562,12 @@ class TestValidateCommentId(BasePyTestCase):
         """An invalid comment_id should add an error to the request."""
         request = mock.Mock()
         request.errors = Errors()
-        request.matchdict = {'id': '42'}
+        request.matchdict = {"id": "42"}
 
         validators.validate_comment_id(request)
 
         assert request.errors == [
-            {'location': 'url', 'name': 'id',
-             'description': 'Invalid comment id'}
+            {"location": "url", "name": "id", "description": "Invalid comment id"}
         ]
         assert request.errors.status == exceptions.HTTPNotFound.code
 
@@ -534,7 +579,7 @@ class TestValidateExpirationDate(BasePyTestCase):
         """An expiration_date of None should be OK."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {'expiration_date': None}
+        request.validated = {"expiration_date": None}
 
         validators.validate_expiration_date(request)
 
@@ -544,14 +589,16 @@ class TestValidateExpirationDate(BasePyTestCase):
         """An expiration_date in the past should make it sad."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {
-            'expiration_date': datetime.now(timezone.utc) - timedelta(days=1)}
+        request.validated = {"expiration_date": datetime.now(timezone.utc) - timedelta(days=1)}
 
         validators.validate_expiration_date(request)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'expiration_date',
-             'description': 'Expiration date in the past'}
+            {
+                "location": "body",
+                "name": "expiration_date",
+                "description": "Expiration date in the past",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -559,7 +606,7 @@ class TestValidateExpirationDate(BasePyTestCase):
         """An expiration_date equal to the limit should pass the test."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {'expiration_date': datetime.now(timezone.utc) + timedelta(days=31)}
+        request.validated = {"expiration_date": datetime.now(timezone.utc) + timedelta(days=31)}
 
         validators.validate_expiration_date(request)
 
@@ -569,14 +616,16 @@ class TestValidateExpirationDate(BasePyTestCase):
         """An expiration_date higher than limit should report an error."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {
-            'expiration_date': datetime.now(timezone.utc) + timedelta(days=32)}
+        request.validated = {"expiration_date": datetime.now(timezone.utc) + timedelta(days=32)}
 
         validators.validate_expiration_date(request)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'expiration_date',
-             'description': 'Expiration date may not be longer than 31'}
+            {
+                "location": "body",
+                "name": "expiration_date",
+                "description": "Expiration date may not be longer than 31",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -588,7 +637,7 @@ class TestValidateEOLDate(BasePyTestCase):
         """An eol None should be OK."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {'eol': None}
+        request.validated = {"eol": None}
 
         validators.validate_eol_date(request)
 
@@ -598,14 +647,17 @@ class TestValidateEOLDate(BasePyTestCase):
         """An expiration_date in the past should make it sad."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {
-            'eol': date(3120, 11, 5)}
+        request.validated = {"eol": date(3120, 11, 5)}
 
         validators.validate_eol_date(request)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'eol',
-             'description': 'End-of-life date may not be in the right range of years (2000-2100)'}
+            {
+                "location": "body",
+                "name": "eol",
+                "description": "End-of-life date may not be in the right range "
+                "of years (2000-2100)",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -613,7 +665,7 @@ class TestValidateEOLDate(BasePyTestCase):
         """A valid eol date should pass the test."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {'eol': date(2022, 11, 5)}
+        request.validated = {"eol": date(2022, 11, 5)}
 
         validators.validate_eol_date(request)
 
@@ -627,7 +679,7 @@ class TestValidateReleaseDate(BasePyTestCase):
         """A released_on None should be OK."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {'eol': None}
+        request.validated = {"eol": None}
 
         validators.validate_release_date(request)
 
@@ -637,14 +689,17 @@ class TestValidateReleaseDate(BasePyTestCase):
         """A released_on date in a far future should make it sad."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {
-            'released_on': date(3120, 11, 5)}
+        request.validated = {"released_on": date(3120, 11, 5)}
 
         validators.validate_release_date(request)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'released_on',
-             'description': 'Released-on date may not be in the right range of years (2000-2100)'}
+            {
+                "location": "body",
+                "name": "released_on",
+                "description": "Released-on date may not be in the right range "
+                "of years (2000-2100)",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -652,7 +707,7 @@ class TestValidateReleaseDate(BasePyTestCase):
         """A valid released_on date should pass the test."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {'released_on': date(2025, 11, 5)}
+        request.validated = {"released_on": date(2025, 11, 5)}
 
         validators.validate_release_date(request)
 
@@ -666,7 +721,7 @@ class TestValidateOverrideNotes(BasePyTestCase):
         """Empty notes should be OK, since we will populate with a default text."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {'notes': None}
+        request.validated = {"notes": None}
 
         validators.validate_override_notes(request)
 
@@ -676,14 +731,16 @@ class TestValidateOverrideNotes(BasePyTestCase):
         """We don't allow too verbose notes."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {
-            'notes': 'n' * 2001}
+        request.validated = {"notes": "n" * 2001}
 
         validators.validate_override_notes(request)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'notes',
-             'description': 'Notes may not contain more than 2000 chars'}
+            {
+                "location": "body",
+                "name": "notes",
+                "description": "Notes may not contain more than 2000 chars",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -696,15 +753,19 @@ class TestValidateOverrideBuild(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.koji.listTags.side_effect = IOError('You forgot to pay your ISP.')
-        request.validated = {'edited': None, 'expired': False}
+        request.koji.listTags.side_effect = OSError("You forgot to pay your ISP.")
+        request.validated = {"edited": None, "expired": False}
 
-        validators._validate_override_build(request, 'does not exist', self.db)
+        validators._validate_override_build(request, "does not exist", self.db)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'nvr',
-             'description': ("Couldn't determine koji tags for does not exist, 'You forgot to pay "
-                             "your ISP.'")}
+            {
+                "location": "body",
+                "name": "nvr",
+                "description": (
+                    "Couldn't determine koji tags for does not exist, 'You forgot to pay your ISP.'"
+                ),
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -713,8 +774,8 @@ class TestValidateOverrideBuild(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.koji.listTags.return_value = [{'name': 'invalid'}]
-        request.validated = {'edited': None, 'expired': False}
+        request.koji.listTags.return_value = [{"name": "invalid"}]
+        request.validated = {"edited": None, "expired": False}
         build = models.Build.query.first()
         build.release = None
         self.db.commit()
@@ -722,8 +783,11 @@ class TestValidateOverrideBuild(BasePyTestCase):
         validators._validate_override_build(request, build.nvr, self.db)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'nvr',
-             'description': "Invalid build.  Couldn't determine release from koji tags."}
+            {
+                "location": "body",
+                "name": "nvr",
+                "description": "Invalid build.  Couldn't determine release from koji tags.",
+            }
         ]
         build = models.Build.query.filter_by(nvr=build.nvr).one()
         assert build.release is None
@@ -735,8 +799,8 @@ class TestValidateOverrideBuild(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.koji.listTags.return_value = [{'name': release.candidate_tag}]
-        request.validated = {'edited': None, 'expired': False}
+        request.koji.listTags.return_value = [{"name": release.candidate_tag}]
+        request.validated = {"edited": None, "expired": False}
         build = models.Build.query.first()
         build.release = None
         self.db.commit()
@@ -747,36 +811,39 @@ class TestValidateOverrideBuild(BasePyTestCase):
         build = models.Build.query.filter_by(nvr=build.nvr).one()
         assert build.release.name == release.name
 
-    @mock.patch('bodhi.server.models.buildsys.get_session')
+    @mock.patch("bodhi.server.models.buildsys.get_session")
     def test_wrong_tag(self, get_session):
         """If a build does not have a candidate or testing tag, the validator should complain."""
         release = models.Release.query.first()
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.koji.listTags.return_value = [{'name': release.stable_tag}]
-        request.validated = {'edited': None, 'expired': False}
+        request.koji.listTags.return_value = [{"name": release.stable_tag}]
+        request.validated = {"edited": None, "expired": False}
         get_session.return_value.listTags.return_value = request.koji.listTags.return_value
         build = models.Build.query.first()
 
         validators._validate_override_build(request, build.nvr, self.db)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'nvr',
-             'description': "Invalid build.  It must be tagged as either candidate or testing."}
+            {
+                "location": "body",
+                "name": "nvr",
+                "description": "Invalid build.  It must be tagged as either candidate or testing.",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
-    @mock.patch('bodhi.server.models.buildsys.get_session')
+    @mock.patch("bodhi.server.models.buildsys.get_session")
     def test_expire(self, get_session):
         """Expiring an override doesn't need candidate or testing tag check."""
         release = models.Release.query.first()
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.koji.listTags.return_value = [{'name': release.stable_tag}]
+        request.koji.listTags.return_value = [{"name": release.stable_tag}]
         build = models.Build.query.first()
-        request.validated = {'edited': build.nvr, 'expired': True}
+        request.validated = {"edited": build.nvr, "expired": True}
         get_session.return_value.listTags.return_value = request.koji.listTags.return_value
 
         validators._validate_override_build(request, build.nvr, self.db)
@@ -788,7 +855,7 @@ class TestValidateOverrideBuild(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.validated = {'edited': None, 'expired': False}
+        request.validated = {"edited": None, "expired": False}
         build = models.Build.query.first()
         build.update.test_gating_status = models.TestGatingStatus.failed
         self.db.commit()
@@ -796,9 +863,12 @@ class TestValidateOverrideBuild(BasePyTestCase):
         validators._validate_override_build(request, build.nvr, self.db)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'nvr',
-             'description': "Cannot create a buildroot override if build's "
-                            "test gating status is failed."}
+            {
+                "location": "body",
+                "name": "nvr",
+                "description": "Cannot create a buildroot override if build's "
+                "test gating status is failed.",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -811,14 +881,13 @@ class TestValidateOverrideBuilds(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.koji.listTags.return_value = [{'name': 'invalid'}]
-        request.validated = {'nvr': 'invalid'}
+        request.koji.listTags.return_value = [{"name": "invalid"}]
+        request.validated = {"nvr": "invalid"}
 
         validators.validate_override_builds(request)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'nvr',
-             'description': 'Invalid build'}
+            {"location": "body", "name": "nvr", "description": "Invalid build"}
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -827,13 +896,16 @@ class TestValidateOverrideBuilds(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.validated = {'nvr': ''}
+        request.validated = {"nvr": ""}
 
         validators.validate_override_builds(request)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'nvr',
-             'description': 'A comma-separated list of NVRs is required.'}
+            {
+                "location": "body",
+                "name": "nvr",
+                "description": "A comma-separated list of NVRs is required.",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -841,8 +913,7 @@ class TestValidateOverrideBuilds(BasePyTestCase):
         """If the request has a build associated to a release with no override tag,
         it should add an error to the request."""
 
-        build = self.db.query(models.Build).filter_by(
-            nvr='bodhi-2.0-1.fc17').first()
+        build = self.db.query(models.Build).filter_by(nvr="bodhi-2.0-1.fc17").first()
 
         build.release.override_tag = ""
         self.db.commit()
@@ -850,14 +921,17 @@ class TestValidateOverrideBuilds(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.validated = {'nvr': 'bodhi-2.0-1.fc17', 'edited': False}
+        request.validated = {"nvr": "bodhi-2.0-1.fc17", "edited": False}
 
         validators.validate_override_builds(request)
 
         assert request.errors == [
-            {'location': 'body', 'name': 'nvr',
-             'description': 'Cannot create a buildroot override because the'
-                            ' release associated with the build does not support it.'}
+            {
+                "location": "body",
+                "name": "nvr",
+                "description": "Cannot create a buildroot override because the"
+                " release associated with the build does not support it.",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -870,13 +944,16 @@ class TestValidateRelease(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.validated = {'release': 'invalid'}
+        request.validated = {"release": "invalid"}
 
         validators.validate_release(request)
 
         assert request.errors == [
-            {'location': 'querystring', 'name': 'release',
-             'description': 'Invalid release specified: invalid'}
+            {
+                "location": "querystring",
+                "name": "release",
+                "description": "Invalid release specified: invalid",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -889,14 +966,19 @@ class TestValidateTestcaseFeedback(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.validated = {'testcase_feedback': [{'testcase_name': 'invalid'}],
-                             'update': models.Update.query.first()}
+        request.validated = {
+            "testcase_feedback": [{"testcase_name": "invalid"}],
+            "update": models.Update.query.first(),
+        }
 
         validators.validate_testcase_feedback(request)
 
         assert request.errors == [
-            {'location': 'querystring', 'name': 'testcase_feedback',
-             'description': 'Invalid testcase names specified: invalid'}
+            {
+                "location": "querystring",
+                "name": "testcase_feedback",
+                "description": "Invalid testcase names specified: invalid",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -905,7 +987,7 @@ class TestValidateTestcaseFeedback(BasePyTestCase):
         request = mock.Mock()
         request.db = self.db
         request.errors = Errors()
-        request.validated = {'update': models.Update.query.first()}
+        request.validated = {"update": models.Update.query.first()}
 
         validators.validate_testcase_feedback(request)
 
@@ -915,28 +997,33 @@ class TestValidateTestcaseFeedback(BasePyTestCase):
         """It should 404 if the update is not found."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {'testcase_feedback': [{'testcase_name': 'invalid'}], 'update': None}
+        request.validated = {"testcase_feedback": [{"testcase_name": "invalid"}], "update": None}
 
         validators.validate_testcase_feedback(request)
 
         assert request.errors == [
-            {'location': 'url', 'name': 'id', 'description': 'Invalid update'}
+            {"location": "url", "name": "id", "description": "Invalid update"}
         ]
         assert request.errors.status == exceptions.HTTPNotFound.code
 
-    @mock.patch('bodhi.server.models.Update.get')
+    @mock.patch("bodhi.server.models.Update.get")
     def test_update_found_but_not_update_object(self, mock_update_get):
         """It should 404 if the update not none, but is not an Update"""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {'testcase_feedback': [{'testcase_name': 'invalid'}],
-                             'update': 'FEDORA-2020-abcdef1231'}
+        request.validated = {
+            "testcase_feedback": [{"testcase_name": "invalid"}],
+            "update": "FEDORA-2020-abcdef1231",
+        }
         mock_update_get.return_value = models.Update.query.first()
         validators.validate_testcase_feedback(request)
 
         assert request.errors == [
-            {'location': 'querystring', 'name': 'testcase_feedback',
-             'description': 'Invalid testcase names specified: invalid'}
+            {
+                "location": "querystring",
+                "name": "testcase_feedback",
+                "description": "Invalid testcase names specified: invalid",
+            }
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
@@ -955,7 +1042,7 @@ class TestValidateBuildsOrFromTagExist(BasePyTestCase):
 
     def test_valid_builds(self):
         """A request with valid builds should pass without errors."""
-        self.request.validated['builds'] = ['foo-1-1.fc30']
+        self.request.validated["builds"] = ["foo-1-1.fc30"]
 
         validators.validate_builds_or_from_tag_exist(self.request)
 
@@ -963,18 +1050,21 @@ class TestValidateBuildsOrFromTagExist(BasePyTestCase):
 
     def test_invalid_builds(self):
         """A request with wrongly typed builds should add an error."""
-        self.request.validated['builds'] = 'foo-1-1.fc30'
+        self.request.validated["builds"] = "foo-1-1.fc30"
 
         validators.validate_builds_or_from_tag_exist(self.request)
 
         assert self.request.errors == [
-            {'location': 'body', 'name': 'builds',
-             'description': 'The builds parameter must be a list.'}
+            {
+                "location": "body",
+                "name": "builds",
+                "description": "The builds parameter must be a list.",
+            }
         ]
 
     def test_valid_from_tag(self):
         """A request with valid from_tag should pass without errors."""
-        self.request.validated['from_tag'] = 'f30-something-side-tag'
+        self.request.validated["from_tag"] = "f30-something-side-tag"
 
         validators.validate_builds_or_from_tag_exist(self.request)
 
@@ -982,13 +1072,16 @@ class TestValidateBuildsOrFromTagExist(BasePyTestCase):
 
     def test_invalid_from_tag(self):
         """A request with wrongly typed from_tag should add an error."""
-        self.request.validated['from_tag'] = ['f30-something-side-tag']
+        self.request.validated["from_tag"] = ["f30-something-side-tag"]
 
         validators.validate_builds_or_from_tag_exist(self.request)
 
         assert self.request.errors == [
-            {'location': 'body', 'name': 'from_tag',
-             'description': 'The from_tag parameter must be a string.'}
+            {
+                "location": "body",
+                "name": "from_tag",
+                "description": "The from_tag parameter must be a string.",
+            }
         ]
 
     def test_missing(self):
@@ -996,30 +1089,39 @@ class TestValidateBuildsOrFromTagExist(BasePyTestCase):
         validators.validate_builds_or_from_tag_exist(self.request)
 
         assert self.request.errors == [
-            {'location': 'body', 'name': 'builds,from_tag',
-             'description': "You must specify either builds or from_tag."}
+            {
+                "location": "body",
+                "name": "builds,from_tag",
+                "description": "You must specify either builds or from_tag.",
+            }
         ]
 
     def test_empty_builds(self):
         """An empty list of builds should add an error to the request."""
-        self.request.validated['builds'] = []
+        self.request.validated["builds"] = []
 
         validators.validate_builds_or_from_tag_exist(self.request)
 
         assert self.request.errors == [
-            {'location': 'body', 'name': 'builds',
-             'description': "You may not specify an empty list of builds."}
+            {
+                "location": "body",
+                "name": "builds",
+                "description": "You may not specify an empty list of builds.",
+            }
         ]
 
     def test_empty_from_tag(self):
         """An empty from_tag should add an error to the request."""
-        self.request.validated['from_tag'] = ""
+        self.request.validated["from_tag"] = ""
 
         validators.validate_builds_or_from_tag_exist(self.request)
 
         assert self.request.errors == [
-            {'location': 'body', 'name': 'from_tag',
-             'description': "You may not specify an empty from_tag."}
+            {
+                "location": "body",
+                "name": "from_tag",
+                "description": "You may not specify an empty from_tag.",
+            }
         ]
 
 
@@ -1038,37 +1140,42 @@ class TestValidateBuildNvrs(BasePyTestCase):
         self.release = models.Release.query.one()
 
     @mock.patch.dict(
-        'bodhi.server.validators.config',
-        {'trusted_build_sources': ['git+https://src.fedoraproject.org/']})
-    @mock.patch('bodhi.server.validators.cache_nvrs')
+        "bodhi.server.validators.config",
+        {"trusted_build_sources": ["git+https://src.fedoraproject.org/"]},
+    )
+    @mock.patch("bodhi.server.validators.cache_nvrs")
     def test_build_from_distgit(self, mock_cache_nvrs):
         """Assert that a build from distgit is allowed."""
-        self.request.validated = {'builds': ['foo-1-1.f17']}
-        self.request.buildinfo = {'foo-1-1.f17': {
-            'nvr': ('foo', '1-1', 'f17'),
-            'info': {'source': 'git+https://src.fedoraproject.org/rpms/foo.git#aabbccdd'}
-        }}
+        self.request.validated = {"builds": ["foo-1-1.f17"]}
+        self.request.buildinfo = {
+            "foo-1-1.f17": {
+                "nvr": ("foo", "1-1", "f17"),
+                "info": {"source": "git+https://src.fedoraproject.org/rpms/foo.git#aabbccdd"},
+            }
+        }
         validators.validate_build_nvrs(self.request)
 
         assert self.request.errors == []
 
     @mock.patch.dict(
-        'bodhi.server.validators.config',
-        {'trusted_build_sources': ['git+https://src.fedoraproject.org/']})
-    @mock.patch('bodhi.server.validators.cache_nvrs')
+        "bodhi.server.validators.config",
+        {"trusted_build_sources": ["git+https://src.fedoraproject.org/"]},
+    )
+    @mock.patch("bodhi.server.validators.cache_nvrs")
     def test_build_from_srpm(self, mock_cache_nvrs):
         """Assert that a build from srpm is not allowed."""
-        self.request.validated = {'builds': ['foo-1-1.f17']}
-        self.request.buildinfo = {'foo-1-1.f17': {
-            'nvr': ('foo', '1-1', 'f17'),
-            'info': {'source': 'foo-1-1.f17.src.rpm'}
-        }}
+        self.request.validated = {"builds": ["foo-1-1.f17"]}
+        self.request.buildinfo = {
+            "foo-1-1.f17": {"nvr": ("foo", "1-1", "f17"), "info": {"source": "foo-1-1.f17.src.rpm"}}
+        }
         validators.validate_build_nvrs(self.request)
 
         assert self.request.errors == [
-            {'location': 'body', 'name': 'builds',
-             'description':
-                 "foo-1-1.f17 was not built from an allowed source"}
+            {
+                "location": "body",
+                "name": "builds",
+                "description": "foo-1-1.f17 was not built from an allowed source",
+            }
         ]
 
 
@@ -1085,30 +1192,35 @@ class TestValidateBuildTags(BasePyTestCase):
 
         self.release = models.Release.query.one()
 
-    @mock.patch('bodhi.server.validators.cache_tags')
+    @mock.patch("bodhi.server.validators.cache_tags")
     def test_build_tag_when_cache_tags_fails(self, mock_cache_tags):
         """Assert that the validator fails if getting tags from koji fails"""
-        self.request.validated = {'builds': ['foo-1-1.f17']}
-        self.request.buildinfo = {'foo-1-1.f17': {
-            'nvr': ('foo', '1-1', 'f17'),
-        }}
+        self.request.validated = {"builds": ["foo-1-1.f17"]}
+        self.request.buildinfo = {
+            "foo-1-1.f17": {
+                "nvr": ("foo", "1-1", "f17"),
+            }
+        }
         self.request.koji = buildsys.get_session()
         mock_cache_tags.return_value = None
         result = validators.validate_build_tags(self.request)
         assert result is None
 
-    @mock.patch('bodhi.server.validators.cache_tags')
+    @mock.patch("bodhi.server.validators.cache_tags")
     def test_build_tag_when_cache_tags_fails_cache_release(self, mock_cache_tags):
         """Assert that the cache_release returns None if getting tags
         with cache_tags from koji fails"""
-        self.request.validated = {'builds': ['foo-1-1.f17']}
-        self.request.buildinfo = {'foo-1-1.f17': {
-            'nvr': ('foo', '1-1', 'f17'), 'tags': ['tag'],
-        }}
+        self.request.validated = {"builds": ["foo-1-1.f17"]}
+        self.request.buildinfo = {
+            "foo-1-1.f17": {
+                "nvr": ("foo", "1-1", "f17"),
+                "tags": ["tag"],
+            }
+        }
         self.request.from_tag_inherited = []
         self.request.koji = buildsys.get_session()
 
-        mock_cache_tags.side_effect = [['tag'], None]
+        mock_cache_tags.side_effect = [["tag"], None]
 
         result = validators.validate_build_tags(self.request)
         assert result is None
@@ -1118,7 +1230,6 @@ class TestValidateFromTag(BasePyTestCase):
     """Test the validate_from_tag() function."""
 
     class UnknownTagDevBuildsys(buildsys.DevBuildsys):
-
         def listTagged(self, tag, *args, **kwargs):
             raise koji.GenericError(f"Invalid tagInfo: {tag!r}")
 
@@ -1126,12 +1237,10 @@ class TestValidateFromTag(BasePyTestCase):
             return None
 
     class NoBuildsDevBuildsys(buildsys.DevBuildsys):
-
         def listTagged(self, tag, *args, **kwargs):
             return []
 
     class UnknownKojiGenericError(buildsys.DevBuildsys):
-
         def listTagged(self, tag, *args, **kwargs):
             raise koji.GenericError("foo")
 
@@ -1139,6 +1248,7 @@ class TestValidateFromTag(BasePyTestCase):
     def mock_get_session_for_class(cls, buildsys_cls):
         def mock_get_session():
             return buildsys_cls()
+
         return mock_get_session
 
     def setup_method(self, method):
@@ -1148,7 +1258,7 @@ class TestValidateFromTag(BasePyTestCase):
         self.request = mock.Mock()
         self.request.db = self.db
         self.request.errors = Errors()
-        self.request.validated = {'from_tag': 'f17-build-side-7777'}
+        self.request.validated = {"from_tag": "f17-build-side-7777"}
 
     # Successful validations
 
@@ -1157,12 +1267,12 @@ class TestValidateFromTag(BasePyTestCase):
 
         This test expects that builds_from_tag is set to False after calling
         the validator."""
-        self.request.validated['builds'] = ['foo-1-1']
+        self.request.validated["builds"] = ["foo-1-1"]
 
         validators.validate_from_tag(self.request)
 
-        assert self.request.validated['builds_from_tag'] is False
-        assert self.request.validated['sidetag_owner'] == 'dudemcpants'
+        assert self.request.validated["builds_from_tag"] is False
+        assert self.request.validated["sidetag_owner"] == "dudemcpants"
         assert not self.request.errors
 
     def test_known_without_builds(self):
@@ -1172,16 +1282,16 @@ class TestValidateFromTag(BasePyTestCase):
         filled after calling the validator."""
         validators.validate_from_tag(self.request)
 
-        assert self.request.validated['builds_from_tag'] is True
-        assert self.request.validated['sidetag_owner'] == 'dudemcpants'
-        assert len(self.request.validated['builds'])
+        assert self.request.validated["builds_from_tag"] is True
+        assert self.request.validated["sidetag_owner"] == "dudemcpants"
+        assert len(self.request.validated["builds"])
         assert not self.request.errors
 
     def test_without_from_tag(self):
         """Test without from_tag supplied.
 
         This makes the validator a no-op."""
-        del self.request.validated['from_tag']
+        del self.request.validated["from_tag"]
         validators.validate_from_tag(self.request)
         assert not self.request.errors
 
@@ -1191,72 +1301,101 @@ class TestValidateFromTag(BasePyTestCase):
         """Test with known from_tag but with empty builds in request.validated.
 
         This test expects an appropriate error to be added."""
-        with mock.patch('bodhi.server.validators.buildsys.get_session',
-                        self.mock_get_session_for_class(self.NoBuildsDevBuildsys)):
+        with mock.patch(
+            "bodhi.server.validators.buildsys.get_session",
+            self.mock_get_session_for_class(self.NoBuildsDevBuildsys),
+        ):
             validators.validate_from_tag(self.request)
 
         assert self.request.errors == [
-            {'location': 'body', 'name': 'from_tag',
-             'description': "The supplied from_tag doesn't contain any builds."}
+            {
+                "location": "body",
+                "name": "from_tag",
+                "description": "The supplied from_tag doesn't contain any builds.",
+            }
         ]
 
     def test_unknown_with_builds(self):
         """An unknown from_tag should add an error to the request.
 
         This test runs with a list of fills in request.validated."""
-        self.request.validated['builds'] = ['foo-1-1']
+        self.request.validated["builds"] = ["foo-1-1"]
 
-        with mock.patch('bodhi.server.validators.buildsys.get_session',
-                        self.mock_get_session_for_class(self.UnknownTagDevBuildsys)):
+        with mock.patch(
+            "bodhi.server.validators.buildsys.get_session",
+            self.mock_get_session_for_class(self.UnknownTagDevBuildsys),
+        ):
             validators.validate_from_tag(self.request)
 
         assert self.request.errors == [
-            {'location': 'body', 'name': 'from_tag',
-             'description': "The supplied from_tag doesn't exist."}
+            {
+                "location": "body",
+                "name": "from_tag",
+                "description": "The supplied from_tag doesn't exist.",
+            }
         ]
 
     def test_unknown_without_builds(self):
         """An unknown from_tag should add an error to the request.
 
         This test runs without a list of fills in request.validated."""
-        with mock.patch('bodhi.server.validators.buildsys.get_session',
-                        self.mock_get_session_for_class(self.UnknownTagDevBuildsys)):
+        with mock.patch(
+            "bodhi.server.validators.buildsys.get_session",
+            self.mock_get_session_for_class(self.UnknownTagDevBuildsys),
+        ):
             validators.validate_from_tag(self.request)
 
         assert self.request.errors == [
-            {'location': 'body', 'name': 'from_tag',
-             'description': "The supplied from_tag doesn't exist."}
+            {
+                "location": "body",
+                "name": "from_tag",
+                "description": "The supplied from_tag doesn't exist.",
+            }
         ]
 
     def test_unknown_koji_genericerror(self):
         """An unknown koji.GenericError should be wrapped."""
-        with pytest.raises(BodhiException) as excinfo:
-            with mock.patch('bodhi.server.validators.buildsys.get_session',
-                            self.mock_get_session_for_class(self.UnknownKojiGenericError)):
-                validators.validate_from_tag(self.request)
+        with (
+            pytest.raises(BodhiException) as excinfo,
+            mock.patch(
+                "bodhi.server.validators.buildsys.get_session",
+                self.mock_get_session_for_class(self.UnknownKojiGenericError),
+            ),
+        ):
+            validators.validate_from_tag(self.request)
 
-        assert (str(excinfo.value)
-                == "Encountered error while requesting tagged builds from Koji: 'foo'")
+        assert (
+            str(excinfo.value)
+            == "Encountered error while requesting tagged builds from Koji: 'foo'"
+        )
 
         # check type of wrapped exception
         assert isinstance(excinfo.value.__cause__, koji.GenericError)
 
     def test_with_unknown_tag(self):
         """Test to prevent users to create an update from a tag that doesn't exist"""
-        with mock.patch('bodhi.server.validators.buildsys.get_session',
-                        self.mock_get_session_for_class(self.UnknownTagDevBuildsys)):
+        with mock.patch(
+            "bodhi.server.validators.buildsys.get_session",
+            self.mock_get_session_for_class(self.UnknownTagDevBuildsys),
+        ):
             validators.validate_from_tag(self.request)
 
         assert self.request.errors == [
-            {'location': 'body', 'name': 'from_tag',
-             'description': "The supplied from_tag doesn't exist."}
+            {
+                "location": "body",
+                "name": "from_tag",
+                "description": "The supplied from_tag doesn't exist.",
+            }
         ]
 
     def test_without_sidetag(self):
         """A tag that is not a sidetag should add an error to the request"""
-        self.request.validated['from_tag'] = 'no-side-tag'
+        self.request.validated["from_tag"] = "no-side-tag"
         validators.validate_from_tag(self.request)
         assert self.request.errors == [
-            {'location': 'body', 'name': 'from_tag',
-             'description': "The supplied tag is not a side tag."}
+            {
+                "location": "body",
+                "name": "from_tag",
+                "description": "The supplied tag is not a side tag.",
+            }
         ]

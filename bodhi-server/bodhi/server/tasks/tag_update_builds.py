@@ -18,15 +18,13 @@
 """Handle tagging builds for an update in Koji."""
 
 import logging
-import typing
 
 from bodhi.server import buildsys
-
 
 log = logging.getLogger(__name__)
 
 
-def main(tag: str, builds: typing.List[str]):
+def main(tag: str, builds: list[str]):
     """Handle tagging builds for an update in Koji.
 
     Args:

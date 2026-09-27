@@ -43,10 +43,14 @@ def rabbitmq_container(
     image = docker_backend.ImageClass(image_name)
     run_opts = [
         "--rm",
-        "--name", "rabbitmq",
-        "--network", docker_network.get_id(),
-        "--network-alias", "rabbitmq",
-        "--network-alias", "rabbitmq.ci",
+        "--name",
+        "rabbitmq",
+        "--network",
+        docker_network.get_id(),
+        "--network-alias",
+        "rabbitmq",
+        "--network-alias",
+        "rabbitmq.ci",
     ]
     container = image.run_via_binary(additional_opts=run_opts)
     container.start()
@@ -68,7 +72,7 @@ def _consumer_is_connected(container: conu.DockerContainer, queue_name: str) -> 
     """Returns whether a consumer is connected to the provided queue name."""
     container.wait_for_port(15672, timeout=30)
     with container.http_client(port="15672") as client:
-        client.auth = ('guest', 'guest')
+        client.auth = ("guest", "guest")
         response = client.get("/api/consumers/")
         consumers = response.json()
     consumed_queues = [c["queue"]["name"] for c in consumers]

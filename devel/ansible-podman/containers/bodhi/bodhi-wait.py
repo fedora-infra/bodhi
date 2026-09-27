@@ -17,13 +17,13 @@ def wait_for_db():
         try:
             engine.connect()
         except OperationalError as e:
-            print('Failed to connect to database: {}'.format(e))
-            print(f'Sleeping for {poll_interval} seconds...')
+            print(f"Failed to connect to database: {e}")
+            print(f"Sleeping for {poll_interval} seconds...")
             time.sleep(poll_interval)
-            print('Retrying...')
+            print("Retrying...")
         else:
             break
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     wait_for_db()

@@ -22,13 +22,13 @@ Revision ID: 1c97477e38ee
 Revises: 325954bac9f7
 Create Date: 2020-06-09 13:03:03.489398
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '1c97477e38ee'
-down_revision = 'f50dc199039c'
+revision = "1c97477e38ee"
+down_revision = "f50dc199039c"
 
 
 def upgrade():

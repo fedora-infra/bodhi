@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """The bodhi CLI client."""
 
-from datetime import datetime
 import functools
 import logging
 import os
@@ -27,20 +26,19 @@ import subprocess
 import sys
 import traceback
 import typing
+from datetime import datetime, timezone
 
 import click
 import munch
 import requests
-
 from bodhi.client import bindings, constants
-
 
 log = logging.getLogger(__name__)
 
 
 def _warn_staging_overrides(
-        ctx: click.core.Context, param: typing.Union[click.core.Option, click.core.Parameter],
-        value: str) -> str:
+    ctx: click.core.Context, param: click.core.Option | click.core.Parameter, value: str
+) -> str:
     """
     Print a warning to stderr if the user has set both the --url/--id-provider and --staging flags.
 
@@ -53,30 +51,34 @@ def _warn_staging_overrides(
     Returns:
         The value of the option being handled.
     """
-    if ctx.params.get('staging', False):
-        if (
-            param.name == 'url' and value != constants.BASE_URL
-            or param.name == 'id_provider' and value != constants.IDP
-        ):
+    if ctx.params.get("staging", False) and (
+        param.name == "url"
+        and value != constants.BASE_URL
+        or param.name == "id_provider"
+        and value != constants.IDP
+    ):
+        click.echo(
+            f"\nWarning: {param.name} and staging flags are "
+            f"both set. {param.name} will be ignored.\n",
+            err=True,
+        )
+    if param.name == "staging" and value:
+        if ctx.params.get("url", constants.BASE_URL) != constants.BASE_URL:
             click.echo(
-                f'\nWarning: {param.name} and staging flags are '
-                f'both set. {param.name} will be ignored.\n',
-                err=True
+                "\nWarning: url and staging flags are both set. url will be ignored.\n", err=True
             )
-    if param.name == 'staging' and value:
-        if ctx.params.get('url', constants.BASE_URL) != constants.BASE_URL:
-            click.echo('\nWarning: url and staging flags are both set. url will be ignored.\n',
-                       err=True)
-        if ctx.params.get('id_provider', constants.IDP) != constants.IDP:
-            click.echo('\nWarning: id_provider and staging flags '
-                       'are both set. id_provider will be ignored.\n',
-                       err=True)
+        if ctx.params.get("id_provider", constants.IDP) != constants.IDP:
+            click.echo(
+                "\nWarning: id_provider and staging flags "
+                "are both set. id_provider will be ignored.\n",
+                err=True,
+            )
     return value
 
 
 def _set_logging_debug(
-        ctx: click.core.Context, param: typing.Union[click.core.Option, click.core.Parameter],
-        value: bool) -> bool:
+    ctx: click.core.Context, param: click.core.Option | click.core.Parameter, value: bool
+) -> bool:
     """
     Set up the logging level to "debug".
 
@@ -99,126 +101,189 @@ def _set_logging_debug(
     return value
 
 
-url_option = click.option('--url', envvar='BODHI_URL', default=constants.BASE_URL,
-                          help=('URL of a Bodhi server. Ignored if --staging is set. Can be set '
-                                'with BODHI_URL environment variable'),
-                          callback=_warn_staging_overrides)
+url_option = click.option(
+    "--url",
+    envvar="BODHI_URL",
+    default=constants.BASE_URL,
+    help=(
+        "URL of a Bodhi server. Ignored if --staging is set. Can be set "
+        "with BODHI_URL environment variable"
+    ),
+    callback=_warn_staging_overrides,
+)
 openid_options = [
     click.option(
-        "--client-id", default=constants.CLIENT_ID,
-        help="The OIDC client_id. Ignored if --staging is set."),
+        "--client-id",
+        default=constants.CLIENT_ID,
+        help="The OIDC client_id. Ignored if --staging is set.",
+    ),
     click.option(
-        "--id-provider", default=constants.IDP, envvar='BODHI_OPENID_PROVIDER',
+        "--id-provider",
+        default=constants.IDP,
+        envvar="BODHI_OPENID_PROVIDER",
         callback=_warn_staging_overrides,
-        help="The OIDC provider. Ignored if --staging is set.")
+        help="The OIDC provider. Ignored if --staging is set.",
+    ),
 ]
 
-staging_option = click.option('--staging', help='Use the staging bodhi instance',
-                              is_flag=True, default=False,
-                              callback=_warn_staging_overrides)
-debug_option = click.option('--debug', help='Display debugging information.',
-                            is_flag=True, default=False,
-                            callback=_set_logging_debug)
+staging_option = click.option(
+    "--staging",
+    help="Use the staging bodhi instance",
+    is_flag=True,
+    default=False,
+    callback=_warn_staging_overrides,
+)
+debug_option = click.option(
+    "--debug",
+    help="Display debugging information.",
+    is_flag=True,
+    default=False,
+    callback=_set_logging_debug,
+)
 
 
 new_edit_options = [
-    click.option('--severity', help='Update severity',
-                 type=click.Choice(['unspecified', 'low', 'medium', 'high', 'urgent']),
-                 is_eager=True),
-    click.option('--notes', help='Update description'),
-    click.option('--notes-file', help='Update description from a file'),
-    click.option('--bugs', help='Comma-separated list of bug numbers', default=''),
-    click.option('--close-bugs/--no-close-bugs', default=None,
-                 help='Automatically close bugs or not'),
-    click.option('--request', help='Requested repository',
-                 type=click.Choice(constants.REQUEST_TYPES)),
-    click.option('--autotime/--no-autotime', default=None,
-                 help='Enable/Disable stable push based on time in testing'),
-    click.option('--stable-days', type=click.INT,
-                 help='Days in testing required to push to stable'),
-    click.option('--autokarma/--no-autokarma', default=None,
-                 help='Enable/Disable karma automatism'),
-    click.option('--stable-karma', type=click.INT, help='Stable karma threshold'),
-    click.option('--unstable-karma', type=click.INT, help='Unstable karma threshold'),
-    click.option('--requirements',
-                 help='Space or comma-separated list of required Taskotron tasks'),
-    click.option('--suggest', help='Post-update user suggestion',
-                 type=click.Choice(constants.SUGGEST_TYPES)),
-    click.option('--display-name',
-                 help='The name of the update', default=None),
-    staging_option]
+    click.option(
+        "--severity",
+        help="Update severity",
+        type=click.Choice(["unspecified", "low", "medium", "high", "urgent"]),
+        is_eager=True,
+    ),
+    click.option("--notes", help="Update description"),
+    click.option("--notes-file", help="Update description from a file"),
+    click.option("--bugs", help="Comma-separated list of bug numbers", default=""),
+    click.option(
+        "--close-bugs/--no-close-bugs", default=None, help="Automatically close bugs or not"
+    ),
+    click.option(
+        "--request", help="Requested repository", type=click.Choice(constants.REQUEST_TYPES)
+    ),
+    click.option(
+        "--autotime/--no-autotime",
+        default=None,
+        help="Enable/Disable stable push based on time in testing",
+    ),
+    click.option(
+        "--stable-days", type=click.INT, help="Days in testing required to push to stable"
+    ),
+    click.option(
+        "--autokarma/--no-autokarma", default=None, help="Enable/Disable karma automatism"
+    ),
+    click.option("--stable-karma", type=click.INT, help="Stable karma threshold"),
+    click.option("--unstable-karma", type=click.INT, help="Unstable karma threshold"),
+    click.option(
+        "--requirements", help="Space or comma-separated list of required Taskotron tasks"
+    ),
+    click.option(
+        "--suggest", help="Post-update user suggestion", type=click.Choice(constants.SUGGEST_TYPES)
+    ),
+    click.option("--display-name", help="The name of the update", default=None),
+    staging_option,
+]
 
 
 # Common options for the overrides save and edit command
 save_edit_options = [
-    click.argument('nvr'),
-    click.option('--duration', default=7, type=click.INT,
-                 help='Number of days the override should exist.'),
-    click.option('--notes', default="No explanation given...",
-                 help='Notes on why this override is in place.'),
-    click.option('--wait/--no-wait', is_flag=True, default=True,
-                 help='Wait and ensure that the override is active'),
+    click.argument("nvr"),
+    click.option(
+        "--duration", default=7, type=click.INT, help="Number of days the override should exist."
+    ),
+    click.option(
+        "--notes", default="No explanation given...", help="Notes on why this override is in place."
+    ),
+    click.option(
+        "--wait/--no-wait",
+        is_flag=True,
+        default=True,
+        help="Wait and ensure that the override is active",
+    ),
     staging_option,
     url_option,
-    debug_option]
+    debug_option,
+]
 
 
 # Basic options for pagination of query result
 pagination_options = [
-    click.option('--rows', default=None,
-                 type=click.IntRange(1, 100, clamp=False),
-                 help='Limits number of results shown per page'),
-    click.option('--page', default=None,
-                 type=click.IntRange(1, clamp=False),
-                 help='Go to page number')]
+    click.option(
+        "--rows",
+        default=None,
+        type=click.IntRange(1, 100, clamp=False),
+        help="Limits number of results shown per page",
+    ),
+    click.option(
+        "--page", default=None, type=click.IntRange(1, clamp=False), help="Go to page number"
+    ),
+]
 
 
 # Common releases options
 release_options = [
-    click.option('--name', help='Release name (eg: F20)'),
-    click.option('--long-name', help='Long release name (eg: "Fedora 20")'),
-    click.option('--id-prefix', help='Release prefix (eg: FEDORA)'),
-    click.option('--version', help='Release version number (eg: 20)'),
-    click.option('--branch', help='Git branch name (eg: f20)'),
-    click.option('--dist-tag', help='Koji dist tag (eg: f20)'),
-    click.option('--stable-tag', help='Koji stable tag (eg: f20-updates)'),
-    click.option('--released-on', type=click.DateTime(formats=["%Y-%m-%d"]),
-                 help='Date of first release (eg. 2016-06-14)'),
-    click.option('--eol', type=click.DateTime(formats=["%Y-%m-%d"]),
-                 help='Release end-of-life date (eg. 2016-06-14)'),
-    click.option('--testing-tag',
-                 help='Koji testing tag (eg: f20-updates-testing)'),
-    click.option('--candidate-tag',
-                 help='Koji candidate tag (eg: f20-updates-candidate)'),
-    click.option('--pending-stable-tag',
-                 help='Koji pending tag (eg: f20-updates-pending)'),
-    click.option('--pending-testing-tag',
-                 help='Koji pending testing tag (eg: f20-updates-pending-testing)'),
-    click.option('--pending-signing-tag',
-                 help='Koji pending signing tag (eg: f20-updates-pending-signing)'),
-    click.option('--override-tag', help='Koji override tag (eg: f20-override)'),
-    click.option('--state', type=click.Choice(['disabled', 'pending', 'current',
-                                               'frozen', 'archived']),
-                 help='The state of the release'),
-    click.option('--mail-template', help='Name of the email template for this release'),
-    click.option('--composed-by-bodhi/--not-composed-by-bodhi', is_flag=True, default=None,
-                 help='The flag that indicates whether the release is composed by Bodhi or not'),
-    click.option('--package-manager', type=click.Choice(['unspecified', 'dnf', 'yum']),
-                 help='The package manager used by this release'),
-    click.option('--testing-repository',
-                 help='The name of the testing repository used to test updates'),
+    click.option("--name", help="Release name (eg: F20)"),
+    click.option("--long-name", help='Long release name (eg: "Fedora 20")'),
+    click.option("--id-prefix", help="Release prefix (eg: FEDORA)"),
+    click.option("--version", help="Release version number (eg: 20)"),
+    click.option("--branch", help="Git branch name (eg: f20)"),
+    click.option("--dist-tag", help="Koji dist tag (eg: f20)"),
+    click.option("--stable-tag", help="Koji stable tag (eg: f20-updates)"),
     click.option(
-        '--create-automatic-updates/--no-create-automatic-updates',
-        help=('Configure for this release, whether or not automatic updates are '
-              'created for builds which are tagged into its Koji candidate tag.'),
-        is_flag=True, default=None),
+        "--released-on",
+        type=click.DateTime(formats=["%Y-%m-%d"]),
+        help="Date of first release (eg. 2016-06-14)",
+    ),
+    click.option(
+        "--eol",
+        type=click.DateTime(formats=["%Y-%m-%d"]),
+        help="Release end-of-life date (eg. 2016-06-14)",
+    ),
+    click.option("--testing-tag", help="Koji testing tag (eg: f20-updates-testing)"),
+    click.option("--candidate-tag", help="Koji candidate tag (eg: f20-updates-candidate)"),
+    click.option("--pending-stable-tag", help="Koji pending tag (eg: f20-updates-pending)"),
+    click.option(
+        "--pending-testing-tag", help="Koji pending testing tag (eg: f20-updates-pending-testing)"
+    ),
+    click.option(
+        "--pending-signing-tag", help="Koji pending signing tag (eg: f20-updates-pending-signing)"
+    ),
+    click.option("--override-tag", help="Koji override tag (eg: f20-override)"),
+    click.option(
+        "--state",
+        type=click.Choice(["disabled", "pending", "current", "frozen", "archived"]),
+        help="The state of the release",
+    ),
+    click.option("--mail-template", help="Name of the email template for this release"),
+    click.option(
+        "--composed-by-bodhi/--not-composed-by-bodhi",
+        is_flag=True,
+        default=None,
+        help="The flag that indicates whether the release is composed by Bodhi or not",
+    ),
+    click.option(
+        "--package-manager",
+        type=click.Choice(["unspecified", "dnf", "yum"]),
+        help="The package manager used by this release",
+    ),
+    click.option(
+        "--testing-repository", help="The name of the testing repository used to test updates"
+    ),
+    click.option(
+        "--create-automatic-updates/--no-create-automatic-updates",
+        help=(
+            "Configure for this release, whether or not automatic updates are "
+            "created for builds which are tagged into its Koji candidate tag."
+        ),
+        is_flag=True,
+        default=None,
+    ),
     staging_option,
     url_option,
-    debug_option]
+    debug_option,
+]
 
 
-def add_options(options: typing.Sequence[typing.Callable[[typing.Callable], typing.Callable]]) \
-        -> typing.Callable[[typing.Callable], typing.Callable]:
+def add_options(
+    options: typing.Sequence[typing.Callable[[typing.Callable], typing.Callable]],
+) -> typing.Callable[[typing.Callable], typing.Callable]:
     """
     Generate a click.option decorator with the given options.
 
@@ -230,6 +295,7 @@ def add_options(options: typing.Sequence[typing.Callable[[typing.Callable], typi
     Returns:
         A decorator that applies the given options to it decorated function.
     """
+
     def _add_options(func: typing.Callable) -> typing.Callable:
         """
         Decorate func with the given click options.
@@ -245,6 +311,7 @@ def add_options(options: typing.Sequence[typing.Callable[[typing.Callable], typi
         for option in reversed(options):
             func = option(func)
         return func
+
     return _add_options
 
 
@@ -259,6 +326,7 @@ def handle_errors(method: typing.Callable) -> typing.Callable:
     Returns:
         A wrapped version of method that handles errors.
     """
+
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
         """
@@ -272,15 +340,20 @@ def handle_errors(method: typing.Callable) -> typing.Callable:
         try:
             method(*args, **kwargs)
         except bindings.BodhiClientException as e:
-            click.secho(str(e), fg='red', bold=True, err=True)
+            click.secho(str(e), fg="red", bold=True, err=True)
             sys.exit(2)
+
     return wrapper
 
 
-def _save_override(url: str, staging: bool, edit: bool = False,
-                   client_id: typing.Optional[str] = None,
-                   id_provider: typing.Optional[str] = None,
-                   **kwargs):
+def _save_override(
+    url: str,
+    staging: bool,
+    edit: bool = False,
+    client_id: str | None = None,
+    id_provider: str | None = None,
+    **kwargs,
+):
     """
     Create or edit a buildroot override.
 
@@ -298,45 +371,48 @@ def _save_override(url: str, staging: bool, edit: bool = False,
         base_url=url, client_id=client_id, id_provider=id_provider, staging=staging
     )
 
-    resp = client.save_override(nvr=kwargs['nvr'],
-                                duration=kwargs['duration'],
-                                notes=kwargs['notes'],
-                                edit=edit,
-                                expired=kwargs.get('expire', False))
+    resp = client.save_override(
+        nvr=kwargs["nvr"],
+        duration=kwargs["duration"],
+        notes=kwargs["notes"],
+        edit=edit,
+        expired=kwargs.get("expire", False),
+    )
 
-    if kwargs.get('expire', False):
+    if kwargs.get("expire", False):
         print_resp(resp, client, override_hint=False)
-    elif kwargs['wait']:
+    elif kwargs["wait"]:
         print_resp(resp, client, override_hint=False)
         command = _generate_wait_repo_command(resp, client)
         if command:
             click.echo(f"\n\nRunning {' '.join(command)}\n")
             ret = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if ret:
-                click.echo(f"WARNING: ensuring active override failed for {resp.build.nvr}",
-                           err=True)
+                click.echo(
+                    f"WARNING: ensuring active override failed for {resp.build.nvr}", err=True
+                )
                 sys.exit(ret)
     else:
         print_resp(resp, client, override_hint=True)
 
 
 @click.group(help="Command line tool for interacting with Bodhi.")
-@click.version_option(message='%(version)s', package_name='bodhi_client')
+@click.version_option(message="%(version)s", package_name="bodhi_client")
 def cli():
     """Create the main CLI group."""
-    pass  # pragma: no cover
+    # pragma: no cover
 
 
 @cli.group(help="Interact with composes.")
 def composes():
     """Create the composes group."""
-    pass  # pragma: no cover
+    # pragma: no cover
 
 
-@composes.command(name='info')
+@composes.command(name="info")
 @handle_errors
-@click.argument('release')
-@click.argument('request')
+@click.argument("release")
+@click.argument("request")
 @url_option
 @add_options(openid_options)
 @debug_option
@@ -344,26 +420,27 @@ def composes():
 def info_compose(release: str, request: str, url: str, id_provider: str, client_id: str, **kwargs):
     """Retrieve and print info about a compose."""
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
 
     try:
         resp = client.get_compose(release, request)
     except bindings.ComposeNotFound as exc:
-        raise click.BadParameter(str(exc), param_hint='RELEASE/REQUEST')
+        raise click.BadParameter(str(exc), param_hint="RELEASE/REQUEST")
 
     print_resp(resp, client)
 
 
-@composes.command(name='list')
+@composes.command(name="list")
 @handle_errors
 @staging_option
-@click.option('-v', '--verbose', is_flag=True, default=False, help='Display more information.')
+@click.option("-v", "--verbose", is_flag=True, default=False, help="Display more information.")
 @url_option
 @add_options(openid_options)
 @debug_option
-def list_composes(url: str, id_provider: str, client_id: str, staging: bool, verbose: bool,
-                  debug: bool):
+def list_composes(
+    url: str, id_provider: str, client_id: str, staging: bool, verbose: bool, debug: bool
+):
     # User docs for the CLI
     """
     List composes.
@@ -387,7 +464,7 @@ def list_composes(url: str, id_provider: str, client_id: str, staging: bool, ver
 @cli.group(help="Interact with updates on Bodhi.")
 def updates():
     """Create the updates group."""
-    pass  # pragma: no cover
+    # pragma: no cover
 
 
 def require_severity_for_security_update(type: str, severity: str):
@@ -398,19 +475,28 @@ def require_severity_for_security_update(type: str, severity: str):
         type: The value of the update 'type'.
         severity: The value of the update 'severity'.
     """
-    if type == 'security' and severity not in ('low', 'medium', 'high', 'urgent'):
-        raise click.BadParameter('must specify severity for a security update',
-                                 param_hint='severity')
+    if type == "security" and severity not in ("low", "medium", "high", "urgent"):
+        raise click.BadParameter(
+            "must specify severity for a security update", param_hint="severity"
+        )
 
 
 @updates.command()
-@click.option('--type', default='bugfix', help='Update type', required=True,
-              type=click.Choice(constants.UPDATE_TYPES))
+@click.option(
+    "--type",
+    default="bugfix",
+    help="Update type",
+    required=True,
+    type=click.Choice(constants.UPDATE_TYPES),
+)
 @add_options(new_edit_options)
-@click.option('--from-tag', is_flag=True,
-              help='Use builds from a Koji tag instead of specifying them individually')
-@click.argument('builds_or_tag')
-@click.option('--file', help='A text file containing all the update details')
+@click.option(
+    "--from-tag",
+    is_flag=True,
+    help="Use builds from a Koji tag instead of specifying them individually",
+)
+@click.argument("builds_or_tag")
+@click.option("--file", help="A text file containing all the update details")
 @handle_errors
 @add_options(openid_options)
 @url_option
@@ -435,52 +521,52 @@ def new(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
         kwargs: Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
 
     # Because some flag options are common between new and edit, we cannot set the default
     # to be a boolean, instead we set them here
-    for option in ['close_bugs', 'autotime', 'autokarma']:
+    for option in ["close_bugs", "autotime", "autokarma"]:
         if kwargs[option] is None:
             kwargs[option] = False
 
     # Because bodhi.server.services.updates expects from_tag to be string
     # copy builds to from_tag and remove builds
-    if kwargs['from_tag']:
-        if len(kwargs['builds_or_tag'].split(' ')) > 1:
+    if kwargs["from_tag"]:
+        if len(kwargs["builds_or_tag"].split(" ")) > 1:
             click.echo("ERROR: Can't specify more than one tag.", err=True)
             sys.exit(1)
-        kwargs['from_tag'] = kwargs.pop('builds_or_tag')
+        kwargs["from_tag"] = kwargs.pop("builds_or_tag")
     else:
-        kwargs['builds'] = kwargs.pop('builds_or_tag')
-        del kwargs['from_tag']
+        kwargs["builds"] = kwargs.pop("builds_or_tag")
+        del kwargs["from_tag"]
 
-    if kwargs['file'] is None:
+    if kwargs["file"] is None:
         updates = [kwargs]
 
     else:
-        updates = client.parse_file(os.path.abspath(kwargs['file']))
+        updates = client.parse_file(os.path.abspath(kwargs["file"]))
 
-    kwargs['notes'] = _get_notes(**kwargs)
+    kwargs["notes"] = _get_notes(**kwargs)
 
-    if not kwargs['notes'] and not kwargs['file']:
+    if not kwargs["notes"] and not kwargs["file"]:
         click.echo("ERROR: must specify at least one of --file, --notes, or --notes-file", err=True)
         sys.exit(1)
 
     for update in updates:
-        require_severity_for_security_update(type=update['type'], severity=update['severity'])
+        require_severity_for_security_update(type=update["type"], severity=update["severity"])
         try:
             resp = client.save(**update)
             print_resp(resp, client)
         except bindings.BodhiClientException as e:
             click.echo(str(e), err=True)
-        except Exception:
+        except Exception:  # noqa: BLE001
             click.echo(traceback.format_exc(), err=True)
 
 
 def _validate_edit_update(
-        ctx: click.core.Context, param: typing.Union[click.core.Option, click.core.Parameter],
-        value: str) -> str:
+    ctx: click.core.Context, param: click.core.Option | click.core.Parameter, value: str
+) -> str:
     """
     Validate the update argument given to the updates edit command.
 
@@ -502,12 +588,11 @@ def _validate_edit_update(
 
 
 @updates.command()
-@click.option('--type', help='Update type',
-              type=click.Choice(constants.UPDATE_TYPES))
-@click.option('--addbuilds', help='Add Comma-separated list of build nvr')
-@click.option('--removebuilds', help='Remove Comma-separated list of build nvr')
+@click.option("--type", help="Update type", type=click.Choice(constants.UPDATE_TYPES))
+@click.option("--addbuilds", help="Add Comma-separated list of build nvr")
+@click.option("--removebuilds", help="Remove Comma-separated list of build nvr")
 @add_options(new_edit_options)
-@click.argument('update', callback=_validate_edit_update)
+@click.argument("update", callback=_validate_edit_update)
 @add_options(openid_options)
 @url_option
 @debug_option
@@ -533,59 +618,60 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
         kwargs: Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
 
-    kwargs['notes'] = _get_notes(**kwargs)
+    kwargs["notes"] = _get_notes(**kwargs)
 
     try:
-        query_param = {'updateid': kwargs['update']}
+        query_param = {"updateid": kwargs["update"]}
         resp = client.query(**query_param)
-        del kwargs['update']
+        del kwargs["update"]
 
         # Convert list of 'Bug' instances in DB to comma separated bug_ids for parsing.
-        former_update = resp['updates'][0].copy()
+        former_update = resp["updates"][0].copy()
 
         # If these flags are not set by the user we load values from the existing update
-        for option in ['close_bugs', 'autotime', 'autokarma']:
+        for option in ["close_bugs", "autotime", "autokarma"]:
             if kwargs[option] is None:
                 kwargs[option] = former_update[option]
 
-        if not kwargs['bugs']:
-            kwargs['bugs'] = ",".join([str(bug['bug_id']) for bug in former_update['bugs']])
-            former_update.pop('bugs', None)
+        if not kwargs["bugs"]:
+            kwargs["bugs"] = ",".join([str(bug["bug_id"]) for bug in former_update["bugs"]])
+            former_update.pop("bugs", None)
 
-        kwargs['builds'] = [b['nvr'] for b in former_update['builds']]
-        kwargs['edited'] = former_update['alias']
+        kwargs["builds"] = [b["nvr"] for b in former_update["builds"]]
+        kwargs["edited"] = former_update["alias"]
 
-        if former_update.get('from_tag', None):
+        if former_update.get("from_tag", None):
             # The build list is always refreshed from the side-tag by validate_from_tag()
-            if (kwargs['addbuilds'] or kwargs['removebuilds']):
+            if kwargs["addbuilds"] or kwargs["removebuilds"]:
                 click.echo(
                     "ERROR: The --addbuilds and --removebuilds options"
-                    " cannot be used with a side-tag update.", err=True
+                    " cannot be used with a side-tag update.",
+                    err=True,
                 )
                 sys.exit(1)
-            kwargs['from_tag'] = former_update['from_tag']
-            del kwargs['builds']
+            kwargs["from_tag"] = former_update["from_tag"]
+            del kwargs["builds"]
         else:
-            if kwargs['addbuilds']:
-                for build in kwargs['addbuilds'].split(','):
-                    if build not in kwargs['builds']:
-                        kwargs['builds'].append(build)
-            if kwargs['removebuilds']:
-                for build in kwargs['removebuilds'].split(','):
-                    kwargs['builds'].remove(build)
+            if kwargs["addbuilds"]:
+                for build in kwargs["addbuilds"].split(","):
+                    if build not in kwargs["builds"]:
+                        kwargs["builds"].append(build)
+            if kwargs["removebuilds"]:
+                for build in kwargs["removebuilds"].split(","):
+                    kwargs["builds"].remove(build)
 
-        del kwargs['addbuilds']
-        del kwargs['removebuilds']
+        del kwargs["addbuilds"]
+        del kwargs["removebuilds"]
 
         # Replace empty fields with former values from database.
-        for field in kwargs:
-            if kwargs[field] in (None, '') and field in former_update:
+        for field, value in kwargs.items():
+            if value in (None, "") and field in former_update:
                 kwargs[field] = former_update[field]
 
-        require_severity_for_security_update(type=kwargs['type'], severity=kwargs['severity'])
+        require_severity_for_security_update(type=kwargs["type"], severity=kwargs["severity"])
 
         resp = client.save(**kwargs)
         print_resp(resp, client)
@@ -594,49 +680,64 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
 
 
 @updates.command()
-@click.option('--updateid', help='Query by update ID (eg: FEDORA-2015-0001)')
-@click.option('--alias', help='Query by alias')
-@click.option('--approved-since', help='Approved after a specific timestamp')
-@click.option('--approved-before', help='Approved before a specific timestamp')
-@click.option('--modified-since', help='Modified after a specific timestamp')
-@click.option('--modified-before', help='Modified before a specific timestamp')
-@click.option('--builds', help='Query updates based on builds')
-@click.option('--bugs', help='A list of bug numbers')
-@click.option('--critpath', is_flag=True, default=None,
-              help='Query only critical path packages')
-@click.option('--packages', help='Query by package name(s)')
-@click.option('--content-type', help='Query updates based on content type',
-              type=click.Choice(['rpm', 'module']))  # And someday, container.
-@click.option('--from-side-tag/--not-from-side-tag', default=None,
-              help='List only updates created from side-tag / not from side-tag')
-@click.option('--gating', help='Filter by gating status', default=None,
-              type=click.Choice(['passed', 'failed', 'ignored', 'waiting',
-                                 'running', 'queued', 'greenwave_failed']))
-@click.option('--pushed', is_flag=True, default=None,
-              help='Filter by pushed updates')
-@click.option('--pushed-since',
-              help='Updates that have been pushed after a certain time')
-@click.option('--pushed-before',
-              help='Updates that have been pushed before a certain time')
-@click.option('--releases', help='Updates for specific releases')
-@click.option('--locked', help='Updates that are in a locked state')
-@click.option('--request', help='Updates with a specific request',
-              type=click.Choice(constants.REQUEST_TYPES))
-@click.option('--severity', help='Updates with a specific severity',
-              type=click.Choice(['unspecified', 'urgent', 'high', 'medium', 'low']))
-@click.option('--submitted-since',
-              help='Updates that have been submitted since a certain time')
-@click.option('--submitted-before',
-              help='Updates that have been submitted before a certain time')
-@click.option('--status', help='Filter by update status',
-              type=click.Choice(['pending', 'testing', 'stable', 'obsolete',
-                                 'unpushed']))
-@click.option('--suggest', help='Filter by post-update user suggestion',
-              type=click.Choice(constants.SUGGEST_TYPES))
-@click.option('--type', default=None, help='Filter by update type',
-              type=click.Choice(constants.UPDATE_TYPES))
-@click.option('--user', help='Updates submitted by a specific user')
-@click.option('--mine', is_flag=True, help='Show only your updates')
+@click.option("--updateid", help="Query by update ID (eg: FEDORA-2015-0001)")
+@click.option("--alias", help="Query by alias")
+@click.option("--approved-since", help="Approved after a specific timestamp")
+@click.option("--approved-before", help="Approved before a specific timestamp")
+@click.option("--modified-since", help="Modified after a specific timestamp")
+@click.option("--modified-before", help="Modified before a specific timestamp")
+@click.option("--builds", help="Query updates based on builds")
+@click.option("--bugs", help="A list of bug numbers")
+@click.option("--critpath", is_flag=True, default=None, help="Query only critical path packages")
+@click.option("--packages", help="Query by package name(s)")
+@click.option(
+    "--content-type",
+    help="Query updates based on content type",
+    type=click.Choice(["rpm", "module"]),
+)  # And someday, container.
+@click.option(
+    "--from-side-tag/--not-from-side-tag",
+    default=None,
+    help="List only updates created from side-tag / not from side-tag",
+)
+@click.option(
+    "--gating",
+    help="Filter by gating status",
+    default=None,
+    type=click.Choice(
+        ["passed", "failed", "ignored", "waiting", "running", "queued", "greenwave_failed"]
+    ),
+)
+@click.option("--pushed", is_flag=True, default=None, help="Filter by pushed updates")
+@click.option("--pushed-since", help="Updates that have been pushed after a certain time")
+@click.option("--pushed-before", help="Updates that have been pushed before a certain time")
+@click.option("--releases", help="Updates for specific releases")
+@click.option("--locked", help="Updates that are in a locked state")
+@click.option(
+    "--request", help="Updates with a specific request", type=click.Choice(constants.REQUEST_TYPES)
+)
+@click.option(
+    "--severity",
+    help="Updates with a specific severity",
+    type=click.Choice(["unspecified", "urgent", "high", "medium", "low"]),
+)
+@click.option("--submitted-since", help="Updates that have been submitted since a certain time")
+@click.option("--submitted-before", help="Updates that have been submitted before a certain time")
+@click.option(
+    "--status",
+    help="Filter by update status",
+    type=click.Choice(["pending", "testing", "stable", "obsolete", "unpushed"]),
+)
+@click.option(
+    "--suggest",
+    help="Filter by post-update user suggestion",
+    type=click.Choice(constants.SUGGEST_TYPES),
+)
+@click.option(
+    "--type", default=None, help="Filter by update type", type=click.Choice(constants.UPDATE_TYPES)
+)
+@click.option("--user", help="Updates submitted by a specific user")
+@click.option("--mine", is_flag=True, help="Show only your updates")
 @add_options(openid_options)
 @staging_option
 @url_option
@@ -644,8 +745,13 @@ def edit(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
 @add_options(pagination_options)
 @handle_errors
 def query(
-    url: str, id_provider: str, client_id: str, debug: bool, mine: bool = False,
-    rows: typing.Optional[int] = None, **kwargs
+    url: str,
+    id_provider: str,
+    client_id: str,
+    debug: bool,
+    mine: bool = False,
+    rows: int | None = None,
+    **kwargs,
 ):
     # User Docs that show in the --help
     """Query updates on Bodhi.
@@ -668,21 +774,18 @@ def query(
         kwargs: Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(
-        base_url=url,
-        client_id=client_id,
-        id_provider=id_provider,
-        staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
     if mine:
         client.ensure_auth()
-        kwargs['user'] = client.username
+        kwargs["user"] = client.username
     resp = client.query(rows_per_page=rows, **kwargs)
     print_resp(resp, client)
 
 
 @updates.command()
-@click.argument('update')
-@click.argument('state')
+@click.argument("update")
+@click.argument("state")
 @add_options(openid_options)
 @staging_option
 @url_option
@@ -713,28 +816,29 @@ def request(update: str, state: str, url: str, id_provider: str, client_id: str,
         kwargs: Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
 
     try:
         resp = client.request(update, state)
     except bindings.UpdateNotFound as exc:
-        raise click.BadParameter(str(exc), param_hint='UPDATE')
+        raise click.BadParameter(str(exc), param_hint="UPDATE")
 
     print_resp(resp, client)
 
 
 @updates.command()
-@click.argument('update')
-@click.argument('text')
-@click.option('--karma', default=0, type=click.INT, help='The karma for this comment (+1/0/-1)')
+@click.argument("update")
+@click.argument("text")
+@click.option("--karma", default=0, type=click.INT, help="The karma for this comment (+1/0/-1)")
 @add_options(openid_options)
 @staging_option
 @url_option
 @debug_option
 @handle_errors
-def comment(update: str, text: str, karma: int, url: str, id_provider: str, client_id: str,
-            **kwargs):
+def comment(
+    update: str, text: str, karma: int, url: str, id_provider: str, client_id: str, **kwargs
+):
     # User Docs that show in the --help
     """
     Comment on an update.
@@ -759,7 +863,7 @@ def comment(update: str, text: str, karma: int, url: str, id_provider: str, clie
     """
 
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
     resp = client.comment(update, text, karma)
     print_resp(resp, client)
@@ -767,14 +871,16 @@ def comment(update: str, text: str, karma: int, url: str, id_provider: str, clie
 
 @updates.command()
 @staging_option
-@click.option('--arch',
-              help=('Specify arch of packages to download, "all" will retrieve packages from all '
-                    'architectures'))
-@click.option('--debuginfo', is_flag=True, default=False,
-              help=('Include debuginfo packages'))
-@click.option('--updateid', help='Download update(s) by ID(s) (comma-separated list)')
-@click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
-@click.option('--gpg/--no-gpg', help='Download GPG-signed packages', default=True)
+@click.option(
+    "--arch",
+    help=(
+        'Specify arch of packages to download, "all" will retrieve packages from all architectures'
+    ),
+)
+@click.option("--debuginfo", is_flag=True, default=False, help=("Include debuginfo packages"))
+@click.option("--updateid", help="Download update(s) by ID(s) (comma-separated list)")
+@click.option("--builds", help="Download update(s) by build NVR(s) (comma-separated list)")
+@click.option("--gpg/--no-gpg", help="Download GPG-signed packages", default=True)
 @url_option
 @add_options(openid_options)
 @debug_option
@@ -795,16 +901,16 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
         kwargs:    Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
-    requested_arch = kwargs['arch']
-    debuginfo = kwargs['debuginfo']
-    gpg = kwargs['gpg']
+    requested_arch = kwargs["arch"]
+    debuginfo = kwargs["debuginfo"]
+    gpg = kwargs["gpg"]
 
-    del kwargs['staging']
-    del kwargs['arch']
-    del kwargs['debuginfo']
-    del kwargs['gpg']
+    del kwargs["staging"]
+    del kwargs["arch"]
+    del kwargs["debuginfo"]
+    del kwargs["gpg"]
     # At this point we need to have reduced the kwargs dict to only our
     # query options (updateid or builds)
     if not any(kwargs.values()):
@@ -814,19 +920,19 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
     # As the query method doesn't let us construct OR queries, we're
     # gonna run one query for each option that was passed. The syntax
     # for this is a bit ugly, sorry.
-    for (attr, value) in kwargs.items():
+    for attr, value in kwargs.items():
         if value:
-            expecteds = len(value.split(','))
+            expecteds = len(value.split(","))
             resp = client.query(**{attr: value})
             if len(resp.updates) == 0:
                 click.echo(f"WARNING: No {attr} found!", err=True)
             else:
-                if attr == 'updateid':
+                if attr == "updateid":
                     resp_no = len(resp.updates)
                 else:
                     # attr == 'builds', add up number of builds for each returned update
                     resp_no = functools.reduce(
-                        lambda x, y: x + len(y.get('builds', [])), resp.updates, 0
+                        lambda x, y: x + len(y.get("builds", [])), resp.updates, 0
                     )
 
                 if resp_no < expecteds:
@@ -836,84 +942,84 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
 
             for update in resp.updates:
                 click.echo(f"Downloading packages from {update['alias']}")
-                keyid = ''
+                keyid = ""
                 if gpg:
                     # try to figure out the key ID we need to get signed packages
-                    relnum = update['release']['version'].split('.')[0]
-                    if update['release']['id_prefix'] == 'FEDORA-EPEL':
-                        keyname = f'RPM-GPG-KEY-EPEL-{relnum}'
+                    relnum = update["release"]["version"].split(".")[0]
+                    if update["release"]["id_prefix"] == "FEDORA-EPEL":
+                        keyname = f"RPM-GPG-KEY-EPEL-{relnum}"
                     else:
-                        keyname = f'RPM-GPG-KEY-fedora-{relnum}-primary'
+                        keyname = f"RPM-GPG-KEY-fedora-{relnum}-primary"
 
                     # first try from a local file
-                    keypath = f'/etc/pki/rpm-gpg/{keyname}'
+                    keypath = f"/etc/pki/rpm-gpg/{keyname}"
                     if os.path.exists(keypath):
                         try:
                             ret = subprocess.run(
-                                ('gpg', '--list-packets', keypath),
+                                ("gpg", "--list-packets", keypath),
                                 capture_output=True,
-                                text=True
+                                text=True,
+                                check=False,
                             )
                         except FileNotFoundError:
-                            click.echo('WARNING: could not run gpg')
+                            click.echo("WARNING: could not run gpg")
                             ret = None
                     else:
                         # try and get key file from dist-git
-                        if update['release']['id_prefix'] == 'FEDORA-EPEL':
-                            url = 'https://src.fedoraproject.org/rpms/epel-release'
-                            url += f'/raw/epel{relnum}/f/{keyname}'
+                        if update["release"]["id_prefix"] == "FEDORA-EPEL":
+                            url = "https://src.fedoraproject.org/rpms/epel-release"
+                            url += f"/raw/epel{relnum}/f/{keyname}"
                         else:
-                            url = 'https://src.fedoraproject.org/rpms/fedora-repos'
-                            url += f'/raw/rawhide/f/{keyname}'
+                            url = "https://src.fedoraproject.org/rpms/fedora-repos"
+                            url += f"/raw/rawhide/f/{keyname}"
                         try:
                             resp = requests.get(url)
                         except requests.exceptions.RequestException as err:
-                            click.echo(f'WARNING: Tried {url} to get key, failed with {err}')
+                            click.echo(f"WARNING: Tried {url} to get key, failed with {err}")
                             resp = None
                             ret = None
                         if resp and resp.status_code == 200:
                             try:
                                 ret = subprocess.run(
-                                    ('gpg', '--list-packets', '-'),
+                                    ("gpg", "--list-packets", "-"),
                                     input=resp.text,
                                     capture_output=True,
-                                    text=True
+                                    text=True,
+                                    check=False,
                                 )
                             except FileNotFoundError:
-                                click.echo('WARNING: could not run gpg')
+                                click.echo("WARNING: could not run gpg")
                                 ret = None
                         elif resp:
-                            click.echo(f'WARNING: Tried {url} to get key, got {resp.status_code}')
+                            click.echo(f"WARNING: Tried {url} to get key, got {resp.status_code}")
                             ret = None
 
                     if ret and not ret.returncode:
                         for line in ret.stdout.splitlines():
-                            if 'keyid: ' in line:
+                            if "keyid: " in line:
                                 keyid = line.split("keyid: ")[-1][-8:].lower()
                     elif ret:
-                        click.echo('WARNING: gpg failed')
+                        click.echo("WARNING: gpg failed")
 
                     if not keyid:
-                        click.echo('WARNING: could not find GPG key, packages will be unsigned')
-                for build in update['builds']:
-                    args = ['koji', 'download-build']
+                        click.echo("WARNING: could not find GPG key, packages will be unsigned")
+                for build in update["builds"]:
+                    args = ["koji", "download-build"]
                     if keyid:
-                        args.append(f'--key={keyid}')
-                        args.append('--fallback-unsigned')
+                        args.append(f"--key={keyid}")
+                        args.append("--fallback-unsigned")
                     if debuginfo:
-                        args.append('--debuginfo')
+                        args.append("--debuginfo")
                     # subprocess is icky, but koji module doesn't
                     # expose this in any usable way, and we don't want
                     # to rewrite it here.
                     if requested_arch is None:
-                        args.extend(['--arch=noarch',
-                                     f'--arch={platform.machine()}', build['nvr']])
+                        args.extend(["--arch=noarch", f"--arch={platform.machine()}", build["nvr"]])
                     else:
-                        if 'all' in requested_arch:
-                            args.append(build['nvr'])
-                        if 'all' not in requested_arch:
-                            args.extend(['--arch=noarch',
-                                         f'--arch={requested_arch}', build['nvr']])
+                        if "all" in requested_arch:
+                            args.append(build["nvr"])
+                        if "all" not in requested_arch:
+                            args.extend(["--arch=noarch", f"--arch={requested_arch}", build["nvr"]])
                     ret = subprocess.call(args)
                     if ret:
                         click.echo(f"WARNING: download of {build['nvr']} failed!", err=True)
@@ -932,34 +1038,44 @@ def _get_notes(**kwargs) -> str:
     Returns:
         The contents of the notes file or the notes from kwargs
     """
-    if kwargs['notes_file'] is not None:
-        if kwargs['notes'] is None:
-            with open(kwargs['notes_file'], 'r') as fin:
+    if kwargs["notes_file"] is not None:
+        if kwargs["notes"] is None:
+            with open(kwargs["notes_file"], "r") as fin:
                 return fin.read()
         else:
             click.echo("ERROR: Cannot specify --notes and --notes-file", err=True)
             sys.exit(1)
     else:
-        return kwargs['notes']
+        return kwargs["notes"]
 
 
 @updates.command()
-@click.argument('update')
-@click.argument('comment', required=False)
+@click.argument("update")
+@click.argument("comment", required=False)
 @click.option(
-    '--show', is_flag=True, default=None,
-    help="List all the required unsatisfied requirements")
+    "--show", is_flag=True, default=None, help="List all the required unsatisfied requirements"
+)
 @click.option(
-    '--test', multiple=True,
+    "--test",
+    multiple=True,
     help="Waive the specific test(s), to automatically waive all unsatisfied "
-    "requirements, specify --test=all")
+    "requirements, specify --test=all",
+)
 @add_options(openid_options)
 @staging_option
 @url_option
 @debug_option
 @handle_errors
-def waive(update: str, show: bool, test: typing.Iterable[str], comment: str, url: str,
-          id_provider: str, client_id: str, **kwargs):
+def waive(
+    update: str,
+    show: bool,
+    test: typing.Iterable[str],
+    comment: str,
+    url: str,
+    id_provider: str,
+    client_id: str,
+    **kwargs,
+):
     # User Docs that show in the --help
     """
     Show or waive unsatified requirements (ie: missing or failing tests) on an existing update.
@@ -983,41 +1099,45 @@ def waive(update: str, show: bool, test: typing.Iterable[str], comment: str, url
         kwargs: Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
 
     if show and test:
         click.echo(
-            'ERROR: You can not list the unsatisfied requirements and waive them '
-            'at the same time, please use either --show or --test=... but not both.',
-            err=True)
+            "ERROR: You can not list the unsatisfied requirements and waive them "
+            "at the same time, please use either --show or --test=... but not both.",
+            err=True,
+        )
         sys.exit(1)
 
     if show:
         test_status = client.get_test_status(update)
-        if 'errors' in test_status:
-            click.echo('One or more errors occurred while retrieving the unsatisfied requirements:',
-                       err=True)
+        if "errors" in test_status:
+            click.echo(
+                "One or more errors occurred while retrieving the unsatisfied requirements:",
+                err=True,
+            )
             for el in test_status.errors:
-                click.echo(f'  - {el.description}', err=True)
-        elif 'decision' not in test_status:
-            click.echo('Could not retrieve the unsatisfied requirements from bodhi.', err=True)
+                click.echo(f"  - {el.description}", err=True)
+        elif "decision" not in test_status:
+            click.echo("Could not retrieve the unsatisfied requirements from bodhi.", err=True)
         else:
-            click.echo(f'CI status: {test_status.decision.summary}')
+            click.echo(f"CI status: {test_status.decision.summary}")
             if test_status.decision.unsatisfied_requirements:
-                click.echo('Missing tests:')
+                click.echo("Missing tests:")
                 for req in test_status.decision.unsatisfied_requirements:
-                    click.echo(f'  - {req.testcase}')
+                    click.echo(f"  - {req.testcase}")
             else:
-                click.echo('Missing tests: None')
+                click.echo("Missing tests: None")
     else:
         if not comment:
-            click.echo('ERROR: A comment is mandatory when waiving unsatisfied requirements',
-                       err=True)
+            click.echo(
+                "ERROR: A comment is mandatory when waiving unsatisfied requirements", err=True
+            )
             sys.exit(1)
 
-        if 'all' in test:
-            click.echo('Waiving all unsatisfied requirements')
+        if "all" in test:
+            click.echo("Waiving all unsatisfied requirements")
             resp = client.waive(update, comment)
         else:
             click.echo(f"Waiving unsatisfied requirements: {', '.join(test)}")
@@ -1026,7 +1146,7 @@ def waive(update: str, show: bool, test: typing.Iterable[str], comment: str, url
 
 
 @updates.command(name="trigger-tests")
-@click.argument('update')
+@click.argument("update")
 @add_options(openid_options)
 @staging_option
 @url_option
@@ -1051,7 +1171,7 @@ def trigger_tests(update: str, url: str, id_provider: str, client_id: str, **kwa
         kwargs: Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
 
     resp = client.trigger_tests(update)
@@ -1061,34 +1181,36 @@ def trigger_tests(update: str, url: str, id_provider: str, client_id: str, **kwa
 @cli.group(help="Interact with overrides on Bodhi.")
 def overrides():
     """Create the overrides CLI group."""
-    pass  # pragma: no cover
+    # pragma: no cover
 
 
-@overrides.command('query')
-@click.option('--user', default=None,
-              help='Overrides submitted by a specific user')
+@overrides.command("query")
+@click.option("--user", default=None, help="Overrides submitted by a specific user")
 @staging_option
-@click.option('--mine', is_flag=True,
-              help='Show only your overrides.')
-@click.option('--packages', default=None,
-              help='Query by comma-separated package name(s)')
-@click.option('--expired/--active', default=None,
-              help='show only expired or active overrides')
-@click.option('--releases', default=None,
-              help='Query by release shortname(s). e.g. F26')
-@click.option('--builds', default=None,
-              help='Query by comma-separated build id(s)')
+@click.option("--mine", is_flag=True, help="Show only your overrides.")
+@click.option("--packages", default=None, help="Query by comma-separated package name(s)")
+@click.option("--expired/--active", default=None, help="show only expired or active overrides")
+@click.option("--releases", default=None, help="Query by release shortname(s). e.g. F26")
+@click.option("--builds", default=None, help="Query by comma-separated build id(s)")
 @url_option
 @add_options(openid_options)
 @debug_option
 @add_options(pagination_options)
 @handle_errors
 def query_buildroot_overrides(
-        url: str, id_provider: str, client_id: str,
-        user: typing.Optional[str] = None, mine: bool = False,
-        packages: typing.Optional[str] = None, expired: typing.Optional[bool] = None,
-        releases: typing.Optional[str] = None, builds: typing.Optional[str] = None,
-        rows: typing.Optional[int] = None, page: typing.Optional[int] = None, **kwargs):
+    url: str,
+    id_provider: str,
+    client_id: str,
+    user: str | None = None,
+    mine: bool = False,
+    packages: str | None = None,
+    expired: bool | None = None,
+    releases: str | None = None,
+    builds: str | None = None,
+    rows: int | None = None,
+    page: int | None = None,
+    **kwargs,
+):
     # Docs that show in the --help
     """Query the buildroot overrides."""
     # Developer Docs
@@ -1108,23 +1230,28 @@ def query_buildroot_overrides(
         kwargs: Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
     if mine:
         client.ensure_auth()
         user = client.username
-    resp = client.list_overrides(user=user, packages=packages,
-                                 expired=expired, releases=releases, builds=builds,
-                                 rows_per_page=rows, page=page)
+    resp = client.list_overrides(
+        user=user,
+        packages=packages,
+        expired=expired,
+        releases=releases,
+        builds=builds,
+        rows_per_page=rows,
+        page=page,
+    )
     print_resp(resp, client)
 
 
-@overrides.command('save')
+@overrides.command("save")
 @add_options(save_edit_options)
 @add_options(openid_options)
 @handle_errors
-def save_buildroot_overrides(url: str, id_provider: str, client_id: str, staging: bool,
-                             **kwargs):
+def save_buildroot_overrides(url: str, id_provider: str, client_id: str, staging: bool, **kwargs):
     # Docs that show in the --help
     """
     Create a buildroot override.
@@ -1142,14 +1269,13 @@ def save_buildroot_overrides(url: str, id_provider: str, client_id: str, staging
         staging: Whether to use the staging server or not.
         kwargs: Other keyword arguments passed to us by click.
     """
-    _save_override(url=url, client_id=client_id, id_provider=id_provider, staging=staging,
-                   **kwargs)
+    _save_override(url=url, client_id=client_id, id_provider=id_provider, staging=staging, **kwargs)
 
 
-@overrides.command('edit')
+@overrides.command("edit")
 @add_options(save_edit_options)
 @add_options(openid_options)
-@click.option('--expire', help='Expire the override', is_flag=True, default=False)
+@click.option("--expire", help="Expire the override", is_flag=True, default=False)
 @handle_errors
 def edit_buildroot_overrides(url: str, id_provider: str, client_id: str, staging: bool, **kwargs):
     # Docs that show in the --help
@@ -1169,12 +1295,14 @@ def edit_buildroot_overrides(url: str, id_provider: str, client_id: str, staging
         staging: Whether to use the staging server or not.
         kwargs: Other keyword arguments passed to us by click.
     """
-    _save_override(url=url, client_id=client_id, id_provider=id_provider, staging=staging,
-                   edit=True, **kwargs)
+    _save_override(
+        url=url, client_id=client_id, id_provider=id_provider, staging=staging, edit=True, **kwargs
+    )
 
 
-def _generate_wait_repo_command(override: munch.Munch, client: bindings.BodhiClient) \
-        -> typing.Optional[typing.Tuple[str, str, str, str]]:
+def _generate_wait_repo_command(
+    override: munch.Munch, client: bindings.BodhiClient
+) -> tuple[str, str, str, str] | None:
     """
     Generate and return a koji wait-repo command for the given override, if possible.
 
@@ -1185,10 +1313,15 @@ def _generate_wait_repo_command(override: munch.Munch, client: bindings.BodhiCli
         If we know the release for the override's build, we return a tuple suitable for passing to
         subprocess.Popen for a koji command that will wait on the repo. If we can't we return None.
     """
-    if 'release_id' in override.build:
-        release = client.get_releases(ids=[override.build.release_id])['releases'][0]
-        return ('koji', 'wait-repo', f'{release.dist_tag}-build',
-                f'--build={override.build.nvr}', '--request')
+    if "release_id" in override.build:
+        release = client.get_releases(ids=[override.build.release_id])["releases"][0]
+        return (
+            "koji",
+            "wait-repo",
+            f"{release.dist_tag}-build",
+            f"--build={override.build.nvr}",
+            "--request",
+        )
     return None
 
 
@@ -1208,12 +1341,16 @@ def _print_override_koji_hint(override: munch.Munch, client: bindings.BodhiClien
     command = _generate_wait_repo_command(override, client)
     if command:
         click.echo(
-            '\n\nUse the following to ensure the override is active:\n\n'
-            f"\t$ {' '.join(command)}\n")
+            f"\n\nUse the following to ensure the override is active:\n\n\t$ {' '.join(command)}\n"
+        )
 
 
-def print_resp(resp: munch.Munch, client: bindings.BodhiClient, verbose: bool = False,
-               override_hint: bool = True):
+def print_resp(
+    resp: munch.Munch,
+    client: bindings.BodhiClient,
+    verbose: bool = False,
+    override_hint: bool = True,
+):
     """
     Print a human readable rendering of the given server response to the terminal.
 
@@ -1224,19 +1361,19 @@ def print_resp(resp: munch.Munch, client: bindings.BodhiClient, verbose: bool = 
         override_hint: If True, show a hint to the user about how to wait on a buildroot
             override. Defaults to True.
     """
-    if 'updates' in resp:
+    if "updates" in resp:
         if len(resp.updates) == 1:
             click.echo(client.update_str(resp.updates[0]))
         else:
             for update in resp.updates:
                 click.echo(client.update_str(update, minimal=True))
-        if 'total' in resp:
-            click.echo(f'{resp.total} updates found ({len(resp.updates)} shown)')
-    elif resp.get('update'):
-        click.echo(client.update_str(resp['update']))
-    elif resp.get('alias'):
+        if "total" in resp:
+            click.echo(f"{resp.total} updates found ({len(resp.updates)} shown)")
+    elif resp.get("update"):
+        click.echo(client.update_str(resp["update"]))
+    elif resp.get("alias"):
         click.echo(client.update_str(resp))
-    elif 'overrides' in resp:
+    elif "overrides" in resp:
         if len(resp.overrides) == 1:
             click.echo(client.override_str(resp.overrides[0], minimal=False))
             if override_hint:
@@ -1244,31 +1381,30 @@ def print_resp(resp: munch.Munch, client: bindings.BodhiClient, verbose: bool = 
         else:
             for override in resp.overrides:
                 click.echo(client.override_str(override).strip())
-        if 'total' in resp:
-            click.echo(
-                f'{resp.total} overrides found ({len(resp.overrides)} shown)')
-    elif 'build' in resp:
+        if "total" in resp:
+            click.echo(f"{resp.total} overrides found ({len(resp.overrides)} shown)")
+    elif "build" in resp:
         click.echo(client.override_str(resp, minimal=False))
         if override_hint:
             _print_override_koji_hint(resp, client)
-    elif 'comment' in resp:
+    elif "comment" in resp:
         click.echo(f"The following comment was added to {resp.comment['update'].alias}")
         click.echo(resp.comment.text)
-    elif 'compose' in resp:
-        click.echo(client.compose_str(resp['compose'], minimal=False))
-    elif 'composes' in resp:
-        if len(resp['composes']) == 1:
-            click.echo(client.compose_str(resp['composes'][0], minimal=(not verbose)))
+    elif "compose" in resp:
+        click.echo(client.compose_str(resp["compose"], minimal=False))
+    elif "composes" in resp:
+        if len(resp["composes"]) == 1:
+            click.echo(client.compose_str(resp["composes"][0], minimal=(not verbose)))
         else:
-            for compose in resp['composes']:
+            for compose in resp["composes"]:
                 click.echo(client.compose_str(compose, minimal=(not verbose)))
                 if verbose:
                     # Let's add a little more spacing
                     click.echo()
     else:
         click.echo(resp)
-    if resp.get('caveats', None):
-        click.echo('Caveats:')
+    if resp.get("caveats", None):
+        click.echo("Caveats:")
         for caveat in resp.caveats:
             click.echo(caveat.description)
 
@@ -1276,77 +1412,80 @@ def print_resp(resp: munch.Munch, client: bindings.BodhiClient, verbose: bool = 
 @cli.group(help="Interact with releases.")
 def releases():
     """Manage the releases."""
-    pass  # pragma: no cover
+    # pragma: no cover
 
 
-@releases.command(name='create')
+@releases.command(name="create")
 @handle_errors
 @add_options(release_options)
 @add_options(openid_options)
 def create_release(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
     """Create a release."""
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
-    kwargs['csrf_token'] = client.csrf()
+    kwargs["csrf_token"] = client.csrf()
     # the defaults for these are set to None so that edit_release
     # does not change the current value unless it was passed on the
     # command line; for creating a new release, we set the defaults
     # here
-    if kwargs['composed_by_bodhi'] is None:
-        kwargs['composed_by_bodhi'] = True
-    if kwargs['create_automatic_updates'] is None:
-        kwargs['create_automatic_updates'] = False
-    kwargs['released_on'] = kwargs.pop('released_on').date() if kwargs['released_on'] else None
-    kwargs['eol'] = kwargs.pop('eol').date() if kwargs['eol'] else None
+    if kwargs["composed_by_bodhi"] is None:
+        kwargs["composed_by_bodhi"] = True
+    if kwargs["create_automatic_updates"] is None:
+        kwargs["create_automatic_updates"] = False
+    kwargs["released_on"] = kwargs.pop("released_on").date() if kwargs["released_on"] else None
+    kwargs["eol"] = kwargs.pop("eol").date() if kwargs["eol"] else None
     save(client, **kwargs)
 
 
-@releases.command(name='edit')
+@releases.command(name="edit")
 @handle_errors
 @add_options(release_options)
 @add_options(openid_options)
-@click.option('--new-name', help='New release name (eg: F20)')
+@click.option("--new-name", help="New release name (eg: F20)")
 def edit_release(url: str, id_provider: str, client_id: str, debug: bool, **kwargs):
     """Edit an existing release."""
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
     csrf = client.csrf()
 
-    edited = kwargs.pop('name')
+    edited = kwargs.pop("name")
 
-    kwargs['released_on'] = kwargs.pop('released_on').date() if kwargs['released_on'] else None
-    kwargs['eol'] = kwargs.pop('eol').date() if kwargs['eol'] else None
+    kwargs["released_on"] = kwargs.pop("released_on").date() if kwargs["released_on"] else None
+    kwargs["eol"] = kwargs.pop("eol").date() if kwargs["eol"] else None
 
     if edited is None:
         click.echo("ERROR: Please specify the name of the release to edit", err=True)
         return
 
-    res = client.send_request(f'releases/{edited}', verb='GET', auth=True)
+    res = client.send_request(f"releases/{edited}", verb="GET", auth=True)
 
     data = munch.unmunchify(res)
 
     # These are just read-only and not editable
-    data.pop('critpath_mandatory_days_in_testing', None)
-    data.pop('mandatory_days_in_testing', None)
-    data.pop('critpath_min_karma', None)
-    data.pop('min_karma', None)
+    data.pop("critpath_mandatory_days_in_testing", None)
+    data.pop("mandatory_days_in_testing", None)
+    data.pop("critpath_min_karma", None)
+    data.pop("min_karma", None)
 
-    if 'errors' in data:
+    if "errors" in data:
         print_errors(data)
 
-    data['edited'] = edited
-    data['csrf_token'] = csrf
+    data["edited"] = edited
+    data["csrf_token"] = csrf
 
-    new_name = kwargs.pop('new_name')
+    new_name = kwargs.pop("new_name")
 
     if new_name is not None:
-        data['name'] = new_name
+        data["name"] = new_name
 
-    if (data['state'] == 'pending' and kwargs['state'] == 'current'
-            and kwargs['released_on'] is None):
-        kwargs['released_on'] = datetime.now().date()
+    if (
+        data["state"] == "pending"
+        and kwargs["state"] == "current"
+        and kwargs["released_on"] is None
+    ):
+        kwargs["released_on"] = datetime.now(timezone.utc).date()
 
     for k, v in kwargs.items():
         if v is not None:
@@ -1355,9 +1494,9 @@ def edit_release(url: str, id_provider: str, client_id: str, debug: bool, **kwar
     save(client, **data)
 
 
-@releases.command(name='info')
+@releases.command(name="info")
 @handle_errors
-@click.argument('name')
+@click.argument("name")
 @url_option
 @add_options(openid_options)
 @debug_option
@@ -1365,81 +1504,98 @@ def edit_release(url: str, id_provider: str, client_id: str, debug: bool, **kwar
 def info_release(name: str, url: str, id_provider: str, client_id: str, **kwargs):
     """Retrieve and print info about a named release."""
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
 
-    res = client.send_request(f'releases/{name}', verb='GET', auth=False)
+    res = client.send_request(f"releases/{name}", verb="GET", auth=False)
 
-    if 'errors' in res:
+    if "errors" in res:
         print_errors(res)
 
     else:
-        click.echo('Release:')
+        click.echo("Release:")
         print_release(res)
 
 
-@releases.command(name='requirements')
+@releases.command(name="requirements")
 @handle_errors
-@click.argument('name')
+@click.argument("name")
 @url_option
 @add_options(openid_options)
 @debug_option
 @staging_option
 def requirements_release(name: str, url: str, id_provider: str, client_id: str, **kwargs):
     """Retrieve and print testing requirements for a release."""
-    def _bold(text: str, color: str = None):
+
+    def _bold(text: str, color: str = ""):
         """Return a click bolded text."""
-        if color is not None:
+        if color:
             return click.style(text, bold=True, fg=color)
         else:
             return click.style(text, bold=True)
 
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
 
-    res = client.send_request(f'releases/{name}', verb='GET', auth=False)
+    res = client.send_request(f"releases/{name}", verb="GET", auth=False)
 
-    if 'errors' in res:
+    if "errors" in res:
         print_errors(res)
     else:
-        status = f'{res['state']} {res['setting_status']}' if res['setting_status'] \
-            else res['state']
+        status = (
+            f"{res['state']} {res['setting_status']}" if res["setting_status"] else res["state"]
+        )
 
         click.echo(f'Release {_bold(res["name"])} state is currently "{status}"\n')
-        click.echo('  - Requirements for critical path updates are:\n'
-                   f'    {_bold(res["critpath_mandatory_days_in_testing"], "white")} '
-                   'days in testing OR '
-                   f'{_bold("+" + str(res["critpath_min_karma"]), "white")} karma\n')
-        click.echo('  - Requirements for non-critical path updates are:\n'
-                   f'    {_bold(res["mandatory_days_in_testing"], "white")} '
-                   'days in testing OR '
-                   f'{_bold("+" + str(res["min_karma"]), "white")} karma\n')
+        click.echo(
+            "  - Requirements for critical path updates are:\n"
+            f"    {_bold(res['critpath_mandatory_days_in_testing'], 'white')} "
+            "days in testing OR "
+            f"{_bold('+' + str(res['critpath_min_karma']), 'white')} karma\n"
+        )
+        click.echo(
+            "  - Requirements for non-critical path updates are:\n"
+            f"    {_bold(res['mandatory_days_in_testing'], 'white')} "
+            "days in testing OR "
+            f"{_bold('+' + str(res['min_karma']), 'white')} karma\n"
+        )
 
 
-@releases.command(name='list')
+@releases.command(name="list")
 @handle_errors
-@click.option('--display-archived', is_flag=True, default=False,
-              help='Display full list, including archived releases.')
+@click.option(
+    "--display-archived",
+    is_flag=True,
+    default=False,
+    help="Display full list, including archived releases.",
+)
 @url_option
 @add_options(openid_options)
 @debug_option
 @add_options(pagination_options)
 @staging_option
-def list_releases(display_archived: bool, url: str, id_provider: str, client_id: str,
-                  rows: typing.Optional[int] = None, page: typing.Optional[int] = None, **kwargs):
+def list_releases(
+    display_archived: bool,
+    url: str,
+    id_provider: str,
+    client_id: str,
+    rows: int | None = None,
+    page: int | None = None,
+    **kwargs,
+):
     """Retrieve and print list of releases."""
     exclude_archived = True
     if display_archived:
         exclude_archived = False
 
     client = bindings.BodhiClient(
-        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs['staging']
+        base_url=url, client_id=client_id, id_provider=id_provider, staging=kwargs["staging"]
     )
 
     res = client.get_releases(rows_per_page=rows, page=page, exclude_archived=exclude_archived)
 
-    print_releases_list(res['releases'])
+    print_releases_list(res["releases"])
 
 
 def save(client: bindings.BodhiClient, **kwargs):
@@ -1450,10 +1606,9 @@ def save(client: bindings.BodhiClient, **kwargs):
         client: The Bodhi client to use for the request.
         kwargs: The parameters to send with the request.
     """
-    res = client.send_request('releases/', verb='POST', auth=True,
-                              data=kwargs)
+    res = client.send_request("releases/", verb="POST", auth=True, data=kwargs)
 
-    if 'errors' in res:
+    if "errors" in res:
         print_errors(res)
 
     else:
@@ -1461,35 +1616,35 @@ def save(client: bindings.BodhiClient, **kwargs):
         print_release(res)
 
 
-def print_releases_list(releases: typing.List[munch.Munch]):
+def print_releases_list(releases: list[munch.Munch]):
     """
     Print a list of releases to the terminal.
 
     Args:
         releases (munch.Munch): The releases to be printed.
     """
-    pending = [release for release in releases if release['state'] == 'pending']
-    archived = [release for release in releases if release['state'] == 'archived']
-    current = [release for release in releases if release['state'] == 'current']
-    frozen = [release for release in releases if release['state'] == 'frozen']
+    pending = [release for release in releases if release["state"] == "pending"]
+    archived = [release for release in releases if release["state"] == "archived"]
+    current = [release for release in releases if release["state"] == "current"]
+    frozen = [release for release in releases if release["state"] == "frozen"]
 
     if pending:
-        click.echo('pending:')
+        click.echo("pending:")
         for release in pending:
             click.echo(f"  Name:                {release['name']}")
 
     if archived:
-        click.echo('\narchived:')
+        click.echo("\narchived:")
         for release in archived:
             click.echo(f"  Name:                {release['name']}")
 
     if current:
-        click.echo('\ncurrent:')
+        click.echo("\ncurrent:")
         for release in current:
             click.echo(f"  Name:                {release['name']}")
 
     if frozen:
-        click.echo('\nfrozen:')
+        click.echo("\nfrozen:")
         for release in frozen:
             click.echo(f"  Name:                {release['name']}")
 
@@ -1532,7 +1687,7 @@ def print_errors(data: munch.Munch):
     Args:
         data (munch.Munch): The errors to be formatted and printed.
     """
-    for error in data['errors']:
+    for error in data["errors"]:
         click.echo(f"ERROR: {error['description']}", err=True)
 
     sys.exit(1)

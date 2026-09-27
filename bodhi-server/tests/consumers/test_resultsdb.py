@@ -19,10 +19,9 @@
 
 from unittest import mock
 
-from fedora_messaging.api import Message
-
 from bodhi.server import models
 from bodhi.server.consumers import resultsdb
+from fedora_messaging.api import Message
 
 from ..base import BasePyTestCase, TransactionalSessionMaker
 
@@ -31,11 +30,15 @@ class TestResultsdbHandler(BasePyTestCase):
     """Test class for the :func:`ResultsdbHandler` method."""
 
     def setup_method(self, method):
-        super(TestResultsdbHandler, self).setup_method(method)
+        super().setup_method(method)
         self.handler = resultsdb.ResultsdbHandler()
         self.handler.db_factory = TransactionalSessionMaker(self.Session)
-        self.single_build_update = self.db.query(models.Update).join(models.Build).filter(
-            models.Build.nvr == 'bodhi-2.0-1.fc17').one()
+        self.single_build_update = (
+            self.db.query(models.Update)
+            .join(models.Build)
+            .filter(models.Build.nvr == "bodhi-2.0-1.fc17")
+            .one()
+        )
 
     def get_sample_message(self, typ="bodhi_update", outcome="PASSED"):
         """
@@ -49,10 +52,7 @@ class TestResultsdbHandler(BasePyTestCase):
             data = {"nvr": [nvr], "item": [nvr], "type": ["koji_build"]}
         return Message(
             topic="org.fedoraproject.prod.resultsdb.result.new",
-            body={
-                "outcome": outcome,
-                "data": data
-            }
+            body={"outcome": outcome, "data": data},
         )
 
     def test_resultsdb_passed_koji_test(self):
@@ -66,25 +66,25 @@ class TestResultsdbHandler(BasePyTestCase):
         # before the greenwave consumer run the gating tests status is None
         assert update.test_gating_status is None
 
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
             greenwave_response = {
-                'policies_satisfied': True,
-                'summary': "All required tests passed",
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
+                "policies_satisfied": True,
+                "summary": "All required tests passed",
+                "applicable_policies": [
+                    "kojibuild_bodhipush_no_requirements",
+                    "kojibuild_bodhipush_remoterule",
+                    "bodhiupdate_bodhipush_no_requirements",
+                    "bodhiupdate_bodhipush_openqa",
                 ],
-                'satisfied_requirements': [
+                "satisfied_requirements": [
                     {
-                        'result_id': 39603316,
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-passed'
+                        "result_id": 39603316,
+                        "subject_type": "bodhi_update",
+                        "testcase": "update.install_default_update_netinst",
+                        "type": "test-result-passed",
                     },
                 ],
-                'unsatisfied_requirements': []
+                "unsatisfied_requirements": [],
             }
             mock_greenwave.return_value = greenwave_response
             testmsg = self.get_sample_message(typ="koji_build")
@@ -119,28 +119,26 @@ class TestResultsdbHandler(BasePyTestCase):
         # before the consumer run the gating tests status is None
         assert update.test_gating_status is None
 
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
             greenwave_response = {
-                'policies_satisfied': False,
-                'summary': "1 of 1 required tests failed",
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
+                "policies_satisfied": False,
+                "summary": "1 of 1 required tests failed",
+                "applicable_policies": [
+                    "kojibuild_bodhipush_no_requirements",
+                    "kojibuild_bodhipush_remoterule",
+                    "bodhiupdate_bodhipush_no_requirements",
+                    "bodhiupdate_bodhipush_openqa",
                 ],
-                'satisfied_requirements': [],
-                'unsatisfied_requirements': [
+                "satisfied_requirements": [],
+                "unsatisfied_requirements": [
                     {
-                        'item': {
-                            'type': 'bodhi_update'
-                        },
-                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-failed'
+                        "item": {"type": "bodhi_update"},
+                        "scenario": "fedora.updates-everything-boot-iso.x86_64.64bit",
+                        "subject_type": "bodhi_update",
+                        "testcase": "update.install_default_update_netinst",
+                        "type": "test-result-failed",
                     }
-                ]
+                ],
             }
             mock_greenwave.return_value = greenwave_response
             testmsg = self.get_sample_message(typ="koji_build", outcome="FAILED")
@@ -175,29 +173,27 @@ class TestResultsdbHandler(BasePyTestCase):
         # before the consumer run the gating tests status is None
         assert update.test_gating_status is None
 
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
             greenwave_response = {
-                'policies_satisfied': False,
-                'summary': "Of 1 required tests, 1 test incomplete",
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
+                "policies_satisfied": False,
+                "summary": "Of 1 required tests, 1 test incomplete",
+                "applicable_policies": [
+                    "kojibuild_bodhipush_no_requirements",
+                    "kojibuild_bodhipush_remoterule",
+                    "bodhiupdate_bodhipush_no_requirements",
+                    "bodhiupdate_bodhipush_openqa",
                 ],
-                'satisfied_requirements': [],
-                'unsatisfied_requirements': [
+                "satisfied_requirements": [],
+                "unsatisfied_requirements": [
                     {
-                        'item': {
-                            'type': 'bodhi_update'
-                        },
-                        'result_id': 1,
-                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-missing'
+                        "item": {"type": "bodhi_update"},
+                        "result_id": 1,
+                        "scenario": "fedora.updates-everything-boot-iso.x86_64.64bit",
+                        "subject_type": "bodhi_update",
+                        "testcase": "update.install_default_update_netinst",
+                        "type": "test-result-missing",
                     }
-                ]
+                ],
             }
             mock_greenwave.return_value = greenwave_response
             testmsg = self.get_sample_message(typ="koji_build", outcome="QUEUED")
@@ -228,25 +224,25 @@ class TestResultsdbHandler(BasePyTestCase):
         """
         update = self.single_build_update
 
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
             greenwave_response = {
-                'policies_satisfied': True,
-                'summary': "All required tests passed",
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
+                "policies_satisfied": True,
+                "summary": "All required tests passed",
+                "applicable_policies": [
+                    "kojibuild_bodhipush_no_requirements",
+                    "kojibuild_bodhipush_remoterule",
+                    "bodhiupdate_bodhipush_no_requirements",
+                    "bodhiupdate_bodhipush_openqa",
                 ],
-                'satisfied_requirements': [
+                "satisfied_requirements": [
                     {
-                        'result_id': 39603316,
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-passed'
+                        "result_id": 39603316,
+                        "subject_type": "bodhi_update",
+                        "testcase": "update.install_default_update_netinst",
+                        "type": "test-result-passed",
                     },
                 ],
-                'unsatisfied_requirements': []
+                "unsatisfied_requirements": [],
             }
             mock_greenwave.return_value = greenwave_response
             # check the 'success' case
@@ -256,40 +252,38 @@ class TestResultsdbHandler(BasePyTestCase):
             # now check the 'failure' case
             testmsg = self.get_sample_message(typ="bodhi_update", outcome="FAILED")
             greenwave_response = {
-                'policies_satisfied': False,
-                'summary': "1 of 1 required tests failed",
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
+                "policies_satisfied": False,
+                "summary": "1 of 1 required tests failed",
+                "applicable_policies": [
+                    "kojibuild_bodhipush_no_requirements",
+                    "kojibuild_bodhipush_remoterule",
+                    "bodhiupdate_bodhipush_no_requirements",
+                    "bodhiupdate_bodhipush_openqa",
                 ],
-                'satisfied_requirements': [],
-                'unsatisfied_requirements': [
+                "satisfied_requirements": [],
+                "unsatisfied_requirements": [
                     {
-                        'item': {
-                            'type': 'bodhi_update'
-                        },
-                        'scenario': 'fedora.updates-everything-boot-iso.x86_64.64bit',
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-failed'
+                        "item": {"type": "bodhi_update"},
+                        "scenario": "fedora.updates-everything-boot-iso.x86_64.64bit",
+                        "subject_type": "bodhi_update",
+                        "testcase": "update.install_default_update_netinst",
+                        "type": "test-result-failed",
                     }
-                ]
+                ],
             }
             mock_greenwave.return_value = greenwave_response
             self.handler(testmsg)
             assert update.test_gating_status == models.TestGatingStatus.failed
 
-    @mock.patch('bodhi.server.consumers.resultsdb.log')
+    @mock.patch("bodhi.server.consumers.resultsdb.log")
     def test_resultsdb_bad_message(self, mock_log):
-        """ Assert that the consumer ignores badly formed messages."""
+        """Assert that the consumer ignores badly formed messages."""
         bad_message = Message(topic="", body={})
         self.handler(bad_message)
         assert mock_log.debug.call_count == 1
         mock_log.debug.assert_called_with("Ignoring message without body.")
 
-    @mock.patch('bodhi.server.consumers.resultsdb.log')
+    @mock.patch("bodhi.server.consumers.resultsdb.log")
     def test_resultsdb_message_missing_data(self, mock_log):
         """
         Assert that the consumer logs and returns if we could not find the
@@ -299,9 +293,10 @@ class TestResultsdbHandler(BasePyTestCase):
         self.handler(bad_message)
         assert mock_log.error.call_count == 1
         mock_log.error.assert_called_with(
-            f"Couldn't find data dict in ResultsDB message {bad_message.id}")
+            f"Couldn't find data dict in ResultsDB message {bad_message.id}"
+        )
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_resultsdb_message_missing_result_type(self, mock_log):
         """
         Assert that the consumer logs and returns if we could not find the
@@ -310,10 +305,9 @@ class TestResultsdbHandler(BasePyTestCase):
         bad_message = Message(topic="", body={"data": {"foo": "bar"}})
         self.handler(bad_message)
         assert mock_log.error.call_count == 1
-        mock_log.error.assert_called_with(
-            f"Couldn't find item type in message {bad_message.id}")
+        mock_log.error.assert_called_with(f"Couldn't find item type in message {bad_message.id}")
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_resultsdb_message_irrelevant_result_type(self, mock_log):
         """
         Assert that the consumer logs and returns if the result type
@@ -324,7 +318,7 @@ class TestResultsdbHandler(BasePyTestCase):
         assert mock_log.debug.call_count == 1
         mock_log.debug.assert_called_with("Irrelevant item type foo")
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_resultsdb_koji_message_no_nvr(self, mock_log):
         """
         Assert that the consumer logs and returns if a Koji result
@@ -337,7 +331,7 @@ class TestResultsdbHandler(BasePyTestCase):
         assert mock_log.error.call_count == 1
         mock_log.error.assert_called_with(f"Couldn't find nvr in message {testmsg.id}")
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_resultsdb_koji_message_wrong_build_nvr(self, mock_log):
         """
         Assert that the consumer raise an exception if we could not find the
@@ -349,7 +343,7 @@ class TestResultsdbHandler(BasePyTestCase):
         assert mock_log.error.call_count == 1
         mock_log.error.assert_called_with("Couldn't find build notapackage-2.0-1.fc17 in DB")
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_resultsdb_bodhi_message_no_updateid(self, mock_log):
         """
         Assert that the consumer logs and returns if a Bodhi result
@@ -361,7 +355,7 @@ class TestResultsdbHandler(BasePyTestCase):
         assert mock_log.error.call_count == 1
         mock_log.error.assert_called_with(f"Couldn't find update ID in message {testmsg.id}")
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_resultsdb_bodhi_message_wrong_updateid(self, mock_log):
         """
         Assert that the consumer raise an exception if we could not find the

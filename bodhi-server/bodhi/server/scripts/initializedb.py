@@ -20,10 +20,10 @@
 import os
 import sys
 
-from pyramid.paster import get_appsettings
-
 from bodhi.server import initialize_db
 from bodhi.server.logging import setup as setup_logging
+from pyramid.paster import get_appsettings
+
 from ..models import Base
 
 
@@ -35,8 +35,7 @@ def usage(argv):
         argv (list): A list of command line arguments.
     """
     cmd = os.path.basename(argv[0])
-    print('usage: %s <config_uri>\n'
-          '(example: "%s development.ini")' % (cmd, cmd))
+    print(f'usage: {cmd} <config_uri>\n(example: "{cmd} development.ini")')
     sys.exit(1)
 
 

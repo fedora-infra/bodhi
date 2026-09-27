@@ -41,11 +41,11 @@ import datetime
 import logging
 
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server import Session, notifications, buildsys
+from bodhi.server import Session, buildsys, notifications
 from bodhi.server.util import transactional_session_maker
-from ..models import Update, UpdateStatus, UpdateRequest
-from ..config import config
 
+from ..config import config
+from ..models import Update, UpdateRequest, UpdateStatus
 
 log = logging.getLogger(__name__)
 
@@ -73,8 +73,9 @@ def autopush_update(update: Update, db: Session):
     status change. For releases not composed by Bodhi, we do the status change here.
     """
     if not update.has_stable_comment:
-        notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
-            dict(update=update)))
+        notifications.publish(
+            update_schemas.UpdateRequirementsMetStableV1.from_dict({"update": update})
+        )
     log.info(f"Automatically marking {update.alias} as stable")
     # For releases composed by Bodhi, just set the request, and leave
     # the rest to the composer
@@ -91,7 +92,8 @@ def autopush_update(update: Update, db: Session):
             "This update cannot be pushed to stable. "
             f"These builds {builds_str} have a more recent "
             f"build in koji's {update.release.stable_tag} tag.",
-            author="bodhi")
+            author="bodhi",
+        )
         update.request = None
         if update.from_tag is not None:
             update.status = UpdateStatus.pending
@@ -107,14 +109,12 @@ def autopush_update(update: Update, db: Session):
     update.request = None
     update.pushed = True
     update.date_stable = datetime.datetime.now(datetime.timezone.utc)
-    update.comment(db, "This update has been submitted for stable by bodhi",
-                   author=u'bodhi')
+    update.comment(db, "This update has been submitted for stable by bodhi", author="bodhi")
     update.modify_bugs()
     db.commit()
     if update.from_tag:
         # Merging the side tag should happen here
-        pending_signing_tag = update.release.get_pending_signing_side_tag(
-            update.from_tag)
+        pending_signing_tag = update.release.get_pending_signing_side_tag(update.from_tag)
         testing_tag = update.release.get_pending_testing_side_tag(update.from_tag)
         update.remove_tag(pending_signing_tag)
         update.remove_tag(testing_tag)
@@ -141,21 +141,23 @@ def approved_comment_message(update: Update, db: Session):
     """Post "approved" comment and publish UpdatesRequirementsMetStable message."""
     # If this update was already commented, skip it
     if update.has_stable_comment:
-        log.info(f"{update.alias} has already the comment that it can be pushed to stable - "
-                 "bailing")
+        log.info(
+            f"{update.alias} has already the comment that it can be pushed to stable - bailing"
+        )
         return
     # post the comment
     update.comment(
         db,
-        str(config.get('testing_approval_msg')),
-        author='bodhi',
+        str(config.get("testing_approval_msg")),
+        author="bodhi",
         # Only send email notification about the update reaching
         # testing approval on releases composed by bodhi
-        email_notification=update.release.composed_by_bodhi
+        email_notification=update.release.composed_by_bodhi,
     )
     # publish the message
-    notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
-        dict(update=update)))
+    notifications.publish(
+        update_schemas.UpdateRequirementsMetStableV1.from_dict({"update": update})
+    )
 
 
 def process_update(update: Update, db: Session):
@@ -194,7 +196,7 @@ def process_update(update: Update, db: Session):
     if not update.meets_testing_requirements:
         log.info(f"{update.alias} has not met testing requirements - bailing")
         return
-    log.info(f'{update.alias} now meets testing requirements')
+    log.info(f"{update.alias} now meets testing requirements")
     # always set date_approved, if it has never been set before: this
     # date indicates "first date update became eligible for manual push"
     if not update.date_approved:
@@ -208,4 +210,4 @@ def process_update(update: Update, db: Session):
         # it is eligible for manual push, if this has not been done
         approved_comment_message(update, db)
 
-    log.info(f'{update.alias} processed by approve_testing')
+    log.info(f"{update.alias} processed by approve_testing")

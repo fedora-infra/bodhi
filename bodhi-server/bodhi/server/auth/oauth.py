@@ -46,8 +46,12 @@ class PyramidIntegrationMixin:
         """
         registry = get_current_registry()
         supported_keys = (
-            "client_id", "client_secret", "server_metadata_url", "userinfo_endpoint",
-            "authorize_url", "access_token_url",
+            "client_id",
+            "client_secret",
+            "server_metadata_url",
+            "userinfo_endpoint",
+            "authorize_url",
+            "access_token_url",
         )
         config = {}
         for key in supported_keys:
@@ -71,4 +75,4 @@ class PyramidAppMixin:
         """
         rv = self.create_authorization_url(redirect_uri, **kwargs)
         self.save_authorize_data(request, redirect_uri=redirect_uri, **rv)
-        return HTTPFound(location=rv['url'])
+        return HTTPFound(location=rv["url"])

@@ -15,7 +15,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """This package defines Bodhi's messages."""
 
-
 import importlib.metadata
-METADATA = importlib.metadata.metadata('bodhi-messages')
-__version__ = METADATA['version']
+
+METADATA = importlib.metadata.metadata("bodhi-messages")
+__version__ = METADATA["version"]

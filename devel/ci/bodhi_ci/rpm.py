@@ -18,6 +18,8 @@
 
 """RPM build job."""
 
+from typing import ClassVar
+
 from .job import BuildJob, Job
 
 
@@ -28,8 +30,8 @@ class RPMJob(Job):
     See the Job superclass's docblock for details about its attributes.
     """
 
-    _label = 'rpm'
-    _dependencies = [BuildJob]
+    _label = "rpm"
+    _dependencies: ClassVar[list] = [BuildJob]
 
     def __init__(self, *args, **kwargs):
         """
@@ -46,9 +48,9 @@ class RPMJob(Job):
         super().__init__(*args, **kwargs)
 
         self._command = [
-            '/usr/bin/bash',
-            '-c',
-            ('./devel/ci/build-rpms.sh ' + ' '.join(self.options["modules"]))
+            "/usr/bin/bash",
+            "-c",
+            ("./devel/ci/build-rpms.sh " + " ".join(self.options["modules"])),
         ]
 
         self._convert_command_for_container(include_git=True)

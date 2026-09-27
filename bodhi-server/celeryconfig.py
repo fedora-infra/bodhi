@@ -5,7 +5,6 @@
 
 from celery.schedules import crontab
 
-
 # Broker URL
 # This might be more appropriate in prod:
 # broker_url = amqps://user:password@hostname:port//vhost
@@ -20,15 +19,15 @@ broker_url = "amqp://localhost/"
 imports = "bodhi.server.tasks"
 
 # Results
-result_backend = 'rpc://'
+result_backend = "rpc://"
 result_persistent = True
 
 # Task routing
 task_routes = {
     # Route the following tasks to a specific queue that will only be run on
     # hosts that have a Koji mount.
-    'compose': {'queue': 'has_koji_mount'},
-    'clean_old_composes': {'queue': 'has_koji_mount'},
+    "compose": {"queue": "has_koji_mount"},
+    "clean_old_composes": {"queue": "has_koji_mount"},
 }
 
 

@@ -22,20 +22,28 @@ This module is responsible for the process of creating updates when builds are
 tagged with certain tags.
 """
 
-from time import sleep
 import logging
 import re
+from time import sleep
 
 import fedora_messaging
-
 from bodhi.server import buildsys
 from bodhi.server.config import config
 from bodhi.server.models import (
-    Bug, Build, ContentType, Package, Release, Update, UpdateStatus, UpdateType, User)
+    Bug,
+    Build,
+    ContentType,
+    Package,
+    Release,
+    Update,
+    UpdateStatus,
+    UpdateType,
+    User,
+)
 from bodhi.server.tasks import work_on_bugs_task
 from bodhi.server.util import transactional_session_maker
 
-log = logging.getLogger('bodhi')
+log = logging.getLogger("bodhi")
 
 
 class AutomaticUpdateHandler:
@@ -69,15 +77,15 @@ class AutomaticUpdateHandler:
         body = message.body
 
         missing = []
-        for mandatory in ('tag', 'build_id', 'name', 'version', 'release'):
+        for mandatory in ("tag", "build_id", "name", "version", "release"):
             if mandatory not in body:
                 missing.append(mandatory)
         if missing:
             log.debug(f"Received incomplete tag message. Missing: {', '.join(missing)}")
             return
 
-        btag = body['tag']
-        bnvr = '{name}-{version}-{release}'.format(**body)
+        btag = body["tag"]
+        bnvr = "{name}-{version}-{release}".format(**body)
         if len(bnvr) > 100:
             log.debug(f"Unable to create automatic update. Too long NVR: {bnvr}.")
             return
@@ -89,32 +97,39 @@ class AutomaticUpdateHandler:
             log.debug(f"Can't find Koji build for {bnvr}.")
             return
 
-        if 'nvr' not in kbuildinfo:
+        if "nvr" not in kbuildinfo:
             log.debug(f"Koji build info for {bnvr} doesn't contain 'nvr'.")
             return
 
-        if 'owner_name' not in kbuildinfo:
+        if "owner_name" not in kbuildinfo:
             log.debug(f"Koji build info for {bnvr} doesn't contain 'owner_name'.")
             return
 
-        if kbuildinfo['owner_name'] in config.get('automatic_updates_blacklist'):
-            log.debug(f"{bnvr} owned by {kbuildinfo['owner_name']} who is listed in "
-                      "automatic_updates_blacklist, skipping.")
+        if kbuildinfo["owner_name"] in config.get("automatic_updates_blacklist"):
+            log.debug(
+                f"{bnvr} owned by {kbuildinfo['owner_name']} who is listed in "
+                "automatic_updates_blacklist, skipping."
+            )
             return
 
         # some APIs want the Koji build info, some others want the same
         # wrapped in a larger (request?) structure
         rbuildinfo = {
-            'info': kbuildinfo,
-            'nvr': kbuildinfo['nvr'].rsplit('-', 2),
+            "info": kbuildinfo,
+            "nvr": kbuildinfo["nvr"].rsplit("-", 2),
         }
 
         with self.db_factory() as dbsession:
-            rel = dbsession.query(Release).filter_by(create_automatic_updates=True,
-                                                     candidate_tag=btag).first()
+            rel = (
+                dbsession.query(Release)
+                .filter_by(create_automatic_updates=True, candidate_tag=btag)
+                .first()
+            )
             if not rel:
-                log.debug(f"Ignoring build being tagged into {btag!r}, no release configured for "
-                          "automatic updates for it found.")
+                log.debug(
+                    f"Ignoring build being tagged into {btag!r}, no release configured for "
+                    "automatic updates for it found."
+                )
                 return
 
             bcls = ContentType.infer_content_class(Build, kbuildinfo)
@@ -124,7 +139,8 @@ class AutomaticUpdateHandler:
                 return
 
             utype = (
-                UpdateType.unspecified if Package.check_existence(rbuildinfo)
+                UpdateType.unspecified
+                if Package.check_existence(rbuildinfo)
                 else UpdateType.newpackage
             )
 
@@ -139,7 +155,7 @@ class AutomaticUpdateHandler:
                 build = bcls(nvr=bnvr, package=pkg, release=rel)
                 dbsession.add(build)
 
-            owner_name = kbuildinfo['owner_name']
+            owner_name = kbuildinfo["owner_name"]
             user = User.get(owner_name)
             if not user:
                 log.debug(f"Creating bodhi user for '{owner_name}'.")
@@ -172,13 +188,13 @@ class AutomaticUpdateHandler:
 ```
 {{}}
 ```"""
-                if len(changelog) > config.get('update_notes_maxlength') - len(notes):
-                    changelog = '[CHANGELOG OMITTED BECAUSE TOO LONG]'
+                if len(changelog) > config.get("update_notes_maxlength") - len(notes):
+                    changelog = "[CHANGELOG OMITTED BECAUSE TOO LONG]"
                 notes = notes.format(changelog)
-                if rel.name not in config.get('bz_exclude_rels'):
-                    for b in re.finditer(config.get('bz_regex'), changelog, re.IGNORECASE):
+                if rel.name not in config.get("bz_exclude_rels"):
+                    for b in re.finditer(config.get("bz_regex"), changelog, re.IGNORECASE):
                         idx = int(b.group(1))
-                        log.debug(f'Adding bug #{idx} to the update.')
+                        log.debug(f"Adding bug #{idx} to the update.")
                         bug = Bug.get(idx)
                         if bug is None:
                             bug = Bug(bug_id=idx)
@@ -218,7 +234,7 @@ class AutomaticUpdateHandler:
             # Comment on the update that it was automatically created.
             update.comment(
                 dbsession,
-                str("This update was automatically created"),
+                "This update was automatically created",
                 author="bodhi",
             )
 
@@ -230,15 +246,15 @@ class AutomaticUpdateHandler:
             # Obsolete older updates which may be stuck in testing due to failed gating
             try:
                 update.obsolete_older_updates(dbsession)
-            except Exception as e:
-                log.error(f'Problem obsoleting older updates: {e}')
+            except Exception as e:  # noqa: BLE001
+                log.error(f"Problem obsoleting older updates: {e}")
 
             Update._ready_for_testing(update, None)
             alias = update.alias
             buglist = [b.bug_id for b in update.bugs]
 
             # Set an initial gating status
-            if config.get('test_gating.required'):
+            if config.get("test_gating.required"):
                 update.update_test_gating_status()
 
         # This must be run after dbsession is closed so changes are committed to db

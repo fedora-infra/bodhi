@@ -17,26 +17,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This script will run a handy python shell initialized with Bodhi models."""
 
+import logging
 import sys
 from subprocess import call
-import logging
 
 import click
-
 from bodhi.server.config import get_configfile
 
-
-logger = logging.getLogger('bodhi-shell')
+logger = logging.getLogger("bodhi-shell")
 logging.basicConfig(level=logging.INFO)
 
 
 @click.command()
-@click.version_option(message='%(version)s')
+@click.version_option(message="%(version)s")
 def get_bodhi_shell():
     """Run python shell initialized with Bodhi models."""
     configfile = get_configfile()
     if configfile is not None:
-        call(['pshell', configfile])
+        call(["pshell", configfile])
     else:
         click.echo("Config file not found!", err=True)
         sys.exit(1)

@@ -22,20 +22,20 @@ Revision ID: f393d006559b
 Revises: d399493275b6
 Create Date: 2022-10-10 12:08:18.583231
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'f393d006559b'
-down_revision = 'd399493275b6'
+revision = "f393d006559b"
+down_revision = "d399493275b6"
 
 
 def upgrade():
     """Add new critpath_groups column to updates table."""
-    op.add_column('updates', sa.Column('critpath_groups', sa.UnicodeText(), nullable=True))
+    op.add_column("updates", sa.Column("critpath_groups", sa.UnicodeText(), nullable=True))
 
 
 def downgrade():
     """Remove critpath_groups column from updates table."""
-    op.drop_column('updates', 'critpath_groups')
+    op.drop_column("updates", "critpath_groups")

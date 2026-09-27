@@ -1,0 +1,1 @@
+Close several file descriptors that could be leaked when an operation raised part way through: the updateinfo shelve, the temporary updateinfo file, the pipes of a subprocess whose communicate() raises, the compressed comps file, and the master repomd response

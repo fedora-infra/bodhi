@@ -21,17 +21,17 @@ This module contains tests for the bodhi.server.scripts.bshell module.
 
 from unittest.mock import patch
 
-from click import testing
-
 from bodhi.server.scripts import bshell
+from click import testing
 
 
 class TestMain:
     """
     This class contains tests for the get_bodhi_shell() function.
     """
-    @patch('bodhi.server.scripts.bshell.get_configfile')
-    @patch('bodhi.server.scripts.bshell.call')
+
+    @patch("bodhi.server.scripts.bshell.get_configfile")
+    @patch("bodhi.server.scripts.bshell.call")
     def test_config_file_found(self, call, get_configfile):
         """Assert correct behavior when the config file exists"""
         get_configfile.return_value = "/path/to/config.ini"
@@ -40,10 +40,10 @@ class TestMain:
 
         assert r.exit_code == 0
         assert r.output == ""
-        call.assert_called_once_with(['pshell', '/path/to/config.ini'])
+        call.assert_called_once_with(["pshell", "/path/to/config.ini"])
 
-    @patch('bodhi.server.scripts.bshell.get_configfile')
-    @patch('bodhi.server.scripts.bshell.call')
+    @patch("bodhi.server.scripts.bshell.get_configfile")
+    @patch("bodhi.server.scripts.bshell.call")
     def test_config_file_not_found(self, call, get_configfile):
         """Assert correct behavior when the config file is not found"""
         get_configfile.return_value = None

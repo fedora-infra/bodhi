@@ -23,32 +23,29 @@ messages.
 
 import typing
 
-from .base import BodhiMessage, BuildV1, ReleaseV1, SCHEMA_URL, UpdateV1, UserV1
+from .base import SCHEMA_URL, BodhiMessage, BuildV1, ReleaseV1, UpdateV1, UserV1
 
 
 class ErrataPublishV1(BodhiMessage):
     """Sent when an errata is published."""
 
     body_schema = {
-        'id': f'{SCHEMA_URL}/v1/bodhi.errata.publish#',
-        '$schema': 'http://json-schema.org/draft-04/schema#',
-        'description': 'Schema for message sent when an update is pushed to stable',
-        'type': 'object',
-        'properties': {
-            'body': {
-                'type': 'string',
-                'description': 'The body of an human readable message about the update',
+        "id": f"{SCHEMA_URL}/v1/bodhi.errata.publish#",
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "Schema for message sent when an update is pushed to stable",
+        "type": "object",
+        "properties": {
+            "body": {
+                "type": "string",
+                "description": "The body of an human readable message about the update",
             },
-            'subject': {
-                'type': 'string',
-                'description': 'A short summary of the update'
-            },
-            'update': UpdateV1.schema(),
+            "subject": {"type": "string", "description": "A short summary of the update"},
+            "update": UpdateV1.schema(),
         },
-        'required': ['body', 'subject', 'update'],
-        'definitions': {
-            'build': BuildV1.schema(),
-        }
+        "required": ["body", "subject", "update"],
+        "definitions": {
+            "build": BuildV1.schema(),
+        },
     }
 
     topic = "bodhi.errata.publish"
@@ -60,7 +57,7 @@ class ErrataPublishV1(BodhiMessage):
         This should provide a detailed representation of the message, much like the body
         of an email.
         """
-        return self.body['body']
+        return self.body["body"]
 
     @property
     def agent_name(self) -> str:
@@ -88,7 +85,7 @@ class ErrataPublishV1(BodhiMessage):
         This should provide a short summary of the message, much like the subject line
         of an email.
         """
-        return self.body['subject']
+        return self.body["subject"]
 
     @property
     def url(self) -> str:
@@ -98,16 +95,19 @@ class ErrataPublishV1(BodhiMessage):
         Returns:
             A relevant URL.
         """
-        return f'https://bodhi.fedoraproject.org/updates/{self.update.alias}'
+        return f"https://bodhi.fedoraproject.org/updates/{self.update.alias}"
 
     @property
     def update(self) -> UpdateV1:
         """Return the Update from this errata."""
-        if not hasattr(self, '_update'):
+        if not hasattr(self, "_update"):
             # Let's cache the Update since a few different methods use it.
             self._update = UpdateV1(
-                self.body['update']['alias'],
-                [BuildV1(b['nvr']) for b in self.body['update']['builds']],
-                UserV1(self.body['update']['user']['name']), self.body['update']['status'],
-                self.body['update']['request'], ReleaseV1(self.body['update']['release']['name']))
+                self.body["update"]["alias"],
+                [BuildV1(b["nvr"]) for b in self.body["update"]["builds"]],
+                UserV1(self.body["update"]["user"]["name"]),
+                self.body["update"]["status"],
+                self.body["update"]["request"],
+                ReleaseV1(self.body["update"]["release"]["name"]),
+            )
         return self._update

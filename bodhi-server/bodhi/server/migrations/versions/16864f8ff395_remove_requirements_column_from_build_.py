@@ -22,24 +22,26 @@ Revision ID: 16864f8ff395
 Revises: 3b34650a0cf6
 Create Date: 2023-12-02 02:04:49.192890
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '16864f8ff395'
-down_revision = '3b34650a0cf6'
+revision = "16864f8ff395"
+down_revision = "3b34650a0cf6"
 
 
 def upgrade():
     """Remove requirements columns from packages and updates."""
-    op.drop_column('packages', 'requirements')
-    op.drop_column('updates', 'requirements')
+    op.drop_column("packages", "requirements")
+    op.drop_column("updates", "requirements")
 
 
 def downgrade():
     """Add requirements columns to packages and updates."""
-    op.add_column('updates',
-                  sa.Column('requirements', sa.TEXT(), autoincrement=False, nullable=True))
-    op.add_column('packages',
-                  sa.Column('requirements', sa.TEXT(), autoincrement=False, nullable=True))
+    op.add_column(
+        "updates", sa.Column("requirements", sa.TEXT(), autoincrement=False, nullable=True)
+    )
+    op.add_column(
+        "packages", sa.Column("requirements", sa.TEXT(), autoincrement=False, nullable=True)
+    )

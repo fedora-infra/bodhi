@@ -25,8 +25,14 @@ from .utils import make_db_and_user, stop_and_delete
 
 @pytest.fixture(scope="session")
 def bodhi_container(
-    docker_backend, docker_network, db_container, resultsdb_container,
-    waiverdb_container, greenwave_container, rabbitmq_container, ipsilon_container,
+    docker_backend,
+    docker_network,
+    db_container,
+    resultsdb_container,
+    waiverdb_container,
+    greenwave_container,
+    rabbitmq_container,
+    ipsilon_container,
     valkey_container,
 ):
     """Fixture preparing and yielding a Bodhi container to test against.
@@ -56,11 +62,16 @@ def bodhi_container(
     )
     run_opts = [
         "--rm",
-        "--name", "bodhi",
-        "--network", docker_network.get_id(),
-        "--network-alias", "bodhi",
-        "--network-alias", "bodhi.ci",
-        "-e", "REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ipsilon.crt",
+        "--name",
+        "bodhi",
+        "--network",
+        docker_network.get_id(),
+        "--network-alias",
+        "bodhi",
+        "--network-alias",
+        "bodhi.ci",
+        "-e",
+        "REQUESTS_CA_BUNDLE=/etc/pki/tls/certs/ipsilon.crt",
     ]
     container = image.run_via_binary(additional_opts=run_opts)
     container.start()

@@ -19,10 +19,9 @@
 
 from unittest import mock
 
-from fedora_messaging.api import Message
-
 from bodhi.server import models
 from bodhi.server.consumers import waiverdb
+from fedora_messaging.api import Message
 
 from ..base import BasePyTestCase, TransactionalSessionMaker
 
@@ -31,11 +30,15 @@ class TestWaiverdbHandler(BasePyTestCase):
     """Test class for the :func:`WaiverdbHandler` method."""
 
     def setup_method(self, method):
-        super(TestWaiverdbHandler, self).setup_method(method)
+        super().setup_method(method)
         self.handler = waiverdb.WaiverdbHandler()
         self.handler.db_factory = TransactionalSessionMaker(self.Session)
-        self.single_build_update = self.db.query(models.Update).join(models.Build).filter(
-            models.Build.nvr == 'bodhi-2.0-1.fc17').one()
+        self.single_build_update = (
+            self.db.query(models.Update)
+            .join(models.Build)
+            .filter(models.Build.nvr == "bodhi-2.0-1.fc17")
+            .one()
+        )
 
     def get_sample_message(self, typ="bodhi_update"):
         """Returns a sample message for the specified type."""
@@ -45,13 +48,7 @@ class TestWaiverdbHandler(BasePyTestCase):
             item = self.single_build_update.builds[0].nvr
         return Message(
             topic="org.fedoraproject.prod.waiverdb.waiver.new",
-            body={
-                "subject_type": typ,
-                "subject": {
-                    "item": item,
-                    "type": typ
-                }
-            }
+            body={"subject_type": typ, "subject": {"item": item, "type": typ}},
         )
 
     def test_waiverdb_koji_waiver(self):
@@ -64,25 +61,25 @@ class TestWaiverdbHandler(BasePyTestCase):
         # before the greenwave consumer run the gating tests status is None
         assert update.test_gating_status is None
 
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
             greenwave_response = {
-                'policies_satisfied': True,
-                'summary': "All required tests passed",
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
+                "policies_satisfied": True,
+                "summary": "All required tests passed",
+                "applicable_policies": [
+                    "kojibuild_bodhipush_no_requirements",
+                    "kojibuild_bodhipush_remoterule",
+                    "bodhiupdate_bodhipush_no_requirements",
+                    "bodhiupdate_bodhipush_openqa",
                 ],
-                'satisfied_requirements': [
+                "satisfied_requirements": [
                     {
-                        'result_id': 39603316,
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-passed'
+                        "result_id": 39603316,
+                        "subject_type": "bodhi_update",
+                        "testcase": "update.install_default_update_netinst",
+                        "type": "test-result-passed",
                     },
                 ],
-                'unsatisfied_requirements': []
+                "unsatisfied_requirements": [],
             }
             mock_greenwave.return_value = greenwave_response
             testmsg = self.get_sample_message(typ="koji_build")
@@ -116,25 +113,25 @@ class TestWaiverdbHandler(BasePyTestCase):
         # before the greenwave consumer run the gating tests status is None
         assert update.test_gating_status is None
 
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
             greenwave_response = {
-                'policies_satisfied': True,
-                'summary': "All required tests passed",
-                'applicable_policies': [
-                    'kojibuild_bodhipush_no_requirements',
-                    'kojibuild_bodhipush_remoterule',
-                    'bodhiupdate_bodhipush_no_requirements',
-                    'bodhiupdate_bodhipush_openqa'
+                "policies_satisfied": True,
+                "summary": "All required tests passed",
+                "applicable_policies": [
+                    "kojibuild_bodhipush_no_requirements",
+                    "kojibuild_bodhipush_remoterule",
+                    "bodhiupdate_bodhipush_no_requirements",
+                    "bodhiupdate_bodhipush_openqa",
                 ],
-                'satisfied_requirements': [
+                "satisfied_requirements": [
                     {
-                        'result_id': 39603316,
-                        'subject_type': 'bodhi_update',
-                        'testcase': 'update.install_default_update_netinst',
-                        'type': 'test-result-passed'
+                        "result_id": 39603316,
+                        "subject_type": "bodhi_update",
+                        "testcase": "update.install_default_update_netinst",
+                        "type": "test-result-passed",
                     },
                 ],
-                'unsatisfied_requirements': []
+                "unsatisfied_requirements": [],
             }
             mock_greenwave.return_value = greenwave_response
             testmsg = self.get_sample_message(typ="bodhi_update")
@@ -142,15 +139,15 @@ class TestWaiverdbHandler(BasePyTestCase):
             assert update.test_gating_status == models.TestGatingStatus.passed
             # don't bother testing every other path here too
 
-    @mock.patch('bodhi.server.consumers.waiverdb.log')
+    @mock.patch("bodhi.server.consumers.waiverdb.log")
     def test_waiverdb_bad_message(self, mock_log):
-        """ Assert that the consumer ignores badly formed messages."""
+        """Assert that the consumer ignores badly formed messages."""
         bad_message = Message(topic="", body={})
         self.handler(bad_message)
         assert mock_log.debug.call_count == 1
         mock_log.debug.assert_called_with("Ignoring message without body.")
 
-    @mock.patch('bodhi.server.consumers.waiverdb.log')
+    @mock.patch("bodhi.server.consumers.waiverdb.log")
     def test_waiverdb_message_missing_subject(self, mock_log):
         """
         Assert that the consumer logs and returns if we could not find the
@@ -160,9 +157,10 @@ class TestWaiverdbHandler(BasePyTestCase):
         self.handler(bad_message)
         assert mock_log.error.call_count == 1
         mock_log.error.assert_called_with(
-            f"Couldn't find subject in WaiverDB message {bad_message.id}")
+            f"Couldn't find subject in WaiverDB message {bad_message.id}"
+        )
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_waiverdb_message_missing_subject_type(self, mock_log):
         """
         Assert that the consumer logs and returns if we could not find the
@@ -171,10 +169,9 @@ class TestWaiverdbHandler(BasePyTestCase):
         bad_message = Message(topic="", body={"subject": {"foo": "bar"}})
         self.handler(bad_message)
         assert mock_log.error.call_count == 1
-        mock_log.error.assert_called_with(
-            f"Couldn't find item type in message {bad_message.id}")
+        mock_log.error.assert_called_with(f"Couldn't find item type in message {bad_message.id}")
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_waiverdb_message_irrelevant_result_type(self, mock_log):
         """
         Assert that the consumer logs and returns if the result type
@@ -185,7 +182,7 @@ class TestWaiverdbHandler(BasePyTestCase):
         assert mock_log.debug.call_count == 1
         mock_log.debug.assert_called_with("Irrelevant item type foo")
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_waiverdb_koji_message_no_nvr(self, mock_log):
         """
         Assert that the consumer logs and returns if a Koji waiver
@@ -197,7 +194,7 @@ class TestWaiverdbHandler(BasePyTestCase):
         assert mock_log.error.call_count == 1
         mock_log.error.assert_called_with(f"Couldn't find nvr in message {testmsg.id}")
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_waiverdb_koji_message_wrong_build_nvr(self, mock_log):
         """
         Assert that the consumer raise an exception if we could not find the
@@ -209,7 +206,7 @@ class TestWaiverdbHandler(BasePyTestCase):
         assert mock_log.error.call_count == 1
         mock_log.error.assert_called_with("Couldn't find build notapackage-2.0-1.fc17 in DB")
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_waiverdb_bodhi_message_no_updateid(self, mock_log):
         """
         Assert that the consumer logs and returns if a Bodhi waiver
@@ -221,7 +218,7 @@ class TestWaiverdbHandler(BasePyTestCase):
         assert mock_log.error.call_count == 1
         mock_log.error.assert_called_with(f"Couldn't find update ID in message {testmsg.id}")
 
-    @mock.patch('bodhi.server.consumers.util.log')
+    @mock.patch("bodhi.server.consumers.util.log")
     def test_waiverdb_bodhi_message_wrong_updateid(self, mock_log):
         """
         Assert that the consumer raise an exception if we could not find the

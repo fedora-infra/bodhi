@@ -33,7 +33,7 @@ def truncate(title: str) -> str:
 # Keep this in sync with bodhi.server.util.MENTION_RE
 # (enhancement: create a bodhi-common package that every subpackage
 # would depend on and put it there)
-MENTION_RE = r'(?<!\S)(@\w+)'
+MENTION_RE = r"(?<!\S)(@\w+)"
 
 
 def past_tense(verb):
@@ -45,4 +45,4 @@ def past_tense(verb):
     Returns:
         str: the verb in the past tense, such as "obsoleted", "revoked", and "pushed"
     """
-    return verb + ("d" if verb[-1] == 'e' else "ed")
+    return verb + ("d" if verb[-1] == "e" else "ed")

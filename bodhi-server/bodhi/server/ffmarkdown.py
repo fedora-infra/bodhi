@@ -22,25 +22,24 @@ Fedora-flavored Markdown.
 Author: Ralph Bean <rbean@redhat.com>
 """
 
-from re import escape
 import typing
 import xml.etree.ElementTree as etree
+from re import escape
 
-from markdown.extensions import Extension
-from markdown.postprocessors import Postprocessor
-from markdown.inlinepatterns import InlineProcessor
 import markdown.util
 import pyramid.threadlocal
-
 from bodhi.server import MENTION_RE
 from bodhi.server.config import config
+from markdown.extensions import Extension
+from markdown.inlinepatterns import InlineProcessor
+from markdown.postprocessors import Postprocessor
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import re  # noqa: F401
-    import xml  # noqa: F401
+    import re
+    import xml
 
 
-BUGZILLA_RE = r'([a-zA-Z]+)(#[0-9]{5,})'
+BUGZILLA_RE = r"([a-zA-Z]+)(#[0-9]{5,})"
 
 
 def user_url(name: str) -> str:
@@ -53,10 +52,10 @@ def user_url(name: str) -> str:
         A URL to the requested user.
     """
     request = pyramid.threadlocal.get_current_request()
-    return request.route_url('user', name=name)
+    return request.route_url("user", name=name)
 
 
-def bug_url(tracker: str, idx: typing.Union[int, str]) -> typing.Optional[str]:
+def bug_url(tracker: str, idx: int | str) -> str | None:
     """
     Return the URL for the given bug.
 
@@ -70,18 +69,19 @@ def bug_url(tracker: str, idx: typing.Union[int, str]) -> typing.Optional[str]:
     """
     try:
         trackers = {
-            'fedora': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
-            'gcc': "https://gcc.gnu.org/bugzilla/show_bug.cgi?id=%s",
-            'gnome': "https://bugzilla.gnome.org/show_bug.cgi?id=%s",
-            'kde': "https://bugs.kde.org/show_bug.cgi?id=%s",
-            'mozilla': "https://bugzilla.mozilla.org/show_bug.cgi?id=%s",
-            'pear': "https://pear.php.net/bugs/bug.php?id=%s",
-            'perl': "https://rt.cpan.org/Public/Bug/Display.html?id=%s",
-            'php': "https://bugs.php.net/bug.php?id=%s",
-            'python': "https://bugs.python.org/issue%s",
-            'rh': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
-            'rhbz': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
-            'sourceware': "https://sourceware.org/bugzilla/show_bug.cgi?id=%s"}
+            "fedora": "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
+            "gcc": "https://gcc.gnu.org/bugzilla/show_bug.cgi?id=%s",
+            "gnome": "https://bugzilla.gnome.org/show_bug.cgi?id=%s",
+            "kde": "https://bugs.kde.org/show_bug.cgi?id=%s",
+            "mozilla": "https://bugzilla.mozilla.org/show_bug.cgi?id=%s",
+            "pear": "https://pear.php.net/bugs/bug.php?id=%s",
+            "perl": "https://rt.cpan.org/Public/Bug/Display.html?id=%s",
+            "php": "https://bugs.php.net/bug.php?id=%s",
+            "python": "https://bugs.python.org/issue%s",
+            "rh": "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
+            "rhbz": "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
+            "sourceware": "https://sourceware.org/bugzilla/show_bug.cgi?id=%s",
+        }
 
         return trackers[tracker.lower()] % idx
 
@@ -99,14 +99,15 @@ def update_url(alias: str) -> str:
         A URL to the requested update.
     """
     request = pyramid.threadlocal.get_current_request()
-    return request.route_url('update', id=alias)
+    return request.route_url("update", id=alias)
 
 
 class MentionProcessor(InlineProcessor):
     """Match username mentions and point to their profiles."""
 
-    def handleMatch(self, m: 're.Match',
-                    data: str) -> typing.Tuple['xml.etree.ElementTree.Element', int, int]:
+    def handleMatch(
+        self, m: "re.Match", data: str
+    ) -> tuple["xml.etree.ElementTree.Element", int, int]:
         """
         Build and return an Element that links to the matched User's profile.
 
@@ -119,7 +120,7 @@ class MentionProcessor(InlineProcessor):
         """
         el = etree.Element("a")
         name = markdown.util.AtomicString(m.group(1))
-        el.set('href', user_url(name[1:]))
+        el.set("href", user_url(name[1:]))
         el.text = name
         return el, m.start(0), m.end(0)
 
@@ -127,8 +128,9 @@ class MentionProcessor(InlineProcessor):
 class BugzillaProcessor(InlineProcessor):
     """Match bug tracker patterns."""
 
-    def handleMatch(self, m: 're.Match',
-                    data: str) -> typing.Tuple['xml.etree.ElementTree.Element', int, int]:
+    def handleMatch(
+        self, m: "re.Match", data: str
+    ) -> tuple["xml.etree.ElementTree.Element", int, int]:
         """
         Build and return an Element that links to the referenced bug.
 
@@ -144,10 +146,10 @@ class BugzillaProcessor(InlineProcessor):
         url = bug_url(tracker, idx[1:])
 
         if url is None:
-            return f'{tracker}{idx}', m.start(0), m.end(0)
+            return f"{tracker}{idx}", m.start(0), m.end(0)
 
         el = etree.Element("a")
-        el.set('href', url)
+        el.set("href", url)
         el.text = idx
         return el, m.start(0), m.end(0)
 
@@ -155,8 +157,9 @@ class BugzillaProcessor(InlineProcessor):
 class UpdateProcessor(InlineProcessor):
     """Match update alias pattern and link to the update."""
 
-    def handleMatch(self, m: 're.Match',
-                    data: str) -> typing.Tuple['xml.etree.ElementTree.Element', int, int]:
+    def handleMatch(
+        self, m: "re.Match", data: str
+    ) -> tuple["xml.etree.ElementTree.Element", int, int]:
         """
         Build and return an Element that links to the referenced update.
 
@@ -171,7 +174,7 @@ class UpdateProcessor(InlineProcessor):
         url = update_url(alias)
 
         el = etree.Element("a")
-        el.set('href', url)
+        el.set("href", url)
         el.text = alias
         return el, m.start(0), m.end(0)
 
@@ -206,10 +209,12 @@ class BodhiExtension(Extension):
         # it early results in config['base_address'] being read before
         # the test setup method has changed the config to use the
         # values from testing.ini and the value may not be as expected
-        update_re = (r'(?:(?<!\S)|('
-                     + escape(config['base_address'])
-                     + r'updates/))([A-Z\-]+-\d{4}-[^\W_]{10})(?:(?=[\.,;:])|(?!\S))')
-        md.inlinePatterns.register(MentionProcessor(MENTION_RE, md), 'mention', 175)
-        md.inlinePatterns.register(BugzillaProcessor(BUGZILLA_RE, md), 'bugzilla', 175)
-        md.inlinePatterns.register(UpdateProcessor(update_re, md), 'update', 175)
-        md.postprocessors.register(SurroundPostprocessor(md), 'surround', 175)
+        update_re = (
+            r"(?:(?<!\S)|("
+            + escape(config["base_address"])
+            + r"updates/))([A-Z\-]+-\d{4}-[^\W_]{10})(?:(?=[\.,;:])|(?!\S))"
+        )
+        md.inlinePatterns.register(MentionProcessor(MENTION_RE, md), "mention", 175)
+        md.inlinePatterns.register(BugzillaProcessor(BUGZILLA_RE, md), "bugzilla", 175)
+        md.inlinePatterns.register(UpdateProcessor(update_re, md), "update", 175)
+        md.postprocessors.register(SurroundPostprocessor(md), "surround", 175)

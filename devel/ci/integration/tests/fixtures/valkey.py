@@ -38,10 +38,14 @@ def valkey_container(docker_backend, docker_network):
     image = docker_backend.ImageClass(image_name)
     run_opts = [
         "--rm",
-        "--name", "valkey",
-        "--network", docker_network.get_id(),
-        "--network-alias", "valkey",
-        "--network-alias", "valkey.ci",
+        "--name",
+        "valkey",
+        "--network",
+        docker_network.get_id(),
+        "--network-alias",
+        "valkey",
+        "--network-alias",
+        "valkey.ci",
     ]
     container = image.run_via_binary(additional_opts=run_opts)
     container.start()

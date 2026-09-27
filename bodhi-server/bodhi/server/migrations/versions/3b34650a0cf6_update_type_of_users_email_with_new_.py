@@ -22,32 +22,24 @@ Revision ID: 3b34650a0cf6
 Revises: f660455231d4
 Create Date: 2023-12-02 02:03:22.837186
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '3b34650a0cf6'
-down_revision = 'f660455231d4'
+revision = "3b34650a0cf6"
+down_revision = "f660455231d4"
 
 
 def upgrade():
     """Change type of users.email to sa.UnicodeText."""
     op.alter_column(
-        'users',
-        'email',
-        existing_type=sa.VARCHAR(),
-        type_=sa.UnicodeText(),
-        existing_nullable=True
+        "users", "email", existing_type=sa.VARCHAR(), type_=sa.UnicodeText(), existing_nullable=True
     )
 
 
 def downgrade():
     """Change type of users.email to sa.VARCHAR."""
     op.alter_column(
-        'users',
-        'email',
-        existing_type=sa.UnicodeText(),
-        type_=sa.VARCHAR(),
-        existing_nullable=True
+        "users", "email", existing_type=sa.UnicodeText(), type_=sa.VARCHAR(), existing_nullable=True
     )

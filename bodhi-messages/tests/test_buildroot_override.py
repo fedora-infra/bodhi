@@ -16,8 +16,11 @@
 """Unit tests for the buildroot_override message schemas."""
 
 from bodhi.messages.schemas import base
-from bodhi.messages.schemas.buildroot_override import (BuildrootOverrideTagV1,
-                                                       BuildrootOverrideUntagV1)
+from bodhi.messages.schemas.buildroot_override import (
+    BuildrootOverrideTagV1,
+    BuildrootOverrideUntagV1,
+)
+
 from .utils import check_message
 
 
@@ -39,15 +42,15 @@ class TestBuildrootOverrideMessage:
             ),
             "usernames": ["lmacken"],
             "packages": ["libxcrypt"],
-            'build': base.BuildV1('libxcrypt-4.4.4-2.fc28'),
-            'submitter': base.UserV1('lmacken'),
-            'agent_name': 'lmacken'
+            "build": base.BuildV1("libxcrypt-4.4.4-2.fc28"),
+            "submitter": base.UserV1("lmacken"),
+            "agent_name": "lmacken",
         }
         msg = BuildrootOverrideTagV1(
             body={
                 "override": {
                     "nvr": "libxcrypt-4.4.4-2.fc28",
-                    "submitter": {'name': 'lmacken'},
+                    "submitter": {"name": "lmacken"},
                 }
             }
         )
@@ -67,9 +70,9 @@ class TestBuildrootOverrideMessage:
             ),
             "usernames": ["lmacken"],
             "packages": ["libxcrypt"],
-            'build': base.BuildV1('libxcrypt-4.4.4-2.fc28'),
-            'submitter': base.UserV1('lmacken'),
-            'agent_name': 'lmacken'
+            "build": base.BuildV1("libxcrypt-4.4.4-2.fc28"),
+            "submitter": base.UserV1("lmacken"),
+            "agent_name": "lmacken",
         }
         msg = BuildrootOverrideUntagV1(
             body={

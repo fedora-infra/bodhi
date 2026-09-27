@@ -15,15 +15,15 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Unit tests for the compose message schemas."""
 
-
 from bodhi.messages.schemas.compose import (
+    ComposeCompleteV1,
     ComposeComposingV1,
     ComposeStartV1,
-    ComposeCompleteV1,
-    ComposeSyncWaitV1,
     ComposeSyncDoneV1,
+    ComposeSyncWaitV1,
     RepoDoneV1,
 )
+
 from .utils import check_message
 
 
@@ -38,16 +38,16 @@ class TestComposeMessage:
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
-            "usernames": ['mohanboddu'],
+            "usernames": ["mohanboddu"],
             "packages": [],
-            'repo': 'test_repo',
-            'agent_name': 'mohanboddu'
+            "repo": "test_repo",
+            "agent_name": "mohanboddu",
         }
         msg = ComposeComposingV1(
             body={
-                'agent': 'mohanboddu',
-                'repo': 'test_repo',
-                'updates': ['monitorix-3.11.0-1.el6'],
+                "agent": "mohanboddu",
+                "repo": "test_repo",
+                "updates": ["monitorix-3.11.0-1.el6"],
             }
         )
         check_message(msg, expected)
@@ -60,11 +60,11 @@ class TestComposeMessage:
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
-            "usernames": ['mohanboddu'],
+            "usernames": ["mohanboddu"],
             "packages": [],
-            'agent_name': 'mohanboddu'
+            "agent_name": "mohanboddu",
         }
-        msg = ComposeStartV1(body={'agent': 'mohanboddu'})
+        msg = ComposeStartV1(body={"agent": "mohanboddu"})
         check_message(msg, expected)
 
     def test_complete_v1_failed(self):
@@ -76,19 +76,19 @@ class TestComposeMessage:
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
-            "usernames": ['mohanboddu'],
+            "usernames": ["mohanboddu"],
             "packages": [],
-            'agent_name': 'mohanboddu',
-            'repo': 'test_repo',
-            'success': False,
-            'ctype': 'container',
+            "agent_name": "mohanboddu",
+            "repo": "test_repo",
+            "success": False,
+            "ctype": "container",
         }
         msg = ComposeCompleteV1(
             body={
-                'agent': 'mohanboddu',
-                'success': False,
-                'repo': 'test_repo',
-                'ctype': 'container',
+                "agent": "mohanboddu",
+                "success": False,
+                "repo": "test_repo",
+                "ctype": "container",
             }
         )
         check_message(msg, expected)
@@ -102,19 +102,19 @@ class TestComposeMessage:
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
-            "usernames": ['mohanboddu'],
+            "usernames": ["mohanboddu"],
             "packages": [],
-            'agent_name': 'mohanboddu',
-            'repo': 'test_repo',
-            'success': True,
-            'ctype': 'container',
+            "agent_name": "mohanboddu",
+            "repo": "test_repo",
+            "success": True,
+            "ctype": "container",
         }
         msg = ComposeCompleteV1(
             body={
-                'agent': 'mohanboddu',
-                'success': True,
-                'repo': 'test_repo',
-                'ctype': 'container',
+                "agent": "mohanboddu",
+                "success": True,
+                "repo": "test_repo",
+                "ctype": "container",
             }
         )
         check_message(msg, expected)
@@ -127,60 +127,42 @@ class TestComposeMessage:
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
-            "usernames": ['mohanboddu'],
+            "usernames": ["mohanboddu"],
             "packages": [],
-            'agent_name': 'mohanboddu',
-            'repo': 'test_repo'
+            "agent_name": "mohanboddu",
+            "repo": "test_repo",
         }
-        msg = RepoDoneV1(
-            body={'agent': 'mohanboddu', 'repo': 'test_repo', 'path': '/some/path'}
-        )
+        msg = RepoDoneV1(body={"agent": "mohanboddu", "repo": "test_repo", "path": "/some/path"})
         check_message(msg, expected)
 
     def test_sync_wait_v1(self):
         expected = {
             "topic": "bodhi.compose.sync.wait",
-            "summary": (
-                "bodhi composer is waiting for test_repo "
-                "to hit the master mirror"
-            ),
-            "__str__": (
-                "bodhi composer is waiting for test_repo "
-                "to hit the master mirror"
-            ),
+            "summary": ("bodhi composer is waiting for test_repo to hit the master mirror"),
+            "__str__": ("bodhi composer is waiting for test_repo to hit the master mirror"),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
-            "usernames": ['mohanboddu'],
+            "usernames": ["mohanboddu"],
             "packages": [],
-            'agent_name': 'mohanboddu',
-            'repo': 'test_repo'
+            "agent_name": "mohanboddu",
+            "repo": "test_repo",
         }
-        msg = ComposeSyncWaitV1(
-            body={'agent': 'mohanboddu', 'repo': 'test_repo'}
-        )
+        msg = ComposeSyncWaitV1(body={"agent": "mohanboddu", "repo": "test_repo"})
         check_message(msg, expected)
 
     def test_sync_done_v1(self):
         expected = {
             "topic": "bodhi.compose.sync.done",
-            "summary": (
-                "bodhi composer finished waiting for test_repo "
-                "to hit the master mirror"
-            ),
-            "__str__": (
-                "bodhi composer finished waiting for test_repo "
-                "to hit the master mirror"
-            ),
+            "summary": ("bodhi composer finished waiting for test_repo to hit the master mirror"),
+            "__str__": ("bodhi composer finished waiting for test_repo to hit the master mirror"),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
             "app_name": "bodhi",
             "url": None,
-            "usernames": ['mohanboddu'],
+            "usernames": ["mohanboddu"],
             "packages": [],
-            'agent_name': 'mohanboddu',
-            'repo': 'test_repo'
+            "agent_name": "mohanboddu",
+            "repo": "test_repo",
         }
-        msg = ComposeSyncDoneV1(
-            body={'agent': 'mohanboddu', 'repo': 'test_repo'}
-        )
+        msg = ComposeSyncDoneV1(body={"agent": "mohanboddu", "repo": "test_repo"})
         check_message(msg, expected)

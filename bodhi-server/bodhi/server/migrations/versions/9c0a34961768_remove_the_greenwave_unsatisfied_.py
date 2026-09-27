@@ -22,21 +22,22 @@ Revision ID: 9c0a34961768
 Revises: bdf0e37ab793
 Create Date: 2019-02-07 06:20:33.986578
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '9c0a34961768'
-down_revision = 'bdf0e37ab793'
+revision = "9c0a34961768"
+down_revision = "bdf0e37ab793"
 
 
 def upgrade():
     """Drop the greenwave_unsatisfied_requirements from the updates table."""
-    op.drop_column('updates', 'greenwave_unsatisfied_requirements')
+    op.drop_column("updates", "greenwave_unsatisfied_requirements")
 
 
 def downgrade():
     """Restore greenwave_unsatisfied_requirements field removed in the upgrade() function."""
-    op.add_column('updates',
-                  sa.Column('greenwave_unsatisfied_requirements', sa.UnicodeText(), nullable=True))
+    op.add_column(
+        "updates", sa.Column("greenwave_unsatisfied_requirements", sa.UnicodeText(), nullable=True)
+    )

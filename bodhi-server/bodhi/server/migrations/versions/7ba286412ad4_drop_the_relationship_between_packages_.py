@@ -22,26 +22,28 @@ Revision ID: 7ba286412ad4
 Revises: 2fc96aa44a74
 Create Date: 2019-02-16 08:36:48.665825
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '7ba286412ad4'
-down_revision = '2fc96aa44a74'
+revision = "7ba286412ad4"
+down_revision = "2fc96aa44a74"
 
 
 def upgrade():
     """Drop the user_package_table table and associations."""
-    op.drop_table('user_package_table')
+    op.drop_table("user_package_table")
 
 
 def downgrade():
     """Bring back the user_package_table table and associations."""
     op.create_table(
-        'user_package_table',
-        sa.Column('user_id', sa.INTEGER(), autoincrement=False, nullable=True),
-        sa.Column('package_id', sa.INTEGER(), autoincrement=False, nullable=True),
-        sa.ForeignKeyConstraint(['user_id'], ['users.id'], name='user_package_table_user_id_fkey'),
-        sa.ForeignKeyConstraint(['package_id'], ['packages.id'],
-                                name='user_package_table_package_id_fkey'))
+        "user_package_table",
+        sa.Column("user_id", sa.INTEGER(), autoincrement=False, nullable=True),
+        sa.Column("package_id", sa.INTEGER(), autoincrement=False, nullable=True),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="user_package_table_user_id_fkey"),
+        sa.ForeignKeyConstraint(
+            ["package_id"], ["packages.id"], name="user_package_table_package_id_fkey"
+        ),
+    )

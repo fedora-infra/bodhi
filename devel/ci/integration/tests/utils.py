@@ -16,11 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from contextlib import contextmanager
 import json
 import os
 import shutil
 import tempfile
+from contextlib import contextmanager
 
 from conu import ConuException
 from fedora_messaging import message
@@ -105,7 +105,7 @@ def get_sent_messages(rabbitmq_container):
         rabbitmq_container.copy_from("/var/log/fedora-messaging/messages.log", destfile)
         with open(destfile, "r") as fh:
             serialized_messages = fh.read().replace("\n", ",")
-    serialized_messages = "[%s]" % serialized_messages[:-1]
+    serialized_messages = f"[{serialized_messages[:-1]}]"
     return message.loads(serialized_messages)
 
 
@@ -148,10 +148,16 @@ def run_cli(bodhi_container, args, **kwargs):
     if "environment" not in kwargs["exec_create_kwargs"]:
         kwargs["exec_create_kwargs"]["environment"] = {}
     kwargs["exec_create_kwargs"]["environment"]["PYTHONWARNINGS"] = "ignore"
-    cmd = ["bodhi"] + args + [
-        "--url", "http://localhost.localdomain:8080",
-        "--id-provider", "https://id.dev.fedoraproject.org/openidc",
-    ]
+    cmd = (
+        ["bodhi"]
+        + args
+        + [
+            "--url",
+            "http://localhost.localdomain:8080",
+            "--id-provider",
+            "https://id.dev.fedoraproject.org/openidc",
+        ]
+    )
     try:
         output = bodhi_container.execute(cmd, **kwargs)
     except ConuException as e:

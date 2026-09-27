@@ -26,11 +26,11 @@ class PyramidAppMixinAuthlib1(PyramidAppMixin):
 
     def save_authorize_data(self, request, **kwargs):
         """Save the authorization data in the session."""
-        state = kwargs.pop('state', None)
+        state = kwargs.pop("state", None)
         if state:
             self.framework.set_state_data(request.session, state, kwargs)
         else:
-            raise RuntimeError('Missing state value')
+            raise RuntimeError("Missing state value")
 
 
 class PyramidOAuth1App(PyramidAppMixinAuthlib1, OAuth1Mixin, BaseApp):
@@ -45,7 +45,7 @@ class PyramidOAuth1App(PyramidAppMixinAuthlib1, OAuth1Mixin, BaseApp):
         :return: A token dict.
         """
         params = dict(request.GET)
-        state = params.get('oauth_token')
+        state = params.get("oauth_token")
         if not state:
             raise OAuthError(description='Missing "oauth_token" parameter')
 
@@ -53,7 +53,7 @@ class PyramidOAuth1App(PyramidAppMixinAuthlib1, OAuth1Mixin, BaseApp):
         if not data:
             raise OAuthError(description='Missing "request_token" in temporary data')
 
-        params['request_token'] = data['request_token']
+        params["request_token"] = data["request_token"]
         params.update(kwargs)
         self.framework.clear_state_data(request.session, state)
         return self.fetch_access_token(**params)
@@ -70,30 +70,30 @@ class PyramidOAuth2App(PyramidAppMixinAuthlib1, OAuth2Mixin, OpenIDMixin, BaseAp
         :param request: HTTP request instance from Pyramid view.
         :return: A token dict.
         """
-        if request.method == 'GET':
-            error = request.GET.get('error')
+        if request.method == "GET":
+            error = request.GET.get("error")
             if error:
-                self.framework.clear_state_data(request.session, request.GET.get('state'))
-                description = request.GET.get('error_description')
+                self.framework.clear_state_data(request.session, request.GET.get("state"))
+                description = request.GET.get("error_description")
                 raise OAuthError(error=error, description=description)
             params = {
-                'code': request.GET.get('code'),
-                'state': request.GET.get('state'),
+                "code": request.GET.get("code"),
+                "state": request.GET.get("state"),
             }
         else:
             params = {
-                'code': request.POST.get('code'),
-                'state': request.POST.get('state'),
+                "code": request.POST.get("code"),
+                "state": request.POST.get("state"),
             }
 
-        state_data = self.framework.get_state_data(request.session, params.get('state'))
-        self.framework.clear_state_data(request.session, params.get('state'))
+        state_data = self.framework.get_state_data(request.session, params.get("state"))
+        self.framework.clear_state_data(request.session, params.get("state"))
         params = self._format_state_params(state_data, params)
         token = self.fetch_access_token(**params, **kwargs)
 
-        if 'id_token' in token and 'nonce' in state_data:
-            userinfo = self.parse_id_token(token, nonce=state_data['nonce'])
-            token['userinfo'] = userinfo
+        if "id_token" in token and "nonce" in state_data:
+            userinfo = self.parse_id_token(token, nonce=state_data["nonce"])
+            token["userinfo"] = userinfo
         return token
 
 

@@ -22,13 +22,13 @@ Revision ID: c98beb4940b5
 Revises: 58b7919b942c
 Create Date: 2019-03-17 11:55:38.248866
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'c98beb4940b5'
-down_revision = '58b7919b942c'
+revision = "c98beb4940b5"
+down_revision = "58b7919b942c"
 
 
 def upgrade():
@@ -42,13 +42,13 @@ def upgrade():
         "UPDATE comments SET text=text || '\n\nkarma: -1', "
         "karma = 0 where anonymous = true and karma = -1"
     )
-    op.drop_column('comments', 'anonymous')
+    op.drop_column("comments", "anonymous")
 
 
 def downgrade():
     """Revert the comment's anonymous column and retrieve karma from text."""
     op.add_column(
-        'comments', sa.Column('anonymous', sa.BOOLEAN(), server_default='f', default=False)
+        "comments", sa.Column("anonymous", sa.BOOLEAN(), server_default="f", default=False)
     )
     op.execute(
         "update comments set anonymous = true where user_id = "

@@ -19,9 +19,6 @@
 
 from unittest import mock
 
-from fedora_messaging import api
-from fedora_messaging import testing as fml_testing
-
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.consumers import signed
 from bodhi.server.models import (
@@ -30,6 +27,8 @@ from bodhi.server.models import (
     UpdateRequest,
     UpdateStatus,
 )
+from fedora_messaging import api
+from fedora_messaging import testing as fml_testing
 
 from .. import base
 
@@ -41,50 +40,50 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         super().setup_method(method)
 
         self.sample_message = api.Message(
-            topic='',
+            topic="",
             body={
-                'build_id': 442562,
-                'name': 'bodhi',
-                'tag_id': 214,
-                'instance': 's390',
-                'tag': 'f26-updates-testing-pending',
-                'user': 'sharkcz',
-                'version': '2.0',
-                'owner': 'sharkcz',
-                'release': '1.fc17'
+                "build_id": 442562,
+                "name": "bodhi",
+                "tag_id": 214,
+                "instance": "s390",
+                "tag": "f26-updates-testing-pending",
+                "user": "sharkcz",
+                "version": "2.0",
+                "owner": "sharkcz",
+                "release": "1.fc17",
             },
         )
         self.sample_side_tag_message = api.Message(
-            topic='',
+            topic="",
             body={
-                'build_id': 442562,
-                'name': 'bodhi',
-                'tag_id': 214,
-                'instance': 's390',
-                'tag': 'f30-side-tag-testing-pending',
-                'user': 'sharkcz',
-                'version': '2.0',
-                'owner': 'sharkcz',
-                'release': '1.fc17'
+                "build_id": 442562,
+                "name": "bodhi",
+                "tag_id": 214,
+                "instance": "s390",
+                "tag": "f30-side-tag-testing-pending",
+                "user": "sharkcz",
+                "version": "2.0",
+                "owner": "sharkcz",
+                "release": "1.fc17",
             },
         )
         self.sample_side_tag_message_2 = api.Message(
-            topic='',
+            topic="",
             body={
-                'build_id': 442562,
-                'name': 'bodhi',
-                'tag_id': 214,
-                'instance': 's390',
-                'tag': 'f30-testing-pending',
-                'user': 'sharkcz',
-                'version': '2.0',
-                'owner': 'sharkcz',
-                'release': '1.fc17'
+                "build_id": 442562,
+                "name": "bodhi",
+                "tag_id": 214,
+                "instance": "s390",
+                "tag": "f30-testing-pending",
+                "user": "sharkcz",
+                "version": "2.0",
+                "owner": "sharkcz",
+                "release": "1.fc17",
             },
         )
         self.handler = signed.SignedHandler()
 
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch("bodhi.server.consumers.signed.Build")
     def test_consume(self, mock_build_model):
         """Assert that messages marking the build as signed updates the database"""
         build = mock_build_model.get.return_value
@@ -97,7 +96,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         self.handler(self.sample_message)
         assert build.signed is True
 
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch("bodhi.server.consumers.signed.Build")
     def test_consume_build_with_no_update(self, mock_build_model):
         """Assert that messages marking the build as signed updates the database"""
         build = mock_build_model.get.return_value
@@ -108,8 +107,8 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         self.handler(self.sample_message)
         assert build.signed is True
 
-    @mock.patch('bodhi.server.consumers.signed.log')
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch("bodhi.server.consumers.signed.log")
+    @mock.patch("bodhi.server.consumers.signed.Build")
     def test_consume_not_pending_testing_tag(self, mock_build_model, mock_log):
         """
         Assert that messages whose tag don't match the pending testing tag don't update the DB
@@ -122,12 +121,11 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         build.release.pending_testing_tag = "some tag that isn't pending testing"
 
         self.handler(self.sample_message)
-        mock_log.info.assert_called_with(
-            "Tag is not pending_testing tag, skipping")
+        mock_log.info.assert_called_with("Tag is not pending_testing tag, skipping")
         assert mock_log.info.call_count == 2
         assert build.signed is False
 
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch("bodhi.server.consumers.signed.Build")
     def test_consume_no_release(self, mock_build_model):
         """
         Assert that messages about builds that haven't been assigned a release don't update the DB
@@ -142,17 +140,17 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         self.handler(self.sample_message)
         assert build.signed is False
 
-    @mock.patch('bodhi.server.consumers.signed.log')
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch("bodhi.server.consumers.signed.log")
+    @mock.patch("bodhi.server.consumers.signed.Build")
     def test_consume_no_build(self, mock_build_model, mock_log):
         """Assert that messages referencing builds Bodhi doesn't know about don't update the DB"""
         mock_build_model.get.return_value = None
 
         self.handler(self.sample_message)
-        mock_log.info.assert_called_with('Build was not submitted, skipping')
+        mock_log.info.assert_called_with("Build was not submitted, skipping")
 
-    @mock.patch('bodhi.server.consumers.signed.log')
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch("bodhi.server.consumers.signed.log")
+    @mock.patch("bodhi.server.consumers.signed.Build")
     def test_consume_duplicate(self, mock_build_model, mock_log):
         """Assert that the handler is idempotent."""
         build = mock_build_model.get.return_value
@@ -164,11 +162,12 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
 
         self.handler(self.sample_message)
         mock_log.info.assert_called_with(
-            "Build was already marked as signed (maybe a duplicate message)")
+            "Build was already marked as signed (maybe a duplicate message)"
+        )
         assert mock_log.info.call_count == 2
 
-    @mock.patch('bodhi.server.consumers.signed.log')
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch("bodhi.server.consumers.signed.log")
+    @mock.patch("bodhi.server.consumers.signed.Build")
     def test_consume_from_tag_wrong_tag(self, mock_build_model, mock_log):
         """
         Assert that messages about builds from side tag updates are skipped
@@ -183,11 +182,10 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         build.update = update
 
         self.handler(self.sample_side_tag_message)
-        mock_log.info.assert_called_with(
-            "Tag is not testing side tag, skipping")
+        mock_log.info.assert_called_with("Tag is not testing side tag, skipping")
         assert mock_log.info.call_count == 2
 
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch("bodhi.server.consumers.signed.Build")
     def test_consume_from_tag_build_signed(self, mock_build_model):
         """
         Assert that messages about builds from side tag updates coming from
@@ -205,7 +203,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         self.handler(self.sample_side_tag_message_2)
         assert build.signed is True
 
-    @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch("bodhi.server.consumers.signed.Build")
     def test_consume_from_tag_not_signed(self, mock_build_model):
         """
         Assert that update created from tag is not changed to status testing till
@@ -232,7 +230,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         is received: update status is changed to testing.
         """
         self.handler.db_factory = base.TransactionalSessionMaker(self.Session)
-        update = self.db.query(Update).join(Build).filter(Build.nvr == 'bodhi-2.0-1.fc17').one()
+        update = self.db.query(Update).join(Build).filter(Build.nvr == "bodhi-2.0-1.fc17").one()
         update.from_tag = "f30-side-tag"
         update.status = UpdateStatus.pending
         update.release.composed_by_bodhi = False
@@ -247,9 +245,9 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         assert update.status == UpdateStatus.testing
         assert update.pushed is True
 
-    @mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
-    @mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
-    @mock.patch('bodhi.server.models.Update.add_tag')
+    @mock.patch("bodhi.server.models.work_on_bugs_task", mock.Mock())
+    @mock.patch("bodhi.server.models.fetch_test_cases_task", mock.Mock())
+    @mock.patch("bodhi.server.models.Update.add_tag")
     def test_consume_from_tag_composed_by_bodhi(self, add_tag):
         """
         Assert that update created from tag for a release composed by bodhi
@@ -258,7 +256,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         will change the update status.
         """
         self.handler.db_factory = base.TransactionalSessionMaker(self.Session)
-        update = self.db.query(Update).join(Build).filter(Build.nvr == 'bodhi-2.0-1.fc17').one()
+        update = self.db.query(Update).join(Build).filter(Build.nvr == "bodhi-2.0-1.fc17").one()
         update.from_tag = "f30-side-tag"
         update.status = UpdateStatus.pending
         update.request = None

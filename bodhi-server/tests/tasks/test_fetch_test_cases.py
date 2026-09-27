@@ -21,13 +21,12 @@ This module contains tests for the bodhi.server.fetch_test_cases module.
 
 from unittest.mock import patch
 
-from mediawiki.exceptions import HTTPTimeoutError
 import pytest
-
 from bodhi.server import config, models
 from bodhi.server.exceptions import BodhiException, ExternalCallException
 from bodhi.server.tasks import fetch_test_cases_task
 from bodhi.server.tasks.fetch_test_cases import main as fetch_test_cases_main
+from mediawiki.exceptions import HTTPTimeoutError
 
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
@@ -41,53 +40,61 @@ class TestTask(BasePyTestCase):
     @patch("bodhi.server.tasks.config")
     @patch("bodhi.server.tasks.fetch_test_cases.main")
     def test_task(self, main_function, config_mock, init_db_mock, buildsys):
-        fetch_test_cases_task('foo')
+        fetch_test_cases_task("foo")
         config_mock.load_config.assert_called_with()
         init_db_mock.assert_called_with(config_mock)
         buildsys.setup_buildsystem.assert_called_with(config_mock)
-        main_function.assert_called_with('foo')
+        main_function.assert_called_with("foo")
 
 
 class TestFetchTestCases(BaseTaskTestCase):
     """This test class contains tests for the main() function."""
 
-    @patch.dict(config.config, {'query_wiki_test_cases': True})
-    @patch('bodhi.server.models.Build.update_test_cases')
+    @patch.dict(config.config, {"query_wiki_test_cases": True})
+    @patch("bodhi.server.models.Build.update_test_cases")
     def test_update_nonexistent(self, fetch):
         """
         Assert BodhiException is raised if the update doesn't exist.
         """
         with pytest.raises(BodhiException) as exc:
-            fetch_test_cases_main('foo')
+            fetch_test_cases_main("foo")
 
         assert str(exc.value) == "Couldn't find alias foo in DB"
         fetch.assert_not_called()
 
-    @patch.dict(config.config, {'query_wiki_test_cases': True})
-    @patch('bodhi.server.models.MediaWiki')
-    @patch('bodhi.server.tasks.fetch_test_cases.log.warning')
+    @patch.dict(config.config, {"query_wiki_test_cases": True})
+    @patch("bodhi.server.models.MediaWiki")
+    @patch("bodhi.server.tasks.fetch_test_cases.log.warning")
     def test_fetch_test_cases_exception(self, warning, MediaWiki):
         """
         Assert that fetch_test_cases logs a warning when an exception is raised.
         """
         MediaWiki.return_value.categorymembers.side_effect = HTTPTimeoutError("oh no!")
 
-        update = self.db.query(models.Update).join(models.Build).filter(
-            models.Build.nvr == 'bodhi-2.0-1.fc17').one()
+        update = (
+            self.db.query(models.Update)
+            .join(models.Build)
+            .filter(models.Build.nvr == "bodhi-2.0-1.fc17")
+            .one()
+        )
 
         with pytest.raises(ExternalCallException):
             fetch_test_cases_main(update.alias)
 
-        warning.assert_called_once_with('Error occurred during fetching testcases', exc_info=True)
+        warning.assert_called_once_with("Error occurred during fetching testcases", exc_info=True)
 
-    @patch.dict(config.config, {'query_wiki_test_cases': True})
-    @patch('bodhi.server.models.Build.update_test_cases')
+    @patch.dict(config.config, {"query_wiki_test_cases": True})
+    @patch("bodhi.server.models.Build.update_test_cases")
     def test_fetch_test_cases_run(self, fetch):
         """
         Assert that Build.update_test_cases is called.
         """
-        update = self.db.query(models.Update).join(models.Build).filter(
-            models.Build.nvr == 'bodhi-2.0-1.fc17').one()
+        update = (
+            self.db.query(models.Update)
+            .join(models.Build)
+            .filter(models.Build.nvr == "bodhi-2.0-1.fc17")
+            .one()
+        )
         fetch_test_cases_main(update.alias)
 
         fetch.assert_called_once()

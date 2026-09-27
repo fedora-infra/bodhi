@@ -22,20 +22,20 @@ Revision ID: e8a059156d38
 Revises: 3a2e248d1757
 Create Date: 2019-05-02 15:43:06.332525
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'e8a059156d38'
-down_revision = '3a2e248d1757'
+revision = "e8a059156d38"
+down_revision = "3a2e248d1757"
 
 
 def upgrade():
     """Add the create_automatic_updates bool column to releases."""
-    op.add_column('releases', sa.Column('create_automatic_updates', sa.Boolean(), nullable=True))
+    op.add_column("releases", sa.Column("create_automatic_updates", sa.Boolean(), nullable=True))
 
 
 def downgrade():
     """Remove the create_automatic_updates bool column from releases."""
-    op.drop_column('releases', 'create_automatic_updates')
+    op.drop_column("releases", "create_automatic_updates")

@@ -1,8 +1,9 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from bodhi.server import buildsys, models
 from bodhi.server.tasks import tag_update_builds_task
 from bodhi.server.tasks.tag_update_builds import main as tag_update_builds_main
+
 from ..base import BasePyTestCase
 from .base import BaseTaskTestCase
 

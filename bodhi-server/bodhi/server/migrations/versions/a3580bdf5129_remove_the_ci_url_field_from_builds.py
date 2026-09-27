@@ -22,23 +22,20 @@ Revision ID: a3580bdf5129
 Revises: 8e9dc57e082d
 Create Date: 2019-01-11 17:41:30.353652
 """
-from alembic import op
-import sqlalchemy as sa
 
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'a3580bdf5129'
-down_revision = 'f8a44498c806'
+revision = "a3580bdf5129"
+down_revision = "f8a44498c806"
 
 
 def upgrade():
     """Remove the ci_url from builds."""
-    op.drop_column('builds', 'ci_url')
+    op.drop_column("builds", "ci_url")
 
 
 def downgrade():
     """Add the ci_url to builds."""
-    op.add_column(
-        'builds',
-        sa.Column('ci_url', sa.UnicodeText, nullable=True)
-    )
+    op.add_column("builds", sa.Column("ci_url", sa.UnicodeText, nullable=True))

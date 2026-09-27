@@ -16,23 +16,24 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A collection of message publishing utilities."""
+
 import logging
 import typing
 
-from sqlalchemy import event
-from fedora_messaging import api, exceptions as fml_exceptions
 import backoff
-
 from bodhi.server import Session
+from fedora_messaging import api
+from fedora_messaging import exceptions as fml_exceptions
+from sqlalchemy import event
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.messages.schemas import base  # noqa: F401
+    from bodhi.messages.schemas import base
 
 
 _log = logging.getLogger(__name__)
 
 
-@event.listens_for(Session, 'after_commit')
+@event.listens_for(Session, "after_commit")
 def send_messages_after_commit(session):
     """
     Send messages via AMQP after a database commit occurs.
@@ -40,17 +41,17 @@ def send_messages_after_commit(session):
     Args:
         session (sqlalchemy.orm.session.Session): The session that was committed.
     """
-    if 'messages' in session.info:
-        for m in session.info['messages']:
+    if "messages" in session.info:
+        for m in session.info["messages"]:
             try:
                 _publish_with_retry(m)
             except fml_exceptions.BaseException:
                 # In the future we should handle errors more gracefully
                 _log.exception("An error occurred publishing %r after a database commit", m)
-        session.info['messages'] = []
+        session.info["messages"] = []
 
 
-def publish(message: 'base.BodhiMessage', force: bool = False):
+def publish(message: "base.BodhiMessage", force: bool = False):
     """
     Send a message via Fedora Messaging.
 
@@ -67,16 +68,18 @@ def publish(message: 'base.BodhiMessage', force: bool = False):
         return
 
     session = Session()
-    if 'messages' not in session.info:
-        session.info['messages'] = []
-    session.info['messages'].append(message)
-    _log.debug('Queuing message %r for delivery on session commit', message.id)
+    if "messages" not in session.info:
+        session.info["messages"] = []
+    session.info["messages"].append(message)
+    _log.debug("Queuing message %r for delivery on session commit", message.id)
 
 
 @backoff.on_exception(
     backoff.expo,
-    (fml_exceptions.ConnectionException, fml_exceptions.PublishException), max_time=120)
-def _publish_with_retry(message: 'base.BodhiMessage'):
+    (fml_exceptions.ConnectionException, fml_exceptions.PublishException),
+    max_time=120,
+)
+def _publish_with_retry(message: "base.BodhiMessage"):
     """
     Call fedora_messaging.api.publish with the given message, and retry upon temporary failures.
 
