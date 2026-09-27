@@ -846,13 +846,10 @@ update_bug_table = Table(
 
 
 build_testcase_table = Table(
-    'build_testcase_table', metadata,
-    Column('build_id', Integer, ForeignKey('builds.id'), index=True),
-    Column('testcase_id', Integer, ForeignKey('testcases.id')))
-    "build_testcase_table",
+    'build_testcase_table',
     metadata,
-    Column("build_id", Integer, ForeignKey("builds.id")),
-    Column("testcase_id", Integer, ForeignKey("testcases.id")),
+    Column('build_id', Integer, ForeignKey('builds.id'), index=True),
+    Column('testcase_id', Integer, ForeignKey('testcases.id')),
 )
 
 
