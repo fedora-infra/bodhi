@@ -52,9 +52,8 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyramid</span><span class="w"> </span><span class="kn">import</span> <span class="n">paster</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">bodhi.server</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyramid</span><span class="w"> </span><span class="kn">import</span> <span class="n">paster</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">():</span>
@@ -126,7 +125,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            True if the record should be emitted, False otherwise.</span>
 <span class="sd">        """</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">pathname</span><span class="p">,</span> <span class="n">record</span><span class="o">.</span><span class="n">lineno</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">pathname</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">lineno</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span> <span class="o">&gt;</span> <span class="n">record</span><span class="o">.</span><span class="n">created</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sent</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
                 <span class="k">return</span> <span class="kc">False</span>

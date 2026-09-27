@@ -59,13 +59,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">bodhi.messages.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">MENTION_RE</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fedora_messaging</span><span class="w"> </span><span class="kn">import</span> <span class="n">message</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fedora_messaging.schema_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">user_avatar_url</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">bodhi.messages.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">MENTION_RE</span>
-
-
-<span class="n">SCHEMA_URL</span> <span class="o">=</span> <span class="s1">'https://bodhi.fedoraproject.org/message-schemas'</span>
+<span class="n">SCHEMA_URL</span> <span class="o">=</span> <span class="s2">"https://bodhi.fedoraproject.org/message-schemas"</span>
 
 
 <div class="viewcode-block" id="BodhiMessage">
@@ -96,7 +94,7 @@
         <span class="k">return</span> <span class="s2">"bodhi"</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">agent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">agent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the agent's username for this message.</span>
 
 <span class="sd">        Returns:</span>
@@ -110,16 +108,16 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_name</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">agent_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">agent_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the agent's username for this message.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The agent's username, or None if the body has no agent key.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'agent'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"agent"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">agent_avatar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">agent_avatar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return a URL to the avatar of the user who caused the action.</span>
 
@@ -134,7 +132,7 @@
 <div class="viewcode-block" id="BodhiMessage.from_dict">
 <a class="viewcode-back" href="../../../../server_api/messages/base.html#bodhi.messages.schemas.base.BodhiMessage.from_dict">[docs]</a>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'BodhiMessage'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"BodhiMessage"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Generate a message based on the given message dictionary.</span>
 
@@ -153,7 +151,7 @@
 
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">usernames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">usernames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        List of users affected by the action that generated this message.</span>
 
@@ -164,8 +162,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">users</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_name</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">'comment'</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">:</span>
-            <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s1">'comment'</span><span class="p">][</span><span class="s1">'text'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">"comment"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s2">"comment"</span><span class="p">][</span><span class="s2">"text"</span><span class="p">]</span>
             <span class="n">mentions</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">MENTION_RE</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">mention</span> <span class="ow">in</span> <span class="n">mentions</span><span class="p">:</span>
                 <span class="n">users</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mention</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
@@ -221,7 +219,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">package</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the name of the package that this build is associated with."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">'-'</span><span class="p">,</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"-"</span><span class="p">,</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
 <div class="viewcode-block" id="BuildV1.schema">
 <a class="viewcode-back" href="../../../../server_api/messages/base.html#bodhi.messages.schemas.base.BuildV1.schema">[docs]</a>
@@ -229,15 +227,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">        </span><span class="sd">"""Return a schema snippet for a Build."""</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
-            <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'A build'</span><span class="p">,</span>
-            <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'nvr'</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                    <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The nvr the identifies the build in koji'</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"A build"</span><span class="p">,</span>
+            <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"nvr"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The nvr the identifies the build in koji"</span><span class="p">,</span>
                 <span class="p">},</span>
             <span class="p">},</span>
-            <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'nvr'</span><span class="p">]</span>
+            <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"nvr"</span><span class="p">],</span>
         <span class="p">}</span></div>
 </div>
 
@@ -261,15 +259,12 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">        </span><span class="sd">"""Return a schema snippet for a Build."""</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
-            <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'A release'</span><span class="p">,</span>
-            <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'name'</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                    <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the release e.g. F32'</span>
-                <span class="p">},</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"A release"</span><span class="p">,</span>
+            <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"name"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the release e.g. F32"</span><span class="p">},</span>
             <span class="p">},</span>
-            <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'name'</span><span class="p">]</span>
+            <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"name"</span><span class="p">],</span>
         <span class="p">}</span></div>
 </div>
 
@@ -288,10 +283,10 @@
 
     <span class="n">alias</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">builds</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="n">BuildV1</span><span class="p">]</span>
-    <span class="n">user</span><span class="p">:</span> <span class="s1">'UserV1'</span>
+    <span class="n">user</span><span class="p">:</span> <span class="s2">"UserV1"</span>
     <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">request</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
-    <span class="n">release</span><span class="p">:</span> <span class="s1">'ReleaseV1'</span>
+    <span class="n">request</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span>
+    <span class="n">release</span><span class="p">:</span> <span class="s2">"ReleaseV1"</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">packages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -304,33 +299,38 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">        </span><span class="sd">"""Return a schema snippet for an Update."""</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
-            <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'An update'</span><span class="p">,</span>
-            <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'alias'</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                    <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The alias of the update'</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"An update"</span><span class="p">,</span>
+            <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"alias"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The alias of the update"</span><span class="p">},</span>
+                <span class="s2">"builds"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"array"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"A list of builds included in this update"</span><span class="p">,</span>
+                    <span class="s2">"items"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"$ref"</span><span class="p">:</span> <span class="s2">"#/definitions/build"</span><span class="p">},</span>
                 <span class="p">},</span>
-                <span class="s1">'builds'</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'array'</span><span class="p">,</span>
-                    <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'A list of builds included in this update'</span><span class="p">,</span>
-                    <span class="s1">'items'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'$ref'</span><span class="p">:</span> <span class="s1">'#/definitions/build'</span><span class="p">}</span>
+                <span class="s2">"release"</span><span class="p">:</span> <span class="n">ReleaseV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
+                <span class="s2">"request"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"null"</span><span class="p">,</span> <span class="s2">"string"</span><span class="p">],</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The request of the update, if any"</span><span class="p">,</span>
+                    <span class="s2">"enum"</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"testing"</span><span class="p">,</span> <span class="s2">"obsolete"</span><span class="p">,</span> <span class="s2">"unpush"</span><span class="p">,</span> <span class="s2">"revoke"</span><span class="p">,</span> <span class="s2">"stable"</span><span class="p">],</span>
                 <span class="p">},</span>
-                <span class="s1">'release'</span><span class="p">:</span> <span class="n">ReleaseV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
-                <span class="s1">'request'</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s1">'type'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'null'</span><span class="p">,</span> <span class="s1">'string'</span><span class="p">],</span>
-                    <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The request of the update, if any'</span><span class="p">,</span>
-                    <span class="s1">'enum'</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">'testing'</span><span class="p">,</span> <span class="s1">'obsolete'</span><span class="p">,</span> <span class="s1">'unpush'</span><span class="p">,</span> <span class="s1">'revoke'</span><span class="p">,</span> <span class="s1">'stable'</span><span class="p">]</span>
+                <span class="s2">"status"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The current status of the update"</span><span class="p">,</span>
+                    <span class="s2">"enum"</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">"pending"</span><span class="p">,</span>
+                        <span class="s2">"testing"</span><span class="p">,</span>
+                        <span class="s2">"stable"</span><span class="p">,</span>
+                        <span class="s2">"unpushed"</span><span class="p">,</span>
+                        <span class="s2">"obsolete"</span><span class="p">,</span>
+                        <span class="s2">"side_tag_active"</span><span class="p">,</span>
+                        <span class="s2">"side_tag_expired"</span><span class="p">,</span>
+                    <span class="p">],</span>
                 <span class="p">},</span>
-                <span class="s1">'status'</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                    <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The current status of the update'</span><span class="p">,</span>
-                    <span class="s1">'enum'</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">'pending'</span><span class="p">,</span> <span class="s1">'testing'</span><span class="p">,</span> <span class="s1">'stable'</span><span class="p">,</span> <span class="s1">'unpushed'</span><span class="p">,</span> <span class="s1">'obsolete'</span><span class="p">,</span>
-                             <span class="s1">'side_tag_active'</span><span class="p">,</span> <span class="s1">'side_tag_expired'</span><span class="p">]</span>
-                <span class="p">},</span>
-                <span class="s1">'user'</span><span class="p">:</span> <span class="n">UserV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
+                <span class="s2">"user"</span><span class="p">:</span> <span class="n">UserV1</span><span class="o">.</span><span class="n">schema</span><span class="p">(),</span>
             <span class="p">},</span>
-            <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'alias'</span><span class="p">,</span> <span class="s1">'builds'</span><span class="p">,</span> <span class="s1">'release'</span><span class="p">,</span> <span class="s1">'request'</span><span class="p">,</span> <span class="s1">'status'</span><span class="p">,</span> <span class="s1">'user'</span><span class="p">]</span>
+            <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"alias"</span><span class="p">,</span> <span class="s2">"builds"</span><span class="p">,</span> <span class="s2">"release"</span><span class="p">,</span> <span class="s2">"request"</span><span class="p">,</span> <span class="s2">"status"</span><span class="p">,</span> <span class="s2">"user"</span><span class="p">],</span>
         <span class="p">}</span></div>
 </div>
 
@@ -354,15 +354,12 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">schema</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">        </span><span class="sd">"""Return a schema snippet for a User."""</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
-            <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The user that submitted the override'</span><span class="p">,</span>
-            <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'name'</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                    <span class="s1">'description'</span><span class="p">:</span> <span class="s2">"The user's account name"</span>
-                <span class="p">},</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+            <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The user that submitted the override"</span><span class="p">,</span>
+            <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"name"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The user's account name"</span><span class="p">},</span>
             <span class="p">},</span>
-            <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'name'</span><span class="p">]</span>
+            <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"name"</span><span class="p">],</span>
         <span class="p">}</span></div>
 </div>
 

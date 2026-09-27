@@ -54,7 +54,7 @@
 <span class="sd">messages.</span>
 <span class="sd">"""</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BodhiMessage</span><span class="p">,</span> <span class="n">SCHEMA_URL</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SCHEMA_URL</span><span class="p">,</span> <span class="n">BodhiMessage</span>
 
 
 <div class="viewcode-block" id="ComposeCompleteV1">
@@ -63,29 +63,23 @@
 <span class="w">    </span><span class="sd">"""Sent when a compose task completes."""</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">'id'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.compose.complete#'</span><span class="p">,</span>
-        <span class="s1">'$schema'</span><span class="p">:</span> <span class="s1">'http://json-schema.org/draft-04/schema#'</span><span class="p">,</span>
-        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Schema for message sent when composes finish'</span><span class="p">,</span>
-        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
-        <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">'agent'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the user who started this compose.'</span>
+        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s2">/v1/bodhi.compose.complete#"</span><span class="p">,</span>
+        <span class="s2">"$schema"</span><span class="p">:</span> <span class="s2">"http://json-schema.org/draft-04/schema#"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Schema for message sent when composes finish"</span><span class="p">,</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+        <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"agent"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the user who started this compose."</span><span class="p">,</span>
             <span class="p">},</span>
-            <span class="s1">'repo'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the repository being composed.'</span>
+            <span class="s2">"repo"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the repository being composed."</span><span class="p">},</span>
+            <span class="s2">"success"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"boolean"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"true if the compose was successful, false otherwise."</span><span class="p">,</span>
             <span class="p">},</span>
-            <span class="s1">'success'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'boolean'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'true if the compose was successful, false otherwise.'</span>
-            <span class="p">},</span>
-            <span class="s1">'ctype'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Type of the compose.'</span>
-            <span class="p">}</span>
+            <span class="s2">"ctype"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Type of the compose."</span><span class="p">},</span>
         <span class="p">},</span>
-        <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'agent'</span><span class="p">,</span> <span class="s1">'repo'</span><span class="p">,</span> <span class="s1">'success'</span><span class="p">],</span>
+        <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"agent"</span><span class="p">,</span> <span class="s2">"repo"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">],</span>
     <span class="p">}</span>
 
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">"bodhi.compose.complete"</span>
@@ -93,17 +87,17 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">repo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the name of the repository being composed."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'repo'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"repo"</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">success</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the name of the repository being composed."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'success'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"success"</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">ctype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the compose type."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'ctype'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ctype"</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -144,21 +138,18 @@
 <span class="w">    </span><span class="sd">"""Sent when the compose task composes."""</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">'id'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.compose.composing#'</span><span class="p">,</span>
-        <span class="s1">'$schema'</span><span class="p">:</span> <span class="s1">'http://json-schema.org/draft-04/schema#'</span><span class="p">,</span>
-        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Schema for message sent when composes start'</span><span class="p">,</span>
-        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
-        <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">'agent'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the user who started this compose.'</span>
+        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s2">/v1/bodhi.compose.composing#"</span><span class="p">,</span>
+        <span class="s2">"$schema"</span><span class="p">:</span> <span class="s2">"http://json-schema.org/draft-04/schema#"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Schema for message sent when composes start"</span><span class="p">,</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+        <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"agent"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the user who started this compose."</span><span class="p">,</span>
             <span class="p">},</span>
-            <span class="s1">'repo'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the repository being composed.'</span>
-            <span class="p">},</span>
+            <span class="s2">"repo"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the repository being composed."</span><span class="p">},</span>
         <span class="p">},</span>
-        <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'agent'</span><span class="p">,</span> <span class="s1">'repo'</span><span class="p">],</span>
+        <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"agent"</span><span class="p">,</span> <span class="s2">"repo"</span><span class="p">],</span>
     <span class="p">}</span>
 
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">"bodhi.compose.composing"</span>
@@ -166,7 +157,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">repo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the name of the repository being composed."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'repo'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"repo"</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -204,17 +195,17 @@
 <span class="w">    </span><span class="sd">"""Sent when a compose task starts."""</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">'id'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.compose.start#'</span><span class="p">,</span>
-        <span class="s1">'$schema'</span><span class="p">:</span> <span class="s1">'http://json-schema.org/draft-04/schema#'</span><span class="p">,</span>
-        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Schema for message sent when composes start'</span><span class="p">,</span>
-        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
-        <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">'agent'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the user who started this compose.'</span>
+        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s2">/v1/bodhi.compose.start#"</span><span class="p">,</span>
+        <span class="s2">"$schema"</span><span class="p">:</span> <span class="s2">"http://json-schema.org/draft-04/schema#"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Schema for message sent when composes start"</span><span class="p">,</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+        <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"agent"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the user who started this compose."</span><span class="p">,</span>
             <span class="p">},</span>
         <span class="p">},</span>
-        <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'agent'</span><span class="p">],</span>
+        <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"agent"</span><span class="p">],</span>
     <span class="p">}</span>
 
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">"bodhi.compose.start"</span>
@@ -255,22 +246,20 @@
 <span class="w">    </span><span class="sd">"""Sent when a compose task sync is done."""</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">'id'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.compose.sync.done#'</span><span class="p">,</span>
-        <span class="s1">'$schema'</span><span class="p">:</span> <span class="s1">'http://json-schema.org/draft-04/schema#'</span><span class="p">,</span>
-        <span class="s1">'description'</span><span class="p">:</span> <span class="p">(</span><span class="s1">'Schema for message sent when the composer is done waiting to sync to '</span>
-                        <span class="s1">'mirrors'</span><span class="p">),</span>
-        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
-        <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">'agent'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the user who started this compose.'</span>
+        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s2">/v1/bodhi.compose.sync.done#"</span><span class="p">,</span>
+        <span class="s2">"$schema"</span><span class="p">:</span> <span class="s2">"http://json-schema.org/draft-04/schema#"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">"Schema for message sent when the composer is done waiting to sync to mirrors"</span>
+        <span class="p">),</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+        <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"agent"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the user who started this compose."</span><span class="p">,</span>
             <span class="p">},</span>
-            <span class="s1">'repo'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the repository being composed.'</span>
-            <span class="p">},</span>
+            <span class="s2">"repo"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the repository being composed."</span><span class="p">},</span>
         <span class="p">},</span>
-        <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'agent'</span><span class="p">,</span> <span class="s1">'repo'</span><span class="p">],</span>
+        <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"agent"</span><span class="p">,</span> <span class="s2">"repo"</span><span class="p">],</span>
     <span class="p">}</span>
 
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">"bodhi.compose.sync.done"</span>
@@ -278,7 +267,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">repo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the name of the repository being composed."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'repo'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"repo"</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -316,21 +305,18 @@
 <span class="w">    </span><span class="sd">"""Sent when a compose task sync is waiting."""</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">'id'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.compose.sync.wait#'</span><span class="p">,</span>
-        <span class="s1">'$schema'</span><span class="p">:</span> <span class="s1">'http://json-schema.org/draft-04/schema#'</span><span class="p">,</span>
-        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Schema for message sent when the composer is waiting to sync to mirrors'</span><span class="p">,</span>
-        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
-        <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">'agent'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the user who started this compose.'</span>
+        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s2">/v1/bodhi.compose.sync.wait#"</span><span class="p">,</span>
+        <span class="s2">"$schema"</span><span class="p">:</span> <span class="s2">"http://json-schema.org/draft-04/schema#"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Schema for message sent when the composer is waiting to sync to mirrors"</span><span class="p">,</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+        <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"agent"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the user who started this compose."</span><span class="p">,</span>
             <span class="p">},</span>
-            <span class="s1">'repo'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the repository being composed.'</span>
-            <span class="p">},</span>
+            <span class="s2">"repo"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the repository being composed."</span><span class="p">},</span>
         <span class="p">},</span>
-        <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'agent'</span><span class="p">,</span> <span class="s1">'repo'</span><span class="p">],</span>
+        <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"agent"</span><span class="p">,</span> <span class="s2">"repo"</span><span class="p">],</span>
     <span class="p">}</span>
 
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">"bodhi.compose.sync.wait"</span>
@@ -338,7 +324,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">repo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the name of the repository being composed."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'repo'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"repo"</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -376,25 +362,25 @@
 <span class="w">    </span><span class="sd">"""Sent when a repo is created and ready to be signed or otherwise processed."""</span>
 
     <span class="n">body_schema</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">'id'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s1">/v1/bodhi.repo.done#'</span><span class="p">,</span>
-        <span class="s1">'$schema'</span><span class="p">:</span> <span class="s1">'http://json-schema.org/draft-04/schema#'</span><span class="p">,</span>
-        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Schema for message sent when a repo is created and ready to be signed'</span><span class="p">,</span>
-        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'object'</span><span class="p">,</span>
-        <span class="s1">'properties'</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">'agent'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the user who started this compose.'</span>
+        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">SCHEMA_URL</span><span class="si">}</span><span class="s2">/v1/bodhi.repo.done#"</span><span class="p">,</span>
+        <span class="s2">"$schema"</span><span class="p">:</span> <span class="s2">"http://json-schema.org/draft-04/schema#"</span><span class="p">,</span>
+        <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Schema for message sent when a repo is created and ready to be signed"</span><span class="p">,</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"object"</span><span class="p">,</span>
+        <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"agent"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the user who started this compose."</span><span class="p">,</span>
             <span class="p">},</span>
-            <span class="s1">'path'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The path of the repository that was composed.'</span>
+            <span class="s2">"path"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The path of the repository that was composed."</span><span class="p">,</span>
             <span class="p">},</span>
-            <span class="s1">'repo'</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
-                <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'The name of the repository that was composed.'</span>
+            <span class="s2">"repo"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"The name of the repository that was composed."</span><span class="p">,</span>
             <span class="p">},</span>
         <span class="p">},</span>
-        <span class="s1">'required'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'agent'</span><span class="p">,</span> <span class="s1">'path'</span><span class="p">,</span> <span class="s1">'repo'</span><span class="p">],</span>
+        <span class="s2">"required"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"agent"</span><span class="p">,</span> <span class="s2">"path"</span><span class="p">,</span> <span class="s2">"repo"</span><span class="p">],</span>
     <span class="p">}</span>
 
     <span class="n">topic</span> <span class="o">=</span> <span class="s2">"bodhi.repo.done"</span>
@@ -402,7 +388,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">repo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the name of the repository being composed."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'repo'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"repo"</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>

@@ -56,9 +56,7 @@
 <span class="sd">.. moduleauthor:: Randy Barlow &lt;bowlofeggs@fedoraproject.org&gt;</span>
 <span class="sd">"""</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">configparser</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
@@ -66,17 +64,18 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">textwrap</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
-
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">dnf</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
     <span class="c1"># dnf is not available on EL 7.</span>
     <span class="n">dnf</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># pragma: no cover</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">munch</span><span class="w"> </span><span class="kn">import</span> <span class="n">munchify</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">requests.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="ne">ConnectionError</span><span class="p">,</span> <span class="n">RequestException</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">koji</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">munch</span><span class="w"> </span><span class="kn">import</span> <span class="n">munchify</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">requests.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="ne">ConnectionError</span><span class="p">,</span> <span class="n">RequestException</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.constants</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BASE_URL</span><span class="p">,</span>
@@ -89,16 +88,15 @@
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.oidcclient</span><span class="w"> </span><span class="kn">import</span> <span class="n">JSONStorage</span><span class="p">,</span> <span class="n">OIDCClient</span><span class="p">,</span> <span class="n">OIDCClientError</span>
 
-
 <span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">munch</span>  <span class="c1"># noqa: F401</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">munch</span>
 
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="n">UPDATE_ID_RE</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">'FEDORA-(EPEL-|FLATPAK-)?\d{4,4}'</span>
-<span class="n">UPDATE_TITLE_RE</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">'(\.el|\.fc)\d\d?'</span>
+<span class="n">UPDATE_ID_RE</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"FEDORA-(EPEL-|FLATPAK-)?\d{4,4}"</span>
+<span class="n">UPDATE_TITLE_RE</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"(\.el|\.fc)\d\d?"</span>
 
 
 <div class="viewcode-block" id="BodhiClientException">
@@ -135,7 +133,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            An error message.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s1">'Update not found: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="si">}</span><span class="s1">'</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"Update not found: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="si">}</span><span class="s2">"</span></div>
 </div>
 
 
@@ -170,8 +168,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            An error message.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s1">'Compose with request "</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">release_request</span><span class="si">}</span><span class="s1">" '</span>
-                <span class="sa">f</span><span class="s1">'not found for release "</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="si">}</span><span class="s1">"'</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'Compose with request "</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">release_request</span><span class="si">}</span><span class="s1">" not found for release "</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">release</span><span class="si">}</span><span class="s1">"'</span>
+        <span class="p">)</span></div>
 </div>
 
 
@@ -188,22 +187,22 @@
         <span class="c1"># Due to this, an authentication error is not raised by the server if the client fails</span>
         <span class="c1"># to authenticate for any reason, and instead an error about needing a captcha key is</span>
         <span class="c1"># presented instead. If we see that error, we can just clear authentication and retry.</span>
-        <span class="k">if</span> <span class="s1">'errors'</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">'errors'</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="s1">'name'</span> <span class="ow">in</span> <span class="n">error</span> <span class="ow">and</span> <span class="n">error</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'captcha_key'</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"errors"</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s2">"errors"</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="s2">"name"</span> <span class="ow">in</span> <span class="n">error</span> <span class="ow">and</span> <span class="n">error</span><span class="p">[</span><span class="s2">"name"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"captcha_key"</span><span class="p">:</span>
                     <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">clear_auth</span><span class="p">()</span>
                     <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">'errors'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"errors"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">result</span>
 
         <span class="c1"># Otherwise, there was a problem...</span>
-        <span class="n">problems</span> <span class="o">=</span> <span class="s1">'An unhandled error occurred in the BodhiClient'</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">problems</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">e</span><span class="p">[</span><span class="s1">'description'</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">'errors'</span><span class="p">]])</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">pass</span>
+            <span class="n">problems</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">e</span><span class="p">[</span><span class="s2">"description"</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s2">"errors"</span><span class="p">]])</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001</span>
+            <span class="n">problems</span> <span class="o">=</span> <span class="s2">"An unhandled error occurred in the BodhiClient"</span>
         <span class="k">raise</span> <span class="n">BodhiClientException</span><span class="p">(</span><span class="n">problems</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">wrapper</span></div>
 
 
@@ -223,7 +222,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        Number of days since the date in input.</span>
 <span class="sd">    """</span>
-    <span class="n">update_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">data_str</span><span class="p">,</span> <span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S'</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+    <span class="n">update_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">data_str</span><span class="p">,</span> <span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="n">update_time</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
 
 
@@ -240,7 +239,7 @@
         <span class="n">client_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CLIENT_ID</span><span class="p">,</span>
         <span class="n">id_provider</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">IDP</span><span class="p">,</span>
         <span class="n">staging</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">oidc_storage_path</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">oidc_storage_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialize the Bodhi client.</span>
@@ -257,14 +256,12 @@
             <span class="n">id_provider</span> <span class="o">=</span> <span class="n">STG_IDP</span>
             <span class="n">client_id</span> <span class="o">=</span> <span class="n">STG_CLIENT_ID</span>
 
-        <span class="k">if</span> <span class="n">base_url</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">'/'</span><span class="p">:</span>
-            <span class="n">base_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="s1">'/'</span>
+        <span class="k">if</span> <span class="n">base_url</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"/"</span><span class="p">:</span>
+            <span class="n">base_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="s2">"/"</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="n">base_url</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">csrf_token</span> <span class="o">=</span> <span class="s1">''</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oidc_storage_path</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">oidc_storage_path</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">"~"</span><span class="p">),</span> <span class="s2">".config"</span><span class="p">,</span> <span class="s2">"bodhi"</span><span class="p">,</span> <span class="s2">"client.json"</span>
-            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">csrf_token</span> <span class="o">=</span> <span class="s2">""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oidc_storage_path</span> <span class="o">=</span> <span class="n">oidc_storage_path</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">"~"</span><span class="p">),</span> <span class="s2">".config"</span><span class="p">,</span> <span class="s2">"bodhi"</span><span class="p">,</span> <span class="s2">"client.json"</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_build_oidc_client</span><span class="p">(</span><span class="n">client_id</span><span class="p">,</span> <span class="n">id_provider</span><span class="p">)</span></div>
 
@@ -337,7 +334,7 @@
 <div class="viewcode-block" id="BodhiClient.save">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.save">[docs]</a>
     <span class="nd">@errorhandled</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Save an update.</span>
 
@@ -386,18 +383,17 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The Bodhi server's response to the request.</span>
 <span class="sd">        """</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s1">'csrf_token'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()</span>
-        <span class="k">if</span> <span class="s1">'type_'</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">"csrf_token"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">"type_"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="c1"># backwards compat</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'type_'</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s1">'updates/'</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">'POST'</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                 <span class="n">data</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"type_"</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s2">"updates/"</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">"POST"</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.request">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.request">[docs]</a>
     <span class="nd">@errorhandled</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Request an update state change.</span>
 
@@ -410,10 +406,12 @@
 <span class="sd">            UpdateNotFound: If the server returns a 404 error code.</span>
 <span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="sa">f</span><span class="s1">'updates/</span><span class="si">{</span><span class="n">update</span><span class="si">}</span><span class="s1">/request'</span><span class="p">,</span>
-                                     <span class="n">verb</span><span class="o">=</span><span class="s1">'POST'</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                     <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">'update'</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span> <span class="s1">'request'</span><span class="p">:</span> <span class="n">request</span><span class="p">,</span>
-                                           <span class="s1">'csrf_token'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()})</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"updates/</span><span class="si">{</span><span class="n">update</span><span class="si">}</span><span class="s2">/request"</span><span class="p">,</span>
+                <span class="n">verb</span><span class="o">=</span><span class="s2">"POST"</span><span class="p">,</span>
+                <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">"update"</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span> <span class="s2">"request"</span><span class="p">:</span> <span class="n">request</span><span class="p">,</span> <span class="s2">"csrf_token"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()},</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="n">RequestException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">exc</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
                 <span class="c1"># The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.</span>
@@ -425,8 +423,9 @@
 <div class="viewcode-block" id="BodhiClient.waive">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.waive">[docs]</a>
     <span class="nd">@errorhandled</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">waive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">comment</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-              <span class="n">tests</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">waive</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">comment</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tests</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Waive unsatisfied requirements on an update.</span>
 
@@ -440,10 +439,11 @@
 <span class="sd">        Raises:</span>
 <span class="sd">            UpdateNotFound: If the server returns a 404 error code.</span>
 <span class="sd">        """</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'update'</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span> <span class="s1">'tests'</span><span class="p">:</span> <span class="n">tests</span><span class="p">,</span> <span class="s1">'comment'</span><span class="p">:</span> <span class="n">comment</span><span class="p">,</span> <span class="s1">'csrf_token'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"update"</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span> <span class="s2">"tests"</span><span class="p">:</span> <span class="n">tests</span><span class="p">,</span> <span class="s2">"comment"</span><span class="p">:</span> <span class="n">comment</span><span class="p">,</span> <span class="s2">"csrf_token"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()}</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="sa">f</span><span class="s1">'updates/</span><span class="si">{</span><span class="n">update</span><span class="si">}</span><span class="s1">/waive-test-results'</span><span class="p">,</span>
-                                     <span class="n">verb</span><span class="o">=</span><span class="s1">'POST'</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"updates/</span><span class="si">{</span><span class="n">update</span><span class="si">}</span><span class="s2">/waive-test-results"</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">"POST"</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="n">RequestException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">exc</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
                 <span class="c1"># The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.</span>
@@ -455,7 +455,7 @@
 <div class="viewcode-block" id="BodhiClient.trigger_tests">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.trigger_tests">[docs]</a>
     <span class="nd">@errorhandled</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">trigger_tests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trigger_tests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Trigger tests for update.</span>
 
@@ -466,8 +466,11 @@
 <span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s1">'updates/</span><span class="si">{</span><span class="n">update</span><span class="si">}</span><span class="s1">/trigger-tests'</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">'POST'</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">'update'</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span> <span class="s1">'csrf_token'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()})</span>
+                <span class="sa">f</span><span class="s2">"updates/</span><span class="si">{</span><span class="n">update</span><span class="si">}</span><span class="s2">/trigger-tests"</span><span class="p">,</span>
+                <span class="n">verb</span><span class="o">=</span><span class="s2">"POST"</span><span class="p">,</span>
+                <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">"update"</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span> <span class="s2">"csrf_token"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()},</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="n">RequestException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">exc</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
                 <span class="c1"># The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.</span>
@@ -479,7 +482,7 @@
 <div class="viewcode-block" id="BodhiClient.query">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.query">[docs]</a>
     <span class="nd">@errorhandled</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Query bodhi for a list of updates.</span>
 
@@ -534,43 +537,43 @@
 <span class="sd">            The response from Bodhi describing the query results.</span>
 <span class="sd">        """</span>
         <span class="c1"># bodhi1 compat</span>
-        <span class="k">if</span> <span class="s1">'limit'</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">'rows_per_page'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'limit'</span><span class="p">]</span>
-            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'limit'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">"limit"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">"rows_per_page"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"limit"</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"limit"</span><span class="p">]</span>
         <span class="c1"># 'mine' may be in kwargs, but set False</span>
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'mine'</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"mine"</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">BodhiClientException</span><span class="p">(</span><span class="s2">"Could not get user info."</span><span class="p">)</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">'user'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span>
-        <span class="k">if</span> <span class="s1">'package'</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">"user"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span>
+        <span class="k">if</span> <span class="s2">"package"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="c1"># for Bodhi 1, 'package' could be a package name, build, or</span>
             <span class="c1"># update ID, so try and figure it out</span>
-            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">UPDATE_TITLE_RE</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'package'</span><span class="p">]):</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s1">'builds'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'package'</span><span class="p">]</span>
-            <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">UPDATE_ID_RE</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'package'</span><span class="p">]):</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s1">'updateid'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'package'</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">UPDATE_TITLE_RE</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"package"</span><span class="p">]):</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">"builds"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"package"</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">UPDATE_ID_RE</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"package"</span><span class="p">]):</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">"updateid"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"package"</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s1">'packages'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'package'</span><span class="p">]</span>
-            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'package'</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s1">'release'</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'release'</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s1">'releases'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'release'</span><span class="p">]</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">"packages"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"package"</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"package"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">"release"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">"release"</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">"releases"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"release"</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">kwargs</span><span class="p">[</span><span class="s1">'releases'</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'release'</span><span class="p">]]</span>
-            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'release'</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s1">'type_'</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'type_'</span><span class="p">]</span>
-            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'type_'</span><span class="p">]</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">"releases"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">"release"</span><span class="p">]]</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"release"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">"type_"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"type_"</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"type_"</span><span class="p">]</span>
         <span class="c1"># Old Bodhi CLI set bugs default to "", but new Bodhi API</span>
         <span class="c1"># checks for 'if bugs is not None', not 'if not bugs'</span>
-        <span class="k">if</span> <span class="s1">'bugs'</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'bugs'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">''</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">'bugs'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s1">'updates/'</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">'GET'</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="s2">"bugs"</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"bugs"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">"bugs"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s2">"updates/"</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">"GET"</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.get_test_status">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.get_test_status">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_test_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_test_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Query bodhi for the test status of the specified update..</span>
 
@@ -579,13 +582,13 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The response from Bodhi describing the query results.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="sa">f</span><span class="s1">'updates/</span><span class="si">{</span><span class="n">update</span><span class="si">}</span><span class="s1">/get-test-results'</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">'GET'</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="sa">f</span><span class="s2">"updates/</span><span class="si">{</span><span class="n">update</span><span class="si">}</span><span class="s2">/get-test-results"</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">"GET"</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.comment">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.comment">[docs]</a>
     <span class="nd">@errorhandled</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">comment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">comment</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">karma</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">comment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">comment</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">karma</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add a comment to an update.</span>
 
@@ -597,21 +600,25 @@
 <span class="sd">            The response from the post to comments/.</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span>
-            <span class="s1">'comments/'</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">'POST'</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s1">'update'</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span> <span class="s1">'text'</span><span class="p">:</span> <span class="n">comment</span><span class="p">,</span> <span class="s1">'karma'</span><span class="p">:</span> <span class="n">karma</span><span class="p">,</span> <span class="s1">'csrf_token'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()})</span></div>
+            <span class="s2">"comments/"</span><span class="p">,</span>
+            <span class="n">verb</span><span class="o">=</span><span class="s2">"POST"</span><span class="p">,</span>
+            <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">"update"</span><span class="p">:</span> <span class="n">update</span><span class="p">,</span> <span class="s2">"text"</span><span class="p">:</span> <span class="n">comment</span><span class="p">,</span> <span class="s2">"karma"</span><span class="p">:</span> <span class="n">karma</span><span class="p">,</span> <span class="s2">"csrf_token"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()},</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.save_override">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.save_override">[docs]</a>
     <span class="nd">@errorhandled</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">save_override</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">nvr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">nvr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">notes</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">duration</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">expiration_date</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">expiration_date</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">edit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">expired</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+        <span class="n">expired</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Save a buildroot override.</span>
 
@@ -637,22 +644,23 @@
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">duration</span><span class="p">:</span>
             <span class="n">expiration_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'nvr'</span><span class="p">:</span> <span class="n">nvr</span><span class="p">,</span>
-                <span class="s1">'expiration_date'</span><span class="p">:</span> <span class="n">expiration_date</span><span class="p">,</span>
-                <span class="s1">'notes'</span><span class="p">:</span> <span class="n">notes</span><span class="p">,</span>
-                <span class="s1">'csrf_token'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">()}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"nvr"</span><span class="p">:</span> <span class="n">nvr</span><span class="p">,</span>
+            <span class="s2">"expiration_date"</span><span class="p">:</span> <span class="n">expiration_date</span><span class="p">,</span>
+            <span class="s2">"notes"</span><span class="p">:</span> <span class="n">notes</span><span class="p">,</span>
+            <span class="s2">"csrf_token"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf</span><span class="p">(),</span>
+        <span class="p">}</span>
         <span class="k">if</span> <span class="n">edit</span><span class="p">:</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">'edited'</span><span class="p">]</span> <span class="o">=</span> <span class="n">nvr</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">"edited"</span><span class="p">]</span> <span class="o">=</span> <span class="n">nvr</span>
         <span class="k">if</span> <span class="n">expired</span><span class="p">:</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">'expired'</span><span class="p">]</span> <span class="o">=</span> <span class="n">expired</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span>
-            <span class="s1">'overrides/'</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">'POST'</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div>
+            <span class="n">data</span><span class="p">[</span><span class="s2">"expired"</span><span class="p">]</span> <span class="o">=</span> <span class="n">expired</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s2">"overrides/"</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">"POST"</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.get_compose">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.get_compose">[docs]</a>
     <span class="nd">@errorhandled</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">release</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_compose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">release</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get information about compose.</span>
 
@@ -665,7 +673,7 @@
 <span class="sd">            ComposeNotFound: If the server returns a 404 error code.</span>
 <span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="sa">f</span><span class="s1">'composes/</span><span class="si">{</span><span class="n">release</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">request</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">'GET'</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="sa">f</span><span class="s2">"composes/</span><span class="si">{</span><span class="n">release</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">request</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">"GET"</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">RequestException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">exc</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
                 <span class="c1"># The Bodhi server gave us a 404 on the resource, so let's raise an ComposeNotFound.</span>
@@ -677,24 +685,29 @@
 <div class="viewcode-block" id="BodhiClient.list_composes">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.list_composes">[docs]</a>
     <span class="nd">@errorhandled</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">list_composes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_composes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        List composes.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A dictionary-like representation of the Composes.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s1">'composes/'</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">'GET'</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s2">"composes/"</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">"GET"</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.list_overrides">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.list_overrides">[docs]</a>
     <span class="nd">@errorhandled</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">list_overrides</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">packages</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">expired</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">releases</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">builds</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rows_per_page</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">page</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">user</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">packages</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">expired</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">releases</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">builds</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rows_per_page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        List buildroot overrides.</span>
 
@@ -710,22 +723,22 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A dictionary-like representation of the Overrides.</span>
 <span class="sd">        """</span>
-        <span class="n">params</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="s1">'user'</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">"user"</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span>
         <span class="k">if</span> <span class="n">packages</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="s1">'packages'</span><span class="p">]</span> <span class="o">=</span> <span class="n">packages</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">"packages"</span><span class="p">]</span> <span class="o">=</span> <span class="n">packages</span>
         <span class="k">if</span> <span class="n">expired</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="s1">'expired'</span><span class="p">]</span> <span class="o">=</span> <span class="n">expired</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">"expired"</span><span class="p">]</span> <span class="o">=</span> <span class="n">expired</span>
         <span class="k">if</span> <span class="n">releases</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="s1">'releases'</span><span class="p">]</span> <span class="o">=</span> <span class="n">releases</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">"releases"</span><span class="p">]</span> <span class="o">=</span> <span class="n">releases</span>
         <span class="k">if</span> <span class="n">builds</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="s1">'builds'</span><span class="p">]</span> <span class="o">=</span> <span class="n">builds</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">"builds"</span><span class="p">]</span> <span class="o">=</span> <span class="n">builds</span>
         <span class="k">if</span> <span class="n">rows_per_page</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="s1">'rows_per_page'</span><span class="p">]</span> <span class="o">=</span> <span class="n">rows_per_page</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">"rows_per_page"</span><span class="p">]</span> <span class="o">=</span> <span class="n">rows_per_page</span>
         <span class="k">if</span> <span class="n">page</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="s1">'page'</span><span class="p">]</span> <span class="o">=</span> <span class="n">page</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s1">'overrides/'</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">'GET'</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span></div>
+            <span class="n">params</span><span class="p">[</span><span class="s2">"page"</span><span class="p">]</span> <span class="o">=</span> <span class="n">page</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s2">"overrides/"</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">"GET"</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.csrf">
@@ -744,14 +757,13 @@
 <span class="sd">            The CSRF token.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf_token</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">csrf_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span>
-                <span class="s1">'csrf'</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">'GET'</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="s1">'csrf_token'</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">csrf_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s2">"csrf"</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">"GET"</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="s2">"csrf_token"</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">csrf_token</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.parse_file">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.parse_file">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">parse_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Parse an update template file.</span>
 
@@ -766,7 +778,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">input_file</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No such file or directory: </span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">severity</span><span class="o">=</span><span class="s1">'unspecified'</span><span class="p">,</span> <span class="n">suggest</span><span class="o">=</span><span class="s1">'unspecified'</span><span class="p">)</span>
+        <span class="n">defaults</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"severity"</span><span class="p">:</span> <span class="s2">"unspecified"</span><span class="p">,</span> <span class="s2">"suggest"</span><span class="p">:</span> <span class="s2">"unspecified"</span><span class="p">}</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">defaults</span><span class="o">=</span><span class="n">defaults</span><span class="p">)</span>
         <span class="n">read</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
 
@@ -777,20 +789,20 @@
 
         <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
             <span class="n">update</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">'builds'</span><span class="p">:</span> <span class="n">section</span><span class="p">,</span>
-                <span class="s1">'bugs'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">'bugs'</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                <span class="s1">'close_bugs'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">'close_bugs'</span><span class="p">),</span>
-                <span class="s1">'display_name'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">'display_name'</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
-                <span class="s1">'type'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">'type'</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                <span class="s1">'type_'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">'type'</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                <span class="s1">'request'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">'request'</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                <span class="s1">'severity'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">'severity'</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                <span class="s1">'notes'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">'notes'</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                <span class="s1">'autokarma'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">'autokarma'</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                <span class="s1">'stable_karma'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">'stable_karma'</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                <span class="s1">'unstable_karma'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                    <span class="n">section</span><span class="p">,</span> <span class="s1">'unstable_karma'</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-                <span class="s1">'suggest'</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s1">'suggest'</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">)}</span>
+                <span class="s2">"builds"</span><span class="p">:</span> <span class="n">section</span><span class="p">,</span>
+                <span class="s2">"bugs"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"bugs"</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="s2">"close_bugs"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"close_bugs"</span><span class="p">),</span>
+                <span class="s2">"display_name"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"display_name"</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="s2">"type_"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="s2">"request"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"request"</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="s2">"severity"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"severity"</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="s2">"notes"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"notes"</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="s2">"autokarma"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"autokarma"</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="s2">"stable_karma"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"stable_karma"</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="s2">"unstable_karma"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"unstable_karma"</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="s2">"suggest"</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="s2">"suggest"</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="p">}</span>
 
             <span class="n">updates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
 
@@ -800,7 +812,7 @@
 <div class="viewcode-block" id="BodhiClient.latest_builds">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.latest_builds">[docs]</a>
     <span class="nd">@errorhandled</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">latest_builds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">latest_builds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the latest builds for a package.</span>
 
@@ -809,7 +821,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A dict-like object of the release dist tag to the latest build.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s1">'latest_builds'</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">'package'</span><span class="p">:</span> <span class="n">package</span><span class="p">})</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s2">"latest_builds"</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">"package"</span><span class="p">:</span> <span class="n">package</span><span class="p">})</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.testable">
@@ -830,23 +842,23 @@
 <span class="sd">            RuntimeError: If the dnf Python bindings are not installed.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">dnf</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">'dnf is required by this method and is not installed.'</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"dnf is required by this method and is not installed."</span><span class="p">)</span>
 
         <span class="n">base</span> <span class="o">=</span> <span class="n">dnf</span><span class="o">.</span><span class="n">Base</span><span class="p">()</span>
         <span class="n">sack</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">fill_sack</span><span class="p">(</span><span class="n">load_system_repo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">query</span> <span class="o">=</span> <span class="n">sack</span><span class="o">.</span><span class="n">query</span><span class="p">()</span>
         <span class="n">installed</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">installed</span><span class="p">()</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'/etc/fedora-release'</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"/etc/fedora-release"</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">fedora</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
-        <span class="n">tag</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'f</span><span class="si">{</span><span class="n">fedora</span><span class="si">}</span><span class="s1">-updates-testing'</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"f</span><span class="si">{</span><span class="n">fedora</span><span class="si">}</span><span class="s2">-updates-testing"</span>
         <span class="n">builds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_koji_session</span><span class="p">()</span><span class="o">.</span><span class="n">listTagged</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">latest</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="n">builds</span><span class="p">:</span>
-            <span class="n">pkgs</span> <span class="o">=</span> <span class="n">installed</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">build</span><span class="p">[</span><span class="s1">'name'</span><span class="p">],</span> <span class="n">version</span><span class="o">=</span><span class="n">build</span><span class="p">[</span><span class="s1">'version'</span><span class="p">],</span>
-                                    <span class="n">release</span><span class="o">=</span><span class="n">build</span><span class="p">[</span><span class="s1">'release'</span><span class="p">])</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+            <span class="n">pkgs</span> <span class="o">=</span> <span class="n">installed</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">build</span><span class="p">[</span><span class="s2">"name"</span><span class="p">],</span> <span class="n">version</span><span class="o">=</span><span class="n">build</span><span class="p">[</span><span class="s2">"version"</span><span class="p">],</span> <span class="n">release</span><span class="o">=</span><span class="n">build</span><span class="p">[</span><span class="s2">"release"</span><span class="p">]</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pkgs</span><span class="p">):</span>
-                <span class="n">update_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">builds</span><span class="o">=</span><span class="n">build</span><span class="p">[</span><span class="s1">'nvr'</span><span class="p">])[</span><span class="s1">'updates'</span><span class="p">]</span>
-                <span class="k">for</span> <span class="n">update</span> <span class="ow">in</span> <span class="n">update_list</span><span class="p">:</span>
-                    <span class="k">yield</span> <span class="n">update</span></div>
+                <span class="n">update_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">builds</span><span class="o">=</span><span class="n">build</span><span class="p">[</span><span class="s2">"nvr"</span><span class="p">])[</span><span class="s2">"updates"</span><span class="p">]</span>
+                <span class="k">yield from</span> <span class="n">update_list</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.compose_str">
@@ -863,8 +875,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A human readable string describing the compose.</span>
 <span class="sd">        """</span>
-        <span class="n">line_formatter</span> <span class="o">=</span> <span class="s1">'</span><span class="si">{0:&lt;16}</span><span class="s1">: </span><span class="si">{1}</span><span class="s1">'</span>
-        <span class="n">security</span> <span class="o">=</span> <span class="s1">'*'</span> <span class="k">if</span> <span class="n">compose</span><span class="p">[</span><span class="s1">'security'</span><span class="p">]</span> <span class="k">else</span> <span class="s1">' '</span>
+        <span class="n">line_formatter</span> <span class="o">=</span> <span class="s2">"</span><span class="si">{0:&lt;16}</span><span class="s2">: </span><span class="si">{1}</span><span class="s2">"</span>
+        <span class="n">security</span> <span class="o">=</span> <span class="s2">"*"</span> <span class="k">if</span> <span class="n">compose</span><span class="p">[</span><span class="s2">"security"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">" "</span>
         <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">security</span><span class="si">}{</span><span class="n">compose</span><span class="p">[</span><span class="s1">'release'</span><span class="p">][</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">compose</span><span class="p">[</span><span class="s1">'request'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
         <span class="n">details</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">compose</span><span class="p">[</span><span class="s1">'update_summary'</span><span class="p">])</span><span class="si">:</span><span class="s2">3d</span><span class="si">}</span><span class="s2"> updates (</span><span class="si">{</span><span class="n">compose</span><span class="p">[</span><span class="s1">'state'</span><span class="p">]</span><span class="si">}</span><span class="s2">) "</span>
         <span class="n">minimal_repr</span> <span class="o">=</span> <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">details</span><span class="p">)</span>
@@ -872,25 +884,25 @@
         <span class="k">if</span> <span class="n">minimal</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">minimal_repr</span>
 
-        <span class="n">line_formatter</span> <span class="o">=</span> <span class="s1">'</span><span class="si">{0:&gt;12}</span><span class="s1">: </span><span class="si">{1}</span><span class="se">\n</span><span class="s1">'</span>
+        <span class="n">line_formatter</span> <span class="o">=</span> <span class="s2">"</span><span class="si">{0:&gt;12}</span><span class="s2">: </span><span class="si">{1}</span><span class="se">\n</span><span class="s2">"</span>
 
-        <span class="n">compose_lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="s2">"="</span><span class="si">:</span><span class="s1">=^80</span><span class="si">}</span><span class="se">\n</span><span class="s1">'</span><span class="p">,</span> <span class="sa">f</span><span class="s1">'     </span><span class="si">{</span><span class="n">minimal_repr</span><span class="si">}</span><span class="se">\n</span><span class="s1">'</span><span class="p">,</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="s2">"="</span><span class="si">:</span><span class="s1">=^80</span><span class="si">}</span><span class="se">\n</span><span class="s1">'</span><span class="p">]</span>
+        <span class="n">compose_lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'='</span><span class="si">:</span><span class="s2">=^80</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"     </span><span class="si">{</span><span class="n">minimal_repr</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'='</span><span class="si">:</span><span class="s2">=^80</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">]</span>
 
         <span class="n">compose_lines</span> <span class="o">+=</span> <span class="p">[</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Content Type'</span><span class="p">,</span> <span class="n">compose</span><span class="p">[</span><span class="s1">'content_type'</span><span class="p">]),</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Started'</span><span class="p">,</span> <span class="n">compose</span><span class="p">[</span><span class="s1">'date_created'</span><span class="p">]),</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Updated'</span><span class="p">,</span> <span class="n">compose</span><span class="p">[</span><span class="s1">'state_date'</span><span class="p">]),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Content Type"</span><span class="p">,</span> <span class="n">compose</span><span class="p">[</span><span class="s2">"content_type"</span><span class="p">]),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Started"</span><span class="p">,</span> <span class="n">compose</span><span class="p">[</span><span class="s2">"date_created"</span><span class="p">]),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Updated"</span><span class="p">,</span> <span class="n">compose</span><span class="p">[</span><span class="s2">"state_date"</span><span class="p">]),</span>
         <span class="p">]</span>
 
-        <span class="k">if</span> <span class="s1">'error_message'</span> <span class="ow">in</span> <span class="n">compose</span> <span class="ow">and</span> <span class="n">compose</span><span class="p">[</span><span class="s1">'error_message'</span><span class="p">]:</span>
-            <span class="n">compose_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Error'</span><span class="p">,</span> <span class="n">compose</span><span class="p">[</span><span class="s1">'error_message'</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">compose</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"error_message"</span><span class="p">):</span>
+            <span class="n">compose_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Error"</span><span class="p">,</span> <span class="n">compose</span><span class="p">[</span><span class="s2">"error_message"</span><span class="p">]))</span>
 
-        <span class="n">compose_lines</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">'</span><span class="se">\n</span><span class="s1">Updates:</span><span class="se">\n\n</span><span class="s1">'</span><span class="p">]</span>
-        <span class="n">line_formatter</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="se">\t</span><span class="si">{</span><span class="n">line_formatter</span><span class="si">}</span><span class="s1">'</span>
-        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">compose</span><span class="p">[</span><span class="s1">'update_summary'</span><span class="p">]:</span>
-            <span class="n">compose_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">'alias'</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="s1">'title'</span><span class="p">]))</span>
+        <span class="n">compose_lines</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Updates:</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">]</span>
+        <span class="n">line_formatter</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\t</span><span class="si">{</span><span class="n">line_formatter</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">compose</span><span class="p">[</span><span class="s2">"update_summary"</span><span class="p">]:</span>
+            <span class="n">compose_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s2">"alias"</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="s2">"title"</span><span class="p">]))</span>
 
-        <span class="k">return</span> <span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">compose_lines</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">compose_lines</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.override_str">
@@ -911,12 +923,20 @@
             <span class="k">return</span> <span class="n">override</span>
 
         <span class="k">if</span> <span class="n">minimal</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">'submitter'</span><span class="p">][</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2">'s </span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">'build'</span><span class="p">][</span><span class="s1">'nvr'</span><span class="p">]</span><span class="si">}</span><span class="s2"> override "</span>
-                    <span class="sa">f</span><span class="s2">"(expires </span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">'expiration_date'</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">'submitter'</span><span class="p">][</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2">'s </span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">'build'</span><span class="p">][</span><span class="s1">'nvr'</span><span class="p">]</span><span class="si">}</span><span class="s2"> override "</span>
+                <span class="sa">f</span><span class="s2">"(expires </span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">'expiration_date'</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="p">)</span>
 
-        <span class="n">divider</span> <span class="o">=</span> <span class="s1">'='</span> <span class="o">*</span> <span class="mi">60</span>
-        <span class="n">nvr</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">textwrap</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">override</span><span class="p">[</span><span class="s1">'build'</span><span class="p">][</span><span class="s1">'nvr'</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">','</span><span class="p">,</span> <span class="s1">', '</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
-                        <span class="n">initial_indent</span><span class="o">=</span><span class="s1">' '</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span> <span class="n">subsequent_indent</span><span class="o">=</span><span class="s1">' '</span> <span class="o">*</span> <span class="mi">5</span><span class="p">))</span>
+        <span class="n">divider</span> <span class="o">=</span> <span class="s2">"="</span> <span class="o">*</span> <span class="mi">60</span>
+        <span class="n">nvr</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">textwrap</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span>
+                <span class="n">override</span><span class="p">[</span><span class="s2">"build"</span><span class="p">][</span><span class="s2">"nvr"</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">","</span><span class="p">,</span> <span class="s2">", "</span><span class="p">),</span>
+                <span class="n">width</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+                <span class="n">initial_indent</span><span class="o">=</span><span class="s2">" "</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="n">subsequent_indent</span><span class="o">=</span><span class="s2">" "</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">val</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">divider</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">nvr</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">divider</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
         <span class="n">val</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"  Submitter: </span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">'submitter'</span><span class="p">][</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
         <span class="n">val</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"  Expiration Date: </span><span class="si">{</span><span class="n">override</span><span class="p">[</span><span class="s1">'expiration_date'</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
@@ -943,19 +963,27 @@
             <span class="k">return</span> <span class="n">update</span>
         <span class="k">if</span> <span class="n">minimal</span><span class="p">:</span>
             <span class="n">val</span> <span class="o">=</span> <span class="s2">""</span>
-            <span class="n">security</span> <span class="o">=</span> <span class="s1">'*'</span> <span class="k">if</span> <span class="n">update</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'security'</span> <span class="k">else</span> <span class="s1">' '</span>
-            <span class="n">date</span> <span class="o">=</span> <span class="n">update</span><span class="p">[</span><span class="s1">'date_pushed'</span><span class="p">]</span> <span class="ow">and</span> <span class="n">update</span><span class="p">[</span><span class="s1">'date_pushed'</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> \
-                <span class="ow">or</span> <span class="n">update</span><span class="p">[</span><span class="s1">'date_submitted'</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">days_in_status</span> <span class="o">=</span> <span class="n">_days_since</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s1">'date_pushed'</span><span class="p">])</span> <span class="k">if</span> <span class="n">update</span><span class="p">[</span><span class="s1">'date_pushed'</span><span class="p">]</span> \
-                <span class="k">else</span> <span class="n">_days_since</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s1">'date_submitted'</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">update</span><span class="p">[</span><span class="s1">'builds'</span><span class="p">]:</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="n">update</span><span class="p">[</span><span class="s1">'builds'</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">'nvr'</span><span class="p">]</span>
+            <span class="n">security</span> <span class="o">=</span> <span class="s2">"*"</span> <span class="k">if</span> <span class="n">update</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"security"</span> <span class="k">else</span> <span class="s2">" "</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">update</span><span class="p">[</span><span class="s2">"date_pushed"</span><span class="p">]</span>
+                <span class="ow">and</span> <span class="n">update</span><span class="p">[</span><span class="s2">"date_pushed"</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="ow">or</span> <span class="n">update</span><span class="p">[</span><span class="s2">"date_submitted"</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">days_in_status</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_days_since</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s2">"date_pushed"</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">update</span><span class="p">[</span><span class="s2">"date_pushed"</span><span class="p">]</span>
+                <span class="k">else</span> <span class="n">_days_since</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s2">"date_submitted"</span><span class="p">])</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">update</span><span class="p">[</span><span class="s2">"builds"</span><span class="p">]:</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="n">update</span><span class="p">[</span><span class="s2">"builds"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"nvr"</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">title</span> <span class="o">=</span> <span class="n">update</span><span class="p">[</span><span class="s1">'title'</span><span class="p">]</span> <span class="ow">or</span> <span class="n">update</span><span class="p">[</span><span class="s1">'alias'</span><span class="p">]</span>
-            <span class="n">content_type</span> <span class="o">=</span> <span class="n">update</span><span class="p">[</span><span class="s1">'content_type'</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">'unspecified'</span>
-            <span class="n">val</span> <span class="o">+=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">security</span><span class="si">}{</span><span class="n">title</span><span class="si">:</span><span class="s2">40</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">content_type</span><span class="si">:</span><span class="s2">9</span><span class="si">}</span><span class="s2">  "</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">update</span><span class="p">[</span><span class="s1">'status'</span><span class="p">]</span><span class="si">:</span><span class="s2">8</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">date</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">days_in_status</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="n">update</span><span class="p">[</span><span class="s1">'builds'</span><span class="p">][</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="n">update</span><span class="p">[</span><span class="s2">"title"</span><span class="p">]</span> <span class="ow">or</span> <span class="n">update</span><span class="p">[</span><span class="s2">"alias"</span><span class="p">]</span>
+            <span class="n">content_type</span> <span class="o">=</span> <span class="n">update</span><span class="p">[</span><span class="s2">"content_type"</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">"unspecified"</span>
+            <span class="n">val</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">security</span><span class="si">}{</span><span class="n">title</span><span class="si">:</span><span class="s2">40</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">content_type</span><span class="si">:</span><span class="s2">9</span><span class="si">}</span><span class="s2">  "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">update</span><span class="p">[</span><span class="s1">'status'</span><span class="p">]</span><span class="si">:</span><span class="s2">8</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">date</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">days_in_status</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="n">update</span><span class="p">[</span><span class="s2">"builds"</span><span class="p">][</span><span class="mi">1</span><span class="p">:]:</span>
                 <span class="n">val</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  </span><span class="si">{</span><span class="n">build</span><span class="p">[</span><span class="s1">'nvr'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
             <span class="k">return</span> <span class="n">val</span>
 
@@ -966,128 +994,127 @@
         <span class="c1">#  |--&gt;          80 chars in total         &lt;--|</span>
         <span class="n">wrap_width</span> <span class="o">=</span> <span class="mi">66</span>
         <span class="n">wrap_line</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">textwrap</span><span class="o">.</span><span class="n">wrap</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">wrap_width</span><span class="p">)</span>
-        <span class="n">line_formatter</span> <span class="o">=</span> <span class="s1">'</span><span class="si">{0:&gt;12}</span><span class="s1">: </span><span class="si">{1}</span><span class="se">\n</span><span class="s1">'</span>
+        <span class="n">line_formatter</span> <span class="o">=</span> <span class="s2">"</span><span class="si">{0:&gt;12}</span><span class="s2">: </span><span class="si">{1}</span><span class="se">\n</span><span class="s2">"</span>
 
-        <span class="n">update_lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="s2">"="</span><span class="si">:</span><span class="s1">=^80</span><span class="si">}</span><span class="se">\n</span><span class="s1">'</span><span class="p">]</span>
+        <span class="n">update_lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'='</span><span class="si">:</span><span class="s2">=^80</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">]</span>
         <span class="n">update_lines</span> <span class="o">+=</span> <span class="p">[</span>
-            <span class="n">line</span> <span class="o">+</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span>
-                <span class="n">update</span><span class="p">[</span><span class="s1">'title'</span><span class="p">],</span>
-                <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
-                <span class="n">initial_indent</span><span class="o">=</span><span class="s1">' '</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>
-                <span class="n">subsequent_indent</span><span class="o">=</span><span class="s1">' '</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span>
+                <span class="n">update</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">initial_indent</span><span class="o">=</span><span class="s2">" "</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span> <span class="n">subsequent_indent</span><span class="o">=</span><span class="s2">" "</span> <span class="o">*</span> <span class="mi">5</span>
+            <span class="p">)</span>
         <span class="p">]</span>
-        <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="s2">"="</span><span class="si">:</span><span class="s1">=^80</span><span class="si">}</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+        <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'='</span><span class="si">:</span><span class="s2">=^80</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Update ID'</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s1">'alias'</span><span class="p">]))</span>
+        <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Update ID"</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s2">"alias"</span><span class="p">]))</span>
 
         <span class="n">update_lines</span> <span class="o">+=</span> <span class="p">[</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Content Type'</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s1">'content_type'</span><span class="p">]),</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Release'</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s1">'release'</span><span class="p">][</span><span class="s1">'long_name'</span><span class="p">]),</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Status'</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s1">'status'</span><span class="p">]),</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Type'</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]),</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Severity'</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s1">'severity'</span><span class="p">]),</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Karma'</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s1">'karma'</span><span class="p">]),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Content Type"</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s2">"content_type"</span><span class="p">]),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Release"</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s2">"release"</span><span class="p">][</span><span class="s2">"long_name"</span><span class="p">]),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Status"</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Type"</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Severity"</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s2">"severity"</span><span class="p">]),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Karma"</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s2">"karma"</span><span class="p">]),</span>
             <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="s1">'Autokarma'</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">update</span><span class="p">[</span><span class="s1">'autokarma'</span><span class="p">]</span><span class="si">}</span><span class="s2">  [</span><span class="si">{</span><span class="n">update</span><span class="p">[</span><span class="s1">'unstable_karma'</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">update</span><span class="p">[</span><span class="s1">'stable_karma'</span><span class="p">]</span><span class="si">}</span><span class="s2">]"</span><span class="p">),</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Autotime'</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s1">'autotime'</span><span class="p">])</span>
+                <span class="s2">"Autokarma"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">update</span><span class="p">[</span><span class="s1">'autokarma'</span><span class="p">]</span><span class="si">}</span><span class="s2">  [</span><span class="si">{</span><span class="n">update</span><span class="p">[</span><span class="s1">'unstable_karma'</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">update</span><span class="p">[</span><span class="s1">'stable_karma'</span><span class="p">]</span><span class="si">}</span><span class="s2">]"</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Autotime"</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s2">"autotime"</span><span class="p">]),</span>
         <span class="p">]</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">test_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_test_status</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s1">'alias'</span><span class="p">])</span>
+            <span class="n">test_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_test_status</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s2">"alias"</span><span class="p">])</span>
         <span class="k">except</span> <span class="n">RequestException</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'ERROR while retrieving CI status: </span><span class="si">%s</span><span class="s1">'</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"ERROR while retrieving CI status: </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
             <span class="n">test_status</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">test_status</span><span class="p">:</span>
             <span class="n">info</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">waivers</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="s1">'errors'</span> <span class="ow">in</span> <span class="n">test_status</span><span class="p">:</span>
-                <span class="n">info</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">el</span><span class="o">.</span><span class="n">description</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">test_status</span><span class="o">.</span><span class="n">errors</span><span class="p">])</span>
-            <span class="k">elif</span> <span class="s1">'decision'</span> <span class="ow">in</span> <span class="n">test_status</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">"errors"</span> <span class="ow">in</span> <span class="n">test_status</span><span class="p">:</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">el</span><span class="o">.</span><span class="n">description</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">test_status</span><span class="o">.</span><span class="n">errors</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="s2">"decision"</span> <span class="ow">in</span> <span class="n">test_status</span><span class="p">:</span>
                 <span class="n">info</span> <span class="o">=</span> <span class="n">test_status</span><span class="o">.</span><span class="n">decision</span><span class="o">.</span><span class="n">summary</span>
                 <span class="n">waivers</span> <span class="o">=</span> <span class="n">test_status</span><span class="o">.</span><span class="n">decision</span><span class="o">.</span><span class="n">waivers</span>
-            <span class="k">elif</span> <span class="s1">'decisions'</span> <span class="ow">in</span> <span class="n">test_status</span><span class="p">:</span>
-                <span class="n">info</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">summary</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">test_status</span><span class="o">.</span><span class="n">decisions</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="s2">"decisions"</span> <span class="ow">in</span> <span class="n">test_status</span><span class="p">:</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">summary</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">test_status</span><span class="o">.</span><span class="n">decisions</span><span class="p">])</span>
                 <span class="n">waivers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">waivers</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">test_status</span><span class="o">.</span><span class="n">decisions</span><span class="p">)))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'No `errors` nor `decision` in the data returned'</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"No `errors` nor `decision` in the data returned"</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">info</span><span class="p">:</span>
-                <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'CI Status'</span><span class="p">,</span> <span class="n">info</span><span class="p">))</span>
+                <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"CI Status"</span><span class="p">,</span> <span class="n">info</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">waivers</span><span class="p">:</span>
                 <span class="n">waivers_lines</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">waiver</span> <span class="ow">in</span> <span class="n">waivers</span><span class="p">:</span>
-                    <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">waiver</span><span class="p">[</span><span class="s1">'timestamp'</span><span class="p">],</span> <span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%S.</span><span class="si">%f</span><span class="s1">'</span><span class="p">)</span>
+                    <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">waiver</span><span class="p">[</span><span class="s2">"timestamp"</span><span class="p">]</span> <span class="o">+</span> <span class="s2">"+0000"</span><span class="p">,</span> <span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%S.</span><span class="si">%f</span><span class="s2">%z"</span><span class="p">)</span>
                     <span class="n">waivers_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">waiver</span><span class="p">[</span><span class="s1">'username'</span><span class="p">]</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-                    <span class="n">waivers_lines</span> <span class="o">+=</span> <span class="n">wrap_line</span><span class="p">(</span><span class="n">waiver</span><span class="p">[</span><span class="s1">'comment'</span><span class="p">])</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">waiver</span><span class="p">[</span><span class="s1">'username'</span><span class="p">]</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="p">)</span>
+                    <span class="n">waivers_lines</span> <span class="o">+=</span> <span class="n">wrap_line</span><span class="p">(</span><span class="n">waiver</span><span class="p">[</span><span class="s2">"comment"</span><span class="p">])</span>
                     <span class="n">waivers_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"build: </span><span class="si">{</span><span class="n">waiver</span><span class="p">[</span><span class="s1">'subject_identifier'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                     <span class="n">waivers_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"testcase: </span><span class="si">{</span><span class="n">waiver</span><span class="p">[</span><span class="s1">'testcase'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-                <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Waivers'</span><span class="p">,</span> <span class="n">waivers_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-                <span class="n">waiver_line_formatter</span> <span class="o">=</span> <span class="n">line_formatter</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">': '</span><span class="p">,</span> <span class="s1">'  '</span><span class="p">)</span>
+                <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Waivers"</span><span class="p">,</span> <span class="n">waivers_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="n">waiver_line_formatter</span> <span class="o">=</span> <span class="n">line_formatter</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">": "</span><span class="p">,</span> <span class="s2">"  "</span><span class="p">)</span>
                 <span class="n">update_lines</span> <span class="o">+=</span> <span class="p">[</span>
                     <span class="n">waiver_line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">indent</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">indent</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
-                        <span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="s1">' '</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">waivers_lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
-                        <span class="n">waivers_lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                        <span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="s2">" "</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">waivers_lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">waivers_lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                    <span class="p">)</span>
                 <span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">update</span><span class="p">[</span><span class="s1">'request'</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Request'</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s1">'request'</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">update</span><span class="p">[</span><span class="s2">"request"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Request"</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s2">"request"</span><span class="p">]))</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s1">'bugs'</span><span class="p">]):</span>
-            <span class="n">bugs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[</span>
-                <span class="n">wrap_line</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">bug</span><span class="p">[</span><span class="s1">'bug_id'</span><span class="p">]</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">bug</span><span class="p">[</span><span class="s1">'title'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">bug</span> <span class="ow">in</span> <span class="n">update</span><span class="p">[</span><span class="s1">'bugs'</span><span class="p">]</span>
-            <span class="p">]))</span>
-            <span class="n">indent_lines</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'Bugs'</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">' '</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bugs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s2">"bugs"</span><span class="p">]):</span>
+            <span class="n">bugs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
+                    <span class="o">*</span><span class="p">[</span><span class="n">wrap_line</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">bug</span><span class="p">[</span><span class="s1">'bug_id'</span><span class="p">]</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">bug</span><span class="p">[</span><span class="s1">'title'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">for</span> <span class="n">bug</span> <span class="ow">in</span> <span class="n">update</span><span class="p">[</span><span class="s2">"bugs"</span><span class="p">]]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">indent_lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Bugs"</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">" "</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">bugs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">update_lines</span> <span class="o">+=</span> <span class="p">[</span>
-                <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">indent</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">indent</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">indent_lines</span><span class="p">,</span> <span class="n">bugs</span><span class="p">)</span>
+                <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">indent</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">indent</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">indent_lines</span><span class="p">,</span> <span class="n">bugs</span><span class="p">)</span>
             <span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">update</span><span class="p">[</span><span class="s1">'notes'</span><span class="p">]:</span>
-            <span class="n">notes_lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
-                <span class="o">*</span><span class="p">[</span><span class="n">wrap_line</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">update</span><span class="p">[</span><span class="s1">'notes'</span><span class="p">]</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()]</span>
-            <span class="p">))</span>
-            <span class="n">indent_lines</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'Notes'</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">' '</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">notes_lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">update</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">]:</span>
+            <span class="n">notes_lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">wrap_line</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">update</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">]</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()])</span>
+            <span class="p">)</span>
+            <span class="n">indent_lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Notes"</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">" "</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">notes_lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">indent</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">indent_lines</span><span class="p">,</span> <span class="n">notes_lines</span><span class="p">):</span>
                 <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">indent</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
 
         <span class="n">update_lines</span> <span class="o">+=</span> <span class="p">[</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Submitter'</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s1">'user'</span><span class="p">][</span><span class="s1">'name'</span><span class="p">]),</span>
-            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Submitted'</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s1">'date_submitted'</span><span class="p">]),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Submitter"</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s2">"user"</span><span class="p">][</span><span class="s2">"name"</span><span class="p">]),</span>
+            <span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Submitted"</span><span class="p">,</span> <span class="n">update</span><span class="p">[</span><span class="s2">"date_submitted"</span><span class="p">]),</span>
         <span class="p">]</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s1">'comments'</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">update</span><span class="p">[</span><span class="s2">"comments"</span><span class="p">]):</span>
             <span class="n">comments_lines</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">update</span><span class="p">[</span><span class="s1">'comments'</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">update</span><span class="p">[</span><span class="s2">"comments"</span><span class="p">]:</span>
                 <span class="n">comments_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">comment</span><span class="p">[</span><span class="s1">'user'</span><span class="p">][</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">comment</span><span class="p">[</span><span class="s1">'timestamp'</span><span class="p">]</span><span class="si">}</span><span class="s2"> "</span>
-                    <span class="sa">f</span><span class="s2">"(karma </span><span class="si">{</span><span class="n">comment</span><span class="p">[</span><span class="s1">'karma'</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
-                <span class="n">comments_lines</span> <span class="o">+=</span> <span class="n">wrap_line</span><span class="p">(</span><span class="n">comment</span><span class="p">[</span><span class="s1">'text'</span><span class="p">])</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">comment</span><span class="p">[</span><span class="s1">'user'</span><span class="p">][</span><span class="s1">'name'</span><span class="p">]</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">comment</span><span class="p">[</span><span class="s1">'timestamp'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (karma </span><span class="si">{</span><span class="n">comment</span><span class="p">[</span><span class="s1">'karma'</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span>
+                <span class="p">)</span>
+                <span class="n">comments_lines</span> <span class="o">+=</span> <span class="n">wrap_line</span><span class="p">(</span><span class="n">comment</span><span class="p">[</span><span class="s2">"text"</span><span class="p">])</span>
 
-            <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">'Comments'</span><span class="p">,</span> <span class="n">comments_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-            <span class="n">comment_line_formatter</span> <span class="o">=</span> <span class="n">line_formatter</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">': '</span><span class="p">,</span> <span class="s1">'  '</span><span class="p">)</span>
+            <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">"Comments"</span><span class="p">,</span> <span class="n">comments_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">comment_line_formatter</span> <span class="o">=</span> <span class="n">line_formatter</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">": "</span><span class="p">,</span> <span class="s2">"  "</span><span class="p">)</span>
             <span class="n">update_lines</span> <span class="o">+=</span> <span class="p">[</span>
                 <span class="n">comment_line_formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">indent</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">indent</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
-                    <span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="s1">' '</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">comments_lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
-                    <span class="n">comments_lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+                    <span class="n">itertools</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="s2">" "</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">comments_lines</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">comments_lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="p">)</span>
             <span class="p">]</span>
 
-        <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">updates/</span><span class="si">{</span><span class="n">update</span><span class="p">[</span><span class="s1">'alias'</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">update_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">updates/</span><span class="si">{</span><span class="n">update</span><span class="p">[</span><span class="s1">'alias'</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">update_lines</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">update_lines</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.get_releases">
 <a class="viewcode-back" href="../../../python_bindings.html#bodhi.client.bindings.BodhiClient.get_releases">[docs]</a>
     <span class="nd">@errorhandled</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_releases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">'munch.Munch'</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_releases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"munch.Munch"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return a list of bodhi releases.</span>
 
@@ -1102,7 +1129,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            A dictionary describing Bodhi's release objects.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s1">'releases/'</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s1">'GET'</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_request</span><span class="p">(</span><span class="s2">"releases/"</span><span class="p">,</span> <span class="n">verb</span><span class="o">=</span><span class="s2">"GET"</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BodhiClient.get_koji_session">
@@ -1115,12 +1142,12 @@
 <span class="sd">            An initialized authenticated koji client.</span>
 <span class="sd">        """</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
-        <span class="n">koji_conf</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">'~'</span><span class="p">),</span> <span class="s1">'.koji'</span><span class="p">,</span> <span class="s1">'config'</span><span class="p">)</span>
+        <span class="n">koji_conf</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">"~"</span><span class="p">),</span> <span class="s2">".koji"</span><span class="p">,</span> <span class="s2">"config"</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">koji_conf</span><span class="p">):</span>
-            <span class="n">koji_conf</span> <span class="o">=</span> <span class="s1">'/etc/koji.conf'</span>
+            <span class="n">koji_conf</span> <span class="o">=</span> <span class="s2">"/etc/koji.conf"</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">koji_conf</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
             <span class="n">config</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
-        <span class="n">session</span> <span class="o">=</span> <span class="n">koji</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'koji'</span><span class="p">,</span> <span class="s1">'server'</span><span class="p">))</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">koji</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"koji"</span><span class="p">,</span> <span class="s2">"server"</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">session</span></div>
 
 
@@ -1139,13 +1166,13 @@
         <span class="n">builds</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_releases</span><span class="p">()</span>
         <span class="n">koji</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_koji_session</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">release</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">'releases'</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">release</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">"releases"</span><span class="p">]:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="n">koji</span><span class="o">.</span><span class="n">listTagged</span><span class="p">(</span><span class="n">release</span><span class="p">[</span><span class="s1">'candidate_tag'</span><span class="p">],</span> <span class="n">latest</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="n">build</span><span class="p">[</span><span class="s1">'owner_name'</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="n">koji</span><span class="o">.</span><span class="n">listTagged</span><span class="p">(</span><span class="n">release</span><span class="p">[</span><span class="s2">"candidate_tag"</span><span class="p">],</span> <span class="n">latest</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">build</span><span class="p">[</span><span class="s2">"owner_name"</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span><span class="p">:</span>
                         <span class="n">builds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">'Unable to query candidate builds for </span><span class="si">%s</span><span class="s1">'</span><span class="p">,</span> <span class="n">release</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">"Unable to query candidate builds for </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">release</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">builds</span></div>
 </div>
 

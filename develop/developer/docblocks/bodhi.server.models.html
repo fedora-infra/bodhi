@@ -1140,7 +1140,7 @@ for example, any mapped columns or relationships.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="bodhi.server.models.Comment.unique_testcase_feedback">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">unique_testcase_feedback</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#bodhi.server.models.TestCaseKarma" title="bodhi.server.models.TestCaseKarma"><span class="pre">TestCaseKarma</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#bodhi.server.models.Comment.unique_testcase_feedback" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">unique_testcase_feedback</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#bodhi.server.models.TestCaseKarma" title="bodhi.server.models.TestCaseKarma"><span class="pre">TestCaseKarma</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#bodhi.server.models.Comment.unique_testcase_feedback" title="Link to this definition">¶</a></dt>
 <dd><p>Return a list of unique <a class="reference internal" href="#bodhi.server.models.TestCaseKarma" title="bodhi.server.models.TestCaseKarma"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestCaseKarma</span></code></a> objects found in the testcase_feedback.</p>
 <p>This will filter out duplicates for <a class="reference internal" href="#bodhi.server.models.TestCase" title="bodhi.server.models.TestCase"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestCases</span></code></a>. It will return the
 correct number of TestCases in testcase_feedback as a list.</p>
@@ -1963,6 +1963,23 @@ of.</p></li>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">bodhi.server.models.</span></span><span class="sig-name descname"><span class="pre">EnumSymbol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#EnumSymbol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.EnumSymbol" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Define a fixed symbol tied to a parent class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="bodhi.server.models.EnumSymbol.__ge__">
+<span class="sig-name descname"><span class="pre">__ge__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#EnumSymbol.__ge__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.EnumSymbol.__ge__" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if self.value is greater or equal than other.value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#bodhi.server.models.EnumSymbol" title="bodhi.server.models.EnumSymbol"><em>EnumSymbol</em></a>) – The other EnumSymbol we are being compared to.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if self.value is ge than other.value, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="bodhi.server.models.EnumSymbol.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/bodhi/server/models.html#EnumSymbol.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bodhi.server.models.EnumSymbol.__init__" title="Link to this definition">¶</a></dt>
