@@ -46,3 +46,4 @@ Come join us on `Matrix <https://matrix.org>`_ chat! We've got two channels:
 * `#fedora-apps <https://chat.fedoraproject.org/#/#apps:fedoraproject.org>`_ - We use this channel to discuss
   Fedora's Bodhi deployment (it is more generally about all of Fedora's infrastructure
   applications.)
+Thank you for contributing to Bodhi
