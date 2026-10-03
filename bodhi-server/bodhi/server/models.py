@@ -2404,7 +2404,7 @@ class Update(Base):
                 {
                     "product_version": self.product_version,
                     "decision_context": self._greenwave_decision_contexts,
-                    "subject": subjects[count: count + batch_size],
+                    "subject": subjects[count : count + batch_size],
                     "verbose": verbose,
                 }
             )

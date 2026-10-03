@@ -23,9 +23,9 @@ def ansible(args):
         (
             "ansible-playbook",
             f"{here}/devel/ansible-podman/playbook.yml",
-            f"-e bodhi_dev_{args.subcommand}=true"
+            f"-e bodhi_dev_{args.subcommand}=true",
         ),
-        check=False
+        check=False,
     )
     sys.exit(ret.returncode)
 
@@ -53,21 +53,15 @@ def parse_args():
     subparsers = parser.add_subparsers(dest="subcommand")
     subparsers.required = True
     parser_run = subparsers.add_parser(
-        "run",
-        description="Prepare and run the environment",
-        aliases=["up"]
+        "run", description="Prepare and run the environment", aliases=["up"]
     )
     parser_run.set_defaults(func=ansible)
     parser_stop = subparsers.add_parser(
-        "stop",
-        description="Stop the environment (does not remove containers)",
-        aliases=["halt"]
+        "stop", description="Stop the environment (does not remove containers)", aliases=["halt"]
     )
     parser_stop.set_defaults(func=ansible)
     parser_remove = subparsers.add_parser(
-        "remove",
-        description="Stop and remove all containers",
-        aliases=["destroy"]
+        "remove", description="Stop and remove all containers", aliases=["destroy"]
     )
     parser_remove.set_defaults(func=ansible)
     parser_clean = subparsers.add_parser(
@@ -76,25 +70,23 @@ def parse_args():
     )
     parser_clean.set_defaults(func=ansible)
     parser_cis = subparsers.add_parser(
-        "cis",
-        description="Clear Ipsilon sessions (to allow you to log in as a different user)"
+        "cis", description="Clear Ipsilon sessions (to allow you to log in as a different user)"
     )
     parser_cis.set_defaults(func=ansible)
     parser_shell = subparsers.add_parser(
-        "shell",
-        description="Open a shell in a container. Container must be running"
+        "shell", description="Open a shell in a container. Container must be running"
     )
     parser_shell.add_argument(
         "container",
         help="The container to open a shell in (default: bodhi)",
         default="bodhi",
-        nargs='?',
-        choices=CONTAINERS
+        nargs="?",
+        choices=CONTAINERS,
     )
     parser_shell.set_defaults(func=shell)
     parser_logs = subparsers.add_parser(
         "logs",
-        description="Show logs of the specified container (does not work on bodhi, use journalctl)"
+        description="Show logs of the specified container (does not work on bodhi, use journalctl)",
     )
     parser_logs.add_argument(
         "container",
@@ -102,14 +94,13 @@ def parse_args():
         choices=[cont for cont in CONTAINERS if cont != "bodhi"],
     )
     parser_logs.set_defaults(func=logs)
-    parser_prep = subparsers.add_parser(
-        "prep",
-        description="Run preparation steps only"
-    )
+    parser_prep = subparsers.add_parser("prep", description="Run preparation steps only")
     parser_prep.set_defaults(func=ansible)
     parser_start = subparsers.add_parser(
         "start",
-        description="Start containers only (do not run prep, will fail if prep has not already run)"
+        description=(
+            "Start containers only (do not run prep, will fail if prep has not already run)"
+        ),
     )
     parser_start.set_defaults(func=ansible)
     return parser.parse_args()

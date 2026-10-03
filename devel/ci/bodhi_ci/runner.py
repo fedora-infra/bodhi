@@ -86,7 +86,10 @@ class Runner:
         loop.add_signal_handler(signal.SIGINT, functools.partial(_cancel_jobs, jobs))
 
         try:
-            done, pending = await asyncio.wait(processes, return_when=return_when,)
+            done, pending = await asyncio.wait(
+                processes,
+                return_when=return_when,
+            )
 
             results = await self._process_results(done, pending)
         finally:
@@ -157,7 +160,7 @@ class Runner:
         processes = stdout.decode()
         stop_jobs = [
             asyncio.create_task(StopJob(process).run())
-            for process in processes.split('\n')
+            for process in processes.split("\n")
             if process
         ]
 

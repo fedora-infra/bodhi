@@ -1791,6 +1791,7 @@ class TestTestable(BodhiClientTestCase):
         """Assert correct behavior from the testable() method."""
         dnf = mocker.patch("bodhi.client.bindings.dnf")
         fill_sack = mock.MagicMock()
+        # fmt: off
         dnf.Base.return_value.fill_sack = fill_sack
         (
             fill_sack.return_value
@@ -1799,6 +1800,7 @@ class TestTestable(BodhiClientTestCase):
             .filter.return_value
             .run.return_value
         ) = ["bodhi-2.8.1-1.fc26"]
+        # fmt: on
 
         client = bindings.BodhiClient()
         get_koji_session = mocker.patch.object(client, "get_koji_session")
@@ -1820,6 +1822,7 @@ class TestTestable(BodhiClientTestCase):
         assert list(updates) == [{"nvr": "bodhi-2.9.0-1.fc26"}]
         fill_sack.assert_called_once_with(load_system_repo=True)
         fill_sack.return_value.query.assert_called_once_with()
+        # fmt: off
         fill_sack.return_value.query.return_value.installed.assert_called_once_with()
         (
             fill_sack.return_value
@@ -1838,6 +1841,7 @@ class TestTestable(BodhiClientTestCase):
             .filter.return_value
             .run.assert_called_once_with()
         )
+        # fmt: on
         get_koji_session.return_value.listTagged.assert_called_once_with(
             "f26-updates-testing", latest=True
         )
