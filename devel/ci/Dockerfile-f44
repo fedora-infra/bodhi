@@ -37,6 +37,7 @@ RUN dnf --best install -y \
     python3-libdnf5 \
     python3-librepo \
     python3-markdown \
+    python3-pymdown-extensions \
     python3-munch \
     python3-psycopg2 \
     python3-prometheus_client \
