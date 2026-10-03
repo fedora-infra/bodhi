@@ -1368,7 +1368,7 @@ class PungiComposerThread(ComposerThread):
         prefix = "Compose dir: "
         for line in out.split("\n"):
             if line.startswith(prefix):
-                self.path = line[len(prefix):]
+                self.path = line[len(prefix) :]
         if not self.path:
             log.error("Stdout: %s", out)
             raise Exception("Unable to find the path to the compose")  # noqa: TRY002

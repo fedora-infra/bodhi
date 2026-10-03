@@ -32,3 +32,5 @@ repos:
     rev: v0.16.8
     hooks:
       - id: ruff-check
+      - id: ruff-format
+        args: [ --check, --diff ]

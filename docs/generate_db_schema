@@ -2,6 +2,7 @@
 """
 Generate an image of the database schema
 """
+
 import os
 
 from packaging import version
@@ -11,7 +12,7 @@ from sqlalchemy_schemadisplay import create_schema_graph
 try:
     from sqlalchemy_schemadisplay import __version__ as sqlschemaver
 except ImportError:
-    sqlschemaver = '1.0'
+    sqlschemaver = "1.0"
 
 from bodhi.server import models
 
@@ -19,25 +20,25 @@ DOCS_DIR = os.path.dirname(__file__)
 
 
 def write_graph(filename):
-    if version.parse(sqlschemaver) >= version.parse('2.0'):
+    if version.parse(sqlschemaver) >= version.parse("2.0"):
         graph = create_schema_graph(
-            engine=create_engine('sqlite:///:memory:'),
+            engine=create_engine("sqlite:///:memory:"),
             metadata=models.metadata,
             show_datatypes=False,
             show_indexes=False,
-            rankdir='LR',
-            concentrate=False
+            rankdir="LR",
+            concentrate=False,
         )
     else:
         graph = create_schema_graph(
             metadata=models.metadata,
             show_datatypes=False,
             show_indexes=False,
-            rankdir='LR',
-            concentrate=False
+            rankdir="LR",
+            concentrate=False,
         )
     graph.write_png(filename)
 
 
-if __name__ == '__main__':
-    write_graph(f'{DOCS_DIR}/generated/database.png')
+if __name__ == "__main__":
+    write_graph(f"{DOCS_DIR}/generated/database.png")
