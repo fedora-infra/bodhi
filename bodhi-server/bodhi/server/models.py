@@ -846,10 +846,10 @@ update_bug_table = Table(
 
 
 build_testcase_table = Table(
-    "build_testcase_table",
+    'build_testcase_table',
     metadata,
-    Column("build_id", Integer, ForeignKey("builds.id")),
-    Column("testcase_id", Integer, ForeignKey("testcases.id")),
+    Column('build_id', Integer, ForeignKey('builds.id'), index=True),
+    Column('testcase_id', Integer, ForeignKey('testcases.id')),
 )
 
 
@@ -1535,6 +1535,8 @@ class Build(Base):
     update = relationship("Update", back_populates="builds")
 
     # Many-to-many relationships
+    testcases = relationship('TestCase', secondary=build_testcase_table,
+                             back_populates='builds', order_by='TestCase.name', lazy='selectin')
     testcases = relationship(
         "TestCase",
         secondary=build_testcase_table,
