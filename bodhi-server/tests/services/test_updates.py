@@ -63,13 +63,13 @@ from ..utils import assert_multiline_equal
 
 YEAR = time.localtime().tm_year
 
-mock_uuid4_version1 = {
-    "target": "uuid.uuid4",
-    "return_value": "this is a consistent string",
+mock_secrets_version1 = {
+    "target": "secrets.token_hex",
+    "return_value": "033713b73b",
 }
-mock_uuid4_version2 = {
-    "target": "uuid.uuid4",
-    "return_value": "this is another consistent string",
+mock_secrets_version2 = {
+    "target": "secrets.token_hex",
+    "return_value": "53345602d5",
 }
 
 
@@ -241,7 +241,7 @@ class TestNewUpdate(BasePyTestCase):
             self.app.post_json("/updates/", self.get_update("bodhi-2.0.0-1.fc17"))
 
     @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_update_notes_exceed_maximum(self, *args):
         update = self.get_update("bodhi-2.1-1.fc17")
         update["notes"] = "a" * 10001
@@ -249,7 +249,7 @@ class TestNewUpdate(BasePyTestCase):
         assert "Longer than maximum length 10000" in res
 
     @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_new_rpm_update(self, *args):
         with fml_testing.mock_sends(
             update_schemas.UpdateReadyForTestingV3, update_schemas.UpdateRequestTestingV1
@@ -278,7 +278,7 @@ class TestNewUpdate(BasePyTestCase):
         assert up["karma"] == 0
 
     @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_new_rawhide_rpm_update(self, *args):
         """Posting a new update against Rawhide should fail."""
         release = Release.query.one()
@@ -301,7 +301,7 @@ class TestNewUpdate(BasePyTestCase):
         assert build is None
 
     @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_new_rpm_update_unknown_build(self, *args):
         with mock.patch("bodhi.server.buildsys.DevBuildsys.getBuild", return_value=None):
             r = self.app.post_json("/updates/", self.get_update("bodhi-2.0.0-2.fc17"), status=400)
@@ -311,7 +311,7 @@ class TestNewUpdate(BasePyTestCase):
         assert up["errors"][0]["description"] == "Build does not exist: bodhi-2.0.0-2.fc17"
 
     @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_new_rpm_update_koji_error(self, *args):
         with mock.patch(
             "bodhi.server.buildsys.DevBuildsys.getBuild", side_effect=koji.GenericError()
@@ -325,7 +325,7 @@ class TestNewUpdate(BasePyTestCase):
     @mock.patch("bodhi.server.services.updates.handle_side_and_related_tags_task")
     @mock.patch("bodhi.server.services.updates.log.debug")
     @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
-    @unused_mock_patch(**mock_uuid4_version1)
+    @unused_mock_patch(**mock_secrets_version1)
     @pytest.mark.parametrize("rawhide_workflow", (True, False))
     def test_new_rpm_update_from_tag(
         self, log_debug, handle_side_and_related_tags_task, rawhide_workflow
@@ -423,7 +423,7 @@ class TestNewUpdate(BasePyTestCase):
     @mock.patch("bodhi.server.services.updates.log.warning")
     @mock.patch("bodhi.server.services.updates.log.debug")
     @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
-    @unused_mock_patch(**mock_uuid4_version1)
+    @unused_mock_patch(**mock_secrets_version1)
     @pytest.mark.parametrize("rawhide_workflow", (True, False))
     def test_new_rpm_update_from_tag_wrong_owner(
         self, log_debug, log_warning, handle_side_and_related_tags_task, rawhide_workflow
@@ -469,7 +469,7 @@ class TestNewUpdate(BasePyTestCase):
     @mock.patch("bodhi.server.services.updates.log.warning")
     @mock.patch("bodhi.server.services.updates.log.debug")
     @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
-    @unused_mock_patch(**mock_uuid4_version1)
+    @unused_mock_patch(**mock_secrets_version1)
     @pytest.mark.parametrize("rawhide_workflow", (True, False))
     def test_new_rpm_update_from_tag_wrong_owner_with_rights(
         self, log_debug, log_warning, handle_side_and_related_tags_task, rawhide_workflow
@@ -515,7 +515,7 @@ class TestNewUpdate(BasePyTestCase):
 
     @mock.patch("bodhi.server.services.updates.handle_side_and_related_tags_task")
     @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
-    @unused_mock_patch(**mock_uuid4_version1)
+    @unused_mock_patch(**mock_secrets_version1)
     def test_new_rpm_update_from_tag_build_missing_tag(self, handle_side_and_related_tags_task):
         """Ensure build passed to a side-tag update are tagged in the side-tag."""
         # We don't want the new update to obsolete the existing one.
@@ -589,7 +589,7 @@ class TestNewUpdate(BasePyTestCase):
         )
 
     @mock.patch.dict("bodhi.server.validators.config", {"acl_system": "dummy"})
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_new_module_update(self, *args):
         # Ensure there are no module packages in the DB to begin with.
         assert not self.db.query(ModulePackage).count()
@@ -677,7 +677,7 @@ class TestNewUpdate(BasePyTestCase):
         assert updates[2].status.name == "pending"
         assert updates[2].request.name == "testing"
 
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_new_container_update(self, *args):
         self.create_release("28C")
         data = self.get_update("mariadb-10.1-10.f28container")
@@ -705,7 +705,7 @@ class TestNewUpdate(BasePyTestCase):
         assert up["alias"] == f"FEDORA-{YEAR}-033713b73b"
         assert up["karma"] == 0
 
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_new_flatpak_update(self, *args):
         self.create_release("28F")
         data = self.get_update("mariadb-10.1-10.f28flatpak")
@@ -733,7 +733,7 @@ class TestNewUpdate(BasePyTestCase):
         assert up["alias"] == f"FEDORA-{YEAR}-033713b73b"
         assert up["karma"] == 0
 
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_new_image_update_no_pull(self, *args):
         self.create_release("28F")
         data = self.get_update("mariadb-10.1-10.f28flatpak")
@@ -948,7 +948,7 @@ class TestNewUpdate(BasePyTestCase):
         nvr = "bodhi-2.0.0-2.fc17"
         args = self.get_update(nvr)
         with (
-            mock.patch(**mock_uuid4_version1),
+            mock.patch(**mock_secrets_version1),
             fml_testing.mock_sends(
                 update_schemas.UpdateReadyForTestingV3, update_schemas.UpdateRequestTestingV1
             ),
@@ -963,7 +963,7 @@ class TestNewUpdate(BasePyTestCase):
 
         args = self.get_update("bodhi-2.0.0-3.fc17")
         with (
-            mock.patch(**mock_uuid4_version2),
+            mock.patch(**mock_secrets_version2),
             fml_testing.mock_sends(
                 update_schemas.UpdateReadyForTestingV3, update_schemas.UpdateRequestTestingV1
             ),
@@ -1010,7 +1010,7 @@ class TestNewUpdate(BasePyTestCase):
         args["type"] = "security"
         args["severity"] = "high"
         with (
-            mock.patch(**mock_uuid4_version1),
+            mock.patch(**mock_secrets_version1),
             fml_testing.mock_sends(
                 update_schemas.UpdateReadyForTestingV3, update_schemas.UpdateRequestTestingV1
             ),
@@ -1025,7 +1025,7 @@ class TestNewUpdate(BasePyTestCase):
 
         args = self.get_update("bodhi-2.0.0-3.fc17")
         with (
-            mock.patch(**mock_uuid4_version2),
+            mock.patch(**mock_secrets_version2),
             fml_testing.mock_sends(
                 update_schemas.UpdateReadyForTestingV3, update_schemas.UpdateRequestTestingV1
             ),
@@ -1079,7 +1079,7 @@ class TestNewUpdate(BasePyTestCase):
         args["type"] = "security"
         args["severity"] = "high"
         with (
-            mock.patch(**mock_uuid4_version1),
+            mock.patch(**mock_secrets_version1),
             fml_testing.mock_sends(
                 update_schemas.UpdateReadyForTestingV3, update_schemas.UpdateRequestTestingV1
             ),
@@ -1096,7 +1096,7 @@ class TestNewUpdate(BasePyTestCase):
         args["type"] = "security"
         args["severity"] = "high"
         with (
-            mock.patch(**mock_uuid4_version2),
+            mock.patch(**mock_secrets_version2),
             fml_testing.mock_sends(
                 update_schemas.UpdateReadyForTestingV3, update_schemas.UpdateRequestTestingV1
             ),
@@ -1158,7 +1158,7 @@ class TestNewUpdate(BasePyTestCase):
         nvr = "bodhi-2.0.0-2.fc17"
         args = self.get_update(nvr)
         with (
-            mock.patch(**mock_uuid4_version1),
+            mock.patch(**mock_secrets_version1),
             fml_testing.mock_sends(
                 update_schemas.UpdateReadyForTestingV3, update_schemas.UpdateRequestTestingV1
             ),
@@ -1172,7 +1172,7 @@ class TestNewUpdate(BasePyTestCase):
         args = self.get_update("bodhi-2.0.0-3.fc17")
 
         with (
-            mock.patch(**mock_uuid4_version2),
+            mock.patch(**mock_secrets_version2),
             fml_testing.mock_sends(
                 update_schemas.UpdateReadyForTestingV3, update_schemas.UpdateRequestTestingV1
             ),
@@ -3290,7 +3290,7 @@ class TestUpdatesService(BasePyTestCase):
 
     @mock.patch("bodhi.server.services.updates.handle_side_and_related_tags_task", mock.Mock())
     @mock.patch("bodhi.server.models.tag_update_builds_task", mock.Mock())
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_edit_update(self, *args):
         args = self.get_update("bodhi-2.0.0-2.fc17")
 
@@ -3345,7 +3345,7 @@ class TestUpdatesService(BasePyTestCase):
 
     @mock.patch("bodhi.server.services.updates.handle_side_and_related_tags_task", mock.Mock())
     @mock.patch("bodhi.server.models.tag_update_builds_task", mock.Mock())
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_edit_update_without_specifying_bugs(self, *args):
         """When editing an update, 'bugs' key should not be required if no change is expected."""
         args = self.get_update("bodhi-2.0.0-2.fc17")
@@ -3371,7 +3371,7 @@ class TestUpdatesService(BasePyTestCase):
 
     @mock.patch("bodhi.server.services.updates.handle_side_and_related_tags_task", mock.Mock())
     @mock.patch("bodhi.server.models.tag_update_builds_task", mock.Mock())
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_edit_deleting_bugs(self, *args):
         """When editing an update, an empty string 'bugs' key should delete all bugs."""
         args = self.get_update("bodhi-2.0.0-2.fc17")
@@ -3397,7 +3397,7 @@ class TestUpdatesService(BasePyTestCase):
 
     @mock.patch("bodhi.server.services.updates.handle_side_and_related_tags_task", mock.Mock())
     @mock.patch("bodhi.server.models.tag_update_builds_task", mock.Mock())
-    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_secrets_version1)
     def test_edit_rpm_update_from_tag(self, *args):
         """Test editing an update using (updated) builds from a Koji tag."""
         # We don't want the new update to obsolete the existing one.
@@ -4102,7 +4102,7 @@ class TestUpdatesService(BasePyTestCase):
         nvr = "bodhi-2.0.0-2.fc17"
         args = self.get_update(nvr)
         with (
-            mock.patch(**mock_uuid4_version1),
+            mock.patch(**mock_secrets_version1),
             fml_testing.mock_sends(
                 update_schemas.UpdateReadyForTestingV3, update_schemas.UpdateRequestTestingV1
             ),
@@ -4118,7 +4118,7 @@ class TestUpdatesService(BasePyTestCase):
         new_nvr = "bodhi-2.0.0-3.fc17"
         args = self.get_update(new_nvr)
         with (
-            mock.patch(**mock_uuid4_version2),
+            mock.patch(**mock_secrets_version2),
             fml_testing.mock_sends(
                 update_schemas.UpdateReadyForTestingV3, update_schemas.UpdateRequestTestingV1
             ),
