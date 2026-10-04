@@ -325,19 +325,10 @@ class TestGenericViews(base.BasePyTestCase):
             },
             status=200,
         )
-        # Markdown has changed html parser between 3.2.2 and 3.3.0
-        from markdown import __version_info__ as mvi
-
-        if mvi[0] >= 3 and mvi[1] >= 3:
-            assert (
-                res.json_body["html"]
-                == '<div class="markdown"><pre><code>sudo dnf install bodhi\n</code></pre></div>'
-            )
-        else:
-            assert (
-                res.json_body["html"]
-                == '<div class="markdown"><pre><code>sudo dnf install bodhi\n</code></pre>\n</div>'
-            )
+        assert (
+            res.json_body["html"]
+            == '<div class="markdown"><div class="highlight"><pre><span></span><code>sudo dnf install bodhi\n</code></pre></div></div>'
+        )
 
     def test_markdown_with_fenced_code_block_in_blockquote(self):
         res = self.app.get('/markdown', {
