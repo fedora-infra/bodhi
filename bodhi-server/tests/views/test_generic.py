@@ -327,26 +327,30 @@ class TestGenericViews(base.BasePyTestCase):
         )
         assert res.json_body["html"] == (
             '<div class="markdown"><div class="highlight"><pre><span></span>'
-            '<code>sudo dnf install bodhi\n</code></pre></div></div>'
+            "<code>sudo dnf install bodhi\n</code></pre></div></div>"
         )
 
     def test_markdown_with_fenced_code_block_in_blockquote(self):
-        res = self.app.get('/markdown', {
-            'text': (
-                '[My brother](https://example.com) is affected:\n\n'
-                '> ~~~log\n'
-                '> sudo dnf upgrade --refresh\n'
-                '> Updating repositories...\n'
-                '> No advisory found.\n'
-                '> ~~~'
-            ),
-        }, status=200)
+        res = self.app.get(
+            "/markdown",
+            {
+                "text": (
+                    "[My brother](https://example.com) is affected:\n\n"
+                    "> ~~~log\n"
+                    "> sudo dnf upgrade --refresh\n"
+                    "> Updating repositories...\n"
+                    "> No advisory found.\n"
+                    "> ~~~"
+                ),
+            },
+            status=200,
+        )
 
-        assert '<blockquote>' in res.json_body['html']
-        assert '<pre>' in res.json_body['html']
-        assert '<code>' in res.json_body['html']
-        assert 'sudo dnf upgrade --refresh' in res.json_body['html']
-        assert 'No advisory found.' in res.json_body['html']
+        assert "<blockquote>" in res.json_body["html"]
+        assert "<pre>" in res.json_body["html"]
+        assert "<code>" in res.json_body["html"]
+        assert "sudo dnf upgrade --refresh" in res.json_body["html"]
+        assert "No advisory found." in res.json_body["html"]
 
     def test_markdown_with_email_autolink(self):
         res = self.app.get(
