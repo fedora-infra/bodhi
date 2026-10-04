@@ -325,9 +325,9 @@ class TestGenericViews(base.BasePyTestCase):
             },
             status=200,
         )
-        assert (
-            res.json_body["html"]
-            == '<div class="markdown"><div class="highlight"><pre><span></span><code>sudo dnf install bodhi\n</code></pre></div></div>'
+        assert res.json_body["html"] == (
+            '<div class="markdown"><div class="highlight"><pre><span></span>'
+            '<code>sudo dnf install bodhi\n</code></pre></div></div>'
         )
 
     def test_markdown_with_fenced_code_block_in_blockquote(self):
