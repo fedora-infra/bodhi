@@ -4576,7 +4576,26 @@ files = [
 [package.extras]
 cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and python_version < \"3.14\"", "cffi (>=2.0.0b0) ; platform_python_implementation != \"PyPy\" and python_version >= \"3.14\""]
 
+[[package]]
+name = "pymdown-extensions"
+version = "10.21.3"
+description = "Extension pack for Python Markdown."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "pymdown_extensions-10.21.3-py3-none-any.whl", hash = "sha256:d7a5d08014fc571e80ca21dd6f854e31f94c489800350564d55d15b3c41e76b6"},
+    {file = "pymdown_extensions-10.21.3.tar.gz", hash = "sha256:72cfcf55f07aea0d4af2c4f11dd4e52466ddfb1bb819673146398e0bd3a77354"},
+]
+
+[package.dependencies]
+markdown = ">=3.6"
+pyyaml = "*"
+
+[package.extras]
+extra = ["pygments (>=2.19.1)"]
+
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9, <4"
-content-hash = "57f5cea7fd1af0b098aa3c701ffe43d5793f6926d3f9f9892b58a07caaa20821"
+content-hash = "d43af82d35b66489dd7018a048f4ed082caa4a63e05faa693ce04beb5fef2239"
