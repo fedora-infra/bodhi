@@ -54,9 +54,9 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">secrets</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
@@ -2415,8 +2415,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"You must specify a Release when creating an Update."</span><span class="p">)</span>
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"release"</span><span class="p">]</span><span class="o">.</span><span class="n">id_prefix</span>
         <span class="n">year</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">localtime</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="nb">id</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span>
-        <span class="n">alias</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">year</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="nb">id</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">alias</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">year</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">secrets</span><span class="o">.</span><span class="n">token_hex</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alias</span> <span class="o">=</span> <span class="n">alias</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">release_id</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"release"</span><span class="p">]</span><span class="o">.</span><span class="n">id</span>
         <span class="c1"># we need this to be set for message publishing to work</span>
@@ -2691,7 +2690,7 @@
                 <span class="p">{</span>
                     <span class="s2">"product_version"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">product_version</span><span class="p">,</span>
                     <span class="s2">"decision_context"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_greenwave_decision_contexts</span><span class="p">,</span>
-                    <span class="s2">"subject"</span><span class="p">:</span> <span class="n">subjects</span><span class="p">[</span><span class="n">count</span><span class="p">:</span> <span class="n">count</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">],</span>
+                    <span class="s2">"subject"</span><span class="p">:</span> <span class="n">subjects</span><span class="p">[</span><span class="n">count</span> <span class="p">:</span> <span class="n">count</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">],</span>
                     <span class="s2">"verbose"</span><span class="p">:</span> <span class="n">verbose</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="p">)</span>
