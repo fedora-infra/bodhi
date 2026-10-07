@@ -16,12 +16,12 @@ classifiers = [
     "Intended Audience :: System Administrators",
     "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: System :: Software Distribution",
     "Framework :: Pyramid",
     "Programming Language :: JavaScript",
@@ -81,7 +81,7 @@ responses = ">=0.10.15"
 webtest = ">=2.0.35"
 
 [tool.poetry.dependencies]
-python = ">=3.9, <4"
+python = ">=3.10, <4"
 alembic = ">=1.5.5"
 arrow = ">=0.17.0"
 authlib = ">=0.15.4"
