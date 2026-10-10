@@ -27,6 +27,7 @@ import sys
 import traceback
 import typing
 from datetime import datetime, timezone
+from pathlib import Path
 
 import click
 import munch
@@ -881,6 +882,7 @@ def comment(
 @click.option("--updateid", help="Download update(s) by ID(s) (comma-separated list)")
 @click.option("--builds", help="Download update(s) by build NVR(s) (comma-separated list)")
 @click.option("--gpg/--no-gpg", help="Download GPG-signed packages", default=True)
+@click.option("--subdirs", is_flag=True, default=False, help="Download into subdirectories")
 @url_option
 @add_options(openid_options)
 @debug_option
@@ -906,11 +908,13 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
     requested_arch = kwargs["arch"]
     debuginfo = kwargs["debuginfo"]
     gpg = kwargs["gpg"]
+    subdirs = kwargs["subdirs"]
 
     del kwargs["staging"]
     del kwargs["arch"]
     del kwargs["debuginfo"]
     del kwargs["gpg"]
+    del kwargs["subdirs"]
     # At this point we need to have reduced the kwargs dict to only our
     # query options (updateid or builds)
     if not any(kwargs.values()):
@@ -1004,6 +1008,11 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
                     if not keyid:
                         click.echo("WARNING: could not find GPG key, packages will be unsigned")
                 for build in update["builds"]:
+                    if subdirs:
+                        download_dir = Path(build.nvr.rsplit("-",2)[0])
+                        download_dir.mkdir(exist_ok=True)
+                    else:
+                        download_dir = None
                     args = ["koji", "download-build"]
                     if keyid:
                         args.append(f"--key={keyid}")
@@ -1020,7 +1029,7 @@ def download(url: str, id_provider: str, client_id: str, **kwargs):
                             args.append(build["nvr"])
                         if "all" not in requested_arch:
                             args.extend(["--arch=noarch", f"--arch={requested_arch}", build["nvr"]])
-                    ret = subprocess.call(args)
+                    ret = subprocess.call(args, cwd=download_dir)
                     if ret:
                         click.echo(f"WARNING: download of {build['nvr']} failed!", err=True)
 
