@@ -156,6 +156,69 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
         # we should still only have posted approval comment once
         self._assert_commented(1)
+    def test_update_autokarma_floor_disabled(self):
+        """Ensure autokarma pushes when the floor is disabled."""
+        self.update.release.composed_by_bodhi = True
+        self.update.autotime = False
+        self.update.comment(self.db, "testing", author="tester", karma=1)
+        self.update.stable_karma = self.update.karma
+        config["autokarma.floor_time_hours"] = 0
+
+        with fml_testing.mock_sends( update_schemas.UpdateCommentV1, update_schemas.UpdateRequirementsMetStableV1, update_schemas.UpdateRequestStableV1):
+            approve_testing_main()
+
+        assert self.update.request == models.UpdateRequest.stable
+        assert self.update.status == models.UpdateStatus.testing
+        assert self.update.date_approved is not None
+
+    def test_update_autokarma_floor_not_elapsed(self):
+        """Ensure autokarma does not push before the configured floor time."""
+        self.update.release.composed_by_bodhi = True
+        self.update.autotime = False
+        self.update.comment(self.db, "testing", author="tester", karma=1)
+        self.update.stable_karma = self.update.karma
+        self.update.date_testing = datetime.now(timezone.utc) - timedelta(hours=20)
+        config["autokarma.floor_time_hours"] = 24
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            self.db.commit()
+
+        with fml_testing.mock_sends():
+            approve_testing_main()
+
+        assert self.update.status == models.UpdateStatus.testing
+        assert self.update.request is None
+        assert self.update.date_approved is None
+
+    def test_update_autokarma_floor_elapsed(self):
+        """Ensure autokarma pushes after the configured floor time."""
+        self.update.release.composed_by_bodhi = True
+        self.update.autotime = False
+        self.update.comment(self.db, "testing", author="tester", karma=1)
+        self.update.stable_karma = self.update.karma
+        self.update.date_testing = datetime.now(timezone.utc) - timedelta(hours=25)
+        config["autokarma.floor_time_hours"] = 24
+
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1, update_schemas.UpdateRequirementsMetStableV1, update_schemas.UpdateRequestStableV1,):
+            approve_testing_main()
+
+        assert self.update.request == models.UpdateRequest.stable
+        assert self.update.status == models.UpdateStatus.testing
+        assert self.update.date_approved is not None
+
+    def test_update_autokarma_below_stable_karma(self):
+        """Ensure the floor alone does not trigger an autokarma push."""
+        self.update.release.composed_by_bodhi = True
+        self.update.autotime = False
+        self.update.comment(self.db, "testing", author="tester", karma=1)
+        self.update.stable_karma = self.update.karma + 1
+        self.update.date_testing = datetime.now(timezone.utc) - timedelta(hours=25)
+        config["autokarma.floor_time_hours"] = 24
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequirementsMetStableV1):
+            approve_testing_main()
+
+        self._assert_not_pushed()
+        assert self.update.date_approved is not None
 
     @pytest.mark.parametrize("stable_days", (0, 7, 14))
     @pytest.mark.parametrize("has_stable_comment", (True, False))
