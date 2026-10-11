@@ -80,6 +80,11 @@ $(document).ready(function() {
             }
         },
         callback: {
+            onLayoutBuiltAfter: function (node, query, result) {
+                $("#bodhi-searchbar .typeahead__group > a").each(function () {
+                    $(this).replaceWith($(this).contents());
+                });
+            },
             onSubmit: function (node, form, item, event) {
                     event.preventDefault();
                     window.location.href = '/updates/?search=' + encodeURIComponent(node.val());
