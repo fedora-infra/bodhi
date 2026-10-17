@@ -25,11 +25,10 @@ testing requirements (i.e. it doesn't have enough karma or time in testing to ev
 pushed, or it fails gating checks), we do nothing. Otherwise, we set the date_approved
 for the update if it's not already set, then choose one of the two other options.
 
-If the update meets testing requirements, has autopush after a certain time in testing (autotime)
-enabled, and has reached that threshold, we push it. Note this is the **ONLY** way updates
-for releases "not composed by Bodhi" (Rawhide, ELN, Branched for the first few weeks) are ever
-pushed stable. The other way updates can be autopushed stable - Update.check_karma_thresholds(),
-called by Update.comment() - opts out of handling "not composed by Bodhi" release updates.
+If the update has automatic push for time (autotime) enabled and has reached its time threshold,
+or has automatic push for karma (autokarma) enabled and has reached its karma threshold and
+configured floor time, we push it. Updates for releases "not composed by Bodhi" (Rawhide, ELN,
+Branched for the first few weeks) are only pushed stable by this task.
 
 If the update meets testing requirements but does not have autotime enabled or has
 not reached that threshold, we check to see if the update already has a comment saying it is
@@ -178,13 +177,6 @@ def process_update(update: Update, db: Session):
     call approved_comment_message() to post the approval comment and publish the
     UpdateRequirementsMetStable message, if it has not been done before.
 
-    It has not yet proven necessary to check the karma autopush threshold here. For releases that
-    are "composed by Bodhi", Update.check_karma_thresholds() pushes updates as soon as they
-    reach the karma autopush threshold. For releases that are not "composed by Bodhi", on update
-    creation, autotime is forced to True and the time threshold is forced to 0, thus updates for
-    these releases are *always* eligible for autotime push here, as soon as they pass gating,
-    there is no case in which autokarma would be relevant.
-
     Args:
         update: an update in testing that may be ready for stable.
         db: a database session.
@@ -193,21 +185,53 @@ def process_update(update: Update, db: Session):
     # requirements are met, and the update has reached the minimum karma
     # threshold or wait period for a manual push to be allowed, so this
     # means "update is eligible to be manually pushed stable"
+    floor_time_hours = config.get("autokarma.floor_time_hours", 0)
+
+    # Handle autokarma pushes here so that a configured floor time can be enforced.
+    if (
+        update.autokarma
+        and update.stable_karma
+        and update.karma >= update.stable_karma
+        and update.release.composed_by_bodhi
+    ):
+        if config.get("test_gating.required") and not update.test_gating_passed:
+            log.info(f"{update.alias} has not passed test gating - bailing")
+            return
+
+        if (
+            floor_time_hours > 0
+            and update.date_testing
+            and datetime.datetime.now(datetime.timezone.utc) - update.date_testing
+            < datetime.timedelta(hours=floor_time_hours)
+        ):
+            log.info(
+                f"{update.alias} has reached autokarma but has not "
+                f"reached the configured floor time - bailing"
+            )
+            return
+
+        if not update.meets_testing_requirements:
+            log.info(f"{update.alias} has not met testing requirements - bailing")
+            return
+
+        if not update.date_approved:
+            update.date_approved = datetime.datetime.now(datetime.timezone.utc)
+
+        autopush_update(update, db)
+        return
+
     if not update.meets_testing_requirements:
         log.info(f"{update.alias} has not met testing requirements - bailing")
         return
+
     log.info(f"{update.alias} now meets testing requirements")
-    # always set date_approved, if it has never been set before: this
-    # date indicates "first date update became eligible for manual push"
+
     if not update.date_approved:
         update.date_approved = datetime.datetime.now(datetime.timezone.utc)
+
     if update.autotime and update.days_in_testing >= update.stable_days:
-        # if update *additionally* meets the time-based autopush threshold,
-        # push it
         autopush_update(update, db)
     else:
-        # otherwise, post the comment and publish the message announcing
-        # it is eligible for manual push, if this has not been done
         approved_comment_message(update, db)
 
     log.info(f"{update.alias} processed by approve_testing")
