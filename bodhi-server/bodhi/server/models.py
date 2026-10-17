@@ -1854,6 +1854,7 @@ class RpmBuild(Build):
 
     __mapper_args__ = {
         "polymorphic_identity": ContentType.rpm,
+        "polymorphic_load": "inline",
     }
 
     @property
