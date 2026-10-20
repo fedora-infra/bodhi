@@ -6,7 +6,6 @@ $(document).ready(function() {
         minLength: 2,
         dynamic: true,
         delay: 600,
-        groupTemplate: '<div class="typeahead__group-header"><h3>{{group}}</h3></div>',
         group: {
             template: function (item) {
                 if (item.group == "overrides") {
@@ -80,11 +79,6 @@ $(document).ready(function() {
             }
         },
         callback: {
-            onLayoutBuiltAfter: function (node, query, result) {
-                $("#bodhi-searchbar .typeahead__group > a").each(function () {
-                    $(this).replaceWith($(this).contents());
-                });
-            },
             onSubmit: function (node, form, item, event) {
                     event.preventDefault();
                     window.location.href = '/updates/?search=' + encodeURIComponent(node.val());
