@@ -1535,13 +1535,12 @@ class Build(Base):
     update = relationship("Update", back_populates="builds")
 
     # Many-to-many relationships
-    testcases = relationship('TestCase', secondary=build_testcase_table,
-                             back_populates='builds', order_by='TestCase.name', lazy='selectin')
     testcases = relationship(
         "TestCase",
         secondary=build_testcase_table,
         back_populates="builds",
         order_by="TestCase.name",
+        lazy='selectin',
     )
 
     type = Column(ContentType.db_type(), nullable=False)
