@@ -6,7 +6,6 @@ Revises: 16864f8ff395
 
 from alembic import op
 
-
 # revision identifiers, used by Alembic.
 revision = "bcd25547c613"
 down_revision = "16864f8ff395"
