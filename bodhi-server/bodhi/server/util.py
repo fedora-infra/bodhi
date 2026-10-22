@@ -1084,6 +1084,7 @@ def call_api(
         raise RuntimeError(error_msg)
 
 
+# TODO: Remove this after Forgejo transition
 def pagure_api_get(pagure_api_url):
     """
     Perform a GET request against Pagure.
