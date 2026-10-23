@@ -1258,6 +1258,54 @@ class Package(Base):
         """
         return self.name
 
+    def get_pkg_committers_from_forgejo(self):
+        """
+        Pull users and groups/teams who can commit on a package in Forgejo.
+
+        Returns a tuple with two lists:
+        * The first list contains usernames that have commit access.
+        * The second list contains FAS group names that have commit access.
+
+        Raises:
+            RuntimeError: If Pagure did not give us a 200 code.
+        """
+        forgejo_url = config.get("forgejo.url")
+        namespace = config.get("forgejo.namespaces")[self.type.name]
+
+        # All collaborators have commit access in forgejo
+        collaborators_url = "{}/api/v1/repos/{}/{}/collaborators".format(
+            forgejo_url.rstrip("/"), namespace, self.external_name
+        )
+        committers = {user["logic"] for user in util.forgejo_api_get(collaborators_url)}
+
+        teams_url = "{}/api/v1/repos/{}/{}/teams".format(
+            forgejo_url.rstrip("/"), namespace, self.external_name
+        )
+
+        groups = set()
+        for team in util.forgejo_api_get(teams_url):
+            # Skip admin teams (Owners and provenpackager)
+            if team["includes_al_repositories"]:
+                continue
+            # Filter out teams that do not have commit access
+            # Note these permissions are granted for the whole team, not on an individual repo level
+            if (
+                team["permission"] != "write"
+                or team["units_map"].get("repo.code", "none") != "write"
+            ):
+                continue
+            groups.add(team["name"])
+            team_members_url = "{}/api/v1/teams/{}/members".format(
+                forgejo_url.rstrip("/"), team["id"]
+            )
+            for user in util.forgejo_api_get(team_members_url):
+                committers.add(user["login"])
+
+        # The first list contains usernames with commit access. The second list
+        # contains FAS group names with commit access.
+        return list(committers), list(groups)
+
+    # TODO: Remove this after Forgejo transition
     def get_pkg_committers_from_pagure(self):
         """
         Pull users and groups who can commit on a package in Pagure.
@@ -1296,11 +1344,33 @@ class Package(Base):
 
     def hascommitaccess(self, username: str, branchname: str) -> bool:
         """
-        Check on Pagure if a user has commit access on the package/branch.
+        Check on Pagure/Forgejo if a user has commit access on the package/branch.
 
         Raises:
-            RuntimeError: If Pagure did not give us a 200 code.
+            RuntimeError: If Pagure/Forgejo did not give us a 200 code.
         """
+        if forgejo_url := config["forgejo_url"]:
+            # Note Forgejo does not have branch-specific access so this is ignored for now
+            # https://forge.fedoraproject.org/forge/distgit-migration/issues/109
+            namespace = config.get("forgejo.namespaces")[self.type.name]
+            permission_url = "{}/api/v1/repos/{}/{}/collaborators/{}/permission".format(
+                forgejo_url.rstrip("/"), namespace, self.external_name, username
+            )
+            permission_response = util.forgejo_api_get(permission_url)
+            if permission_response["permission"] == "read":
+                return False
+            if permission_response["permission"] == "write":
+                return True
+            if permission_response["permission"] == "owner":
+                # Special case because forgejo always gives the highest permission
+                # so we need to check more manually the non-owner permission.
+                # This should be quite rare, so we can afford to be not so efficient about it.
+                commiters = self.get_pkg_committers_from_forgejo()[0]
+                return username in commiters
+            # Fallback not sure what else could there be?
+            return False
+
+        # TODO: Remove this after Forgejo transition
         pagure_url = config.get("pagure_url")
         namespace = config.get("pagure_namespaces")[self.type.name]
         # Here we override the queried branchname because:

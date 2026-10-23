@@ -1084,6 +1084,7 @@ def call_api(
         raise RuntimeError(error_msg)
 
 
+# TODO: Remove this after Forgejo transition
 def pagure_api_get(pagure_api_url):
     """
     Perform a GET request against Pagure.
@@ -1096,6 +1097,25 @@ def pagure_api_get(pagure_api_url):
         RuntimeError: If the server did not give us a 200 code.
     """
     return call_api(pagure_api_url, service_name="Pagure", error_key="error", retries=3)
+
+
+def forgejo_api_get(forgejo_api_url):
+    """
+    Perform a GET request against Pagure.
+
+    Args:
+        forgejo_api_url (str): The URL to GET, including query parameters.
+    Returns:
+        dict: A dictionary response representing the API response's JSON.
+    Raises:
+        RuntimeError: If the server did not give us a 200 code.
+    """
+    headers = {
+        "accept": "application/json",
+    }
+    if access_token := config.get("forgejo.access_token"):
+        headers["Authorization"] = f"token {access_token}"
+    return call_api(forgejo_api_url, service_name="Forgejo", error_key="message", retries=3)
 
 
 def greenwave_api_post(greenwave_api_url, data):
