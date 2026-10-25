@@ -59,7 +59,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">UTC</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">chain</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">textwrap</span><span class="w"> </span><span class="kn">import</span> <span class="n">wrap</span>
@@ -472,7 +472,7 @@
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">or</span> <span class="n">value</span><span class="o">.</span><span class="n">tzinfo</span><span class="o">.</span><span class="n">utcoffset</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"tzinfo is required"</span><span class="p">)</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span></div>
 
 
@@ -481,7 +481,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">process_result_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Return datetime with UTC timezone."""</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">UTC</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span></div>
 </div>
 
@@ -1972,7 +1972,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"query_wiki_test_cases"</span><span class="p">):</span>
             <span class="k">return</span>
 
-        <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Querying the wiki for test cases of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">wiki</span> <span class="o">=</span> <span class="n">MediaWiki</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"wiki_url"</span><span class="p">),</span> <span class="n">user_agent</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"wiki_user_agent"</span><span class="p">))</span>
@@ -2016,7 +2016,7 @@
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Added testcase "</span><span class="si">{</span><span class="n">case</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">" to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">nvr</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
         <span class="n">db</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Finished querying for test cases in </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Finished querying for test cases in </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 </div>
 
 
@@ -2117,6 +2117,7 @@
 
     <span class="n">__mapper_args__</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"polymorphic_identity"</span><span class="p">:</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">rpm</span><span class="p">,</span>
+        <span class="s2">"polymorphic_load"</span><span class="p">:</span> <span class="s2">"inline"</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="nd">@property</span>
@@ -2352,7 +2353,7 @@
     <span class="n">close_bugs</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Timestamps</span>
-    <span class="n">date_submitted</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">date_submitted</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">UTC</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">date_modified</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">)</span>
     <span class="n">date_approved</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">)</span>
     <span class="n">date_testing</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">)</span>
@@ -2823,7 +2824,7 @@
 <span class="sd">        """</span>
         <span class="n">gotsat</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">gotunsat</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">recent</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_modified</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">recent</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_modified</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">satisfied</span><span class="p">,</span> <span class="n">unsatisfied</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_greenwave_requirements_generator</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">satisfied</span><span class="p">:</span>
                 <span class="n">gotsat</span> <span class="o">=</span> <span class="kc">True</span>
@@ -3198,7 +3199,7 @@
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">up</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
-        <span class="n">up</span><span class="o">.</span><span class="n">date_modified</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+        <span class="n">up</span><span class="o">.</span><span class="n">date_modified</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span>
 
         <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span>
             <span class="n">update_schemas</span><span class="o">.</span><span class="n">UpdateEditV2</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
@@ -4488,7 +4489,7 @@
                 <span class="p">)</span>
                 <span class="k">return</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_approved</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">date_approved</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">date_approved</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Automatically marking </span><span class="si">%s</span><span class="s2"> as stable"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">alias</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_request</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">UpdateRequest</span><span class="o">.</span><span class="n">stable</span><span class="p">,</span> <span class="n">agent</span><span class="p">)</span>
             <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span>
@@ -4654,7 +4655,7 @@
 <span class="sd">            int: The number of days since this update's date_testing if it is set, else 0.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_testing</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_testing</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_testing</span><span class="p">)</span><span class="o">.</span><span class="n">days</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
 
@@ -4902,10 +4903,8 @@
     <span class="c1"># need the ability to query inside this so the JSONB type probably isn't useful.</span>
     <span class="n">checkpoints</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"</span><span class="si">{}</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">error_message</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">)</span>
-    <span class="n">date_created</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
-        <span class="n">TZDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">state_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
+    <span class="n">date_created</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">UTC</span><span class="p">))</span>
+    <span class="n">state_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">UTC</span><span class="p">))</span>
 
     <span class="n">release</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s2">"Release"</span><span class="p">,</span> <span class="n">back_populates</span><span class="o">=</span><span class="s2">"composes"</span><span class="p">)</span>
     <span class="n">state</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ComposeState</span><span class="o">.</span><span class="n">db_type</span><span class="p">(),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ComposeState</span><span class="o">.</span><span class="n">requested</span><span class="p">)</span>
@@ -5040,7 +5039,7 @@
 <span class="sd">                transition.</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">old</span><span class="p">:</span>
-            <span class="n">target</span><span class="o">.</span><span class="n">state_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span></div>
+            <span class="n">target</span><span class="o">.</span><span class="n">state_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span></div>
 
 
     <span class="nd">@property</span>
@@ -5199,7 +5198,7 @@
     <span class="n">karma</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">karma_critpath</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">text</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">))</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">UTC</span><span class="p">))</span>
 
     <span class="c1"># One-to-many relationships</span>
     <span class="n">bug_feedback</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span>
@@ -5624,9 +5623,7 @@
 
     <span class="n">notes</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">UnicodeText</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="n">submission_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
-        <span class="n">TZDateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span>
-    <span class="p">)</span>
+    <span class="n">submission_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="n">UTC</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">expiration_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">expired_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">TZDateTime</span><span class="p">)</span>
 
@@ -5720,7 +5717,7 @@
         <span class="k">if</span> <span class="s2">"submission_date"</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="n">override</span><span class="o">.</span><span class="n">submission_date</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"submission_date"</span><span class="p">]</span>
 
-        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">override</span><span class="o">.</span><span class="n">expired_date</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">override</span><span class="o">.</span><span class="n">expiration_date</span> <span class="o">&gt;</span> <span class="n">now</span><span class="p">:</span>
             <span class="c1"># Buildroot override had expired, we need to unexpire it</span>
@@ -5762,7 +5759,7 @@
                 <span class="n">koji_session</span><span class="o">.</span><span class="n">untagBuild</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unable to untag override </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="o">.</span><span class="n">nvr</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">: '</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">expired_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expired_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span>
 
         <span class="n">notifications</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span>
             <span class="n">override_schemas</span><span class="o">.</span><span class="n">BuildrootOverrideUntagV1</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span><span class="s2">"override"</span><span class="p">:</span> <span class="bp">self</span><span class="p">})</span>
@@ -5861,7 +5858,7 @@
       &#169;2007-2026, Red Hat, Inc..
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.2.0</a>
       &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
