@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A collection of validators for Bodhi requests."""
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from functools import wraps
 
 import colander
@@ -1366,7 +1366,7 @@ def validate_expiration_date(request, **kwargs):
         return
 
     expiration_date = expiration_date.date()
-    now = datetime.now(timezone.utc).date()
+    now = datetime.now(UTC).date()
 
     if expiration_date <= now:
         request.errors.add("body", "expiration_date", "Expiration date in the past")

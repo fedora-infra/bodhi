@@ -20,7 +20,7 @@
 
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import ClassVar
 
 from .constants import INTEGRATION_APPS, PROJECT_PATH
@@ -159,8 +159,8 @@ class IntegrationDumpDownloadJob(BuildJob):
             # will use tz=None on fromttimestamp() so that the time is expressed in the system's
             # local time. Therefore, we also need to collect the current time in the system's local
             # time for comparison.
-            modified_time = datetime.fromtimestamp(os.stat(self.filepath).st_mtime, tz=timezone.utc)
-            if datetime.now(tz=timezone.utc) - modified_time < timedelta(days=1):
+            modified_time = datetime.fromtimestamp(os.stat(self.filepath).st_mtime, tz=UTC)
+            if datetime.now(tz=UTC) - modified_time < timedelta(days=1):
                 # Our download is within a day and infrastructure only produces downloads once a
                 # day, so let's skip this task.
                 self.skip()

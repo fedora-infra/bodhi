@@ -26,7 +26,7 @@ import subprocess
 import sys
 import traceback
 import typing
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import click
 import munch
@@ -1485,7 +1485,7 @@ def edit_release(url: str, id_provider: str, client_id: str, debug: bool, **kwar
         and kwargs["state"] == "current"
         and kwargs["released_on"] is None
     ):
-        kwargs["released_on"] = datetime.now(timezone.utc).date()
+        kwargs["released_on"] = datetime.now(UTC).date()
 
     for k, v in kwargs.items():
         if v is not None:

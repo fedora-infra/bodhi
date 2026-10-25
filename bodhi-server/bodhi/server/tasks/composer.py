@@ -33,7 +33,7 @@ import subprocess
 import tempfile
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from http.client import IncompleteRead
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
@@ -682,7 +682,7 @@ class ComposerThread(threading.Thread):
         eol_sidetags = []
         log.info("Updating update statuses.")
         for update in self.compose.updates:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             if update.request is UpdateRequest.testing:
                 update.status = UpdateStatus.testing
                 update.date_testing = now
@@ -1185,9 +1185,7 @@ class PungiComposerThread(ComposerThread):
 
         self._create_pungi_config()
         config_file = os.path.join(self._pungi_conf_dir, "pungi.conf")
-        self._label = (
-            f"{config.get('pungi.labeltype')}-{datetime.now(timezone.utc).strftime('%Y%m%d.%H%M')}"
-        )
+        self._label = f"{config.get('pungi.labeltype')}-{datetime.now(UTC).strftime('%Y%m%d.%H%M')}"
         pungi_cmd = [
             config.get("pungi.cmd"),
             "--config",

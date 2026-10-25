@@ -34,7 +34,7 @@ import time
 import types
 from collections import defaultdict
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from importlib import import_module
 from textwrap import TextWrapper
 from urllib.parse import urlencode
@@ -1374,7 +1374,7 @@ def eol_releases(days: int = 30) -> list:
 
     eol_releases = []
     for release in active_releases:
-        if release.eol - datetime.now(timezone.utc).date() < timedelta(days=days):
+        if release.eol - datetime.now(UTC).date() < timedelta(days=days):
             eol_releases.append((release.long_name, release.eol))
 
     return eol_releases

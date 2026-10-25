@@ -24,7 +24,7 @@ import subprocess
 import tempfile
 import time
 import urllib.parse as urlparse
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from http.client import IncompleteRead
 from unittest import mock
 from urllib.error import HTTPError, URLError
@@ -270,7 +270,7 @@ class TestComposer(base.BasePyTestCase):
             # We need to fake Pungi having run or _wait_for_pungi() will fail to find the
             # output dir
             reqtype = "updates" if tag == "stable_tag" else "updates-testing"
-            d = datetime.now(timezone.utc)
+            d = datetime.now(UTC)
             compose_dir = os.path.join(
                 composer_thread.compose_dir,
                 (
@@ -784,10 +784,10 @@ That was the actual one"""
                 fake_popen.communicate = lambda: (fake_stdout, b"hello")
                 fake_popen.poll.return_value = None
                 fake_popen.returncode = 0
-                t._startyear = datetime.now(timezone.utc).year
+                t._startyear = datetime.now(UTC).year
                 t._wait_for_pungi(fake_popen)
             expected_error = "Directory at /tmp/nonsensical_directory does not look like a compose"
-            expected_error = expected_error.format(datetime.now(timezone.utc).year)
+            expected_error = expected_error.format(datetime.now(UTC).year)
             assert expected_error in str(exc.value)
             t.db = None
 
@@ -811,10 +811,10 @@ That was the actual one"""
                 fake_popen.communicate = lambda: (fake_stdout, b"hello")
                 fake_popen.poll.return_value = None
                 fake_popen.returncode = 0
-                t._startyear = datetime.now(timezone.utc).year
+                t._startyear = datetime.now(UTC).year
                 t._wait_for_pungi(fake_popen)
             expected_error = "Unable to find the path to the compose"
-            expected_error = expected_error.format(datetime.now(timezone.utc).year)
+            expected_error = expected_error.format(datetime.now(UTC).year)
             assert expected_error in str(exc.value)
             t.db = None
 
@@ -830,7 +830,7 @@ That was the actual one"""
             t.db = session
             t.compose = session.query(Compose).one()
             t._checkpoints = {}
-            t._startyear = datetime.now(timezone.utc).year
+            t._startyear = datetime.now(UTC).year
             t._wait_for_pungi(
                 self._generate_fake_pungi(
                     t, "testing_tag", t.compose.release, empty=True, noarches=True
@@ -858,7 +858,7 @@ That was the actual one"""
             t.db = session
             t.compose = session.query(Compose).one()
             t._checkpoints = {}
-            t._startyear = datetime.now(timezone.utc).year
+            t._startyear = datetime.now(UTC).year
             t._wait_for_pungi(
                 self._generate_fake_pungi(t, "testing_tag", t.compose.release, noarches=True)()
             )
@@ -884,7 +884,7 @@ That was the actual one"""
             t.db = session
             t.compose = session.query(Compose).one()
             t._checkpoints = {}
-            t._startyear = datetime.now(timezone.utc).year
+            t._startyear = datetime.now(UTC).year
             t._wait_for_pungi(self._generate_fake_pungi(t, "testing_tag", t.compose.release)())
             t.db = None
 
@@ -930,7 +930,7 @@ That was the actual one"""
         with self.db_factory() as session:
             t.db = session
             t.compose = session.query(Compose).one()
-            t._startyear = datetime.now(timezone.utc).year
+            t._startyear = datetime.now(UTC).year
             t._checkpoints = {}
             t._wait_for_pungi(self._generate_fake_pungi(t, "testing_tag", t.compose.release)())
             t.db = None
@@ -969,7 +969,7 @@ That was the actual one"""
             t.db = session
             t.compose = session.query(Compose).one()
             t._checkpoints = {}
-            t._startyear = datetime.now(timezone.utc).year
+            t._startyear = datetime.now(UTC).year
             t._wait_for_pungi(self._generate_fake_pungi(t, "testing_tag", t.compose.release)())
             t.db = None
 
@@ -1013,7 +1013,7 @@ That was the actual one"""
             t.db = session
             t.compose = session.query(Compose).one()
             t._checkpoints = {}
-            t._startyear = datetime.now(timezone.utc).year
+            t._startyear = datetime.now(UTC).year
             t._wait_for_pungi(self._generate_fake_pungi(t, "testing_tag", t.compose.release)())
             t.db = None
 
@@ -1580,7 +1580,7 @@ That was the actual one"""
                 stdout=mock.ANY,
             )
         ]
-        d = datetime.now(timezone.utc)
+        d = datetime.now(UTC)
         assert t._checkpoints == {
             "completed_repo": os.path.join(
                 compose_dir, f"Fedora-17-updates-{d.year}{d.month:02}{d.day:02}.0"
@@ -1659,7 +1659,7 @@ That was the actual one"""
                 stdout=mock.ANY,
             )
         ]
-        d = datetime.now(timezone.utc)
+        d = datetime.now(UTC)
         assert t._checkpoints == {
             "completed_repo": os.path.join(
                 compose_dir, f"Fedora-17-updates-{d.year}{d.month:02}{d.day:02}.0"
@@ -1780,7 +1780,7 @@ testmodule:master:20172:2
                 stdout=mock.ANY,
             )
         ]
-        d = datetime.now(timezone.utc)
+        d = datetime.now(UTC)
         assert t._checkpoints == {
             "completed_repo": os.path.join(
                 self.tempdir, f"Fedora-27-updates-{d.year}{d.month:02}{d.day:02}.0"
@@ -3900,7 +3900,7 @@ class TestComposerThread_mark_status_changes(ComposerThreadBaseTestCase):
         # The request is removed by the _unlock_updates() method, which is called later than this
         # one.
         assert update.request == UpdateRequest.stable
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         assert (now - update.date_stable) < timedelta(seconds=5)
         assert update.date_testing is None
         assert (now - update.date_pushed) < timedelta(seconds=5)
@@ -3927,7 +3927,7 @@ class TestComposerThread_mark_status_changes(ComposerThreadBaseTestCase):
         # The request is removed by the _unlock_updates() method, which is called later than this
         # one.
         assert update.request == UpdateRequest.testing
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         assert (now - update.date_testing) < timedelta(seconds=5)
         assert update.date_stable is None
         assert (now - update.date_pushed) < timedelta(seconds=5)

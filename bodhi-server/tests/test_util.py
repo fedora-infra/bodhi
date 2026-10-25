@@ -21,7 +21,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest import mock
 from xml.etree import ElementTree
 
@@ -1640,20 +1640,20 @@ class TestEOLReleases(base.BasePyTestCase):
 
     def test_approaching_eol(self):
         """Test that a release approaching EOL is reported."""
-        self.f37.eol = datetime.now(timezone.utc).date() + timedelta(days=20)
+        self.f37.eol = datetime.now(UTC).date() + timedelta(days=20)
         self.db.commit()
         assert util.eol_releases() == [("Fedora 37", self.f37.eol)]
 
     def test_eol_far_away(self):
         """Test that a release not approaching EOL is not reported."""
-        self.f37.eol = datetime.now(timezone.utc).date() + timedelta(days=31)
+        self.f37.eol = datetime.now(UTC).date() + timedelta(days=31)
         self.db.commit()
         assert util.eol_releases() == []
 
     def test_archived_release(self):
         """Test that an archived release past EOL is not reported."""
         self.f37.state = ReleaseState.archived
-        self.f37.eol = datetime.now(timezone.utc).date() - timedelta(days=20)
+        self.f37.eol = datetime.now(UTC).date() - timedelta(days=20)
         self.db.commit()
         assert util.eol_releases() == []
 

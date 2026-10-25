@@ -27,7 +27,7 @@ https://github.com/fedora-infra/bodhi/issues/576
 import logging
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from bodhi.server import Session, buildsys, initialize_db
 from bodhi.server.logging import setup as setup_logging
@@ -68,7 +68,7 @@ def main(argv=sys.argv):
     db = Session()
     koji = buildsys.get_session()
     one_day = timedelta(days=1)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     try:
         for release in db.query(Release).filter_by(state=ReleaseState.pending).all():
