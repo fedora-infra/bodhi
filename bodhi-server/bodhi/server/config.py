@@ -20,7 +20,7 @@
 import logging
 import os
 import typing
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, ClassVar
 
 from pyramid import settings
@@ -511,7 +511,7 @@ class BodhiConfig(dict):
         "trusted_build_sources": {"value": [], "validator": _generate_list_validator()},
         "update_notes_maxlength": {"value": 10000, "validator": int},
         "updateinfo_rights": {
-            "value": f"Copyright (C) {datetime.now(timezone.utc).year} Red Hat, Inc. and others.",
+            "value": f"Copyright (C) {datetime.now(UTC).year} Red Hat, Inc. and others.",
             "validator": str,
         },
         "wait_for_repo_sig": {"value": False, "validator": _validate_bool},

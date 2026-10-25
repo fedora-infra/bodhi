@@ -19,7 +19,7 @@
 This module contains tests for the bodhi.server.tasks.approve_testing module.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import call, patch
 
 import pytest
@@ -191,7 +191,7 @@ class TestMain(BaseTaskTestCase):
         if stable_days > 0:
             # in this case we need to make sure we look like we've been in testing
             # this one
-            self.update.date_testing = datetime.now(timezone.utc) - timedelta(days=stable_days + 1)
+            self.update.date_testing = datetime.now(UTC) - timedelta(days=stable_days + 1)
         self.update.release.composed_by_bodhi = composed_by_bodhi
         self.update.from_tag = from_side_tag
         # we publish UpdateRequirementsMet unless the update already has the

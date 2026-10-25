@@ -21,7 +21,7 @@ import copy
 import re
 import textwrap
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from html import escape
 from unittest import mock
 from urllib import parse as urlparse
@@ -985,7 +985,7 @@ class TestNewUpdate(BasePyTestCase):
         expected_comment = expected_comment.format(
             urlparse.urljoin(
                 config["base_address"],
-                f"/updates/FEDORA-{datetime.now(timezone.utc).year}-033713b73b",
+                f"/updates/FEDORA-{datetime.now(UTC).year}-033713b73b",
             )
         )
         assert r["comments"][-1]["text"] == expected_comment
@@ -995,7 +995,7 @@ class TestNewUpdate(BasePyTestCase):
         expected_comment = expected_comment.format(
             urlparse.urljoin(
                 config["base_address"],
-                f"/updates/FEDORA-{datetime.now(timezone.utc).year}-53345602d5",
+                f"/updates/FEDORA-{datetime.now(UTC).year}-53345602d5",
             )
         )
         assert up.comments[-1].text == expected_comment
@@ -1052,7 +1052,7 @@ class TestNewUpdate(BasePyTestCase):
         expected_comment = expected_comment.format(
             urlparse.urljoin(
                 config["base_address"],
-                f"/updates/FEDORA-{datetime.now(timezone.utc).year}-033713b73b",
+                f"/updates/FEDORA-{datetime.now(UTC).year}-033713b73b",
             )
         )
         assert r["comments"][-1]["text"] == expected_comment
@@ -1062,7 +1062,7 @@ class TestNewUpdate(BasePyTestCase):
         expected_comment = expected_comment.format(
             urlparse.urljoin(
                 config["base_address"],
-                f"/updates/FEDORA-{datetime.now(timezone.utc).year}-53345602d5",
+                f"/updates/FEDORA-{datetime.now(UTC).year}-53345602d5",
             )
         )
         assert up.comments[-1].text == expected_comment
@@ -1119,7 +1119,7 @@ class TestNewUpdate(BasePyTestCase):
         expected_comment = expected_comment.format(
             urlparse.urljoin(
                 config["base_address"],
-                f"/updates/FEDORA-{datetime.now(timezone.utc).year}-033713b73b",
+                f"/updates/FEDORA-{datetime.now(UTC).year}-033713b73b",
             )
         )
         assert r["comments"][-1]["text"] == expected_comment
@@ -1129,7 +1129,7 @@ class TestNewUpdate(BasePyTestCase):
         expected_comment = expected_comment.format(
             urlparse.urljoin(
                 config["base_address"],
-                f"/updates/FEDORA-{datetime.now(timezone.utc).year}-53345602d5",
+                f"/updates/FEDORA-{datetime.now(UTC).year}-53345602d5",
             )
         )
         assert up.comments[-1].text == expected_comment
@@ -1243,7 +1243,7 @@ class TestSetRequest(BasePyTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.locked = False
         up.test_gating_status = TestGatingStatus.passed
-        up.date_testing = datetime.now(timezone.utc) - timedelta(days=8)
+        up.date_testing = datetime.now(UTC) - timedelta(days=8)
         up.release.composed_by_bodhi = False
 
         post_data = {
@@ -1308,7 +1308,7 @@ class TestSetRequest(BasePyTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.locked = False
         up.test_gating_status = TestGatingStatus.failed
-        up.date_testing = datetime.now(timezone.utc) - timedelta(days=8)
+        up.date_testing = datetime.now(UTC) - timedelta(days=8)
         up.status = UpdateStatus.testing
         up.request = None
         post_data = {"update": nvr, "request": "stable", "csrf_token": self.get_csrf_token()}
@@ -1334,7 +1334,7 @@ class TestSetRequest(BasePyTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.locked = False
         up.test_gating_status = TestGatingStatus.passed
-        up.date_testing = datetime.now(timezone.utc) - timedelta(days=8)
+        up.date_testing = datetime.now(UTC) - timedelta(days=8)
         post_data = {"update": nvr, "request": "stable", "csrf_token": self.get_csrf_token()}
 
         with fml_testing.mock_sends(api.Message):
@@ -1407,7 +1407,7 @@ class TestEditUpdateForm(BasePyTestCase):
         Test a logged in User with permissions on the update can see the form
         """
         resp = self.app.get(
-            f"/updates/FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2/edit",
+            f"/updates/FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2/edit",
             headers={"accept": "text/html"},
         )
         assert "Editing an update requires JavaScript" in resp
@@ -1423,7 +1423,7 @@ class TestEditUpdateForm(BasePyTestCase):
             app = TestApp(main({}, testing="anonymous", session=self.db, **self.app_settings))
 
         resp = app.get(
-            f"/updates/FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2/edit",
+            f"/updates/FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2/edit",
             status=400,
             headers={"accept": "text/html"},
         )
@@ -2118,7 +2118,7 @@ class TestUpdatesService(BasePyTestCase):
     def test_list_updates_rss(self):
         res = self.app.get("/rss/updates/", headers={"Accept": "application/atom+xml"})
         assert "application/rss+xml" in res.headers["Content-Type"]
-        assert f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2" in res
+        assert f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2" in res
         assert "Released updates" in res
         assert "All updates" in res
 
@@ -2126,7 +2126,7 @@ class TestUpdatesService(BasePyTestCase):
         """Test the formatting of update description in rss feed."""
         update = Build.query.filter_by(nvr="bodhi-2.0-1.fc17").one().update
         update_details = (
-            f"<h1>FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2</h1>\n"
+            f"<h1>FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2</h1>\n"
             f"<h2>Packages in this update:</h2>\n"
             f"<ul>\n<li>bodhi-2.0-1.fc17</li>\n</ul>\n"
             f"<h2>Update description:</h2>\n"
@@ -2250,7 +2250,7 @@ class TestUpdatesService(BasePyTestCase):
         assert update1 != update2
 
     def test_list_updates_by_approved_since(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Try with no approved updates first
         res = self.app.get("/updates/", {"approved_since": now.strftime("%Y-%m-%d")})
@@ -2300,7 +2300,7 @@ class TestUpdatesService(BasePyTestCase):
 
     def test_list_updates_by_approved_before(self):
         # Approve an update
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         self.db.query(Update).first().date_approved = now
         self.db.commit()
 
@@ -2310,7 +2310,7 @@ class TestUpdatesService(BasePyTestCase):
         assert not body["updates"]
 
         # Now check we get the update if we use tomorrow
-        tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
+        tomorrow = datetime.now(UTC) + timedelta(days=1)
         tomorrow = tomorrow.strftime("%Y-%m-%d")
 
         res = self.app.get("/updates/", {"approved_before": tomorrow})
@@ -2428,7 +2428,7 @@ class TestUpdatesService(BasePyTestCase):
 
     def test_list_updates_by_date_submitted_future_date(self):
         """test filtering by submitted date with future date"""
-        tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
+        tomorrow = datetime.now(UTC) + timedelta(days=1)
         tomorrow = tomorrow.strftime("%Y-%m-%d")
 
         res = self.app.get("/updates/", {"submitted_since": tomorrow})
@@ -2476,7 +2476,7 @@ class TestUpdatesService(BasePyTestCase):
 
     def test_list_updates_by_date_submitted_before_valid(self):
         """test filtering by submitted before date with valid date"""
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
         res = self.app.get("/updates/", {"submitted_before": today})
         body = res.json_body
         assert len(body["updates"]) == 1
@@ -2545,7 +2545,7 @@ class TestUpdatesService(BasePyTestCase):
         )
 
     def test_list_updates_by_modified_since(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Try with no modified updates first
         res = self.app.get("/updates/", {"modified_since": now.strftime("%Y-%m-%d")})
@@ -2590,7 +2590,7 @@ class TestUpdatesService(BasePyTestCase):
         assert body["errors"][0]["description"] == "Invalid date"
 
     def test_list_updates_by_modified_before(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         tomorrow = now + timedelta(days=1)
         tomorrow = tomorrow.strftime("%Y-%m-%d")
 
@@ -2728,7 +2728,7 @@ class TestUpdatesService(BasePyTestCase):
         )
 
     def test_list_updates_by_pushed_since(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Try with no pushed updates first
         res = self.app.get("/updates/", {"pushed_since": now.strftime("%Y-%m-%d")})
@@ -2772,7 +2772,7 @@ class TestUpdatesService(BasePyTestCase):
         assert body["errors"][0]["description"] == "Invalid date"
 
     def test_list_updates_by_pushed_before(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         tomorrow = now + timedelta(days=1)
         tomorrow = tomorrow.strftime("%Y-%m-%d")
 
@@ -3263,7 +3263,7 @@ class TestUpdatesService(BasePyTestCase):
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
             notes="Just another update.",
-            date_submitted=datetime(1981, 10, 11, tzinfo=timezone.utc),
+            date_submitted=datetime(1981, 10, 11, tzinfo=UTC),
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one(),
@@ -4132,7 +4132,7 @@ class TestUpdatesService(BasePyTestCase):
         expected_comment = expected_comment.format(
             urlparse.urljoin(
                 config["base_address"],
-                f"/updates/FEDORA-{datetime.now(timezone.utc).year}-53345602d5",
+                f"/updates/FEDORA-{datetime.now(UTC).year}-53345602d5",
             )
         )
         assert up.comments[-1].text == expected_comment
@@ -5427,7 +5427,7 @@ class TestUpdatesService(BasePyTestCase):
         ):
             resp = self.app.post_json("/updates/", args)
         update = Update.get(resp.json["alias"])
-        update.date_stable = datetime.now(timezone.utc)
+        update.date_stable = datetime.now(UTC)
         update.status = UpdateStatus.stable
         update.pushed = True
         self.db.commit()
@@ -5492,7 +5492,7 @@ class TestUpdatesService(BasePyTestCase):
             update.comment(self.db, "works", 1, "ralph")
         if timemet:
             # This update has been in testing a while, so a "Push to Stable" button should appear.
-            update.date_testing = datetime.now(timezone.utc) - timedelta(days=30)
+            update.date_testing = datetime.now(UTC) - timedelta(days=30)
         # Let's clear any messages that might get sent
         self.db.info["messages"] = []
 
@@ -5524,7 +5524,7 @@ class TestUpdatesService(BasePyTestCase):
         update.status = UpdateStatus.testing
         update.request = None
         update.pushed = True
-        update.date_testing = datetime.now(timezone.utc) - timedelta(days=30)
+        update.date_testing = datetime.now(UTC) - timedelta(days=30)
         # Let's clear any messages that might get sent
         self.db.info["messages"] = []
 
@@ -5585,7 +5585,7 @@ class TestUpdatesService(BasePyTestCase):
         update.status = UpdateStatus.testing
         update.request = None
         update.pushed = True
-        update.date_testing = datetime.now(timezone.utc) - timedelta(days=30)
+        update.date_testing = datetime.now(UTC) - timedelta(days=30)
         # Let's clear any messages that might get sent
         self.db.info["messages"] = []
 
@@ -5620,8 +5620,8 @@ class TestUpdatesService(BasePyTestCase):
             build=upd.builds[0],
             submitter=user,
             notes="testing",
-            expiration_date=datetime.now(timezone.utc),
-            expired_date=datetime.now(timezone.utc),
+            expiration_date=datetime.now(UTC),
+            expired_date=datetime.now(UTC),
         )
         self.db.add(override)
         self.db.commit()
@@ -5888,7 +5888,7 @@ class TestUpdatesService(BasePyTestCase):
         assert up["date_testing"] is None
         update = Update.get(update.alias)
         update.status = UpdateStatus.testing
-        self.date_testing = datetime.now(timezone.utc) + timedelta(days=7)
+        self.date_testing = datetime.now(UTC) + timedelta(days=7)
         update.comment(self.db, "lgtm", author="friend3", karma=1)
         update.comment(self.db, "lgtm2", author="friend4", karma=1)
         # Let's clear any messages that might get sent

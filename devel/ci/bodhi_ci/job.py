@@ -22,7 +22,7 @@ import asyncio
 import os
 import subprocess
 from collections.abc import Mapping
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import ClassVar
 
 import click
@@ -203,7 +203,7 @@ class Job:
             if self.output and (self.returncode == 0 or self.cancelled):
                 click.echo(self.output)
 
-            self._finish_time = datetime.now(tz=timezone.utc)
+            self._finish_time = datetime.now(tz=UTC)
             # Kick off any tasks that were waiting for us to finish.
             self.complete.set()
 
@@ -218,7 +218,7 @@ class Job:
         # It's possible that we got cancelled while we were waiting on the Semaphore.
         if self.cancelled:
             return
-        self._start_time = datetime.now(tz=timezone.utc)
+        self._start_time = datetime.now(tz=UTC)
         self.started = True
         self._pre_start_hook()
         if not self._popen_kwargs["shell"]:

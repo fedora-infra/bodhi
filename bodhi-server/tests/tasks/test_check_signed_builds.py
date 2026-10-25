@@ -19,7 +19,7 @@
 This module contains tests for the bodhi.server.tasks.check_signed_builds module.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import call, patch
 
 import pytest
@@ -72,7 +72,7 @@ class TestCheckSignedBuilds(BaseTaskTestCase):
         The task should ignore fresh updates.
         """
         update = models.Update.query.first()
-        update.date_submitted = datetime.now(timezone.utc)
+        update.date_submitted = datetime.now(UTC)
         update.builds[0].signed = False
 
         self.db.commit()

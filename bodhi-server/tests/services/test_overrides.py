@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import copy
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest import mock
 
 import webtest
@@ -213,7 +213,7 @@ class TestOverridesService(base.BasePyTestCase):
         another_user = User(name="aUser")
         self.db.add(another_user)
 
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
 
         override = BuildrootOverride(
             build=build, submitter=another_user, notes="Crazy! 😱", expiration_date=expiration_date
@@ -302,7 +302,7 @@ class TestOverridesService(base.BasePyTestCase):
         self.db.add(build)
         self.db.flush()
 
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
 
         data = {
             "nvr": build.nvr,
@@ -333,7 +333,7 @@ class TestOverridesService(base.BasePyTestCase):
         update.test_gating_status = TestGatingStatus.failed
         self.db.add(build)
         self.db.flush()
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
 
         data = {
             "nvr": build.nvr,
@@ -362,7 +362,7 @@ class TestOverridesService(base.BasePyTestCase):
         self.db.add(build)
         self.db.flush()
 
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
 
         data = {
             "nvr": build.nvr,
@@ -386,7 +386,7 @@ class TestOverridesService(base.BasePyTestCase):
         o = res.json_body
         new_notes = f"""new blah blah
 _____________
-_@guest ({datetime.now(timezone.utc).strftime("%b %d, %Y")})_
+_@guest ({datetime.now(UTC).strftime("%b %d, %Y")})_
 blah blah blah"""
         assert o["notes"] == new_notes
 
@@ -399,7 +399,7 @@ blah blah blah"""
         self.db.add(build)
         self.db.flush()
 
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
 
         data = {
             "nvr": build.nvr,
@@ -438,7 +438,7 @@ blah blah blah"""
         self.db.add(build2)
         self.db.flush()
 
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
 
         data = {
             "nvr": f"{build1.nvr},{build2.nvr}",
@@ -474,7 +474,7 @@ blah blah blah"""
         self.db.add(build)
         self.db.flush()
 
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=60)
+        expiration_date = datetime.now(UTC) + timedelta(days=60)
 
         data = {
             "nvr": build.nvr,
@@ -493,7 +493,7 @@ blah blah blah"""
         self.db.add(build)
         self.db.flush()
 
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
 
         data = {
             "nvr": build.nvr,
@@ -563,7 +563,7 @@ blah blah blah"""
         service should handle this by giving us an error.
         """
         build = RpmBuild.query.first()
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
         o = {
             "nvr": build.nvr,
             "notes": "blah blah blah",
@@ -590,7 +590,7 @@ blah blah blah"""
         self.db.add(build)
         self.db.flush()
 
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
 
         o = {
             "nvr": build.nvr,
@@ -613,7 +613,7 @@ blah blah blah"""
     def test_edit_unexpected_error(self):
         """Validate that Exceptions are handled when editing overrides."""
         build = RpmBuild.query.first()
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
         o = {
             "nvr": build.nvr,
             "notes": "blah blah blah",
@@ -658,7 +658,7 @@ blah blah blah"""
 
         res = self.app.get(f"/overrides/{old_nvr}", headers={"Accept": "application/json"})
         o = res.json_body["override"]
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=2)
+        expiration_date = datetime.now(UTC) + timedelta(days=2)
 
         o.update(
             {
@@ -736,7 +736,7 @@ blah blah blah"""
         res = self.app.get(f"/overrides/{old_nvr}", headers={"Accept": "application/json"})
         o = res.json_body["override"]
 
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
 
         o.update(
             {
@@ -758,7 +758,7 @@ blah blah blah"""
 
     def test_create_override_with_missing_pkg(self):
         nvr = "not-bodhi-2.0-2.fc17"
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
 
         data = {
             "nvr": nvr,
@@ -845,7 +845,7 @@ class TestOverridesWebViews(base.BasePyTestCase):
         Test that a User can see the expired date of the override
         """
         get.return_value.humanize.return_value = "82 seconds bro ago"
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
         data = {
             "nvr": "bodhi-2.0-1.fc17",
             "notes": "blah blah blah",

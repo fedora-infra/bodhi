@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for the bodhi.server.tasks.check_policies module."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import call, patch
 
 from bodhi.server import models
@@ -92,7 +92,7 @@ class TestCheckPolicies(BaseTaskTestCase):
             "subject": [
                 {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
                 {
-                    "item": f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2",
+                    "item": f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2",
                     "type": "bodhi_update",
                 },
             ],
@@ -142,7 +142,7 @@ class TestCheckPolicies(BaseTaskTestCase):
             "subject": [
                 {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
                 {
-                    "item": f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2",
+                    "item": f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2",
                     "type": "bodhi_update",
                 },
             ],
@@ -161,10 +161,10 @@ class TestCheckPolicies(BaseTaskTestCase):
         update.critpath_groups = "core"
         # Clear pending messages
         self.db.info["messages"] = []
-        update.date_submitted = datetime.now(timezone.utc)
+        update.date_submitted = datetime.now(UTC)
         self.db.commit()
         with patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
-            item = f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2"
+            item = f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2"
             greenwave_response = {
                 "policies_satisfied": False,
                 "summary": "2 of 2 required test results missing",
@@ -209,7 +209,7 @@ class TestCheckPolicies(BaseTaskTestCase):
             "subject": [
                 {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
                 {
-                    "item": f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2",
+                    "item": f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2",
                     "type": "bodhi_update",
                 },
             ],
@@ -228,10 +228,10 @@ class TestCheckPolicies(BaseTaskTestCase):
         update.critpath_groups = "core"
         # Clear pending messages
         self.db.info["messages"] = []
-        update.date_submitted = datetime.now(timezone.utc) - timedelta(days=1)
+        update.date_submitted = datetime.now(UTC) - timedelta(days=1)
         self.db.commit()
         with patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
-            item = f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2"
+            item = f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2"
             greenwave_response = {
                 "policies_satisfied": False,
                 "summary": "2 of 2 required test results missing",
@@ -276,7 +276,7 @@ class TestCheckPolicies(BaseTaskTestCase):
             "subject": [
                 {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
                 {
-                    "item": f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2",
+                    "item": f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2",
                     "type": "bodhi_update",
                 },
             ],
@@ -295,10 +295,10 @@ class TestCheckPolicies(BaseTaskTestCase):
         update.critpath_groups = "core"
         # Clear pending messages
         self.db.info["messages"] = []
-        update.date_submitted = datetime.now(timezone.utc) - timedelta(days=1)
+        update.date_submitted = datetime.now(UTC) - timedelta(days=1)
         self.db.commit()
         with patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
-            item = f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2"
+            item = f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2"
             greenwave_response = {
                 "policies_satisfied": False,
                 "summary": "2 of 2 required test results missing",
@@ -345,7 +345,7 @@ class TestCheckPolicies(BaseTaskTestCase):
             "subject": [
                 {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
                 {
-                    "item": f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2",
+                    "item": f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2",
                     "type": "bodhi_update",
                 },
             ],
@@ -364,12 +364,12 @@ class TestCheckPolicies(BaseTaskTestCase):
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
         update.critpath_groups = "core"
-        update.date_submitted = datetime.now(timezone.utc)
+        update.date_submitted = datetime.now(UTC)
         # Clear pending messages
         self.db.info["messages"] = []
         self.db.commit()
         # we use this a couple times
-        itemname = f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2"
+        itemname = f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2"
         with patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
             # here, we're approximately mocking the scenario from
             # https://forge.fedoraproject.org/ci/tickets/issues/263 , where
@@ -481,7 +481,7 @@ class TestCheckPolicies(BaseTaskTestCase):
             "subject": [
                 {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
                 {
-                    "item": f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2",
+                    "item": f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2",
                     "type": "bodhi_update",
                 },
             ],
@@ -503,7 +503,7 @@ class TestCheckPolicies(BaseTaskTestCase):
         update.pushed = True
         self.db.commit()
         with patch("bodhi.server.models.util.greenwave_api_post") as mock_greenwave:
-            item = f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2"
+            item = f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2"
             greenwave_response = {
                 "policies_satisfied": False,
                 "summary": "1 of 2 required tests failed, 1 result missing",
@@ -543,7 +543,7 @@ class TestCheckPolicies(BaseTaskTestCase):
             "subject": [
                 {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
                 {
-                    "item": f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2",
+                    "item": f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2",
                     "type": "bodhi_update",
                 },
             ],
@@ -588,7 +588,7 @@ class TestCheckPolicies(BaseTaskTestCase):
             "subject": [
                 {"item": "bodhi-2.0-1.fc17", "type": "koji_build"},
                 {
-                    "item": f"FEDORA-{datetime.now(timezone.utc).year}-a3bbe1a8f2",
+                    "item": f"FEDORA-{datetime.now(UTC).year}-a3bbe1a8f2",
                     "type": "bodhi_update",
                 },
             ],

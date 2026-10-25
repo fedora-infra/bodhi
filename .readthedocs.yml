@@ -15,9 +15,9 @@ sphinx:
 
 # Set the version of Python and other tools you might need
 build:
-  os: ubuntu-22.04
+  os: ubuntu-lts-latest
   tools:
-    python: "3.10"
+    python: "3.14"
   apt_packages:
     - graphviz
     - libkrb5-dev
@@ -28,7 +28,7 @@ build:
     post_install:
       - pip install standard-pkg-resources sqlalchemy-schemadisplay rpm
       - dpkg -L python3-librepo
-      - ln -s /usr/lib/python3/dist-packages/librepo $READTHEDOCS_VIRTUALENV_PATH/lib/python3.10/site-packages/librepo
+      - ln -s /usr/lib/python3/dist-packages/librepo $READTHEDOCS_VIRTUALENV_PATH/lib/python3.14/site-packages/librepo
       - cp devel/development.ini.example bodhi-server/development.ini
       - python -c "import bodhi.server.models"
     pre_build:

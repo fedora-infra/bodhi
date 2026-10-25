@@ -20,7 +20,7 @@ import glob
 import os
 import shutil
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from hashlib import sha256
 from os.path import basename, exists, join
 from unittest import mock
@@ -71,7 +71,7 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         koji.getBuild() is called instead.
         """
         update = self.db.query(Update).one()
-        now = datetime(year=2018, month=2, day=8, hour=12, minute=41, second=4, tzinfo=timezone.utc)
+        now = datetime(year=2018, month=2, day=8, hour=12, minute=41, second=4, tzinfo=UTC)
         # dates in bodhi db are naive
         now = now.replace(tzinfo=None)
         update.date_modified = now
@@ -185,34 +185,22 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         "date_modified,date_pushed",
         [
             pytest.param(
-                datetime(
-                    year=2022, month=11, day=23, hour=12, minute=41, second=4, tzinfo=timezone.utc
-                ),
-                datetime(
-                    year=2022, month=11, day=23, hour=11, minute=41, second=4, tzinfo=timezone.utc
-                ),
+                datetime(year=2022, month=11, day=23, hour=12, minute=41, second=4, tzinfo=UTC),
+                datetime(year=2022, month=11, day=23, hour=11, minute=41, second=4, tzinfo=UTC),
                 id="modified_after_push",
             ),
             pytest.param(
-                datetime(
-                    year=2022, month=11, day=23, hour=11, minute=41, second=4, tzinfo=timezone.utc
-                ),
-                datetime(
-                    year=2022, month=11, day=23, hour=12, minute=41, second=4, tzinfo=timezone.utc
-                ),
+                datetime(year=2022, month=11, day=23, hour=11, minute=41, second=4, tzinfo=UTC),
+                datetime(year=2022, month=11, day=23, hour=12, minute=41, second=4, tzinfo=UTC),
                 id="modified_before_push",
             ),
             pytest.param(
                 None,
-                datetime(
-                    year=2022, month=11, day=23, hour=12, minute=41, second=4, tzinfo=timezone.utc
-                ),
+                datetime(year=2022, month=11, day=23, hour=12, minute=41, second=4, tzinfo=UTC),
                 id="never_modified",
             ),
             pytest.param(
-                datetime(
-                    year=2022, month=11, day=23, hour=12, minute=41, second=4, tzinfo=timezone.utc
-                ),
+                datetime(year=2022, month=11, day=23, hour=12, minute=41, second=4, tzinfo=UTC),
                 None,
                 id="never_pushed",
             ),
@@ -221,9 +209,7 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
     )
     def test_date_modified_and_date_pushed(self, date_modified, date_pushed):
         """The metadata should use the most recent between date_modified and date_pushed."""
-        expected = datetime(
-            year=2022, month=11, day=23, hour=12, minute=41, second=4, tzinfo=timezone.utc
-        )
+        expected = datetime(year=2022, month=11, day=23, hour=12, minute=41, second=4, tzinfo=UTC)
         # dates in bodhi db are naive
         expected = expected.replace(tzinfo=None)
         update = self.db.query(Update).one()
@@ -517,7 +503,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         # Pretend it's pushed to testing
         update.status = UpdateStatus.testing
         update.request = None
-        update.date_testing = datetime.now(timezone.utc)
+        update.date_testing = datetime.now(UTC)
         DevBuildsys.__tagged__[update.title] = ["f17-updates-testing"]
 
         # Generate the XML

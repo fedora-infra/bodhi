@@ -31,7 +31,7 @@ import os
 import re
 import textwrap
 import typing
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from urllib.parse import urlparse
 
 try:
@@ -165,8 +165,8 @@ def _days_since(data_str: str) -> int:
     Returns:
         Number of days since the date in input.
     """
-    update_time = datetime.strptime(data_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-    return (datetime.now(timezone.utc) - update_time).days
+    update_time = datetime.strptime(data_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC)
+    return (datetime.now(UTC) - update_time).days
 
 
 class BodhiClient:
@@ -549,7 +549,7 @@ class BodhiClient:
                 "The duration and the expiration_date cannot be provided at the same time."
             )
         if duration:
-            expiration_date = datetime.now(timezone.utc) + timedelta(days=duration)
+            expiration_date = datetime.now(UTC) + timedelta(days=duration)
         data = {
             "nvr": nvr,
             "expiration_date": expiration_date,
