@@ -6984,31 +6984,42 @@ class TestTriggerTests(BasePyTestCase):
     This class contains tests for the trigger_tests() function.
     """
 
-    def test_update_status_not_testing(self, *args):
+    def test_update_status_not_allowed(self, *args):
         """
         Ensure that we get an error if trigger tests for update that is not
-        in testing state.
+        in testing or pending state.
         """
         nvr = "bodhi-2.0-1.fc17"
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        up.status = UpdateStatus.pending
+        up.status = UpdateStatus.stable
 
         post_data = {"csrf_token": self.get_csrf_token()}
         res = self.app.post_json(f"/updates/{up.alias}/trigger-tests", post_data, status=400)
 
         assert res.status_code == 400
         assert res.json_body["status"] == "error"
-        assert res.json_body["errors"][0]["description"] == "Update is not in testing status"
+        expected = "Update is not in testing or pending status"
+        assert res.json_body["errors"][0]["description"] == expected
 
     def test_update_status_testing(self, *args):
         """
-        Ensure that we publish message when update is in testing state.
+        Ensure that we publish message when update is in testing or pending state.
         """
         nvr = "bodhi-2.0-1.fc17"
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
+
+        self.db.commit()
+
+        post_data = {"csrf_token": self.get_csrf_token()}
+        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV3):
+            res = self.app.post_json(f"/updates/{up.alias}/trigger-tests", post_data, status=200)
+
+        assert res.status_code == 200
+
+        up.status = UpdateStatus.pending
 
         self.db.commit()
 
