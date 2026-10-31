@@ -1,0 +1,2 @@
+Bodhi client now has a ``--subdirs`` option to download the packages into specific subdirectories
+reflecting the koji builds they belong to.
