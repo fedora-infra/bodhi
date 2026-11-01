@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-index build testcase build id
+Index build testcase build id.
 
 Revision ID: 9a3ec0598334
 Revises: 16864f8ff395
@@ -25,13 +25,13 @@ Create Date: 2026-10-31 19:09:07.458931
 
 from alembic import op
 
-
 # revision identifiers, used by Alembic.
 revision = "9a3ec0598334"
 down_revision = "16864f8ff395"
 
 
 def upgrade():
+    """Add an index on build_testcase_table.build_id."""
     op.create_index(
         op.f("ix_build_testcase_table_build_id"),
         "build_testcase_table",
@@ -41,6 +41,7 @@ def upgrade():
 
 
 def downgrade():
+    """Remove the index on build_testcase_table.build_id."""
     op.drop_index(
         op.f("ix_build_testcase_table_build_id"),
         table_name="build_testcase_table",
