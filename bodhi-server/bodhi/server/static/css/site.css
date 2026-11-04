@@ -56,8 +56,7 @@ hr {
 
 /* Search-y stuff */
 .typeahead__result {
-    font-size: .5rem;
-    font-weight: 300;
+    font-size: .9rem;
 }
 
 pre {
@@ -74,20 +73,15 @@ pre {
 
 #bodhi-searchbar .typeahead__group {
     border: none;
-    list-style: none;
-}
-
-#bodhi-searchbar .typeahead__list li {
-    list-style: none;
-    padding-left: 0;
+    background: none;
+    padding: 0 .5rem;
 }
 
 #bodhi-searchbar .typeahead__group > h3 {
     margin-top: .75rem;
     margin-bottom: 0;
     text-transform: capitalize;
-    font-size: 1.4rem;
-    color: #1769aa;
+    color: rgb(23, 99, 159);
 }
 
 #bodhi-searchbar .typeahead__item {
