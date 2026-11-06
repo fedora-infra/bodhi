@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import os
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from unittest import mock
 
 import webtest
@@ -624,7 +624,7 @@ class TestReleasesHTML(base.BasePyTestCase):
                             type=j[0],
                             notes="Useful details!",
                             release=release,
-                            date_submitted=datetime(1984, 11, 2, tzinfo=timezone.utc),
+                            date_submitted=datetime(1984, 11, 2, tzinfo=UTC),
                             stable_karma=3,
                             unstable_karma=-3,
                         )

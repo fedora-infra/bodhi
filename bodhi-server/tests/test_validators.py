@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.validators."""
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from unittest import mock
 
 import koji
@@ -589,7 +589,7 @@ class TestValidateExpirationDate(BasePyTestCase):
         """An expiration_date in the past should make it sad."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {"expiration_date": datetime.now(timezone.utc) - timedelta(days=1)}
+        request.validated = {"expiration_date": datetime.now(UTC) - timedelta(days=1)}
 
         validators.validate_expiration_date(request)
 
@@ -606,7 +606,7 @@ class TestValidateExpirationDate(BasePyTestCase):
         """An expiration_date equal to the limit should pass the test."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {"expiration_date": datetime.now(timezone.utc) + timedelta(days=31)}
+        request.validated = {"expiration_date": datetime.now(UTC) + timedelta(days=31)}
 
         validators.validate_expiration_date(request)
 
@@ -616,7 +616,7 @@ class TestValidateExpirationDate(BasePyTestCase):
         """An expiration_date higher than limit should report an error."""
         request = mock.Mock()
         request.errors = Errors()
-        request.validated = {"expiration_date": datetime.now(timezone.utc) + timedelta(days=32)}
+        request.validated = {"expiration_date": datetime.now(UTC) + timedelta(days=32)}
 
         validators.validate_expiration_date(request)
 

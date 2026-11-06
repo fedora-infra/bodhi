@@ -20,7 +20,7 @@ This module contains tests for the bodhi.server.scripts.sar module.
 """
 
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest import mock
 
 from bodhi.server import models
@@ -103,7 +103,7 @@ class TestSar(BasePyTestCase):
 
     def test_valid_user(self):
         """Ensure json with user data is printed when human readable is off."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         now_str = str(now.strftime("%Y-%m-%d %H:%M:%S"))
         comment = self.db.query(models.Comment).all()[0]
         comment.timestamp = now
@@ -120,7 +120,7 @@ class TestSar(BasePyTestCase):
     @mock.patch.dict(os.environ, {"SAR_USERNAME": "guest"})
     def test_valid_user_envvar(self):
         """Ensure json with user data is printed when human readable is off."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         now_str = str(now.strftime("%Y-%m-%d %H:%M:%S"))
         comment = self.db.query(models.Comment).all()[0]
         comment.timestamp = now
@@ -136,7 +136,7 @@ class TestSar(BasePyTestCase):
 
     def test_valid_user_human_readable(self):
         """Ensure user data are printed when human readable is on."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         now_str = str(now.strftime("%Y-%m-%d %H:%M:%S"))
         comment = self.db.query(models.Comment).all()[0]
         comment.timestamp = now

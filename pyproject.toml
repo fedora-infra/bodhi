@@ -61,6 +61,9 @@ extend-exclude = [
 ]
 line-length = 100
 
+[tool.ruff.lint]
+extend-ignore = ["E203"]
+
 [tool.ruff.lint.per-file-ignores]
 "bodhi-messages/bodhi/messages/schemas/**.py" = ["RUF012"]
 "bodhi-server/bodhi/server/services/**.py" = ["C408"]

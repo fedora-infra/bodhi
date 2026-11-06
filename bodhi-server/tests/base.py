@@ -21,7 +21,7 @@ import os
 import subprocess
 import unittest
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest import mock
 
 import createrepo_c
@@ -134,7 +134,7 @@ def create_update(session, build_nvrs, release_name="F17"):
         session.add(build)
 
         # Add a buildroot override for this build
-        expiration_date = datetime.now(timezone.utc)
+        expiration_date = datetime.now(UTC)
         expiration_date = expiration_date + timedelta(days=1)
         override = models.BuildrootOverride(
             build=build, submitter=user, notes="blah blah blah", expiration_date=expiration_date
@@ -148,7 +148,7 @@ def create_update(session, build_nvrs, release_name="F17"):
             request=models.UpdateRequest.testing,
             notes="Useful details!",
             type=models.UpdateType.bugfix,
-            date_submitted=datetime(1984, 11, 2, tzinfo=timezone.utc),
+            date_submitted=datetime(1984, 11, 2, tzinfo=UTC),
             stable_karma=3,
             unstable_karma=-3,
             release=release,
@@ -198,7 +198,7 @@ def populate(db):
     db.flush()
     # This mock will help us generate a consistent update alias.
     with (
-        mock.patch(target="uuid.uuid4", return_value="wat"),
+        mock.patch(target="secrets.token_hex", return_value="a3bbe1a8f2"),
         mock.patch("bodhi.server.models.notifications"),
     ):
         update = create_update(db, ["bodhi-2.0-1.fc17"])

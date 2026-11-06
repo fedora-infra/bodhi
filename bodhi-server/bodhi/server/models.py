@@ -21,12 +21,12 @@
 import hashlib
 import json
 import re
+import secrets
 import time
 import typing
-import uuid
 import warnings
 from collections import defaultdict
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from functools import partial
 from itertools import chain
 from textwrap import wrap
@@ -366,13 +366,13 @@ class TZDateTime(TypeDecorator):
         if value is not None:
             if not value.tzinfo or value.tzinfo.utcoffset(value) is None:  # pragma: no cover
                 raise TypeError("tzinfo is required")
-            value = value.astimezone(timezone.utc).replace(tzinfo=None)
+            value = value.astimezone(UTC).replace(tzinfo=None)
         return value
 
     def process_result_value(self, value, dialect):
         """Return datetime with UTC timezone."""
         if value is not None:
-            value = value.replace(tzinfo=timezone.utc)
+            value = value.replace(tzinfo=UTC)
         return value
 
 
@@ -1722,7 +1722,7 @@ class Build(Base):
         if not config.get("query_wiki_test_cases"):
             return
 
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         log.debug(f"Querying the wiki for test cases of {self.nvr}")
         try:
             wiki = MediaWiki(config.get("wiki_url"), user_agent=config.get("wiki_user_agent"))
@@ -1766,7 +1766,7 @@ class Build(Base):
                 log.debug(f'Added testcase "{case.name}" to {self.nvr}')
 
         db.flush()
-        log.debug(f"Finished querying for test cases in {datetime.now(timezone.utc) - start}")
+        log.debug(f"Finished querying for test cases in {datetime.now(UTC) - start}")
 
 
 class ContainerBuild(Build):
@@ -1854,6 +1854,7 @@ class RpmBuild(Build):
 
     __mapper_args__ = {
         "polymorphic_identity": ContentType.rpm,
+        "polymorphic_load": "inline",
     }
 
     @property
@@ -2080,7 +2081,7 @@ class Update(Base):
     close_bugs = Column(Boolean, default=True)
 
     # Timestamps
-    date_submitted = Column(TZDateTime, default=partial(datetime.now, tz=timezone.utc), index=True)
+    date_submitted = Column(TZDateTime, default=partial(datetime.now, tz=UTC), index=True)
     date_modified = Column(TZDateTime)
     date_approved = Column(TZDateTime)
     date_testing = Column(TZDateTime)
@@ -2143,8 +2144,7 @@ class Update(Base):
             raise ValueError("You must specify a Release when creating an Update.")
         prefix = kwargs["release"].id_prefix
         year = time.localtime()[0]
-        id = hashlib.sha1(str(uuid.uuid4()).encode("utf-8")).hexdigest()[:10]
-        alias = f"{prefix}-{year}-{id}"
+        alias = f"{prefix}-{year}-{secrets.token_hex(5)}"
         self.alias = alias
         self.release_id = kwargs["release"].id
         # we need this to be set for message publishing to work
@@ -2405,7 +2405,7 @@ class Update(Base):
                 {
                     "product_version": self.product_version,
                     "decision_context": self._greenwave_decision_contexts,
-                    "subject": subjects[count: count + batch_size],
+                    "subject": subjects[count : count + batch_size],
                     "verbose": verbose,
                 }
             )
@@ -2534,7 +2534,7 @@ class Update(Base):
         """
         gotsat = False
         gotunsat = False
-        recent = datetime.now(timezone.utc) - self.last_modified < timedelta(hours=2)
+        recent = datetime.now(UTC) - self.last_modified < timedelta(hours=2)
         for satisfied, unsatisfied in self._greenwave_requirements_generator:
             if satisfied:
                 gotsat = True
@@ -2901,7 +2901,7 @@ class Update(Base):
         for key, value in data.items():
             setattr(up, key, value)
 
-        up.date_modified = datetime.now(timezone.utc)
+        up.date_modified = datetime.now(UTC)
 
         notifications.publish(
             update_schemas.UpdateEditV2.from_dict(
@@ -4094,6 +4094,30 @@ class Update(Base):
             self.autotime = False
             text = config.get("disable_automatic_push_to_stable")
             self.comment(db, text, author="bodhi")
+        # If update with autopush reaches threshold, set request stable
+        if (
+            self.stable_karma
+            and self.karma >= self.stable_karma
+            and self.release.composed_by_bodhi
+            and self.autokarma
+        ):
+            # Updates for releases not "composed by Bodhi" (Rawhide,
+            # ELN...) are pushed stable only by approve_testing.py
+            if config.get("test_gating.required") and not self.test_gating_passed:
+                log.info(
+                    "%s reached stable karma threshold, but does not meet gating requirements",
+                    self.alias,
+                )
+                return
+            if not self.date_approved:
+                self.date_approved = datetime.now(UTC)
+            log.info("Automatically marking %s as stable", self.alias)
+            self.set_request(db, UpdateRequest.stable, agent)
+            notifications.publish(
+                update_schemas.UpdateKarmaThresholdV1.from_dict(
+                    {"update": self, "status": "stable"}
+                )
+            )
 
     @property
     def builds_json(self):
@@ -4251,7 +4275,7 @@ class Update(Base):
             int: The number of days since this update's date_testing if it is set, else 0.
         """
         if self.date_testing:
-            return (datetime.now(timezone.utc) - self.date_testing).days
+            return (datetime.now(UTC) - self.date_testing).days
         else:
             return 0
 
@@ -4490,10 +4514,8 @@ class Compose(Base):
     # need the ability to query inside this so the JSONB type probably isn't useful.
     checkpoints = Column(UnicodeText, nullable=False, default="{}")
     error_message = Column(UnicodeText)
-    date_created = Column(
-        TZDateTime, nullable=False, default=partial(datetime.now, tz=timezone.utc)
-    )
-    state_date = Column(TZDateTime, nullable=False, default=partial(datetime.now, tz=timezone.utc))
+    date_created = Column(TZDateTime, nullable=False, default=partial(datetime.now, tz=UTC))
+    state_date = Column(TZDateTime, nullable=False, default=partial(datetime.now, tz=UTC))
 
     release = relationship("Release", back_populates="composes")
     state = Column(ComposeState.db_type(), nullable=False, default=ComposeState.requested)
@@ -4620,7 +4642,7 @@ class Compose(Base):
                 transition.
         """
         if value != old:
-            target.state_date = datetime.now(timezone.utc)
+            target.state_date = datetime.now(UTC)
 
     @property
     def update_summary(self):
@@ -4760,7 +4782,7 @@ class Comment(Base):
     karma = Column(Integer, default=0)
     karma_critpath = Column(Integer, default=0)
     text = Column(UnicodeText, nullable=False)
-    timestamp = Column(TZDateTime, default=partial(datetime.now, tz=timezone.utc))
+    timestamp = Column(TZDateTime, default=partial(datetime.now, tz=UTC))
 
     # One-to-many relationships
     bug_feedback = relationship(
@@ -5140,9 +5162,7 @@ class BuildrootOverride(Base):
 
     notes = Column(UnicodeText, nullable=False)
 
-    submission_date = Column(
-        TZDateTime, default=partial(datetime.now, tz=timezone.utc), nullable=False
-    )
+    submission_date = Column(TZDateTime, default=partial(datetime.now, tz=UTC), nullable=False)
     expiration_date = Column(TZDateTime, nullable=False)
     expired_date = Column(TZDateTime)
 
@@ -5231,7 +5251,7 @@ class BuildrootOverride(Base):
         if "submission_date" in data:
             override.submission_date = data["submission_date"]
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if override.expired_date is not None and override.expiration_date > now:
             # Buildroot override had expired, we need to unexpire it
@@ -5267,7 +5287,7 @@ class BuildrootOverride(Base):
                 koji_session.untagBuild(tag, self.build.nvr, strict=True)
             except Exception as e:  # noqa: BLE001
                 log.error(f"Unable to untag override {self.build.nvr} from {tag}: '{e}'")
-        self.expired_date = datetime.now(timezone.utc)
+        self.expired_date = datetime.now(UTC)
 
         notifications.publish(
             override_schemas.BuildrootOverrideUntagV1.from_dict({"override": self})

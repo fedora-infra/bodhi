@@ -795,9 +795,9 @@ def trigger_tests(request):
     """
     update = request.validated["update"]
 
-    if update.status != UpdateStatus.testing:
-        log.error("Can't trigger tests for update: Update is not in testing status")
-        request.errors.add("body", "request", "Update is not in testing status")
+    if update.status not in (UpdateStatus.testing, UpdateStatus.pending):
+        log.error("Can't trigger tests for update: Update is not in testing or pending status")
+        request.errors.add("body", "request", "Update is not in testing or pending status")
     else:
         if update.content_type == ContentType.rpm:
             message = update_schemas.UpdateReadyForTestingV3.from_dict(

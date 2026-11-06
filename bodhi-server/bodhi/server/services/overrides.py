@@ -18,7 +18,7 @@
 """Define API endpoints for managing and searching buildroot overrides."""
 
 import math
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import bodhi.server.schemas
 import bodhi.server.services.errors
@@ -323,7 +323,7 @@ _@{existing_override.submitter.name} ({existing_override.submission_date.strftim
                             request,
                             edited=build,
                             submitter=submitter,
-                            submission_date=datetime.now(timezone.utc),
+                            submission_date=datetime.now(UTC),
                             notes=new_notes,
                             expiration_date=data["expiration_date"],
                             expired=None,

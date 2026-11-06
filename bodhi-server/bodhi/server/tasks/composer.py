@@ -33,7 +33,7 @@ import subprocess
 import tempfile
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from http.client import IncompleteRead
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
@@ -682,7 +682,7 @@ class ComposerThread(threading.Thread):
         eol_sidetags = []
         log.info("Updating update statuses.")
         for update in self.compose.updates:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             if update.request is UpdateRequest.testing:
                 update.status = UpdateStatus.testing
                 update.date_testing = now
@@ -1185,9 +1185,7 @@ class PungiComposerThread(ComposerThread):
 
         self._create_pungi_config()
         config_file = os.path.join(self._pungi_conf_dir, "pungi.conf")
-        self._label = (
-            f"{config.get('pungi.labeltype')}-{datetime.now(timezone.utc).strftime('%Y%m%d.%H%M')}"
-        )
+        self._label = f"{config.get('pungi.labeltype')}-{datetime.now(UTC).strftime('%Y%m%d.%H%M')}"
         pungi_cmd = [
             config.get("pungi.cmd"),
             "--config",
@@ -1368,7 +1366,7 @@ class PungiComposerThread(ComposerThread):
         prefix = "Compose dir: "
         for line in out.split("\n"):
             if line.startswith(prefix):
-                self.path = line[len(prefix):]
+                self.path = line[len(prefix) :]
         if not self.path:
             log.error("Stdout: %s", out)
             raise Exception("Unable to find the path to the compose")  # noqa: TRY002
@@ -1462,8 +1460,8 @@ class PungiComposerThread(ComposerThread):
             while True:
                 try:
                     log.info("Polling %s", master_repomd_url)
-                    masterrepomd = urlopen(master_repomd_url)
-                    newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
+                    with urlopen(master_repomd_url) as masterrepomd:
+                        newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
                 except (ConnectionResetError, IncompleteRead, URLError, HTTPError):
                     log.exception("Error fetching repomd.xml")
                     time.sleep(200)

@@ -20,7 +20,7 @@
 
 import copy
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest import mock
 
 import munch
@@ -822,7 +822,7 @@ class TestSaveOverride(BodhiClientTestCase):
         client = bindings.BodhiClient()
         client.send_request = mocker.MagicMock(return_value="return_value")
         client.csrf_token = "a token"
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         response = client.save_override(
             nvr="python-pyramid-1.5.6-3.el7",
             duration=2,
@@ -855,7 +855,7 @@ class TestSaveOverride(BodhiClientTestCase):
         client = bindings.BodhiClient()
         client.send_request = mocker.MagicMock(return_value="return_value")
         client.csrf_token = "a token"
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         response = client.save_override(
             nvr="python-pyramid-1.5.6-3.el7",
             expiration_date=now,
@@ -894,7 +894,7 @@ class TestSaveOverride(BodhiClientTestCase):
         client = bindings.BodhiClient()
         client.send_request = mocker.MagicMock(return_value="return_value")
         client.csrf_token = "a token"
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         with pytest.raises(TypeError):
             client.save_override(
                 nvr="python-pyramid-1.5.6-3.el7",
@@ -910,7 +910,7 @@ class TestSaveOverride(BodhiClientTestCase):
         client = bindings.BodhiClient()
         client.send_request = mocker.MagicMock(return_value="return_value")
         client.csrf_token = "a token"
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         response = client.save_override(
             nvr="python-pyramid-1.5.6-3.el7",
             duration=2,
@@ -945,7 +945,7 @@ class TestSaveOverride(BodhiClientTestCase):
         client = bindings.BodhiClient()
         client.send_request = mocker.MagicMock(return_value="return_value")
         client.csrf_token = "a token"
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         response = client.save_override(
             nvr="python-pyramid-1.5.6-3.el7",
             duration=2,
@@ -1074,9 +1074,7 @@ class TestUpdateStr(BodhiClientTestCase):
         """Ensure correct output when minimal is True."""
         mock_datetime = mocker.patch("bodhi.client.bindings.datetime")
         client = bindings.BodhiClient()
-        mock_datetime.now = mock.Mock(
-            return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=timezone.utc)
-        )
+        mock_datetime.now = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=UTC))
         mock_datetime.strptime = datetime.strptime
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
@@ -1094,9 +1092,7 @@ class TestUpdateStr(BodhiClientTestCase):
         )
         mock_datetime = mocker.patch("bodhi.client.bindings.datetime")
         client = bindings.BodhiClient()
-        mock_datetime.now = mock.Mock(
-            return_value=datetime(2016, 10, 5, 23, 0, 0, tzinfo=timezone.utc)
-        )
+        mock_datetime.now = mock.Mock(return_value=datetime(2016, 10, 5, 23, 0, 0, tzinfo=UTC))
         mock_datetime.strptime = datetime.strptime
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
@@ -1111,9 +1107,7 @@ class TestUpdateStr(BodhiClientTestCase):
         mocker.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {"type": "security"})
         mock_datetime = mocker.patch("bodhi.client.bindings.datetime")
         client = bindings.BodhiClient()
-        mock_datetime.now = mock.Mock(
-            return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=timezone.utc)
-        )
+        mock_datetime.now = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=UTC))
         mock_datetime.strptime = datetime.strptime
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
@@ -1135,9 +1129,7 @@ class TestUpdateStr(BodhiClientTestCase):
             },
         )
         mock_datetime = mocker.patch("bodhi.client.bindings.datetime")
-        mock_datetime.now = mock.Mock(
-            return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=timezone.utc)
-        )
+        mock_datetime.now = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=UTC))
         mock_datetime.strptime = datetime.strptime
         client = bindings.BodhiClient()
 
@@ -1156,9 +1148,7 @@ class TestUpdateStr(BodhiClientTestCase):
         )
         mock_datetime = mocker.patch("bodhi.client.bindings.datetime")
         client = bindings.BodhiClient()
-        mock_datetime.now = mock.Mock(
-            return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=timezone.utc)
-        )
+        mock_datetime.now = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=UTC))
         mock_datetime.strptime = datetime.strptime
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
@@ -1172,9 +1162,7 @@ class TestUpdateStr(BodhiClientTestCase):
         """Ensure correct output when minimal is True, and there are neither a title nor builds"""
         mocker.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {"title": None, "builds": []})
         mock_datetime = mocker.patch("bodhi.client.bindings.datetime")
-        mock_datetime.now = mock.Mock(
-            return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=timezone.utc)
-        )
+        mock_datetime.now = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=UTC))
         mock_datetime.strptime = datetime.strptime
         client = bindings.BodhiClient()
 
@@ -1189,9 +1177,7 @@ class TestUpdateStr(BodhiClientTestCase):
         """Ensure correct output when minimal is True, and and there is no content-type"""
         mocker.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {"content_type": None})
         mock_datetime = mocker.patch("bodhi.client.bindings.datetime")
-        mock_datetime.now = mock.Mock(
-            return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=timezone.utc)
-        )
+        mock_datetime.now = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0, tzinfo=UTC))
         mock_datetime.strptime = datetime.strptime
         client = bindings.BodhiClient()
 
@@ -1791,6 +1777,7 @@ class TestTestable(BodhiClientTestCase):
         """Assert correct behavior from the testable() method."""
         dnf = mocker.patch("bodhi.client.bindings.dnf")
         fill_sack = mock.MagicMock()
+        # fmt: off
         dnf.Base.return_value.fill_sack = fill_sack
         (
             fill_sack.return_value
@@ -1799,6 +1786,7 @@ class TestTestable(BodhiClientTestCase):
             .filter.return_value
             .run.return_value
         ) = ["bodhi-2.8.1-1.fc26"]
+        # fmt: on
 
         client = bindings.BodhiClient()
         get_koji_session = mocker.patch.object(client, "get_koji_session")
@@ -1820,6 +1808,7 @@ class TestTestable(BodhiClientTestCase):
         assert list(updates) == [{"nvr": "bodhi-2.9.0-1.fc26"}]
         fill_sack.assert_called_once_with(load_system_repo=True)
         fill_sack.return_value.query.assert_called_once_with()
+        # fmt: off
         fill_sack.return_value.query.return_value.installed.assert_called_once_with()
         (
             fill_sack.return_value
@@ -1838,6 +1827,7 @@ class TestTestable(BodhiClientTestCase):
             .filter.return_value
             .run.assert_called_once_with()
         )
+        # fmt: on
         get_koji_session.return_value.listTagged.assert_called_once_with(
             "f26-updates-testing", latest=True
         )

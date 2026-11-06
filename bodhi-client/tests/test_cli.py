@@ -21,7 +21,7 @@ import copy
 import os
 import platform
 import tempfile
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from typing import ClassVar
 from unittest import mock
 
@@ -1999,7 +1999,7 @@ class TestSaveBuildrootOverrides:
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = mocked_client_class.send_request.mock_calls[0][2]["data"]["expiration_date"]
-        assert (datetime.now(timezone.utc) - expire_time) < timedelta(seconds=5)
+        assert (datetime.now(UTC) - expire_time) < timedelta(seconds=5)
         # There should be two calls to send_request(). The first to save the override, and the
         # second to find out the release tags so the koji wait-repo hint can be printed.
         assert mocked_client_class.send_request.call_count == 2
@@ -2154,7 +2154,7 @@ class TestSaveBuildrootOverrides:
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = mocked_client_class.send_request.mock_calls[0][2]["data"]["expiration_date"]
-        assert (datetime.now(timezone.utc) - expire_time) < timedelta(seconds=5)
+        assert (datetime.now(UTC) - expire_time) < timedelta(seconds=5)
         # There should be one calls to send_request().
         assert mocked_client_class.send_request.call_count == 1
         assert mocked_client_class.send_request.mock_calls[0] == mock.call(
@@ -2900,7 +2900,7 @@ class TestEditBuildrootOverrides:
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = mocked_client_class.send_request.mock_calls[0][2]["data"]["expiration_date"]
-        assert (datetime.now(timezone.utc) - expire_time) < timedelta(seconds=5)
+        assert (datetime.now(UTC) - expire_time) < timedelta(seconds=5)
         mocked_client_class.send_request.assert_called_once_with(
             "overrides/",
             verb="POST",
@@ -3480,7 +3480,7 @@ class TestEditRelease:
                 "mail_template": "fedora_errata_template",
                 "create_automatic_updates": False,
                 "package_manager": "unspecified",
-                "released_on": datetime.now(timezone.utc).date(),
+                "released_on": datetime.now(UTC).date(),
                 "setting_status": None,
                 "testing_repository": None,
                 "eol": None,

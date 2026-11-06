@@ -14,7 +14,7 @@
 """Look for overrides that are past their expiration dates and mark them expired."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from bodhi.server import Session
 from bodhi.server.util import transactional_session_maker
@@ -36,7 +36,7 @@ def main():
 
 def expire_overrides(db: Session):
     """Search for overrides that are past their expiration date and mark them expired."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     overrides = db.query(BuildrootOverride)
     overrides = overrides.filter(BuildrootOverride.expired_date.is_(None))
     overrides = overrides.filter(BuildrootOverride.expiration_date < now)

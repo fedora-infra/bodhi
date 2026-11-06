@@ -25,7 +25,7 @@ import json
 import pickle
 import time
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest import mock
 
 import cornice
@@ -659,11 +659,11 @@ class TestCompose(BasePyTestCase):
     def test_update_state_date(self):
         """Ensure that the state_date attribute gets automatically set when state changes."""
         compose = self._generate_compose(model.UpdateRequest.stable, True)
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         compose.state = model.ComposeState.notifying
 
         assert compose.state_date > before
-        assert datetime.now(timezone.utc) > compose.state_date
+        assert datetime.now(UTC) > compose.state_date
 
     def test_update_summary(self):
         """Test the update_summary() property."""
@@ -2700,7 +2700,7 @@ class TestUpdateValidateBuilds(BasePyTestCase):
             request=model.UpdateRequest.testing,
             notes="Useless details!",
             release=model.Release.query.filter_by(name="F17").one(),
-            date_submitted=datetime(1984, 11, 2, tzinfo=timezone.utc),
+            date_submitted=datetime(1984, 11, 2, tzinfo=UTC),
             stable_karma=3,
             unstable_karma=-3,
             type=UpdateType.bugfix,
@@ -2853,10 +2853,10 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         if critpath:
             # the default critpath.mandatory_days_in_testing
             # value is 14
-            update.date_testing = datetime.now(timezone.utc) - timedelta(days=15)
+            update.date_testing = datetime.now(UTC) - timedelta(days=15)
         else:
             # testing.ini specifies fedora.mandatory_days_in_testing = 7
-            update.date_testing = datetime.now(timezone.utc) - timedelta(days=8)
+            update.date_testing = datetime.now(UTC) - timedelta(days=8)
         # to ensure we don't meet karma requirements
         update.stable_karma = 10
 
@@ -2872,10 +2872,10 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         if critpath:
             # the default critpath.mandatory_days_in_testing
             # value is 14
-            update.date_testing = datetime.now(timezone.utc) - timedelta(days=13)
+            update.date_testing = datetime.now(UTC) - timedelta(days=13)
         else:
             # testing.ini specifies fedora.mandatory_days_in_testing = 7
-            update.date_testing = datetime.now(timezone.utc) - timedelta(days=6)
+            update.date_testing = datetime.now(UTC) - timedelta(days=6)
         # to ensure we don't meet karma requirements
         update.stable_karma = 10
 
@@ -2894,10 +2894,10 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         if critpath:
             # the default critpath.mandatory_days_in_testing
             # value is 14
-            update.date_testing = datetime.now(timezone.utc) - timedelta(days=15)
+            update.date_testing = datetime.now(UTC) - timedelta(days=15)
         else:
             # testing.ini specifies fedora.mandatory_days_in_testing = 7
-            update.date_testing = datetime.now(timezone.utc) - timedelta(days=8)
+            update.date_testing = datetime.now(UTC) - timedelta(days=8)
         update.stable_karma = 1
         update.comment(self.db, "testing", author="enemy", karma=-1)
         # This gets the update back to positive karma, but not to the required
@@ -3311,7 +3311,7 @@ class TestUpdate(ModelTest):
         """
         update = self.get_update()
         update.critpath = True
-        update.date_testing = datetime.now(timezone.utc) + timedelta(days=-4)
+        update.date_testing = datetime.now(UTC) + timedelta(days=-4)
 
         critpath_days_to_stable = int(config.get("critpath.mandatory_days_in_testing"))
 
@@ -3352,7 +3352,7 @@ class TestUpdate(ModelTest):
         truthy.
         """
         update = self.get_update()
-        update.date_testing = datetime.now(timezone.utc) + timedelta(days=-4)
+        update.date_testing = datetime.now(UTC) + timedelta(days=-4)
         # Assert that our preconditions from the docblock are correct.
         assert not update.meets_testing_requirements
 
@@ -3371,7 +3371,7 @@ class TestUpdate(ModelTest):
         update.autokarma = False
         update.test_gating_status = TestGatingStatus.failed
 
-        update.date_testing = datetime.now(timezone.utc) + timedelta(days=-8)
+        update.date_testing = datetime.now(UTC) + timedelta(days=-8)
         assert not update.meets_testing_requirements
 
         assert update.mandatory_days_in_testing <= update.days_in_testing
@@ -3390,7 +3390,7 @@ class TestUpdate(ModelTest):
         update.autokarma = False
         update.test_gating_status = TestGatingStatus.failed
 
-        update.date_testing = datetime.now(timezone.utc) + timedelta(days=-3)
+        update.date_testing = datetime.now(UTC) + timedelta(days=-3)
         assert not update.meets_testing_requirements
 
         assert update.mandatory_days_in_testing > update.days_in_testing
@@ -5055,7 +5055,7 @@ class TestBuildrootOverride(ModelTest):
     klass = model.BuildrootOverride
     attrs = {
         "notes": "This is needed to build foobar",
-        "expiration_date": datetime.now(timezone.utc),
+        "expiration_date": datetime.now(UTC),
     }
 
     def do_get_dependencies(self):
@@ -5119,7 +5119,7 @@ class TestBuildrootOverride(ModelTest):
         self.db.add(build)
         self.db.commit()
         user = model.User.query.first()
-        expiration_date = datetime.now(timezone.utc) + timedelta(days=1)
+        expiration_date = datetime.now(UTC) + timedelta(days=1)
         req = DummyRequest(user=user)
         req.db = self.db
 

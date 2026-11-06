@@ -19,7 +19,7 @@
 This module contains tests for the bodhi.server.scripts.untag_branched module.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from io import StringIO
 from unittest.mock import call, patch
 
@@ -48,7 +48,7 @@ class TestMain(BasePyTestCase):
         release = models.Release.query.first()
         release.state = models.ReleaseState.pending
         update = models.Update.query.filter_by(release=release).first()
-        update.date_stable = datetime.now(timezone.utc) - timedelta(days=2)
+        update.date_stable = datetime.now(UTC) - timedelta(days=2)
         update.status = models.UpdateStatus.stable
         # Since only the stable tag is not present, no calls to untagBuild should happen.
         koji.listTags.side_effect = OSError("Can't talk to koji bro")
@@ -80,7 +80,7 @@ class TestMain(BasePyTestCase):
         release = models.Release.query.first()
         release.state = models.ReleaseState.pending
         update = models.Update.query.filter_by(release=release).first()
-        update.date_stable = datetime.now(timezone.utc) - timedelta(days=2)
+        update.date_stable = datetime.now(UTC) - timedelta(days=2)
         update.status = models.UpdateStatus.stable
         # Since only the stable tag is not present, no calls to untagBuild should happen.
         koji.listTags.return_value = [{"name": "f17"}]
@@ -113,7 +113,7 @@ class TestMain(BasePyTestCase):
         release = models.Release.query.first()
         release.state = models.ReleaseState.pending
         update = models.Update.query.filter_by(release=release).first()
-        update.date_stable = datetime.now(timezone.utc) - timedelta(days=2)
+        update.date_stable = datetime.now(UTC) - timedelta(days=2)
         update.status = models.UpdateStatus.stable
         # The pending_signing tag is present so it should be removed.
         koji.listTags.return_value = [{"name": "f17-updates-signing-pending"}, {"name": "f17"}]
@@ -150,7 +150,7 @@ class TestMain(BasePyTestCase):
         release = models.Release.query.first()
         release.state = models.ReleaseState.pending
         update = models.Update.query.filter_by(release=release).first()
-        update.date_stable = datetime.now(timezone.utc) - timedelta(days=2)
+        update.date_stable = datetime.now(UTC) - timedelta(days=2)
         update.status = models.UpdateStatus.stable
         # The pending_testing tag is present so it should be removed.
         koji.listTags.return_value = [{"name": "f17-updates-testing-pending"}, {"name": "f17"}]
@@ -187,7 +187,7 @@ class TestMain(BasePyTestCase):
         release = models.Release.query.first()
         release.state = models.ReleaseState.pending
         update = models.Update.query.filter_by(release=release).first()
-        update.date_stable = datetime.now(timezone.utc) - timedelta(days=2)
+        update.date_stable = datetime.now(UTC) - timedelta(days=2)
         update.status = models.UpdateStatus.stable
         # Since the stable tag is not present, none of these should be removed.
         koji.listTags.return_value = [
@@ -227,7 +227,7 @@ class TestMain(BasePyTestCase):
         release = models.Release.query.first()
         release.state = models.ReleaseState.pending
         update = models.Update.query.filter_by(release=release).first()
-        update.date_stable = datetime.now(timezone.utc) - timedelta(days=2)
+        update.date_stable = datetime.now(UTC) - timedelta(days=2)
         update.status = models.UpdateStatus.stable
         # The testing tag is present so it should be removed.
         koji.listTags.return_value = [{"name": "f17-updates-testing"}, {"name": "f17"}]
@@ -264,7 +264,7 @@ class TestMain(BasePyTestCase):
         release = models.Release.query.first()
         release.state = models.ReleaseState.pending
         update = models.Update.query.filter_by(release=release).first()
-        update.date_stable = datetime.now(timezone.utc)
+        update.date_stable = datetime.now(UTC)
         update.status = models.UpdateStatus.stable
         # The testing tag is present and should stay.
         koji.listTags.return_value = [{"name": "f17-updates-testing"}, {"name": "f17"}]

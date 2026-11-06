@@ -10,7 +10,7 @@
 # serve to show the default.
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -57,7 +57,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "bodhi"
-copyright = f"2007-{datetime.now(timezone.utc).year}, Red Hat, Inc."
+copyright = f"2007-{datetime.now(UTC).year}, Red Hat, Inc."
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
