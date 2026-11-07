@@ -169,7 +169,8 @@ class TestDownload:
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_arch_flag(self, mocked_client_class, mocker):
@@ -194,7 +195,8 @@ class TestDownload:
                 "--arch=noarch",
                 "--arch=x86_64",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_arch_all_flag(self, mocked_client_class, mocker):
@@ -212,7 +214,10 @@ class TestDownload:
 
         assert result.exit_code == 0
         assert result.output == "Downloading packages from FEDORA-2017-c95b33872d\n"
-        call.assert_called_once_with(["koji", "download-build", "nodejs-grunt-wrap-0.3.0-2.fc25"])
+        call.assert_called_once_with(
+            ["koji", "download-build", "nodejs-grunt-wrap-0.3.0-2.fc25"],
+            cwd=None,
+        )
 
     def test_debuginfo_flag(self, mocked_client_class, mocker):
         """
@@ -237,7 +242,8 @@ class TestDownload:
         assert result.exit_code == 0
         assert result.output == "Downloading packages from FEDORA-2017-c95b33872d\n"
         call.assert_called_once_with(
-            ["koji", "download-build", "--debuginfo", "nodejs-grunt-wrap-0.3.0-2.fc25"]
+            ["koji", "download-build", "--debuginfo", "nodejs-grunt-wrap-0.3.0-2.fc25"],
+            cwd=None,
         )
 
     def test_multiple_builds(self, mocked_client_class, mocker):
@@ -261,8 +267,14 @@ class TestDownload:
 
         assert result.exit_code == 0
         assert result.output == "Downloading packages from FEDORA-2017-c95b33872d\n"
-        call.assert_any_call(["koji", "download-build", "nodejs-pants-0.3.0-2.fc25"])
-        call.assert_any_call(["koji", "download-build", "nodejs-grunt-wrap-0.3.0-2.fc25"])
+        call.assert_any_call(
+            ["koji", "download-build", "nodejs-pants-0.3.0-2.fc25"],
+            cwd=None,
+        )
+        call.assert_any_call(
+            ["koji", "download-build", "nodejs-grunt-wrap-0.3.0-2.fc25"],
+            cwd=None,
+        )
 
     def test_empty_options(self, mocked_client_class):
         """Assert we return an error if either --updateid or --builds are not used."""
@@ -316,7 +328,8 @@ class TestDownload:
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_failed_warning(self, mocked_client_class, mocker):
@@ -344,7 +357,8 @@ class TestDownload:
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_updateid(self, mocked_client_class, mocker):
@@ -372,7 +386,8 @@ class TestDownload:
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
 
@@ -439,7 +454,8 @@ class TestDownloadGPG:
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_epel_good(self, mocked_client_class):
@@ -468,7 +484,8 @@ class TestDownloadGPG:
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_gpg_fails(self, mocked_client_class):
@@ -494,7 +511,8 @@ WARNING: could not find GPG key, packages will be unsigned
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_gpg_noexist(self, mocked_client_class):
@@ -520,7 +538,8 @@ WARNING: could not find GPG key, packages will be unsigned
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_no_key_id(self, mocked_client_class):
@@ -545,7 +564,8 @@ WARNING: could not find GPG key, packages will be unsigned
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
 
@@ -643,7 +663,8 @@ kRFmBygMR6M/
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_epel_good_remote(self, mocked_client_class):
@@ -668,7 +689,8 @@ kRFmBygMR6M/
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_gpg_noexist_remote(self, mocked_client_class):
@@ -694,7 +716,8 @@ WARNING: could not find GPG key, packages will be unsigned
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_bad_status(self, mocked_client_class):
@@ -719,7 +742,8 @@ WARNING: could not find GPG key, packages will be unsigned
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
     def test_request_exception(self, mocked_client_class):
@@ -744,7 +768,8 @@ WARNING: could not find GPG key, packages will be unsigned
                 "--arch=noarch",
                 f"--arch={platform.machine()}",
                 "nodejs-grunt-wrap-0.3.0-2.fc25",
-            ]
+            ],
+            cwd=None,
         )
 
 
