@@ -593,14 +593,25 @@ def validate_acls(request, **kwargs):
             people = [user.name]
             if has_access:
                 # Retrieve people to be informed of the update
-                try:
-                    people = package.get_pkg_committers_from_pagure()[0]
-                except Exception:  # noqa: BLE001
-                    # This will simply mean no email will be posted to affected users
-                    # Just log it.
-                    log.warning(
-                        f"Unable to retrieve committers list from Pagure for {package.name}."
-                    )
+                if config["forgejo_url"]:
+                    try:
+                        people = package.get_pkg_committers_from_forgejo()[0]
+                    except Exception:  # noqa: BLE001
+                        # This will simply mean no email will be posted to affected users
+                        # Just log it.
+                        log.warning(
+                            f"Unable to retrieve committers list from Forgejo for {package.name}."
+                        )
+                # TODO: Remove this branch after Forgejo transition
+                else:
+                    try:
+                        people = package.get_pkg_committers_from_pagure()[0]
+                    except Exception:  # noqa: BLE001
+                        # This will simply mean no email will be posted to affected users
+                        # Just log it.
+                        log.warning(
+                            f"Unable to retrieve committers list from Pagure for {package.name}."
+                        )
         elif acl_system == "dummy":
             committers = ["ralph", "bowlofeggs", "guest"]
             if config["acl_dummy_committer"]:
