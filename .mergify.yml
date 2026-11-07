@@ -18,16 +18,6 @@ pull_request_rules:
       merge:
         method: rebase
 
-  - name: backport 25.11
-    actions:
-      backport:
-        branches:
-          - "25.11"
-    conditions:
-      - label!=WIP
-      - -draft
-      - label=25.11-backports
-
   - name: backport 26.4
     actions:
       backport:
@@ -37,5 +27,16 @@ pull_request_rules:
       - label!=WIP
       - -draft
       - label=26.4-backports
+
+  - name: backport 26.11
+    actions:
+      backport:
+        branches:
+          - "26.11"
+    conditions:
+      - label!=WIP
+      - -draft
+      - label=26.11-backports
+
 merge_protections_settings:
   reporting_method: check-runs
