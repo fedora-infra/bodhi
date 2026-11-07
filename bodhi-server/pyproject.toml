@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhi-server"
-version = "26.4.0"
+version = "26.11.0"
 description = "Bodhi server"
 readme = "README.rst"
 authors = ["Fedora Infrastructure Team"]

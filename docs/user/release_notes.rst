@@ -4,6 +4,71 @@ Release notes
 
 .. towncrier release notes start
 
+v26.11.0
+========
+
+
+Released on 2026-11-07.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Support for Python 3.9 has been dropped (:pr:`6190`).
+
+Features
+^^^^^^^^
+
+* The WSGI application and Celery tasks now opt into the process's hard file
+  limit. Previously, both
+  used the default soft limit, which for most platforms is 1024. (:pr:`6158`).
+* bodhi-server: added the `get_ccp_components` endpoint to expose
+  compose-critical component data (:issue:`6142`).
+
+Bug fixes
+^^^^^^^^^
+
+* Bodhi now uses dogpile.cache in all places where it uses cache. When
+  deploying Bodhi in a multi-thread/multi-process/multi-pod configuration it is
+  highly recommended to use Redis/Valkey or Memcached as dogpile backend.
+  (:pr:`6099`).
+* The composer no longer leaves Pungi unreaped, with its stdout and stderr
+  pipes still open, when a compose is aborted before Pungi is waited on
+  (:pr:`6155`).
+* bodhi-composer: release and reacquire DB session around long standing
+  operations to avoid connection timeouts (:pr:`6159`).
+* bodhi-push no longer treats any existing compose as evidence that a push is
+  already running, so a single stuck compose can no longer block updates for
+  every other release and content type (:pr:`6160`).
+* Close several file descriptors that could be leaked when an operation raised
+  part way through: the updateinfo shelve, the temporary updateinfo file, the
+  pipes of a subprocess whose communicate() raises, the compressed comps file,
+  and the master repomd response (:pr:`6169`).
+* Fix ``test_oidcclient_clear_auth`` compatibility with ``requests`` 2.34 by
+  using flexible
+  ``call_args`` assertion instead of the exact-match ``assert_called_with``
+  (:issue:`6113`).
+* Show the package type next to the package name in search results, so that
+  packages
+  sharing a name across content types can be told apart (:issue:`6128`).
+* Fix Markdown rendering for fenced code blocks nested inside blockquotes.
+  (:issue:`6132`).
+* Show 'Re-Trigger Tests' button when update is in 'pending' state as well as
+  'testing' (and allow it to work) (:issue:`6192`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Williamson
+* Bojan Smojver
+* Ashwin Aashu
+* Jeremy Cline
+* Mattia Verga
+* BHUMIKA KADU
+
+
 v26.4.0
 =======
 
