@@ -3,12 +3,12 @@ default_language_version:
 
 repos:
   - repo: https://github.com/pycqa/flake8
-    rev: 7.4.1
+    rev: 7.5.0
     hooks:
       - id: flake8
         args: ['--config=setup.cfg']
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v2.4.0"
+    rev: "v2.4.1"
     hooks:
       - id: mypy
         args: []
@@ -29,7 +29,7 @@ repos:
         additional_dependencies: ["toml"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.1
+    rev: v0.17.3
     hooks:
       - id: ruff-check
       - id: ruff-format
