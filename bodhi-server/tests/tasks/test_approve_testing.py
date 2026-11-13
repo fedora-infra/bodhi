@@ -156,6 +156,7 @@ class TestMain(BaseTaskTestCase):
             approve_testing_main()
         # we should still only have posted approval comment once
         self._assert_commented(1)
+
     def test_update_autokarma_floor_disabled(self):
         """Ensure autokarma pushes when the floor is disabled."""
         self.update.release.composed_by_bodhi = True
@@ -164,7 +165,11 @@ class TestMain(BaseTaskTestCase):
         self.update.stable_karma = self.update.karma
         config["autokarma.floor_time_hours"] = 0
 
-        with fml_testing.mock_sends( update_schemas.UpdateCommentV1, update_schemas.UpdateRequirementsMetStableV1, update_schemas.UpdateRequestStableV1):
+        with fml_testing.mock_sends(
+            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateRequirementsMetStableV1,
+            update_schemas.UpdateRequestStableV1,
+        ):
             approve_testing_main()
 
         assert self.update.request == models.UpdateRequest.stable
@@ -177,7 +182,7 @@ class TestMain(BaseTaskTestCase):
         self.update.autotime = False
         self.update.comment(self.db, "testing", author="tester", karma=1)
         self.update.stable_karma = self.update.karma
-        self.update.date_testing = datetime.now(timezone.utc) - timedelta(hours=20)
+        self.update.date_testing = datetime.now(UTC) - timedelta(hours=20)
         config["autokarma.floor_time_hours"] = 24
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
             self.db.commit()
@@ -195,10 +200,14 @@ class TestMain(BaseTaskTestCase):
         self.update.autotime = False
         self.update.comment(self.db, "testing", author="tester", karma=1)
         self.update.stable_karma = self.update.karma
-        self.update.date_testing = datetime.now(timezone.utc) - timedelta(hours=25)
+        self.update.date_testing = datetime.now(UTC) - timedelta(hours=25)
         config["autokarma.floor_time_hours"] = 24
 
-        with fml_testing.mock_sends(update_schemas.UpdateCommentV1, update_schemas.UpdateRequirementsMetStableV1, update_schemas.UpdateRequestStableV1,):
+        with fml_testing.mock_sends(
+            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateRequirementsMetStableV1,
+            update_schemas.UpdateRequestStableV1,
+        ):
             approve_testing_main()
 
         assert self.update.request == models.UpdateRequest.stable
@@ -211,13 +220,17 @@ class TestMain(BaseTaskTestCase):
         self.update.autotime = False
         self.update.comment(self.db, "testing", author="tester", karma=1)
         self.update.stable_karma = self.update.karma + 1
-        self.update.date_testing = datetime.now(timezone.utc) - timedelta(hours=25)
+        self.update.date_testing = datetime.now(UTC) - timedelta(hours=25)
         config["autokarma.floor_time_hours"] = 24
 
-        with fml_testing.mock_sends(update_schemas.UpdateRequirementsMetStableV1):
+        with fml_testing.mock_sends(
+            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateRequirementsMetStableV1,
+        ):
             approve_testing_main()
 
-        self._assert_not_pushed()
+        assert self.update.status == models.UpdateStatus.testing
+        assert self.update.request is None
         assert self.update.date_approved is not None
 
     @pytest.mark.parametrize("stable_days", (0, 7, 14))
