@@ -28,6 +28,7 @@ RUN dnf install -y \
     pre-commit
 
 RUN pip-3 install \
+    "setuptools<82" \
     pyasn1 \
     pymediawiki \
     celery
