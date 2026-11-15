@@ -109,7 +109,7 @@ psycopg2 = ">=2.8.6"
 py3dns = ">=3.2.1" # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
 pyLibravatar = ">=1.6"
 pymediawiki = "^0.7"
-pyramid = "~2.0.0"
+pyramid = "~2.0"
 pyramid-mako = "^1.1"
 python-bugzilla = ">=3.2.0"
 requests = ">=2.25.1"
