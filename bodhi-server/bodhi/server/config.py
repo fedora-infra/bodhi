@@ -436,6 +436,20 @@ class BodhiConfig(dict):
             "value": "https://id.fedoraproject.org/openidc/.well-known/openid-configuration",
             "validator": str,
         },
+        "forgejo.namespaces": {
+            "value": ("rpm:rpms, container:container, flatpak:flatpaks"),
+            "validator": _generate_dict_validator,
+        },
+        "forgejo.url": {
+            # TODO: Switch to the proper value after forge transition
+            #  For now this is used to switch between the forgejo and pagure api check
+            # "value": "https://src.fedoraproject.org/",
+            # "validator": _validate_tls_url,
+            "value": "",
+            "validator": str,
+        },
+        "forgejo.access_token": {"value": None, "validator": _validate_none_or(str)},
+        # TODO: Remove these pagure_* after forge transition
         "pagure_namespaces": {
             "value": ("rpm:rpms, module:modules, container:container, flatpak:flatpaks"),
             "validator": _generate_dict_validator,
