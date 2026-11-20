@@ -326,6 +326,7 @@ class BodhiConfig(dict):
         "critpath.jsonpath": {"value": "/etc/bodhi/critpath", "validator": str},
         "critpath.mandatory_days_in_testing": {"value": 14, "validator": int},
         "critpath.min_karma": {"value": 2, "validator": int},
+        "autokarma.floor_time_hours": {"value": 0, "validator": int},
         "critpath.type": {"value": None, "validator": _validate_none_or(str)},
         "default_email_domain": {"value": "fedoraproject.org", "validator": str},
         "disable_automatic_push_to_stable": {
