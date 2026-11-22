@@ -233,6 +233,65 @@ class TestMain(BaseTaskTestCase):
         assert self.update.request is None
         assert self.update.date_approved is not None
 
+    def test_update_autokarma_test_gating_not_passed(self):
+        """Ensure autokarma does not push when test gating has failed."""
+        self.update.release.composed_by_bodhi = True
+        self.update.autotime = False
+        self.update.comment(self.db, "testing", author="tester", karma=1)
+        self.update.stable_karma = self.update.karma
+        self.update.test_gating_status = models.TestGatingStatus.failed
+        config["test_gating.required"] = True
+        config["autokarma.floor_time_hours"] = 0
+
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            self.db.commit()
+
+        with fml_testing.mock_sends():
+            approve_testing_main()
+
+        self._assert_not_pushed()
+        assert self.update.date_approved is None
+
+    @patch("bodhi.server.models.Update.meets_testing_requirements", False)
+    def test_update_autokarma_requirements_not_met(self):
+        """Ensure autokarma does not push when testing requirements are unmet."""
+        self.update.release.composed_by_bodhi = True
+        self.update.autotime = False
+        self.update.comment(self.db, "testing", author="tester", karma=1)
+        self.update.stable_karma = self.update.karma
+        config["test_gating.required"] = False
+        config["autokarma.floor_time_hours"] = 0
+
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            self.db.commit()
+
+        with fml_testing.mock_sends():
+            approve_testing_main()
+
+        self._assert_not_pushed()
+        assert self.update.date_approved is None
+
+    def test_update_autokarma_already_approved(self):
+        """Ensure autokarma preserves an existing approval date."""
+        self.update.release.composed_by_bodhi = True
+        self.update.autotime = False
+        self.update.comment(self.db, "testing", author="tester", karma=1)
+        self.update.stable_karma = self.update.karma
+        approved = datetime.now(UTC) - timedelta(hours=1)
+        self.update.date_approved = approved
+        config["test_gating.required"] = False
+        config["autokarma.floor_time_hours"] = 0
+
+        with fml_testing.mock_sends(
+            update_schemas.UpdateCommentV1,
+            update_schemas.UpdateRequirementsMetStableV1,
+            update_schemas.UpdateRequestStableV1,
+        ):
+            approve_testing_main()
+
+        assert self.update.request == models.UpdateRequest.stable
+        assert self.update.date_approved == approved
+
     @pytest.mark.parametrize("stable_days", (0, 7, 14))
     @pytest.mark.parametrize("has_stable_comment", (True, False))
     @pytest.mark.parametrize("composed_by_bodhi", (True, False))

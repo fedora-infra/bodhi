@@ -201,7 +201,7 @@ def process_update(update: Update, db: Session):
         if (
             floor_time_hours > 0
             and update.date_testing
-            and datetime.datetime.now(datetime.timezone.utc) - update.date_testing
+            and datetime.datetime.now(datetime.UTC) - update.date_testing
             < datetime.timedelta(hours=floor_time_hours)
         ):
             log.info(
@@ -215,7 +215,7 @@ def process_update(update: Update, db: Session):
             return
 
         if not update.date_approved:
-            update.date_approved = datetime.datetime.now(datetime.timezone.utc)
+            update.date_approved = datetime.datetime.now(datetime.UTC)
 
         autopush_update(update, db)
         return
@@ -227,7 +227,6 @@ def process_update(update: Update, db: Session):
     log.info(f"{update.alias} now meets testing requirements")
 
     if not update.date_approved:
-        update.date_approved = datetime.datetime.now(datetime.timezone.utc)
         update.date_approved = datetime.datetime.now(datetime.UTC)
     if update.autotime and update.days_in_testing >= update.stable_days:
         autopush_update(update, db)
